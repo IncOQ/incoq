@@ -1,0 +1,82 @@
+# Changes from Distalgo source tree:
+# - added Controller
+# - changed ps field to use runtimelib and copy from param
+# - wait for controller before terminating, instead of
+#   peer-to-peer Done messages
+
+import sys
+controller = import_da('controller')
+import runtimelib
+
+class P(process, controller.Controllee):
+    def setup(ctl, _ps, orig_token, nrounds): # other procs, and whether self.id holds token
+        self.ps = runtimelib.Set()
+        self.ps.update(_ps)
+        self.RN = dict((p, 0) for p in ps)        # last request number received
+        # Token structure:
+        self.Q = []                   # queue of pending requests
+        self.LN = dict((p, 0) for p in ps) # last request number for which token was granted
+
+    def ctl_begin(): super().ctl_begin()
+    def ctl_end(): super().ctl_end()
+
+    def cs(task):
+        -- request
+        if not haveToken():
+            RN[self.id] += 1
+            send(('request', self.id, RN[self.id]), to=ps)
+            #await(some(rcvd(('token', _, _LN1)), LN1[self.id] < rn))
+            await(haveToken())
+
+        task()                   #critical section
+
+        LN[self.id] = RN[self.id]
+        Q.extend(listof(p, p in ps, has=(p not in Q and RN[p] == LN[p] + 1)))
+        if len(Q) > 0:
+            p = Q.pop()
+            send(('token', Q, LN), to=p)
+
+    def receive(msg=('token', Q1, LN1)):
+        Q = Q1
+        LN = LN1
+
+    def receive(msg=('request', p, n)):
+        RN[p] = max((RN[p], n))
+        if (haveToken() and RN[p] == LN[p] + 1):
+            send(('token', Q, LN), to=p)
+
+    def haveToken():
+        return (orig_token and not some(sent(('token', _, _))) or
+                some(received(('token', _, LN1)),
+                     has=(not some(sent(('token', _, LN2)),
+                                   has=(LN2[self.id] > LN1[self.id])))))
+
+    def main():
+        ctl_begin()
+
+        def anounce():
+            output("In cs!")
+        if haveToken():
+            output("I'm lucky!")
+        for i in range(nrounds):
+            cs(anounce)
+
+        ctl_end()
+
+def main():
+    nprocs = int(sys.argv[1]) if len(sys.argv) > 1 else 10
+    nrounds = int(sys.argv[2]) if len(sys.argv) > 2 else 1
+     # create n process
+    ps = new(P, num= nprocs)
+
+    # start the controller
+    ctl = new(controller.Controller, num= 1)
+    setup(ctl, (nprocs,))
+    start(ctl)
+
+    # setup the processes
+    lucky = ps.pop()
+
+    setup(ps, (ctl, ps|{lucky}, False, nrounds))
+    setup({lucky}, (ctl, ps|{lucky}, True, nrounds))
+    start(ps|{lucky})

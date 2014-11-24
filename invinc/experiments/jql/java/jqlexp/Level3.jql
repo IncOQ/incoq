@@ -1,0 +1,57 @@
+// Level 3 query: {(a, s) for a in attends for s in students for c in courses
+//                        if a.course == COMP101 if a.student == s
+//                        if a.course == c}
+// Author: Jon Brandvein
+
+package jqlexp;
+
+import java.util.*;
+
+import java.io.IOException;
+
+import org.json.simple.parser.ParseException;
+
+public class Level3 extends Driver {
+    
+    public static void main(String[] args)
+    {
+        Level3 inst = new Level3();
+        inst.run(args);
+    }
+    
+    public Object query(Course c1)
+    {
+        // Note: JQL rejects this query if the last condition is written
+        // as a.course.equals(c). Apparently, the field retrieval a.course
+        // can only appear once in the query.
+        return selectAll(Attends a:ATTENDS, Student s:STUDENTS,
+                         Course c:COURSES
+                         | a.course == c1 && a.student == s &&
+                           c == c1);
+    }
+    
+    public Object formatOutput(Object output)
+    {
+        if (output == null)
+        {
+            return null;
+        }
+        
+        ArrayList<Object[]> entries = (ArrayList<Object[]>) output;
+        
+        HashMap data = new HashMap();
+        for (int i = 0; i < entries.size(); ++i)
+        {
+            Object[] entry = entries.get(i);
+            Attends a = (Attends) entry[0];
+            Student s = (Student) entry[1];
+            Course c = (Course) entry[2];
+            ArrayList item = new ArrayList();
+            item.add(a.asTree());
+            item.add(s.asTree());
+            item.add(c.asTree());
+            data.put("_" + Integer.toString(i), item);
+        }
+        return data;
+    }
+}

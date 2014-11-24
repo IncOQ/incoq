@@ -1,0 +1,59 @@
+# Changes from Distalgo source tree:
+# - added Controller
+# - wait for controller before terminating, instead of
+#   peer-to-peer Done messages
+# - changed s field to use runtimelib and copy from param
+
+import sys
+controller = import_da('controller')
+import runtimelib
+
+class P(process, controller.Controllee):
+    def setup(ctl, _s, nrequests):
+        super().setup(ctl)
+        self.s = runtimelib.Set()
+        self.s.update(_s)
+
+    def ctl_begin(): super().ctl_begin()
+    def ctl_end(): super().ctl_end()
+
+    def mutex(task):
+        -- request
+        c = logical_clock()
+        send(('request', c, self.id), to= s)
+        await(each(received(('request', c2, p)),
+                   has= some(received(('release', c3, p)), has= c3 > c2)
+                        or (c, self.id) < (c2, p)) and
+              each(p in s, has= some(received(('ack', c2, p)), has= c2 > c)))
+        -- critical_section
+        task()
+        -- release
+        send(('release', logical_clock(), self.id), to= s)
+
+    def receive(msg=('request', _, p)):
+        send(('ack', logical_clock(), self.id), to= p)
+
+    def main():
+        ctl_begin()
+
+        def task(): output('in cs')
+        for i in range(nrequests):
+            mutex(task)
+
+        ctl_end()
+
+def main():
+    nprocs = int(sys.argv[1]) if len(sys.argv) > 1 else 10
+    nrequests = int(sys.argv[2]) if len(sys.argv) > 2 else 1
+
+    config(channel= 'fifo', clock= 'Lamport')
+
+    # start the controller
+    ctl = new(controller.Controller, num= 1)
+    setup(ctl, (nprocs,))
+    start(ctl)
+
+    ps = new(P, num= nprocs)
+
+    for p in ps: setup(p, (ctl, ps-{p}, nrequests))
+    start(ps)

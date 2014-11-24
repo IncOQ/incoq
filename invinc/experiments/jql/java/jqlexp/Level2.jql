@@ -1,0 +1,49 @@
+// Level 2 query: {(a, s) for a in attends for s in students
+//                        if a.course == COMP101 if a.student == s}
+// Author: Jon Brandvein
+
+package jqlexp;
+
+import java.util.*;
+
+import java.io.IOException;
+
+import org.json.simple.parser.ParseException;
+
+public class Level2 extends Driver {
+    
+    public static void main(String[] args)
+    {
+        Level2 inst = new Level2();
+        inst.run(args);
+    }
+    
+    public Object query(Course c1)
+    {
+        return selectAll(Attends a:ATTENDS, Student s:STUDENTS
+                         | a.course == c1 && a.student == s);
+    }
+    
+    public Object formatOutput(Object output)
+    {
+        if (output == null)
+        {
+            return null;
+        }
+        
+        ArrayList<Object[]> entries = (ArrayList<Object[]>) output;
+        
+        HashMap data = new HashMap();
+        for (int i = 0; i < entries.size(); ++i)
+        {
+            Object[] entry = entries.get(i);
+            Attends a = (Attends) entry[0];
+            Student s = (Student) entry[1];
+            ArrayList item = new ArrayList();
+            item.add(a.asTree());
+            item.add(s.asTree());
+            data.put("_" + Integer.toString(i), item);
+        }
+        return data;
+    }
+}
