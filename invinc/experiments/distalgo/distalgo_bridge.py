@@ -37,9 +37,11 @@ def get_config():
     
     ns.python34 = pyconf['python34']
     ns.invinc_root = pyconf['INVINC_ROOT']
+    ns.distalgo_path = pyconf['DISTALGO_PATH']
     
-    distalgo_dir = os.path.join(ns.invinc_root, 'experiments/distalgo')
-    ns.pythonpath = ns.invinc_root + ';' + distalgo_dir
+    da_exp_dir = os.path.join(ns.invinc_root, 'experiments/distalgo')
+    ns.pythonpath = (ns.invinc_root + ';' + ns.distalgo_path + ';' +
+                     da_exp_dir)
     
     return ns
 
