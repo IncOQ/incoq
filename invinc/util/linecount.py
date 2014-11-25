@@ -1,9 +1,4 @@
-###############################################################################
-# linecount.py                                                                #
-# Author: Jon Brandvein                                                       #
-###############################################################################
-
-"""Print linecounts for various files."""
+"""Get linecounts for files."""
 
 
 from os import walk, chdir

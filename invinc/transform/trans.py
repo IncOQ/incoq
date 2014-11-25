@@ -11,9 +11,9 @@ from os.path import normpath, relpath
 
 from simplestruct import Struct, Field
 
-from invinc import transform_file, print_exc_with_ast
+from util.linecount import get_loc_file
 
-from tools.linecount import get_loc_file
+from invinc import transform_file, print_exc_with_ast
 
 from .stats import StatsDB
 

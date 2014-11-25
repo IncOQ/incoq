@@ -16,8 +16,7 @@ __all__ = [
 
 import time
 
-from tools.linecount import get_loc_source
-
+from util.linecount import get_loc_source
 from util.str import quote_items
 import invinc.incast as L
 from invinc.set import inc_all_relmatch

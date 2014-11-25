@@ -4,7 +4,6 @@ with native Python types.
 
 
 from time import clock
-import importlib
 from runtimelib import Set
 
 
