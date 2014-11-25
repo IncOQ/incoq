@@ -1,9 +1,9 @@
 ###############################################################################
 # unparse.unparse                                                             #
-# Based on Tools/parser/unparse.py in Python 3.3; see LICENSE.txt.            #
+# Based on Tools/parser/unparse.py in Python 3.4; see LICENSE.txt.            #
 ###############################################################################
 
-# Overview of changes from standard 3.3 library version:
+# Overview of changes from standard 3.4 library version:
 #
 # - added body() convenience method
 # - added to_source() class method
@@ -325,6 +325,9 @@ class Unparser:
     def _Name(self, t):
         self.write(t.id)
 
+    def _NameConstant(self, t):
+        self.write(repr(t.value))
+
     def _Num(self, t):
         # Substitute overflowing decimal literal for AST infinities.
         self.write(repr(t.n).replace("inf", INFSTR))
@@ -534,10 +537,10 @@ class Unparser:
             else: self.write(", ")
             self.write("*")
             if t.vararg:
-                self.write(t.vararg)
-                if t.varargannotation:
+                self.write(t.vararg.arg)
+                if t.vararg.annotation:
                     self.write(": ")
-                    self.dispatch(t.varargannotation)
+                    self.dispatch(t.vararg.annotation)
 
         # keyword-only arguments
         if t.kwonlyargs:
@@ -553,10 +556,10 @@ class Unparser:
         if t.kwarg:
             if first:first = False
             else: self.write(", ")
-            self.write("**"+t.kwarg)
-            if t.kwargannotation:
+            self.write("**"+t.kwarg.arg)
+            if t.kwarg.annotation:
                 self.write(": ")
-                self.dispatch(t.kwargannotation)
+                self.dispatch(t.kwarg.annotation)
 
     def _keyword(self, t):
         self.write(t.arg)

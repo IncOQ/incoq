@@ -137,8 +137,8 @@ def plainfuncdef(name, argnames, body):
     (i.e., code, not stmt).
     """
     processed_args = tuple(arg(a, None) for a in argnames)
-    processed_arguments = arguments(processed_args, None, None,
-                                    (), None, None, (), ())
+    processed_arguments = arguments(processed_args, None, (),
+                                    (), None, ())
     funcdef = FunctionDef(name, processed_arguments, body, (), None)
     return (funcdef,)
 
@@ -158,8 +158,8 @@ def is_plainfuncdef(func):
     """
     checktype(func, FunctionDef)
     plain_args = tuple(arg(a.arg, None) for a in func.args.args)
-    plain_arguments = arguments(plain_args, None, None,
-                                (), None, None, (), ())
+    plain_arguments = arguments(plain_args, None, (),
+                                (), None, ())
     return func.args == plain_arguments
 
 

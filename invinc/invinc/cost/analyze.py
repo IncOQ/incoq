@@ -36,7 +36,7 @@ class CostAnalyzer(L.NodeVisitor):
         'FunctionDef', 'ClassDef', 'Import', 'ImportFrom',
         'Global', 'Nonlocal', 'Pass', 'Break', 'Continue',
         'Lambda', 'Yield', 'Num', 'Str', 'Bytes', 'Ellipsis',
-        'Name',
+        'Name', 'NameConstant',
         'expr_context', 'boolop', 'operator', 'unaryop', 'cmpop',
         'alias', 'withitem',
         

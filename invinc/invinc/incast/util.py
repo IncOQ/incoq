@@ -49,7 +49,8 @@ class VarsFinder(NodeVisitor):
         ignore_rels:
             Names that appear to be relations are ignored.
     
-    The builtins None, True, and False are always excluded.
+    The builtins None, True, and False are always excluded, as they
+    are NameConstants, not variables.
     """
     
     def __init__(self, *,
@@ -68,8 +69,7 @@ class VarsFinder(NodeVisitor):
     
     def visit_Name(self, node):
         self.generic_visit(node)
-        if (not (self.ignore_store and isinstance(node.ctx, Store)) and
-            node.id not in ['None', 'True', 'False']):
+        if not (self.ignore_store and isinstance(node.ctx, Store)):
             self.usedvars.add(node.id)
     
     def visit_Call(self, node):

@@ -51,14 +51,14 @@ def value_to_ast(value):
         return Tuple(items, Load())
     
     elif isinstance(value, bool):
-        return Name('True' if value else 'False', Load())
+        return NameConstant(value)
     elif isinstance(value, Number):
         return Num(value)
     elif isinstance(value, str):
         return Str(value)
     
     elif isinstance(value, type(None)):
-        return Name('None', Load())
+        return NameConstant(None)
     
     else:
         raise TypeError('Can\'t convert value to AST: ' + repr(value))
@@ -106,7 +106,7 @@ class IncLangImporter(MacroProcessor):
         # TODO: refactor this arg processing into astargs.
         
         if params is not None:
-            if isinstance(params, Name) and params.id == 'None':
+            if isinstance(params, NameConstant) and params.value is None:
                 params = None
             else:
                 if not (isinstance(params, (List, Tuple)) and
@@ -115,7 +115,7 @@ class IncLangImporter(MacroProcessor):
                 params = tuple(p.id for p in params.elts)
         
         if options is not None:
-            if isinstance(options, Name) and options.id == 'None':
+            if isinstance(options, NameConstant) and options.value is None:
                 options = None
             else:
                 options = frozen_eval(options)
@@ -125,7 +125,7 @@ class IncLangImporter(MacroProcessor):
     
     @astargs
     def handle_fe_DEMQUERY(self, f, demname:'Name', args:'List', value):
-        if isinstance(value, Name) and value.id == 'None':
+        if isinstance(value, NameConstant) and value.value is None:
             value = None
         return DemQuery(demname, args, value)
     
@@ -232,7 +232,7 @@ class IncLangImporter(MacroProcessor):
             'Unknown aggregate "{}"'.format(f)
         
         if options is not None:
-            if isinstance(options, Name) and options.id == 'None':
+            if isinstance(options, NameConstant) and options.id is None:
                 options = None
             else:
                 options = frozen_eval(options)
@@ -340,7 +340,7 @@ class IncLangExporter(NodeTransformer):
     def visit_Lookup(self, node):
         node = self.generic_visit(node)
         default = (node.default if node.default is not None
-                   else Name('None', Load()))
+                   else NameConstant(None))
         return self.pe('TARGET.lookup(KEY, DEFAULT)',
                        subst={'TARGET': node.target,
                               'KEY': node.key,
@@ -361,7 +361,7 @@ class IncLangExporter(NodeTransformer):
     def visit_SMLookup(self, node):
         node = self.generic_visit(node)
         default = (node.default if node.default is not None
-                   else Name('None', Load()))
+                   else NameConstant(None))
         return self.pe('TARGET.smlookup(MASK, KEY, DEFAULT)',
                        subst={'TARGET': node.target,
                               'MASK': Str(node.mask),
@@ -413,7 +413,7 @@ class IncLangExporter(NodeTransformer):
         node = self.generic_visit(node)
         setcomp = comp_to_setcomp(node)
         if node.params is None:
-            paramslist = Name('None', Load())
+            paramslist = NameConstant(None)
         else:
             paramslist = List(tuple(Name(p, Load())
                                     for p in node.params), Load())
