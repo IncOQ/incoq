@@ -8,3 +8,6 @@
 
 # Installation-dependent.
 config.txt
+
+# Benchmark results.
+results/
