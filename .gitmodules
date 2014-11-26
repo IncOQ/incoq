@@ -1,0 +1,9 @@
+[submodule "simplestruct"]
+	path = simplestruct
+	url = https://github.com/brandjon/simplestruct
+[submodule "iast"]
+	path = iast
+	url = https://github.com/brandjon/iast
+[submodule "frexp"]
+	path = frexp
+	url = https://github.com/brandjon/frexp
