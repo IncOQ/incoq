@@ -16,10 +16,10 @@ class TestProgramTask(Task):
     """
     
     def __init__(self, prog):
-        path = os.path.join('invinc/testprograms', prog)
+        path = os.path.join('invinc/invinc/testprograms', prog)
         self.input_name = path + '_in.py'
         self.output_name = path + '_out.py'
-        self.nopts = {'verbose': True}
+        self.nopts = {'verbose': True, 'eol': 'LF'}
         self.qopts = {}
         self.display_name = prog
 

@@ -17,7 +17,12 @@ class DefaultNormalOptions:
     verbose =               False
     """If True, output extra information to stdout."""
     
-    mode =                  'normal',
+    eol =                   'native'
+    """End-of-line markers to use for generated Python file.
+    Can be 'LF', 'CRLF', or 'native'.
+    """
+    
+    mode =                  'normal'
     """Action to take.
         'normal':      Transform/incrementalize
         'outline':     Only emit outline of maintenance code

@@ -483,26 +483,29 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     if verbose:
         print()
     
-    return tree, manager.stats
+    return tree, manager
 
 def transform_source(source, *, nopts=None, qopts=None):
     """Like transform_ast, but from source code to source code."""
     tree = L.p(source)
     
-    tree, stats = transform_ast(tree, nopts=nopts, qopts=qopts)
+    tree, manager = transform_ast(tree, nopts=nopts, qopts=qopts)
     
     result = L.ts(tree)
-    stats['lines'] = get_loc_source(result)
-    return result, stats
+    manager.stats['lines'] = get_loc_source(result)
+    return result, manager
 
 def transform_file(in_filename, out_filename, *, nopts=None, qopts=None):
     """Like transform_ast, but from file to file, and no return value."""
     with open(in_filename, 'r') as in_file:
         in_source = in_file.read()
     
-    out_source, stats = transform_source(in_source, nopts=nopts, qopts=qopts)
+    out_source, manager = transform_source(in_source, nopts=nopts, qopts=qopts)
     
-    with open(out_filename, 'w') as out_file:
+    eol = manager.options.get_opt('eol')
+    eol = {'LF': '\n', 'CRLF': '\r\n', 'native': None}[eol]
+    
+    with open(out_filename, 'w', newline=eol) as out_file:
         out_file.write(out_source)
     
-    return stats
+    return manager.stats
