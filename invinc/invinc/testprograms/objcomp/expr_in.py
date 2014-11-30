@@ -21,11 +21,13 @@ QUERYOPTIONS(
 )
 
 QUERYOPTIONS(
-    '{None for o in s}',
+    '{Foo for o in s}',
     params = ['s'],
     uset_mode = 'none',
     impl = 'inc',
 )
 
+Foo = 1
+
 print(sorted({o.i + 1 for o in s}))
-print({None for o in s})
+print({Foo for o in s})
