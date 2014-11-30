@@ -1,0 +1,19 @@
+# Generated incrementalization interface files.
+*_inc_*.py
+
+# Compiled DistAlgo driver files.
+clpaxos.py
+crleader.py
+dscrash.py
+hsleader.py
+lamutex.py
+lamutex_opt.py
+lamutex_opt2.py
+lamutex_orig.py
+lapaxos.py
+ramutex.py
+ratoken.py
+sktoken.py
+tpcommit.py
+vrpaxos/orig_majority_top.py
+vrpaxos.py

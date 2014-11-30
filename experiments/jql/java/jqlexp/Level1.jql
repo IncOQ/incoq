@@ -1,0 +1,42 @@
+// Level 1 query: {a for a in attends if a.course == COMP101}
+// Author: Jon Brandvein
+
+package jqlexp;
+
+import java.util.*;
+
+import java.io.IOException;
+
+import org.json.simple.parser.ParseException;
+
+public class Level1 extends Driver {
+    
+    public static void main(String[] args)
+    {
+        Level1 inst = new Level1();
+        inst.run(args);
+    }
+    
+    public Object query(Course c1)
+    {
+        return selectAll(Attends a:ATTENDS | a.course == c1);
+    }
+    
+    public Object formatOutput(Object output)
+    {
+        if (output == null)
+        {
+            return null;
+        }
+        
+        ArrayList<Attends> entries = (ArrayList<Attends>) output;
+        
+        HashMap data = new HashMap();
+        for (int i = 0; i < entries.size(); ++i)
+        {
+            Attends a = entries.get(i);
+            data.put("_" + Integer.toString(i), a.asTree());
+        }
+        return data;
+    }
+}
