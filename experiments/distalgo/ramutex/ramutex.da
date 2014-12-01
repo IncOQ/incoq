@@ -29,14 +29,14 @@ class P(process, controller.Controllee):
         --release
         send(('ack', logical_clock(), self.id),
              to=setof(p, p in s,
-                      has=some(received(('request', c, p)),
-                               has=((c, p) >= (ownc, self.id)))))
+                      some(received(('request', c, p)),
+                           has=((c, p) >= (ownc, self.id)))))
 
     def receive(msg=('request', c, p)):
         if each(received(('request', _c, self.id)), has=((c, p) < (ownc, self.id))):
             send(('ack', logical_clock(), self.id), to=p)
 
-    def main():
+    def run():
         ctl_begin()
 
         def anounce():

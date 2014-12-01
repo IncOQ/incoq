@@ -48,7 +48,7 @@ class Controller(process):
         cputime += time
         verboutput('Got Done ({}/{})'.format(dones, nprocs))
     
-    def main():
+    def run():
         # Start 'em up.
         await(readys == nprocs)
         verboutput("Controller starting everyone")
@@ -72,7 +72,7 @@ class Controller(process):
 class Controllee(process):
     # Process that reports to a Controller.
     # Assign the controller process to the "ctl" field.
-    # In main(), call ctlbegin() and ctlend().
+    # In run(), call ctlbegin() and ctlend().
     
     def setup(ctl):
         self.ctl_starttime = 0

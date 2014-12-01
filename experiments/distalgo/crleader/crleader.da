@@ -30,7 +30,7 @@ class P(process, controller.Controllee):
         if leader != self.id:
             send(('Leader', leader), to=left)
 
-    def main():
+    def run():
         ctl_begin()
 
         initiate()

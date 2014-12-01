@@ -52,7 +52,7 @@ class P (process, controller.Controllee):
                      has= (not some(sent(('access', token2)),
                                     has= (token2[self.id] > token1[self.id])))))
 
-    def main():
+    def run():
         ctl_begin()
         
         def anounce():
