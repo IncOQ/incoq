@@ -193,6 +193,11 @@ class DefaultQueryOptions:
     indicating if the operation was 'add' or 'delete'. Otherwise
     None.
     """
+    
+    _invalid =              False
+    """(Internal) Set True if this query cannot be transformed
+    due to not satisfying syntactic requirements.
+    """
 
 defaultnormaloptions = {k: v for k, v in DefaultNormalOptions.__dict__.items()
                         if not k.startswith('_')}

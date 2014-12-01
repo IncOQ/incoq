@@ -321,7 +321,13 @@ class QueryMapper(NodeTransformer):
     with the result of the methods map_Comp() or map_Aggregate(),
     provided by the subclass. Innermost queries are handled first.
     The map_* methods are called only once per unique query.
+    
+    If ignore_invalid is True, do not process queries having an
+    'invalid' option key set to True. Subqueries of these queries
+    will still be recursively processed.
     """
+    
+    ignore_invalid = False
     
     def __init__(self):
         super().__init__()
@@ -331,6 +337,11 @@ class QueryMapper(NodeTransformer):
     
     def helper(self, node, handler_name, replmap):
         node = self.generic_visit(node)
+        
+        assert node.options is not None
+        invalid = node.options.get('_invalid', False)
+        if invalid and self.ignore_invalid:
+            return node
         
         handler = getattr(self, handler_name, None)
         if handler is None:

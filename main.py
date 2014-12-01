@@ -320,6 +320,7 @@ test_programs = [
 #    'comp/tup/flatten',
 #    'comp/instr',
 #    'comp/macroupdate',
+#    'comp/unhandled',
 #
 #    'objcomp/batch',
 #    'objcomp/auxonly',
