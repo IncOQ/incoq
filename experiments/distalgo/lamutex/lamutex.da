@@ -33,7 +33,7 @@ class P(process, controller.Controllee):
     def receive(msg=('request', _, p)):
         send(('ack', logical_clock(), self.id), to= p)
 
-    def main():
+    def run():
         ctl_begin()
 
         def task(): output('in cs')

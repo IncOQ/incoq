@@ -13,7 +13,7 @@ class P(process, controller.Controllee):
     def ctl_begin(): super().ctl_begin()
     def ctl_end(): super().ctl_end()
 
-    def main():
+    def run():
         ctl_begin()
 
         distance = 1

@@ -1,3 +1,6 @@
+# Compiled DistAlgo helper files.
+controller.py
+
 # Generated incrementalization interface files.
 *_inc_*.py
 
