@@ -2,6 +2,7 @@
 
 
 import os
+from time import clock
 
 from simplestruct import Field
 
@@ -365,6 +366,8 @@ for name in test_programs:
     add_task(TestProgramTask(name))
 
 
+t1 = clock()
 do_tasks(all_tasks)
+t2 = clock()
 
-print('Done')
+print('Done  ({:.3f} s)'.format(t2 - t1))
