@@ -156,8 +156,9 @@ class ReltypeGetter(L.NodeVisitor):
     
     """Gets type information for a given relation based on enumerators
     over it. All the enumerators over it must have the exact same tuple
-    structure. The type must not be a singleton tuple or a singular
-    non-tuple value.
+    structure. The type must not be a singleton tuple, but it can be
+    a singular non-tuple value. If there are no enumerators over it,
+    a singular non-tuple value type is returned.
     """
     
     def __init__(self, rel):
@@ -167,9 +168,11 @@ class ReltypeGetter(L.NodeVisitor):
     def process(self, tree):
         self.tuptype = None
         super().process(tree)
-        assert isinstance(self.tuptype, tuple), \
-               'Type of {} is not tuple'.format(self.rel)
-        assert len(self.tuptype) > 2, \
+        
+        if self.tuptype is None:
+            self.tuptype = '_'
+        if isinstance(self.tuptype, tuple) and self.tuptype[0] == '<T>':
+            assert len(self.tuptype) > 2, \
                'Type of {} is singleton tuple'.format(self.rel)
         return self.tuptype
     
@@ -197,6 +200,9 @@ def flatten_relations(tree, rels, namegen):
     """
     for rel in rels:
         tuptype = ReltypeGetter.run(tree, rel)
+        # Skip if tuptype is just a variable with no tuple.
+        if not (isinstance(tuptype, str) and tuptype[0] == '<T>'):
+            continue
         tree = ClauseFlattener.run(tree, rel, tuptype)
         tree = UpdateFlattener.run(tree, rel, tuptype, namegen)
     return tree

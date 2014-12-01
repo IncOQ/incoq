@@ -208,7 +208,8 @@ class QueryFinder(L.NodeVisitor):
         # (Can raise exception.)
         self.generic_visit(node)
         
-        if impl in ['inc', 'dem']:
+        if (impl in ['inc', 'dem'] and
+            not node.options.get('_invalid', False)):
             info = {'impl': impl, 'instr': instr,
                     'in_inccomp': self.inccomp_depth > 0,
                     'half_demand': half_demand}
@@ -289,7 +290,14 @@ def transform_query(tree, manager, query, info):
         
         if (impl in ['inc', 'dem'] and aggr_needs_batch(query) and
             aggr_batch_fallback):
-            impl = 'batch'
+            new_options = dict(query.options)
+            new_options['_invalid'] = True
+            rewritten_query = query._replace(options=new_options)
+            tree = L.QueryReplacer.run(tree, query, rewritten_query)
+            
+            manager.stats['queries skipped'] += 1
+            print('Skipping query ' + L.ts(query))
+            return tree
         
         if (impl == 'inc' and (in_inccomp or aggr_needs_dem(query)) and
             aggr_dem_fallback):
@@ -307,8 +315,6 @@ def transform_query(tree, manager, query, info):
                 manager.stats['orig queries'] += 1
             manager.stats['incr queries'] += 1
             manager.stats['incr aggrs'] += 1
-        elif impl == 'batch':
-            pass
         else:
             assert()
     
