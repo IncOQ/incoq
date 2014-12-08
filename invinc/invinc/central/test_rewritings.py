@@ -28,6 +28,7 @@ class RewriterCase(CentralCase):
             A.intersection_update(B)
             A.difference_update(B)
             A.symmetric_difference_update(B)
+            A.assign_update(B)
             A.clear()
             ''')
         tree = MacroSetUpdateRewriter.run(tree)
@@ -46,6 +47,12 @@ class RewriterCase(CentralCase):
                 if (_upelem in A):
                     A.remove(_upelem)
                 else:
+                    A.add(_upelem)
+            if A is not B:
+                while (len(A) > 0):
+                    _upelem = next(iter(A))
+                    A.remove(_upelem)
+                for _upelem in B:
                     A.add(_upelem)
             while (len(A) > 0):
                 _upelem = next(iter(A))

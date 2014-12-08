@@ -141,6 +141,15 @@ class MacroSetUpdateRewriter(L.NodeTransformer):
                     else:
                         TARGET.add(_upelem)
                 ''', subst=subst)
+        elif op == 'assign':
+            code = L.pc('''
+                if TARGET is not OTHER:
+                    while len(TARGET) > 0:
+                        _upelem = next(iter(TARGET))
+                        TARGET.remove(_upelem)
+                    for _upelem in OTHER:
+                        TARGET.add(_upelem)
+                ''', subst=subst)
         elif op == 'clear':
             code = L.pc('''
                 while len(TARGET) > 0:

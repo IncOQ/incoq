@@ -288,6 +288,11 @@ class Set(Type, set):
     def _remove(self, elem):
         super().remove(elem)
     
+    def assign_update(self, other):
+        if self is not other:
+            self.clear()
+            self.update(other)
+    
     def get_structure_size(self):
         return len(self)
     
