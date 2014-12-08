@@ -7,6 +7,8 @@ __all__ = [
     'DistalgoImporter',
     'get_distalgo_message_sets',
     'MacroSetUpdateRewriter',
+    'SetTypeRewriter',
+    'ObjTypeRewriter',
     'UpdateRewriter',
     'MinMaxRewriter',
     'eliminate_deadcode',
@@ -159,6 +161,120 @@ class MacroSetUpdateRewriter(L.NodeTransformer):
         else:
             assert()
         return code
+
+class SetTypeRewriter(L.StmtTransformer):
+    
+    """Rewrite set expressions to use runtimelib.Set.
+    
+    If set_literals is True, handle set literal expressions, including
+    ones that use set(...).
+    
+    If orig_set_comps is True, handle set comprehensions marked
+    with the in_origianl option.
+    """
+    
+    def __init__(self, namegen, *, set_literals, orig_set_comps):
+        super().__init__()
+        self.namegen = namegen
+        self.set_literals = set_literals
+        self.orig_set_comps = orig_set_comps
+    
+    def helper(self, node, no_update=False):
+        fresh = next(self.namegen)
+        
+        if no_update:
+            template = L.trim('''
+                S_VAR = Set()
+                ''')
+        else:
+            template = L.trim('''
+                S_VAR = Set()
+                L_VAR.update(EXPR)
+                ''')
+        new_code = L.pc(template, subst={'L_VAR': L.ln(fresh),
+                                         'S_VAR': L.sn(fresh),
+                                         'EXPR': node})
+        
+        self.pre_stmts.extend(new_code)
+        return L.ln(fresh)
+    
+    def visit_Comp(self, node):
+        node = self.generic_visit(node)
+        
+        if (self.orig_set_comps and
+            node.options.get('in_original', False)):
+            return self.helper(node)
+        else:
+            return node
+    
+    def visit_Set(self, node):
+        node = self.generic_visit(node)
+        
+        if self.set_literals:
+            return self.helper(node)
+        else:
+            return node
+    
+    def visit_Call(self, node):
+        # Handle set(...) syntax as if it were {...}.
+        if (self.set_literals and
+            isinstance(node.func, L.Name) and
+            node.func.id == 'set'):
+            no_update = len(node.args) == 0
+            return self.helper(node, no_update=no_update)
+        else:
+            return node
+    
+    def visit_For(self, node):
+        # Skip the top level of node.iter, because set iteration
+        # looks at the set contents, not the constructed set value.
+        #
+        # This is accomplished by using generic_visit() instead of
+        # visit() on the iter, to avoid dispatch to any of the
+        # above handlers.
+        iter_result = self.generic_visit(node.iter)
+        # Handle special case return values. Tuple return values
+        # are not permitted in this context, so it's just the None
+        # case.
+        if iter_result is None:
+            iter_result = node.iter
+        
+        target = self.visit(node.target)
+        body = self.visit(node.body)
+        orelse = self.visit(node.orelse)
+        
+        new_node = L.For(target, iter_result, body, orelse)
+        # If there's no change, avoid returning a newly constructed
+        # node, which would force copying up the tree.
+        if new_node == node:
+            new_node = node
+        
+        return new_node
+
+class ObjTypeRewriter(L.NodeTransformer):
+    
+    """Add runtimelib.Obj as a base class to all class definitions."""
+    
+    def valid_baseclass(self, expr):
+        if isinstance(expr, L.Name):
+            return True
+        elif (isinstance(expr, L.Attribute) and
+              self.valid_baseclass(expr.value)):
+            return True
+        else:
+            return False
+    
+    def visit_ClassDef(self, node):
+        node = self.generic_visit(node)
+        
+        assert all(self.valid_baseclass(b) for b in node.bases), \
+            'Illegal base class'
+        objbase = L.ln('Set')
+        if objbase not in node.bases:
+            new_bases = node.bases + (objbase,)
+            node = node._replace(bases=new_bases)
+        
+        return node
 
 class UpdateRewriter(L.NodeTransformer):
     

@@ -35,6 +35,7 @@ from invinc.cost import analyze_costs
 from .manager import get_clause_factory, make_manager
 from .rewritings import (DistalgoImporter, get_distalgo_message_sets,
                          MacroSetUpdateRewriter,
+                         SetTypeRewriter, ObjTypeRewriter,
                          UpdateRewriter, MinMaxRewriter,
                          eliminate_deadcode, PassEliminator)
 
@@ -407,6 +408,11 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     manager.factory = get_clause_factory(use_objdomain=objdomain_out,
                                          use_typecheck=typecheck)
     
+    # Rewrite set/obj types.
+    tree = SetTypeRewriter.run(tree, manager.namegen,
+                               set_literals=True, orig_set_comps=False)
+    tree = ObjTypeRewriter.run(tree)
+    
     # Rewrite macro updates.
     tree = MacroSetUpdateRewriter.run(tree)
     
@@ -447,6 +453,9 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     
     if not opman.get_opt('pattern_out'):
         tree = depatternize_all(tree, manager.factory)
+    
+    tree = SetTypeRewriter.run(tree, manager.namegen,
+                               set_literals=False, orig_set_comps=True)
     
     if opman.get_opt('analyze_costs'):
         print('Analyzing costs')
