@@ -201,7 +201,7 @@ def flatten_relations(tree, rels, namegen):
     for rel in rels:
         tuptype = ReltypeGetter.run(tree, rel)
         # Skip if tuptype is just a variable with no tuple.
-        if not (isinstance(tuptype, str) and tuptype[0] == '<T>'):
+        if not (isinstance(tuptype, tuple) and tuptype[0] == '<T>'):
             continue
         tree = ClauseFlattener.run(tree, rel, tuptype)
         tree = UpdateFlattener.run(tree, rel, tuptype, namegen)
