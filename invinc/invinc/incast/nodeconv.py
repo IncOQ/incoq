@@ -311,7 +311,7 @@ class IncLangExporter(NodeTransformer):
             return self.pc('TARGET.OP(OTHER)',
                            subst={'TARGET': node.target,
                                   '@OP': op,
-                                  'other': node.other})
+                                  'OTHER': node.other})
     
     def visit_AssignKey(self, node):
         node = self.generic_visit(node)
