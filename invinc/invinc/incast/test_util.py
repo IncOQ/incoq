@@ -194,6 +194,33 @@ class UtilCase(unittest.TestCase):
         exp_tree = Expr(q2)
         self.assertEqual(tree, exp_tree)
     
+    def test_StmtTransformer(self):
+        _self = self
+        
+        class Foo(StmtTransformer):
+            def visit_arg(self, node):
+                new_code = _self.pc('print(x)', subst={'x': node.arg})
+                self.pre_stmts.extend(new_code)
+            def visit_Name(self, node):
+                new_code = _self.pc('print(x)', subst={'x': node.id})
+                self.pre_stmts.extend(new_code)
+        
+        tree = self.p('''
+            def f(x):
+                g(x)
+            ''')
+        tree = Foo.run(tree)
+        
+        exp_tree = self.p('''
+            print(x)
+            def f(x):
+                print(g)
+                print(x)
+                g(x)
+            ''')
+        
+        self.assertEqual(tree, exp_tree)
+    
     def test_OuterMaintTransformer(self):
         _self = self
         from . import ts

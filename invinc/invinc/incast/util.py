@@ -9,6 +9,7 @@ __all__ = [
     'is_injective',
     'QueryReplacer',
     'QueryMapper',
+    'StmtTransformer',
     'OuterMaintTransformer',
     'rewrite_compclauses',
     'maint_skeleton',
@@ -359,6 +360,61 @@ class QueryMapper(NodeTransformer):
     
     def visit_Aggregate(self, node):
         return self.helper(node, 'map_Aggregate', self.aggrs)
+
+
+class StmtTransformer(NodeTransformer):
+    
+    """Transformer for inserting code immediately before or after
+    the statement containing the current node.
+    
+    We keep a stack of lists of statements to insert before and
+    after the current statement node. (A stack is needed because
+    statements may be nested in the case of function and class
+    definitions.) The subclass may access the current tops of the
+    stacks using the pre_stmts and post_stmts properties. When a
+    statement node is done being processed, if either of these lists
+    is non-empty, their contents are added around the (result of
+    processing the) node. 
+    """
+    
+    def process(self, tree):
+        # One entry for each stmt-typed node we are inside of.
+        self.pre_stmt_stack = []
+        self.post_stmt_stack = []
+        return super().process(tree)
+    
+    @property
+    def pre_stmts(self):
+        return self.pre_stmt_stack[-1]
+    
+    @property
+    def post_stmts(self):
+        return self.post_stmt_stack[-1]
+    
+    def node_visit(self, node):
+        if isinstance(node, stmt):
+            self.pre_stmt_stack.append([])
+            self.post_stmt_stack.append([])
+        
+        result = super().node_visit(node)
+        
+        if isinstance(node, stmt):
+            if len(self.pre_stmts) == len(self.post_stmts) == 0:
+                # If there's nothing to insert, don't muck with the
+                # result, which could cause unnecessary copying.
+                return result
+            else:
+                if result is None:
+                    result = (node,)
+                elif isinstance(result, AST):
+                    result = (result,)
+                result = (tuple(self.pre_stmts) + tuple(result) +
+                          tuple(self.post_stmts))
+            
+            self.pre_stmt_stack.pop()
+            self.post_stmt_stack.pop()
+        
+        return result
 
 
 class OuterMaintTransformer(NodeTransformer):
