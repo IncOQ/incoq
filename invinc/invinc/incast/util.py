@@ -381,7 +381,9 @@ class StmtTransformer(NodeTransformer):
         # One entry for each stmt-typed node we are inside of.
         self.pre_stmt_stack = []
         self.post_stmt_stack = []
-        return super().process(tree)
+        result = super().process(tree)
+        assert len(self.pre_stmt_stack) == len(self.post_stmt_stack) == 0
+        return result
     
     @property
     def pre_stmts(self):
@@ -399,7 +401,10 @@ class StmtTransformer(NodeTransformer):
         result = super().node_visit(node)
         
         if isinstance(node, stmt):
-            if len(self.pre_stmts) == len(self.post_stmts) == 0:
+            pre_stmts = self.pre_stmt_stack.pop()
+            post_stmts = self.post_stmt_stack.pop()
+            
+            if len(pre_stmts) == len(post_stmts) == 0:
                 # If there's nothing to insert, don't muck with the
                 # result, which could cause unnecessary copying.
                 return result
@@ -408,11 +413,8 @@ class StmtTransformer(NodeTransformer):
                     result = (node,)
                 elif isinstance(result, AST):
                     result = (result,)
-                result = (tuple(self.pre_stmts) + tuple(result) +
-                          tuple(self.post_stmts))
-            
-            self.pre_stmt_stack.pop()
-            self.post_stmt_stack.pop()
+                result = (tuple(pre_stmts) + tuple(result) +
+                          tuple(post_stmts))
         
         return result
 
