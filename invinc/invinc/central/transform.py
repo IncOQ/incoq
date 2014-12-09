@@ -546,7 +546,7 @@ def transform_file(in_filename, out_filename, *, nopts=None, qopts=None):
     out_source, manager = transform_source(in_source, nopts=nopts, qopts=qopts)
     
     eol = manager.options.get_opt('eol')
-    eol = {'LF': '\n', 'CRLF': '\r\n', 'native': None}[eol]
+    eol = {'lf': '\n', 'crlf': '\r\n', 'native': None}[eol]
     
     with open(out_filename, 'w', newline=eol) as out_file:
         out_file.write(out_source)

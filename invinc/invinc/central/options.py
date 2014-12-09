@@ -19,7 +19,7 @@ class DefaultNormalOptions:
     
     eol =                   'native'
     """End-of-line markers to use for generated Python file.
-    Can be 'LF', 'CRLF', or 'native'.
+    Can be 'lf', 'crlf', or 'native'.
     """
     
     mode =                  'normal'

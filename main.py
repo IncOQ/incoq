@@ -20,7 +20,7 @@ class TestProgramTask(Task):
         path = os.path.join('invinc/invinc/testprograms', prog)
         self.input_name = path + '_in.py'
         self.output_name = path + '_out.py'
-        self.nopts = {'verbose': True, 'eol': 'LF'}
+        self.nopts = {'verbose': True, 'eol': 'lf'}
         self.qopts = {}
         self.display_name = prog
 
