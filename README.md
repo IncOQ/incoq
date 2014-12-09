@@ -34,3 +34,9 @@ In addition, the following 3rd-party Python libraries are used:
     tabulate    (optional)
     numpy       (optional; needed for benchmarks)
     matplotlib  (optional; needed for benchmarks)
+
+ ## Invocation
+ 
+ A single input file may be transformed by running
+ 
+     python34 -m invinc <input file> <output file>
