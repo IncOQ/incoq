@@ -238,7 +238,8 @@ def transform_query(tree, manager, query, info):
             tree = L.QueryReplacer.run(tree, query, rewritten_query)
             
             manager.stats['queries skipped'] += 1
-            print('Skipping query ' + L.ts(query))
+            if manager.options.get_opt('verbose'):
+                print('Skipping query ' + L.ts(query))
             return tree
         
         # Flatten lookups (e.g. into aggregate result maps) first,
@@ -424,7 +425,8 @@ def transform_ast(tree, *, nopts=None, qopts=None):
             if s not in flatten_rels:
                 flatten_rels.append(s)
     if len(flatten_rels) > 0:
-        print('Flattening relations: ' + ', '.join(flatten_rels))
+        if verbose:
+            print('Flattening relations: ' + ', '.join(flatten_rels))
         tree = flatten_relations(tree, flatten_rels, manager.namegen)
     
     # Go to the pair domain.
