@@ -7,7 +7,7 @@ QUERYOPTIONS(
     impl = 'inc',
 )
 
-E = set()
+E = Set()
 
 for v1, v2 in {(1, 2), (1, 3), (2, 3), (3, 4)}:
     E.add((v1, v2))

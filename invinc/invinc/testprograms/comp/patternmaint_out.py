@@ -41,7 +41,7 @@ def _maint_Comp1_S_add(_e):
         else:
             Comp1.incref(v3_x)
 
-S = set()
+S = Set()
 for v in {(1, 1, 2, 3), (1, 2, 2, 4)}:
     # Begin maint _m_P_u1bw after "P.add(v)"
     _maint__m_P_u1bw_add(v)

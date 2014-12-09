@@ -63,7 +63,7 @@ def query_Comp1():
                     result.add((x, z))
     return result
 
-E = set()
+E = Set()
 for (v1, v2) in {(1, 2), (2, 3), (3, 4), (4, 5)}:
     E.add((v1, v2))
     # Begin maint _m_E_in after "E.add((v1, v2))"
