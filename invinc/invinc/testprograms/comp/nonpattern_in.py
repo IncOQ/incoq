@@ -2,8 +2,8 @@
 
 from runtimelib import *
 
-E = set()
-S = set()
+E = Set()
+S = Set()
 
 for v1, v2, z in {(1, 1, 'a'), (1, 2, 'b'), (1, 3, 'c'), (2, 3, 'd'), (3, 4, 'e')}:
     E.add((v1, v2, z))

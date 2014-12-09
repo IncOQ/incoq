@@ -123,6 +123,10 @@ class Manager:
                                     # transformation (not necessarily actually
                                     # transformed)
             
+            'queries skipped': 0,   # number of queries skipped for not
+                                    # satisfying syntactic requirements
+                                    # for transformation
+            
             # The following are used for exporting transformation data
             # for later analysis.
             'funccosts': {},        # dictionary mapping from function name to

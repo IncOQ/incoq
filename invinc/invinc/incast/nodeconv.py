@@ -157,6 +157,9 @@ class IncLangImporter(MacroProcessor):
     def handle_ms_symmetric_difference_update(self, f, target, other):
         return MacroSetUpdate(target, 'symdiff', other)
     
+    def handle_ms_assign_update(self, f, target, other):
+        return MacroSetUpdate(target, 'assign', other)
+    
     def handle_ms_clear(self, f, target):
         return MacroSetUpdate(target, 'clear', None)
     
@@ -303,6 +306,7 @@ class IncLangExporter(NodeTransformer):
               'inter': 'intersection_update',
               'diff': 'difference_update',
               'symdiff': 'symmetric_difference_update',
+              'assign': 'assign_update',
               'clear': 'clear'}[node.op]
         if op == 'clear':
             return self.pc('TARGET.clear()',
@@ -311,7 +315,7 @@ class IncLangExporter(NodeTransformer):
             return self.pc('TARGET.OP(OTHER)',
                            subst={'TARGET': node.target,
                                   '@OP': op,
-                                  'other': node.other})
+                                  'OTHER': node.other})
     
     def visit_AssignKey(self, node):
         node = self.generic_visit(node)

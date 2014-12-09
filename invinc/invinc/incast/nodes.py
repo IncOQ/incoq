@@ -122,7 +122,8 @@ class SetUpdate(stmt):
 
 class MacroSetUpdate(stmt):
     _fields = ('target',    # expression
-               'op',        # 'union', 'inter', 'diff', 'symdiff', or 'clear'
+               'op',        # 'union', 'inter', 'diff', 'symdiff',
+                            # 'assign', or 'clear'
                'other')     # expression or None
 
 class RCSetRefUpdate(stmt):

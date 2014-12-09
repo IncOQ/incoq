@@ -8,8 +8,8 @@ QUERYOPTIONS(
     impl = 'inc',
 )
 
-P = set()
-S = set()
+P = Set()
+S = Set()
 
 for v in {(1, 1, 2, 3), (1, 2, 2, 4)}:
     P.add(v)

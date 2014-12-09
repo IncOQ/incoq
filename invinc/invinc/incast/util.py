@@ -9,6 +9,7 @@ __all__ = [
     'is_injective',
     'QueryReplacer',
     'QueryMapper',
+    'StmtTransformer',
     'OuterMaintTransformer',
     'rewrite_compclauses',
     'maint_skeleton',
@@ -321,7 +322,13 @@ class QueryMapper(NodeTransformer):
     with the result of the methods map_Comp() or map_Aggregate(),
     provided by the subclass. Innermost queries are handled first.
     The map_* methods are called only once per unique query.
+    
+    If ignore_invalid is True, do not process queries having an
+    'invalid' option key set to True. Subqueries of these queries
+    will still be recursively processed.
     """
+    
+    ignore_invalid = False
     
     def __init__(self):
         super().__init__()
@@ -331,6 +338,11 @@ class QueryMapper(NodeTransformer):
     
     def helper(self, node, handler_name, replmap):
         node = self.generic_visit(node)
+        
+        assert node.options is not None
+        invalid = node.options.get('_invalid', False)
+        if invalid and self.ignore_invalid:
+            return node
         
         handler = getattr(self, handler_name, None)
         if handler is None:
@@ -348,6 +360,63 @@ class QueryMapper(NodeTransformer):
     
     def visit_Aggregate(self, node):
         return self.helper(node, 'map_Aggregate', self.aggrs)
+
+
+class StmtTransformer(NodeTransformer):
+    
+    """Transformer for inserting code immediately before or after
+    the statement containing the current node.
+    
+    We keep a stack of lists of statements to insert before and
+    after the current statement node. (A stack is needed because
+    statements may be nested in the case of function and class
+    definitions.) The subclass may access the current tops of the
+    stacks using the pre_stmts and post_stmts properties. When a
+    statement node is done being processed, if either of these lists
+    is non-empty, their contents are added around the (result of
+    processing the) node. 
+    """
+    
+    def process(self, tree):
+        # One entry for each stmt-typed node we are inside of.
+        self.pre_stmt_stack = []
+        self.post_stmt_stack = []
+        result = super().process(tree)
+        assert len(self.pre_stmt_stack) == len(self.post_stmt_stack) == 0
+        return result
+    
+    @property
+    def pre_stmts(self):
+        return self.pre_stmt_stack[-1]
+    
+    @property
+    def post_stmts(self):
+        return self.post_stmt_stack[-1]
+    
+    def node_visit(self, node):
+        if isinstance(node, stmt):
+            self.pre_stmt_stack.append([])
+            self.post_stmt_stack.append([])
+        
+        result = super().node_visit(node)
+        
+        if isinstance(node, stmt):
+            pre_stmts = self.pre_stmt_stack.pop()
+            post_stmts = self.post_stmt_stack.pop()
+            
+            if len(pre_stmts) == len(post_stmts) == 0:
+                # If there's nothing to insert, don't muck with the
+                # result, which could cause unnecessary copying.
+                return result
+            else:
+                if result is None:
+                    result = (node,)
+                elif isinstance(result, AST):
+                    result = (result,)
+                result = (tuple(pre_stmts) + tuple(result) +
+                          tuple(post_stmts))
+        
+        return result
 
 
 class OuterMaintTransformer(NodeTransformer):

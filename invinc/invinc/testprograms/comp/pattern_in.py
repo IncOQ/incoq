@@ -8,8 +8,8 @@ OPTIONS(
     pattern_out = True,
 )
 
-E = set()
-S = set()
+E = Set()
+S = Set()
 
 for v1, v2 in {(1, 1), (1, 2), (1, 3), (2, 3), (3, 4)}:
     E.add((v1, v2))

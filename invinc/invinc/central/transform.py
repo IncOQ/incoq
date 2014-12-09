@@ -21,19 +21,21 @@ from util.str import quote_items
 import invinc.incast as L
 from invinc.set import inc_all_relmatch
 from invinc.comp import (patternize_comp, depatternize_all, inc_relcomp,
-                         impl_auxonly_relcomp, comp_inc_needs_dem)
+                         impl_auxonly_relcomp, comp_inc_needs_dem,
+                         comp_isvalid)
 from invinc.aggr import (inc_aggr, flatten_smlookups,
                          aggr_needs_batch, aggr_needs_dem,
                          aggr_canuse_halfdemand)
 from invinc.obj import to_pairdomain, to_objdomain
 from invinc.demand import deminc_relcomp
-from invinc.tup import (flatten_tuples_comp, check_bad_setmatches,
+from invinc.tup import (flatten_tuples, check_bad_setmatches,
                         flatten_relations)
 from invinc.cost import analyze_costs
 
 from .manager import get_clause_factory, make_manager
 from .rewritings import (DistalgoImporter, get_distalgo_message_sets,
                          MacroSetUpdateRewriter,
+                         SetTypeRewriter, ObjTypeRewriter,
                          UpdateRewriter, MinMaxRewriter,
                          eliminate_deadcode, PassEliminator)
 
@@ -83,7 +85,7 @@ class InputQueryMarker(L.QueryMapper):
         return node._replace(options=new_options)
 
 def is_original(query):
-    return 'in_original' in query.options
+    return query.options.get('in_original', False)
 
 class OriginalUpdateCounter(L.NodeVisitor):
     
@@ -125,8 +127,8 @@ class QueryFinder(L.NodeVisitor):
     is no query to be transformed.
     
     To be eligible, the query must have an impl besides 'batch' and
-    not have the 'notransform' option. Innermost queries are handled
-    first.
+    not have the 'notransform' or '_invalid' options. Innermost queries
+    are handled first.
     """
     
     # Helper info format is a dictionary with entries:
@@ -191,7 +193,8 @@ class QueryFinder(L.NodeVisitor):
         
         # We only get here if there is no inner query to transform.
         if (impl != 'batch' and
-            not self.opman.get_queryopt(node, 'notransform')):
+            not self.opman.get_queryopt(node, 'notransform') and
+            not node.options.get('_invalid', False)):
             info = {'impl': impl, 'instr': instr,
                     'in_inccomp': self.inccomp_depth > 0}
             raise self.Found(node, info)
@@ -206,7 +209,8 @@ class QueryFinder(L.NodeVisitor):
         # (Can raise exception.)
         self.generic_visit(node)
         
-        if impl in ['inc', 'dem']:
+        if (impl in ['inc', 'dem'] and
+            not node.options.get('_invalid', False)):
             info = {'impl': impl, 'instr': instr,
                     'in_inccomp': self.inccomp_depth > 0,
                     'half_demand': half_demand}
@@ -226,13 +230,24 @@ def transform_query(tree, manager, query, info):
     in_inccomp = info['in_inccomp']
     
     if isinstance(query, L.Comp):
+        # If we can't handle this query, flag it and skip it.
+        if is_original(query) and not comp_isvalid(manager, query):
+            new_options = dict(query.options)
+            new_options['_invalid'] = True
+            rewritten_query = query._replace(options=new_options)
+            tree = L.QueryReplacer.run(tree, query, rewritten_query)
+            
+            manager.stats['queries skipped'] += 1
+            if manager.options.get_opt('verbose'):
+                print('Skipping query ' + L.ts(query))
+            return tree
+        
         # Flatten lookups (e.g. into aggregate result maps) first,
         # then rewrite patterns. (Opposite order fails to rewrite
         # all occurrences of vars in the condition, since our
         # renamer doesn't catch some cases like demparams of DEMQUERY
         # nodes.)
         rewritten_query = flatten_smlookups(query)
-        rewritten_query, _ = flatten_tuples_comp(rewritten_query)
         tree = L.QueryReplacer.run(tree, query, rewritten_query)
         query = rewritten_query
         
@@ -277,7 +292,14 @@ def transform_query(tree, manager, query, info):
         
         if (impl in ['inc', 'dem'] and aggr_needs_batch(query) and
             aggr_batch_fallback):
-            impl = 'batch'
+            new_options = dict(query.options)
+            new_options['_invalid'] = True
+            rewritten_query = query._replace(options=new_options)
+            tree = L.QueryReplacer.run(tree, query, rewritten_query)
+            
+            manager.stats['queries skipped'] += 1
+            print('Skipping query ' + L.ts(query))
+            return tree
         
         if (impl == 'inc' and (in_inccomp or aggr_needs_dem(query)) and
             aggr_dem_fallback):
@@ -295,8 +317,6 @@ def transform_query(tree, manager, query, info):
                 manager.stats['orig queries'] += 1
             manager.stats['incr queries'] += 1
             manager.stats['incr aggrs'] += 1
-        elif impl == 'batch':
-            pass
         else:
             assert()
     
@@ -315,7 +335,18 @@ def transform_all_queries(tree, manager):
     while query is not None:
         tree = transform_query(tree, manager, query, info)
         query, info = QueryFinder.run(tree, manager.options)
-    return tree
+    
+    # Mark any invalid comprehensions that weren't already found,
+    # so we don't try to do any further relational operations on
+    # them.
+    class Marker(L.QueryMapper):
+        def map_Comp(self, node):
+            if not comp_isvalid(manager, node):
+                new_options = dict(node.options)
+                new_options['_invalid'] = True
+                return node._replace(options=new_options)
+    
+    return Marker.run(tree)
 
 
 def preprocess_tree(manager, tree, opts):
@@ -378,6 +409,11 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     manager.factory = get_clause_factory(use_objdomain=objdomain_out,
                                          use_typecheck=typecheck)
     
+    # Rewrite set/obj types.
+    tree = SetTypeRewriter.run(tree, manager.namegen,
+                               set_literals=True, orig_set_comps=False)
+    tree = ObjTypeRewriter.run(tree)
+    
     # Rewrite macro updates.
     tree = MacroSetUpdateRewriter.run(tree)
     
@@ -389,7 +425,8 @@ def transform_ast(tree, *, nopts=None, qopts=None):
             if s not in flatten_rels:
                 flatten_rels.append(s)
     if len(flatten_rels) > 0:
-        print('Flattening relations: ' + ', '.join(flatten_rels))
+        if verbose:
+            print('Flattening relations: ' + ', '.join(flatten_rels))
         tree = flatten_relations(tree, flatten_rels, manager.namegen)
     
     # Go to the pair domain.
@@ -404,6 +441,9 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     # comps.
     tree = MinMaxRewriter.run(tree)
     
+    # Flatten nested tuples in queries.
+    tree = flatten_tuples(tree)
+    
     # Mark all the queries that exist right now as being from
     # the input program, so we can track statistics for input
     # queries versus intermediate queries that we create.
@@ -415,6 +455,9 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     
     if not opman.get_opt('pattern_out'):
         tree = depatternize_all(tree, manager.factory)
+    
+    tree = SetTypeRewriter.run(tree, manager.namegen,
+                               set_literals=False, orig_set_comps=True)
     
     if opman.get_opt('analyze_costs'):
         print('Analyzing costs')

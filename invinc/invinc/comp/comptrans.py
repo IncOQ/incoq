@@ -14,6 +14,7 @@ __all__ = [
     'patternize_all',
     'depatternize_all',
     'comp_inc_needs_dem',
+    'comp_isvalid',
 ]
 
 import iast
@@ -614,8 +615,9 @@ def patternize_all(tree, factory):
     return Patternizer.run(tree)
 
 def depatternize_all(tree, factory):
-    """Depatternize all comps in the program."""
+    """Depatternize all (valid) comps in the program."""
     class Depatternizer(L.QueryMapper):
+        ignore_invalid = True
         def map_Comp(self, node):
             return depatternize_comp(node, factory)
     
@@ -628,3 +630,14 @@ def comp_inc_needs_dem(manager, comp):
     """
     spec = CompSpec.from_comp(comp, manager.factory)
     return spec.join.has_demand
+
+
+def comp_isvalid(manager, comp):
+    """Return whether a Comp node satisfies the syntactic requirements
+    of a relational comprehension.
+    """
+    try:
+        CompSpec.from_comp(comp, manager.factory)
+    except TypeError:
+        return False
+    return True
