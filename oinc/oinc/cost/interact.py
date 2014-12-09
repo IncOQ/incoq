@@ -13,10 +13,10 @@ from functools import partial
 
 from util.unify import unify
 
-import invinc.incast as L
-from invinc.set import Mask
-from invinc.comp import CompSpec
-from invinc.aggr import AggrSpec
+import oinc.incast as L
+from oinc.set import Mask
+from oinc.comp import CompSpec
+from oinc.aggr import AggrSpec
 
 from .cost import *
 

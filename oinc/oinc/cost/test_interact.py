@@ -5,10 +5,10 @@ import unittest
 from types import SimpleNamespace
 
 from util.unify import unify
-import invinc.incast as L
-from invinc.set import Mask
-from invinc.comp import CompSpec
-from invinc.central import CentralCase
+import oinc.incast as L
+from oinc.set import Mask
+from oinc.comp import CompSpec
+from oinc.central import CentralCase
 
 from .cost import *
 from .interact import *

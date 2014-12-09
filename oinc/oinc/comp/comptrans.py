@@ -19,8 +19,8 @@ __all__ = [
 
 import iast
 
-import invinc.incast as L
-from invinc.set import Mask
+import oinc.incast as L
+from oinc.set import Mask
 
 from .clause import EnumClause
 from .join import Join
@@ -529,7 +529,7 @@ def inc_relcomp_helper(tree, manager, inccomp, *, instrument):
     for demname, demspec in deminvs:
         # Hack: OuterDemandMaintainer should be refactored to move
         # to here, to avoid this import.
-        from invinc.demand.demtrans import OuterDemandMaintainer 
+        from oinc.demand.demtrans import OuterDemandMaintainer
         
         # Determine dependencies of demand invariant.
         at_rels = set(e.enumrel for e in demspec.join.clauses)

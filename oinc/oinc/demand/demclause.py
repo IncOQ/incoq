@@ -10,10 +10,10 @@ __all__ = [
 from simplestruct import Field
 from simplestruct.type import checktype
 
-import invinc.incast as L
-from invinc.set import Mask
-from invinc.comp import Rate, Clause
-from invinc.comp.clause import ABCStruct, ClauseFactory, apply_subst_tuple
+import oinc.incast as L
+from oinc.set import Mask
+from oinc.comp import Rate, Clause
+from oinc.comp.clause import ABCStruct, ClauseFactory, apply_subst_tuple
 
 
 class DemClause(Clause, ABCStruct):

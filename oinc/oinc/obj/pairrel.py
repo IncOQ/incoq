@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 
-import invinc.incast as L
+import oinc.incast as L
 
 
 MREL_NAME = '_M'

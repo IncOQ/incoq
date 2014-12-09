@@ -18,19 +18,19 @@ import time
 
 from util.linecount import get_loc_source
 from util.str import quote_items
-import invinc.incast as L
-from invinc.set import inc_all_relmatch
-from invinc.comp import (patternize_comp, depatternize_all, inc_relcomp,
-                         impl_auxonly_relcomp, comp_inc_needs_dem,
-                         comp_isvalid)
-from invinc.aggr import (inc_aggr, flatten_smlookups,
-                         aggr_needs_batch, aggr_needs_dem,
-                         aggr_canuse_halfdemand)
-from invinc.obj import to_pairdomain, to_objdomain
-from invinc.demand import deminc_relcomp
-from invinc.tup import (flatten_tuples, check_bad_setmatches,
-                        flatten_relations)
-from invinc.cost import analyze_costs
+import oinc.incast as L
+from oinc.set import inc_all_relmatch
+from oinc.comp import (patternize_comp, depatternize_all, inc_relcomp,
+                       impl_auxonly_relcomp, comp_inc_needs_dem,
+                       comp_isvalid)
+from oinc.aggr import (inc_aggr, flatten_smlookups,
+                       aggr_needs_batch, aggr_needs_dem,
+                       aggr_canuse_halfdemand)
+from oinc.obj import to_pairdomain, to_objdomain
+from oinc.demand import deminc_relcomp
+from oinc.tup import (flatten_tuples, check_bad_setmatches,
+                      flatten_relations)
+from oinc.cost import analyze_costs
 
 from .manager import get_clause_factory, make_manager
 from .rewritings import (DistalgoImporter, get_distalgo_message_sets,

@@ -3,7 +3,7 @@
 
 import unittest
 
-import invinc.incast as L
+import oinc.incast as L
 
 from .flatten import *
 from .flatten import (tuptree_to_type, tuptype_leaves, make_flattup_code,

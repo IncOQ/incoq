@@ -3,8 +3,8 @@
 
 import unittest
 
-import invinc.incast as L
-from invinc.set import Mask
+import oinc.incast as L
+from oinc.set import Mask
 
 from .tuprel import *
 

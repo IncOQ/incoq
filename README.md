@@ -1,14 +1,14 @@
-InvInc is a system for generating incremental and demand-driven
+Oinc is a system for generating incremental and demand-driven
 implementations of object-set queries. The current source tree
 is a development version.
 
 ## Configuration
 
-InvInc requires Python 3.4.
+Oinc requires Python 3.4.
 
 To clone, run
 
-    git clone https://github.com/InvInc/invinc.git
+    git clone https://github.com/Oinc/Oinc.git
 
 cd to the project directory, and run
 
@@ -39,4 +39,4 @@ In addition, the following 3rd-party Python libraries are used:
  
  A single input file may be transformed by running
  
-     python34 -m invinc <input file> <output file>
+     python34 -m oinc <input file> <output file>

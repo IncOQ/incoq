@@ -11,9 +11,9 @@ __all__ = [
 from simplestruct.type import checktype
 from simplestruct import Field
 
-import invinc.incast as L
-from invinc.set import Mask
-from invinc.comp import (ClauseFactory, Rate, EnumClause, vars_from_tuple)
+import oinc.incast as L
+from oinc.set import Mask
+from oinc.comp import (ClauseFactory, Rate, EnumClause, vars_from_tuple)
 
 from .tuprel import is_trel, get_trel, make_trel, trel_bindmatch
 

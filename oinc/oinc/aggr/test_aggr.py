@@ -3,9 +3,9 @@
 
 import unittest
 
-import invinc.incast as L
-from invinc.set import Mask
-from invinc.central import CentralCase
+import oinc.incast as L
+from oinc.set import Mask
+from oinc.central import CentralCase
 
 from .aggr import *
 from .aggr import get_cg_class

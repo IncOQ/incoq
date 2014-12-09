@@ -3,8 +3,8 @@
 
 import unittest
 
-import invinc.incast as L
-from invinc.central import CentralCase
+import oinc.incast as L
+from oinc.central import CentralCase
 
 from .aggrcomp import *
 from .aggrcomp import LookupReplacer

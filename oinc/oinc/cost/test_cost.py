@@ -3,7 +3,7 @@
 
 import unittest
 
-from invinc.set import Mask
+from oinc.set import Mask
 
 from .cost import *
 from .cost import (without_duplicates, all_products_dominated,

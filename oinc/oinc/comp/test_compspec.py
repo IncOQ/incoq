@@ -5,7 +5,7 @@ import unittest
 
 from simplestruct import Field
 
-import invinc.incast as L
+import oinc.incast as L
 
 from .clause import EnumClause, ClauseFactory as CF, ABCStruct
 from .join import Join
@@ -281,7 +281,7 @@ class CompSpecCase(unittest.TestCase):
         self.assertCountEqual(constrs, exp_constrs)
     
     def test_memberships(self):
-        from invinc.tup import TupClauseFactory_Mixin
+        from oinc.tup import TupClauseFactory_Mixin
         spec = self.make_spec('(a, c) for (a, b, tup) in R '
                                      'for (tup, c, d) in _TUP2 '
                                      'for d in T for _ in U for (_, _) in U '

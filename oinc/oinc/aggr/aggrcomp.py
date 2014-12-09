@@ -7,7 +7,7 @@ __all__ = [
 
 
 from collections import OrderedDict
-import invinc.incast as L
+import oinc.incast as L
 
 
 class LookupReplacer(L.NodeTransformer):

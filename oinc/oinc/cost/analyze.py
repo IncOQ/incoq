@@ -9,9 +9,9 @@ __all__ = [
 
 from util.unify import unify
 
-import invinc.incast as L
-from invinc.set import Mask
-from invinc.comp import IncComp
+import oinc.incast as L
+from oinc.set import Mask
+from oinc.comp import IncComp
 
 from .cost import *
 

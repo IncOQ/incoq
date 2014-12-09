@@ -8,7 +8,7 @@ __all__ = [
 
 
 from util.collections import OrderedSet
-import invinc.incast as L
+import oinc.incast as L
 
 from .pairrel import (make_mrel, is_mrel, make_frel, is_frel,
                       get_frel_field, make_maprel, is_maprel,

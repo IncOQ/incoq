@@ -81,7 +81,7 @@ incpy_nodes.update(newpy_nodes)
 del Comment
 
 
-# Struct node versions of invinc nodes.
+# Struct node versions of oinc nodes.
 
 class Comment(stmt):
     _fields = ('text',)     # string
@@ -213,7 +213,7 @@ class Aggregate(expr):
         return super().__new__(cls, value, op, options)
 
 
-# Mapping for struct nodes including invinc nodes.
+# Mapping for struct nodes including oinc nodes.
 newstruct_nodes = {name: globals()[name]
                    for name in inc_node_names}
 incstruct_nodes = struct_nodes.copy()

@@ -12,12 +12,12 @@ from transform import Task, do_tasks
 class TestProgramTask(Task):
     
     prog = Field(str)
-    """Test program path, relative to the src/invinc/testprograms
+    """Test program path, relative to the oinc/oinc/testprograms
     directory, excluding the "_in.py" suffix.
     """
     
     def __init__(self, prog):
-        path = os.path.join('invinc/invinc/testprograms', prog)
+        path = os.path.join('oinc/oinc/testprograms', prog)
         self.input_name = path + '_in.py'
         self.output_name = path + '_out.py'
         self.nopts = {'verbose': True, 'eol': 'lf'}

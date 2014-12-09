@@ -8,8 +8,8 @@
 
 import unittest
 
-import invinc.incast as L
-from invinc.central import CentralCase
+import oinc.incast as L
+from oinc.central import CentralCase
 
 from .transform import *
 from .transform import transform_all_queries

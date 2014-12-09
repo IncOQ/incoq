@@ -4,8 +4,8 @@
 import unittest
 
 from util.collections import OrderedSet
-from invinc.comp import CompSpec
-import invinc.incast as L
+from oinc.comp import CompSpec
+import oinc.incast as L
 
 from .objclause import ObjClauseFactory_Mixin as CF
 from .objcomp import *

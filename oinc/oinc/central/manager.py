@@ -18,11 +18,11 @@ __all__ = [
 
 from unittest import TestCase
 
-import invinc.incast as L
-from invinc.comp import Join, CompSpec, ClauseFactory
-from invinc.obj import ObjClauseFactory_Mixin
-from invinc.demand import DemClauseFactory_Mixin
-from invinc.tup import TupClauseFactory_Mixin
+import oinc.incast as L
+from oinc.comp import Join, CompSpec, ClauseFactory
+from oinc.obj import ObjClauseFactory_Mixin
+from oinc.demand import DemClauseFactory_Mixin
+from oinc.tup import TupClauseFactory_Mixin
 
 
 from .options import OptionsManager
@@ -86,7 +86,7 @@ class Manager:
         self.compnamegen = L.NameGenerator(fmt='Comp{}', counter=1)
         """Generator specifically for naming comprehension queries."""
         
-        from invinc.aggr import AGGR_PREFIX
+        from oinc.aggr import AGGR_PREFIX
         self.aggrnamegen = L.NameGenerator(fmt=AGGR_PREFIX + '{}', counter=1)
         """Generator specifically for naming aggregate queries."""
         
@@ -166,8 +166,8 @@ class Manager:
         self.header_comments += [L.Comment(s)]
     
     def add_invariant(self, name, inv):
-        from invinc.comp import IncComp
-        from invinc.aggr import IncAggr
+        from oinc.comp import IncComp
+        from oinc.aggr import IncAggr
         assert isinstance(inv, (IncComp, IncAggr))
         self.invariants[name] = inv
         self.add_note('{name} := {inv.spec}'.format(**locals()))

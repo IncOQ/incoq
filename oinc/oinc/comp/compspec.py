@@ -17,7 +17,7 @@ from util.type import checktype
 from util.seq import pairs
 from util.collections import OrderedSet, SetDict
 from util.unify import apply_subst
-import invinc.incast as L
+import oinc.incast as L
 
 from .clause import Clause, EnumClause
 from .join import Join

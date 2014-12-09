@@ -3,7 +3,7 @@
 
 import unittest
 
-import invinc.incast as L
+import oinc.incast as L
 
 from .clause import EnumClause, CondClause
 

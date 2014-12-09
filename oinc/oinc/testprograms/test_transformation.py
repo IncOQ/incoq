@@ -33,7 +33,7 @@ import unittest
 import os
 
 from util.pyexec import pyexec_source
-from invinc.central import transform_source
+from oinc.central import transform_source
 
 
 # Doesn't do anything at the moment.
@@ -66,7 +66,7 @@ def check_basepath(base_path):
     
     # TODO: This include/exclude path logic could be refactored into
     # util to be shared with tools/linecount. But the proper way to
-    # structure it would be to move the util library outside the invinc
+    # structure it would be to move the util library outside the oinc
     # package and into the top level.
     # TODO: Use globs instead of fnmatch?
     whitelist = [os.path.normpath(p) for p in whitelist]

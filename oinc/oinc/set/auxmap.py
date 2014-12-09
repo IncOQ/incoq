@@ -16,7 +16,7 @@ __all__ = [
 
 
 from util.collections import OrderedSet
-import invinc.incast as L
+import oinc.incast as L
 
 from .mask import Mask, AuxmapSpec
 

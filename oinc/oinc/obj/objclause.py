@@ -15,10 +15,10 @@ __all__ = [
 from simplestruct.type import checktype
 from simplestruct import Field
 
-import invinc.incast as L
-from invinc.set import Mask
-from invinc.comp import (ClauseFactory, Rate, EnumClause)
-from invinc.comp.clause import ABCStruct
+import oinc.incast as L
+from oinc.set import Mask
+from oinc.comp import (ClauseFactory, Rate, EnumClause)
+from oinc.comp.clause import ABCStruct
 
 from .match import mset_bindmatch, fset_bindmatch, mapset_bindmatch
 from .pairrel import (is_mrel, make_mrel, is_frel, get_frel_field, make_frel,

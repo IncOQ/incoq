@@ -1,4 +1,4 @@
-"""Utilities for scripting invocation of invinc."""
+"""Utilities for scripting invocation of oinc."""
 
 
 # Exports.

@@ -16,7 +16,7 @@ __all__ = [
 
 
 from util.collections import OrderedSet
-import invinc.incast as L
+import oinc.incast as L
 
 from .tuprel import make_trel, get_trel
 

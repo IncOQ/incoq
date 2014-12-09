@@ -118,7 +118,7 @@ class IncMacroProcessor(IncLangImporter):
     @astargs
     def handle_ms_smassignkey(self, f, target, maskstr:'Str', key, elem,
                               prefix:'Str'):
-        from invinc.set import Mask
+        from oinc.set import Mask
         mask = Mask(maskstr)
         assert mask.is_keymask
         # vars for each bound component ((len(mask) - 1) many).
@@ -134,7 +134,7 @@ class IncMacroProcessor(IncLangImporter):
     @astargs
     def handle_ms_smdelkey(self, f, target, maskstr:'Str', key,
                            prefix:'Str'):
-        from invinc.set import Mask
+        from oinc.set import Mask
         mask = Mask(maskstr)
         assert mask.is_keymask
         # vars for each bound component ((len(mask) - 1) many).
@@ -155,7 +155,7 @@ class IncMacroProcessor(IncLangImporter):
     @astargs
     def handle_ms_smnsassignkey(self, f, target, maskstr:'Str', key, elem,
                                 prefix:'Str'):
-        from invinc.set import Mask
+        from oinc.set import Mask
         mask = Mask(maskstr)
         assert mask.is_keymask
         # vars for each bound component ((len(mask) - 1) many).
@@ -179,7 +179,7 @@ class IncMacroProcessor(IncLangImporter):
     @astargs
     def handle_ms_smnsdelkey(self, f, target, maskstr:'Str', key,
                              prefix:'Str'):
-        from invinc.set import Mask
+        from oinc.set import Mask
         mask = Mask(maskstr)
         assert mask.is_keymask
         # vars for each bound component ((len(mask) - 1) many).
@@ -201,7 +201,7 @@ class IncMacroProcessor(IncLangImporter):
     @astargs
     def handle_ms_smreassignkey(self, f, target, maskstr:'Str', key, elem,
                                 prefix:'Str'):
-        from invinc.set import Mask
+        from oinc.set import Mask
         mask = Mask(maskstr)
         assert mask.is_keymask
         vars = [prefix + str(i) for i in range(1, len(mask))]

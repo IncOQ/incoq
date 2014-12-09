@@ -1,4 +1,4 @@
-"""Invoke invinc and maintain the stats database."""
+"""Invoke oinc and maintain the stats database."""
 
 
 __all__ = [
@@ -13,7 +13,7 @@ from simplestruct import Struct, Field
 
 from util.linecount import get_loc_file
 
-from invinc import transform_file, print_exc_with_ast
+from oinc import transform_file, print_exc_with_ast
 
 from .stats import StatsDB
 

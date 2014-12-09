@@ -18,8 +18,8 @@ __all__ = [
 
 from iast.pylang import MacroProcessor
 
-import invinc.incast as L
-from invinc.obj import is_specialrel
+import oinc.incast as L
+from oinc.obj import is_specialrel
 
 
 class DistalgoImporter(MacroProcessor):

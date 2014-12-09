@@ -15,8 +15,8 @@ from simplestruct import Struct, Field
 from util.type import checktype
 from util.seq import elim_duplicates, pairs
 from util.collections import Partitioning
-import invinc.incast as L
-from invinc.set import Mask
+import oinc.incast as L
+from oinc.set import Mask
 
 from .clause import Clause
 from .order import AsymptoticOrderer

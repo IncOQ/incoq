@@ -29,7 +29,7 @@ from collections import Counter
 from simplestruct import Struct, Field
 
 from util.collections import OrderedSet
-from invinc.set import Mask
+from oinc.set import Mask
 
 
 class Cost(Struct):

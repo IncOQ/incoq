@@ -7,7 +7,7 @@ __all__ = [
 
 
 from util.str import quote_items
-from invinc.incast import ProgramError
+from oinc.incast import ProgramError
 from copy import deepcopy as dc
 
 from simplestruct.util import frozendict
@@ -111,7 +111,7 @@ class DefaultNormalOptions:
     
     clause_priorities =     frozendict()
     """Dictionary mapping from relation_mask identifiers to a numerical
-    join heuristic ranking. See invinc/comp/order.py.
+    join heuristic ranking. See oinc/comp/order.py.
     """
     
     maint_inline =          False

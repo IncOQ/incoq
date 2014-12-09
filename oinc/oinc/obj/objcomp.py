@@ -10,7 +10,7 @@ __all__ = [
 from iast.pylang import ContextSetter
 
 from util.collections import OrderedSet
-import invinc.incast as L
+import oinc.incast as L
 
 from .pairrel import (make_mrel, is_mrel, get_menum, make_frel, get_fenum,
                       make_maprel, get_mapenum, is_specialrel)

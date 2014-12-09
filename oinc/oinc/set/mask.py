@@ -36,7 +36,7 @@ __all__ = [
 
 from simplestruct import Struct, Field
 from simplestruct.type import checktype, checktype_seq
-import invinc.incast as L
+import oinc.incast as L
 
 
 class Mask(Struct):

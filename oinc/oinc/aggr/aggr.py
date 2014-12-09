@@ -59,8 +59,8 @@ from abc import ABCMeta, abstractmethod
 from simplestruct import Struct, Field
 from simplestruct.type import checktype
 
-import invinc.incast as L
-from invinc.set import Mask
+import oinc.incast as L
+from oinc.set import Mask
 
 
 AGGR_PREFIX = 'Aggr'

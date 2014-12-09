@@ -3,9 +3,9 @@
 
 import unittest
 
-import invinc.incast as L
-from invinc.set import Mask, AuxmapSpec
-from invinc.central import CentralCase
+import oinc.incast as L
+from oinc.set import Mask, AuxmapSpec
+from oinc.central import CentralCase
 
 from .auxmap import *
 from .auxmap import make_auxmap_maint_code

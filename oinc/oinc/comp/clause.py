@@ -29,8 +29,8 @@ from iast.pylang import Templater, ContextSetter
 
 from util.type import checktype
 from util.seq import elim_duplicates
-import invinc.incast as L
-from invinc.set import Mask, AuxmapSpec, make_bindmatch, make_tuplematch
+import oinc.incast as L
+from oinc.set import Mask, AuxmapSpec, make_bindmatch, make_tuplematch
 
 from .order import Rate
 
@@ -339,7 +339,7 @@ class Clause(metaclass=ABCMeta):
         """For the join heuristic, return a numerical ranking for this
         clause under a binding environment. A binding environment is
         a sequence of names of variables that are considered bound.
-        See invinc.comp.order.
+        See oinc.comp.order.
         """
     
     def get_determined_vars(self, bindenv):
@@ -435,7 +435,7 @@ class EnumClause(Clause, ABCStruct):
         # We specifically construct an EnumClause (not an instance of
         # a subclass) and rely on the factory to turn that into an
         # appropriate clause. This is to play nice with the object
-        # clauses in invinc/obj/objclause.py.
+        # clauses in oinc/obj/objclause.py.
         cl = EnumClause(self.enumlhs, rel)
         clast = cl.to_AST()
         return factory.from_AST(clast)

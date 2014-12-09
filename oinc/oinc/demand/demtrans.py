@@ -8,9 +8,9 @@ __all__ = [
 
 from operator import attrgetter
 
-import invinc.incast as L
-from invinc.comp import (make_inccomp, inc_relcomp_helper,
-                         inc_relcomp, inc_changetrack)
+import oinc.incast as L
+from oinc.comp import (make_inccomp, inc_relcomp_helper,
+                       inc_relcomp, inc_changetrack)
 
 from .demclause import DemClause
 from .tags import (make_structures, filter_comps,

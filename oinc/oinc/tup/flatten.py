@@ -6,7 +6,7 @@ __all__ = [
 ]
 
 
-import invinc.incast as L
+import oinc.incast as L
 
 
 def tuptree_to_type(node):

@@ -12,7 +12,7 @@ __all__ = [
 ]
 
 
-import invinc.incast as L
+import oinc.incast as L
 
 
 def make_bindmatch(rel, mask, bvars, uvars, body):

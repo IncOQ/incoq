@@ -3,8 +3,8 @@
 
 import unittest
 
-import invinc.incast as L
-from invinc.comp import Rate
+import oinc.incast as L
+from oinc.comp import Rate
 
 from .tupclause import *
 

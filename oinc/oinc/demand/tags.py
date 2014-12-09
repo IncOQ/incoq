@@ -16,9 +16,9 @@ from operator import attrgetter
 
 from simplestruct import Struct, Field
 
-from invinc.set import Mask
-from invinc.comp import Clause, EnumClause, inst_wildcards, Join, CompSpec
-import invinc.incast as L
+from oinc.set import Mask
+from oinc.comp import Clause, EnumClause, inst_wildcards, Join, CompSpec
+import oinc.incast as L
 
 from .demclause import DemClause
 

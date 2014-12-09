@@ -36,8 +36,8 @@ except ImportError:
 
 from util.collections import SetDict
 
-from invinc.cost import (add_domain_names, reinterpret_cost,
-                         Simplifier, normalize, PrettyPrinter)
+from oinc.cost import (add_domain_names, reinterpret_cost,
+                       Simplifier, normalize, PrettyPrinter)
 
 
 class BaseSchema:
@@ -379,12 +379,12 @@ class Session:
         return add_domain_names(subst, domainnames)
     
     def cmd_edit(self, name):
-        import invinc.cost
+        import oinc.cost
         
         self.current = name
         
-        for k in invinc.cost.cost.__all__:
-            self.ns[k] = getattr(invinc.cost, k)
+        for k in oinc.cost.cost.__all__:
+            self.ns[k] = getattr(oinc.cost, k)
         
         stats = self.ns['stats']
         self.ns['invariants'] = stats[name]['invariants']

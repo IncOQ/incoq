@@ -8,8 +8,8 @@ __all__ = [
 ]
 
 
-import invinc.incast as L
-from invinc.set import Mask
+import oinc.incast as L
+from oinc.set import Mask
 
 from .pairrel import make_maprel
 

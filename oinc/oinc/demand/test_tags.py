@@ -4,9 +4,9 @@
 import unittest
 from itertools import chain
 
-import invinc.incast as L
-from invinc.comp import AsymptoticOrderer, Join, DeltaInfo
-from invinc.obj import ObjClauseFactory_Mixin
+import oinc.incast as L
+from oinc.comp import AsymptoticOrderer, Join, DeltaInfo
+from oinc.obj import ObjClauseFactory_Mixin
 
 from .demclause import DemClauseFactory_Mixin
 
