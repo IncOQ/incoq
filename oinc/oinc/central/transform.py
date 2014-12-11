@@ -381,6 +381,20 @@ def preprocess_tree(manager, tree, opts):
     return tree, opman
 
 
+def elim_inputrel_params(tree, input_rels):
+    """For sets that are input relations, remove these sets from
+    the parameter lists of queries.
+    """
+    # XXX: Do this for aggregates as well?
+    class Trans(L.QueryMapper):
+        def map_Comp(self, node):
+            params = tuple(p for p in node.params if p not in input_rels)
+            if params != node.params:
+                return node._replace(params=params)
+    
+    return Trans.run(tree)
+
+
 def transform_ast(tree, *, nopts=None, qopts=None):
     """Take a PyAST and return a transformed output PyAST.
     
@@ -431,6 +445,8 @@ def transform_ast(tree, *, nopts=None, qopts=None):
         if verbose:
             print('Flattening relations: ' + ', '.join(flatten_rels))
         tree = flatten_relations(tree, flatten_rels, manager.namegen)
+    
+    tree = elim_inputrel_params(tree, input_rels)
     
     # Go to the pair domain.
     if objdomain:
