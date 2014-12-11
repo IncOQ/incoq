@@ -431,7 +431,8 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     
     # Go to the pair domain.
     if objdomain:
-        tree = to_pairdomain(tree, manager)
+        input_rels = opman.get_opt('input_rels')
+        tree = to_pairdomain(tree, manager, input_rels)
     
     # Rewrite non-trivial update operands.
     tree = UpdateRewriter.run(tree, manager.namegen)

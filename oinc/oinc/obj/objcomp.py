@@ -199,18 +199,19 @@ def unflatten_retrievals(comp):
     return new_comp
 
 
-def flatten_set_clause(cl):
-    """Turn a membership clause that is not over a comprehension
-    or special relation into a clause over the M-set. Return a pair
-    of the (possibly unchanged) clause and a bool indicating whether
-    or not the change was done.
+def flatten_set_clause(cl, input_rels):
+    """Turn a membership clause that is not over a comprehension,
+    special relation, or input relation, into a clause over the M-set.
+    Return a pair of the (possibly unchanged) clause and a bool
+    indicating whether or not the change was done.
     
     This also works on condition clauses that express membership
     constraints. The rewritten clause is still a condition clause.
     """
     def should_trans(rhs):
         return (not isinstance(rhs, L.Comp) and
-                not (isinstance(rhs, L.Name) and is_specialrel(rhs.id)))
+                not (isinstance(rhs, L.Name) and
+                     (is_specialrel(rhs.id) or rhs.id in input_rels)))
     
     # Enumerator case.
     if isinstance(cl, L.Enumerator) and should_trans(cl.iter):
@@ -262,18 +263,18 @@ def unflatten_set_clause(cl):
     return cl
 
 
-def flatten_sets(comp):
-    """Flatten the set iterations in a Comp node. Return a pair of
-    the new comp and a bool indicating whether or not the M-set was
-    used. (As a practical matter, this should generally be True.)
-    Enumerators over pair relations and other comprehensions are
+def flatten_sets(comp, input_rels):
+    """Flatten the set iterations in a Comp node. Return a pair of the
+    new comp and a bool indicating whether or not the M-set was used.
+    (As a practical matter, this should generally be True.) Enumerators
+    over pair relations, input relations, and other comprehensions are
     not affected.
     """
     use_mset = False
     
     def process(cl):
         nonlocal use_mset
-        new_cl, new_use_mset = flatten_set_clause(cl)
+        new_cl, new_use_mset = flatten_set_clause(cl, input_rels)
         use_mset |= new_use_mset
         return new_cl, []
     
@@ -287,14 +288,14 @@ def unflatten_sets(comp):
     return comp._replace(clauses=new_clauses)
 
 
-def flatten_comp(comp):
+def flatten_comp(comp, input_rels):
     """Flatten away objects and nested sets. Return a tuple of the new
     comp, a boolean indicating whether the M-set is used (in practice,
     always True), an OrderedSet of the fields replaced, and a boolean
     indicating whether a map retrieval is used.
     """
     comp, fields, use_map = flatten_retrievals(comp)
-    comp, use_mset = flatten_sets(comp)
+    comp, use_mset = flatten_sets(comp, input_rels)
     return comp, use_mset, fields, use_map
 
 def unflatten_comp(comp):

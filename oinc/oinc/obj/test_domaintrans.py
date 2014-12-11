@@ -17,6 +17,7 @@ class TestDomaintrans(CentralCase):
     def test_update_topair(self):
         tree = L.p('''
             x.add(y)
+            T.add(x)
             o.foo = 4
             print(o.foo)
             del o.foo
@@ -25,7 +26,8 @@ class TestDomaintrans(CentralCase):
             del m[k]
             ''')
         tree, use_mset, fields, use_maprel = UpdateToPairTransformer.run(
-                                                tree, False, set(), False)
+                                                tree, False, set(), False,
+                                                ['T'])
         
         exp_use_mset = True
         exp_fields = {'foo', 'bar'}
@@ -36,6 +38,7 @@ class TestDomaintrans(CentralCase):
             _F_bar = FSet()
             _MAP = MAPSet()
             _M.add((x, y))
+            T.add(x)
             _F_foo.add((o, 4))
             print(o.foo)
             _F_foo.remove((o, o.foo))
@@ -93,10 +96,11 @@ class TestDomaintrans(CentralCase):
     def test_pairdomain(self):
         tree = L.p('''
             S.add(o)
+            T.add(o)
             o.a = 5
-            print(COMP({x.a.b[c] for x in S}, [S], {}))
+            print(COMP({x.a.b[c] for x in S if x in T}, [S, T], {}))
             ''')
-        tree = to_pairdomain(tree, self.manager)
+        tree = to_pairdomain(tree, self.manager, ['T'])
         
         exp_tree = L.p('''
             _M = MSet()
@@ -104,11 +108,13 @@ class TestDomaintrans(CentralCase):
             _F_b = FSet()
             _MAP = MAPSet()
             _M.add((S, o))
+            T.add(o)
             _F_a.add((o, 5))
-            print(COMP({m_x_a_b_k_c for (S, x) in _M for (x, x_a) in _F_a
+            print(COMP({m_x_a_b_k_c for (S, x) in _M if x in T
+                                    for (x, x_a) in _F_a
                                     for (x_a, x_a_b) in _F_b
                                     for (x_a_b, c, m_x_a_b_k_c) in _MAP},
-                       [S], {}))
+                       [S, T], {}))
             ''')
         
         self.assertEqual(tree, exp_tree)
@@ -117,8 +123,9 @@ class TestDomaintrans(CentralCase):
         
         exp_tree = L.p('''
             S.add(o)
+            T.add(o)
             o.a = 5
-            print(COMP({x.a.b[c] for x in S}, [S], {}))
+            print(COMP({x.a.b[c] for x in S if x in T}, [S, T], {}))
             ''')
         
         self.assertEqual(tree, exp_tree)

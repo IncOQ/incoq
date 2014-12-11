@@ -85,13 +85,14 @@ class ObjcompCase(unittest.TestCase):
     def test_flatten_unflatten_sets(self):
         comp = L.pe(
             'COMP({x for (o, o_s) in _F_s for (o, o_t) in _F_t '
-                    'for x in o_s if x in o_t}, [S])')
+                    'for x in o_s if x in o_t if x in T}, [S, T])')
         
-        flatcomp, use_mset = flatten_sets(comp)
+        flatcomp, use_mset = flatten_sets(comp, ['T'])
         
         exp_flatcomp = L.pe(
             'COMP({x for (o, o_s) in _F_s for (o, o_t) in _F_t '
-                    'for (o_s, x) in _M if (o_t, x) in _M}, [S])')
+                    'for (o_s, x) in _M if (o_t, x) in _M if x in T}, '
+                 '[S, T])')
         
         self.assertEqual(flatcomp, exp_flatcomp)
         self.assertTrue(use_mset)
@@ -107,7 +108,7 @@ class ObjcompCase(unittest.TestCase):
             'COMP({x for x in S if x in T for y in S '
                     'for y2 in x if y == y2}, '
                  '[S, T], {})')
-        comp, _use_mset, _fields, _use_map = flatten_comp(comp)
+        comp, _use_mset, _fields, _use_map = flatten_comp(comp, [])
         
         spec = CompSpec.from_comp(comp, CF)
         spec = spec.to_pattern()

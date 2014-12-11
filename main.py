@@ -332,6 +332,7 @@ test_programs = [
 #    'objcomp/pairmode',
 #    'objcomp/notc',
 #    'objcomp/map',
+#    'objcomp/inputrel',
 #    
 #    'deminc/aug1',
 #    'deminc/aug2',

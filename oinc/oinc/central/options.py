@@ -35,6 +35,12 @@ class DefaultNormalOptions:
     instead of being converted back to the object domain.
     """
     
+    input_rels =            []
+    """List of names of sets in the input program that are relations
+    and therefore do not need to be flattened. Relations must not be
+    aliased or nested inside other values.
+    """
+    
     pattern_in =            False
     """If True, the input program is expressed with pattern matching."""
     pattern_out =           False

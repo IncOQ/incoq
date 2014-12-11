@@ -25,11 +25,12 @@ class UpdateToPairTransformer(L.NodeTransformer):
     due to the transformed updates.
     """
     
-    def __init__(self, use_mset, fields, use_mapset):
+    def __init__(self, use_mset, fields, use_mapset, input_rels):
         super().__init__()
         self.use_mset = use_mset
         self.fields = OrderedSet(fields)
         self.use_mapset = use_mapset
+        self.input_rels = input_rels
     
     def process(self, tree):
         tree = super().process(tree)
@@ -112,6 +113,11 @@ class UpdateToPairTransformer(L.NodeTransformer):
     
     def visit_SetUpdate(self, node):
         node = self.generic_visit(node)
+        
+        # Ignore updates to input relations.
+        if (isinstance(node.target, L.Name) and
+            node.target.id in self.input_rels):
+            return node
         
         self.use_mset = True
         
@@ -248,7 +254,7 @@ class UpdateToObjTransformer(L.NodeTransformer):
         return code
 
 
-def flatten_all_comps(tree):
+def flatten_all_comps(tree, input_rels):
     """Flatten all object comprehensions in the program, and return
     a tuple of the new tree, a boolean for whether the M-set was
     used, an OrderedSet of all fields replaced, and a boolean for
@@ -263,7 +269,8 @@ def flatten_all_comps(tree):
             return tree, self.use_mset, self.fields, self.use_mapset
         
         def map_Comp(self, node):
-            new_comp, new_mset, new_fields, new_mapset = flatten_comp(node)
+            new_comp, new_mset, new_fields, new_mapset = \
+                flatten_comp(node, input_rels)
             self.use_mset |= new_mset
             self.fields.update(new_fields)
             self.use_mapset |= new_mapset
@@ -345,14 +352,15 @@ class AggregatePreprocessor(L.NodeTransformer):
         return node
 
 
-def to_pairdomain(tree, manager):
+def to_pairdomain(tree, manager, input_rels):
     """Convert a program to the pair domain, rewriting updates and
     queries.
     """
     tree = AggregatePreprocessor.run(tree)
-    tree, use_mset, fields, use_mapset = flatten_all_comps(tree)
+    tree, use_mset, fields, use_mapset = flatten_all_comps(tree, input_rels)
     tree, use_mset, fields, use_mapset = UpdateToPairTransformer.run(
-                                    tree, use_mset, fields, use_mapset)
+                                    tree, use_mset, fields, use_mapset,
+                                    input_rels)
     manager.use_mset = use_mset
     manager.fields = list(fields)
     manager.use_mapset = use_mapset
