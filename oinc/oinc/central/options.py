@@ -55,7 +55,8 @@ class DefaultNormalOptions:
     
     flatten_distalgo_messages = True
     """Automatically add sets whose names fit the form of DistAlgo's
-    received/sent message sets to flatten_rels.
+    received/sent message sets to flatten_rels. Also treat these sets
+    as relations (input_rels).
     """
     
     default_impl =          'batch'

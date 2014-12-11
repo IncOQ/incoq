@@ -417,6 +417,7 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     # Rewrite macro updates.
     tree = MacroSetUpdateRewriter.run(tree)
     
+    input_rels = opman.get_opt('input_rels')
     # Flatten relations if requested.
     flatten_rels = opman.get_opt('flatten_rels')
     # Possibly include relations that are distalgo message sets.
@@ -424,6 +425,8 @@ def transform_ast(tree, *, nopts=None, qopts=None):
         for s in get_distalgo_message_sets(tree):
             if s not in flatten_rels:
                 flatten_rels.append(s)
+            if s not in input_rels:
+                input_rels.append(s)
     if len(flatten_rels) > 0:
         if verbose:
             print('Flattening relations: ' + ', '.join(flatten_rels))
@@ -431,7 +434,6 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     
     # Go to the pair domain.
     if objdomain:
-        input_rels = opman.get_opt('input_rels')
         tree = to_pairdomain(tree, manager, input_rels)
     
     # Rewrite non-trivial update operands.
