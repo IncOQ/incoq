@@ -25,9 +25,8 @@ class TestDomaintrans(CentralCase):
             m[k] = v
             del m[k]
             ''')
-        tree, use_mset, fields, use_maprel = UpdateToPairTransformer.run(
-                                                tree, False, set(), False,
-                                                ['T'])
+        tree = UpdateToPairTransformer.run(tree, True, {'foo'}, True,
+                                           ['T'])
         
         exp_use_mset = True
         exp_fields = {'foo', 'bar'}
@@ -35,22 +34,18 @@ class TestDomaintrans(CentralCase):
         exp_tree = L.p('''
             _M = MSet()
             _F_foo = FSet()
-            _F_bar = FSet()
             _MAP = MAPSet()
             _M.add((x, y))
             T.add(x)
             _F_foo.add((o, 4))
             print(o.foo)
             _F_foo.remove((o, o.foo))
-            _F_bar.add((o, 5))
+            o.bar = 5
             _MAP.add((m, k, v))
             _MAP.remove((m, k, m[k]))
             ''')
         
         self.assertEqual(tree, exp_tree)
-        self.assertEqual(use_mset, exp_use_mset)
-        self.assertEqual(fields, exp_fields)
-        self.assertEqual(use_maprel, exp_use_maprel)
     
     def test_update_toobj(self):
         tree = L.p('''

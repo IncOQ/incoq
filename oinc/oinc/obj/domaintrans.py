@@ -18,12 +18,7 @@ from .objcomp import flatten_comp, unflatten_comp
 
 class UpdateToPairTransformer(L.NodeTransformer):
     
-    """Convert updates to the relational domain.
-    
-    Take in information on what special relations are used, and
-    return this information augmented with any new relations needed
-    due to the transformed updates.
-    """
+    """Convert updates to the relational domain."""
     
     def __init__(self, use_mset, fields, use_mapset, input_rels):
         super().__init__()
@@ -32,13 +27,7 @@ class UpdateToPairTransformer(L.NodeTransformer):
         self.use_mapset = use_mapset
         self.input_rels = input_rels
     
-    def process(self, tree):
-        tree = super().process(tree)
-        return tree, self.use_mset, self.fields, self.use_mapset
-    
     def visit_Module(self, node):
-        # Process first, so we know for sure what relations
-        # are needed.
         node = self.generic_visit(node)
         
         decls = ()
@@ -63,24 +52,22 @@ class UpdateToPairTransformer(L.NodeTransformer):
         
         if L.is_attrassign(node):
             cont, field, value = L.get_attrassign(node)
-            self.fields.add(field)
-            code = L.pc('''
+            if field not in self.fields:
+                return node
+            return L.pc('''
                 FSET.add((CONT, VALUE))
                 ''', subst={'FSET': L.ln(make_frel(field)),
                             'CONT': cont,
                             'VALUE': value})
-            return code
         
-        elif L.is_mapassign(node):
+        elif self.use_mapset and L.is_mapassign(node):
             map, key, value = L.get_mapassign(node)
-            self.use_mapset = True
-            code = L.pc('''
+            return L.pc('''
                 MAPSET.add((MAP, KEY, VALUE))
                 ''', subst={'MAPSET': L.ln(make_maprel()),
                             'MAP': map,
                             'KEY': key,
                             'VALUE': value})
-            return code
         
         else:
             return node
@@ -90,23 +77,22 @@ class UpdateToPairTransformer(L.NodeTransformer):
         
         if L.is_delattr(node):
             cont, field = L.get_delattr(node)
-            self.fields.add(field)
-            code = L.pc('''
+            if field not in self.fields:
+                return node
+            return L.pc('''
                 FSET.remove((CONT, CONT.FIELD))
                 ''', subst={'FSET': L.ln(make_frel(field)),
                             'CONT': cont,
                             '@FIELD': field})
-            return code
         
-        elif L.is_delmap(node):
+        elif self.use_mapset and L.is_delmap(node):
             map, key = L.get_delmap(node)
             self.use_mapset = True
-            code = L.pc('''
+            return L.pc('''
                 MAPSET.remove((MAP, KEY, MAP[KEY]))
                 ''', subst={'MAPSET': L.ln(make_maprel()),
                             'MAP': map,
                             'KEY': key})
-            return code
         
         else:
             return node
@@ -114,12 +100,13 @@ class UpdateToPairTransformer(L.NodeTransformer):
     def visit_SetUpdate(self, node):
         node = self.generic_visit(node)
         
+        if not self.use_mset:
+            return node
+        
         # Ignore updates to input relations.
         if (isinstance(node.target, L.Name) and
             node.target.id in self.input_rels):
             return node
-        
-        self.use_mset = True
         
         code = L.pc('''
             M.OP((CONT, ELEM))
@@ -128,25 +115,6 @@ class UpdateToPairTransformer(L.NodeTransformer):
                         'CONT': node.target,
                         'ELEM': node.elem})
         return code
-    
-    # Make sure to account for fields that only appear inside
-    # comprehensions. Traverse comprehensions looking for retrieval
-    # expressions.
-    
-    class FieldRetrievalFinder(L.NodeVisitor):
-        def process(self, tree):
-            self.fields = OrderedSet()
-            super().process(tree)
-            return self.fields
-        def visit_Attribute(self, node):
-            self.generic_visit(node)
-            self.fields.add(node.attr)
-    
-    def visit_Comp(self, node):
-        node = self.generic_visit(node)
-        
-        self.fields.update(self.FieldRetrievalFinder.run(node))
-        return node
 
 
 class UpdateToObjTransformer(L.NodeTransformer):
@@ -358,9 +326,8 @@ def to_pairdomain(tree, manager, input_rels):
     """
     tree = AggregatePreprocessor.run(tree)
     tree, use_mset, fields, use_mapset = flatten_all_comps(tree, input_rels)
-    tree, use_mset, fields, use_mapset = UpdateToPairTransformer.run(
-                                    tree, use_mset, fields, use_mapset,
-                                    input_rels)
+    tree = UpdateToPairTransformer.run(tree, use_mset, fields, use_mapset,
+                                       input_rels)
     manager.use_mset = use_mset
     manager.fields = list(fields)
     manager.use_mapset = use_mapset
