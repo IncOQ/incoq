@@ -22,6 +22,29 @@ class RewriterCase(CentralCase):
             ''')
         self.assertEqual(tree, exp_tree)
     
+    def test_relationfinder(self):
+        tree = L.p('''
+            R = runtimelib.Set()
+            S = set()
+            T = 5
+            
+            ''')
+        res = RelationFinder.run(tree)
+        exp_res = ['R', 'S']
+        self.assertCountEqual(res, exp_res)
+        
+        tree = L.p('''
+            R = Set()
+            S = Set()
+            T = Set()
+            for x in R:
+                S.add({(x, y) for y in R})
+            print(T)
+            ''')
+        res = RelationFinder.run(tree)
+        exp_res = ['R', 'S']
+        self.assertCountEqual(res, exp_res)
+    
     def test_macroupdaterewriter(self):
         tree = L.p('''
             A.update(B)

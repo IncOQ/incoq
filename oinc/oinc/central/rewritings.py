@@ -6,6 +6,7 @@ optimization, and making other transformations applicable.
 __all__ = [
     'DistalgoImporter',
     'get_distalgo_message_sets',
+    'RelationFinder',
     'MacroSetUpdateRewriter',
     'SetTypeRewriter',
     'ObjTypeRewriter',
@@ -17,6 +18,8 @@ __all__ = [
 
 
 from iast.pylang import MacroProcessor
+
+from util.collections import OrderedSet
 
 import oinc.incast as L
 from oinc.obj import is_specialrel
@@ -64,6 +67,103 @@ def get_distalgo_message_sets(tree):
               if v.startswith('_') and
                  ('ReceivedEvent_' in v or
                   'SentEvent_' in v)]
+
+
+class RelationFinder(L.NodeVisitor):
+    
+    """Find variables that we can statically infer to be relations,
+    i.e. sets that are unaliased and top-level.
+    
+    For R to be inferred to be a relation, it must have a global-scope
+    initialization having one of the following forms:
+    
+        R = Set()
+        R = runtimelib.Set()
+        R = set()
+    
+    and its only other occurrences must have the forms:
+    
+        - a SetUpdate naming R as the target
+        
+        - the RHS of membership clauses (including condition clauses)
+        
+        - the RHS of a For loop
+    """
+    
+    def process(self, tree):
+        self.inited = OrderedSet()
+        self.disqual = OrderedSet()
+        super().process(tree)
+        return self.inited - self.disqual
+    
+    # Manage a toplevel flag to record whether we're at global scope.
+    
+    def visit_Module(self, node):
+        self.toplevel = True
+        self.generic_visit(node)
+    
+    def nontoplevel_helper(self, node):
+        last = self.toplevel
+        self.toplevel = False
+        self.generic_visit(node)
+        self.toplevel = last
+    
+    visit_FunctionDef = nontoplevel_helper
+    visit_ClassDef = nontoplevel_helper
+    
+    def visit_Assign(self, node):
+        allowed_inits = [
+            L.pe('Set()'),
+            L.pe('runtimelib.Set()'),
+            L.pe('set()'),
+        ]
+        # If this is a relation initializer, mark the relation name
+        # and don't recurse.
+        if (self.toplevel and
+            L.is_varassign(node)):
+            name, value = L.get_varassign(node)
+            if value in allowed_inits:
+                self.inited.add(name)
+                return
+        
+        self.generic_visit(node)
+    
+    def visit_SetUpdate(self, node):
+        # Skip the target if it's just a name.
+        if isinstance(node.target, L.Name):
+            self.visit(node.elem)
+        else:
+            self.generic_visit(node)
+    
+    def visit_For(self, node):
+        # Skip the iter if it's just a name.
+        if isinstance(node.iter, L.Name):
+            self.visit(node.target)
+            self.visit(node.body)
+            self.visit(node.orelse)
+        else:
+            self.generic_visit(node)
+    
+    def visit_Comp(self, node):
+        # Skip the iter of each clause if it's just a name.
+        # Also recognize condition clauses that express memberships.
+        # Always skip the params and options.
+        self.visit(node.resexp)
+        for cl in node.clauses:
+            if (isinstance(cl, L.Enumerator) and
+                isinstance(cl.iter, L.Name)):
+                self.visit(cl.target)
+            elif (isinstance(cl, L.Compare) and
+                  len(cl.ops) == len(cl.comparators) == 1 and
+                  isinstance(cl.ops[0], L.In) and
+                  isinstance(cl.comparators[0], L.Name)):
+                self.visit(cl.left)
+            else:
+                self.visit(cl)
+    
+    def visit_Name(self, node):
+        # We got here through some disallowed use of R.
+        self.disqual.add(node.id)
 
 
 class LegalUpdateValidator(L.NodeVisitor):

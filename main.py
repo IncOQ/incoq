@@ -83,7 +83,8 @@ class COM(TaskTemplate):
                    'maint_inline': True,
                    'analyze_costs': True,
                    'selfjoin_strat': 'sub',
-                   'default_aggr_halfdemand': True}
+                   'default_aggr_halfdemand': True,
+                   'autodetect_input_rels': True}
 
 class AUX(COM):
     _inherit_fields = True
@@ -333,6 +334,7 @@ test_programs = [
 #    'objcomp/notc',
 #    'objcomp/map',
 #    'objcomp/inputrel',
+#    'objcomp/autoflatten',
 #    
 #    'deminc/aug1',
 #    'deminc/aug2',

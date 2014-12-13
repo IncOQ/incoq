@@ -37,7 +37,8 @@ from .rewritings import (DistalgoImporter, get_distalgo_message_sets,
                          MacroSetUpdateRewriter,
                          SetTypeRewriter, ObjTypeRewriter,
                          UpdateRewriter, MinMaxRewriter,
-                         eliminate_deadcode, PassEliminator)
+                         eliminate_deadcode, PassEliminator,
+                         RelationFinder)
 
 
 class FunctionUniqueChecker(L.NodeVisitor):
@@ -431,16 +432,25 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     # Rewrite macro updates.
     tree = MacroSetUpdateRewriter.run(tree)
     
-    input_rels = opman.get_opt('input_rels')
-    # Flatten relations if requested.
+    input_rels = list(opman.get_opt('input_rels'))
+    # Find additional input relations.
+    if opman.get_opt('autodetect_input_rels'):
+        detected_rels = RelationFinder.run(tree)
+        input_rels.extend(r for r in detected_rels
+                          if r not in input_rels)
+    
     flatten_rels = opman.get_opt('flatten_rels')
-    # Possibly include relations that are distalgo message sets.
+    
+    # DistAlgo message sets may be considered as relations
+    # and get flattened.
     if opman.get_opt('flatten_distalgo_messages'):
         for s in get_distalgo_message_sets(tree):
             if s not in flatten_rels:
                 flatten_rels.append(s)
             if s not in input_rels:
                 input_rels.append(s)
+    
+    # Do the flattening.
     if len(flatten_rels) > 0:
         if verbose:
             print('Flattening relations: ' + ', '.join(flatten_rels))

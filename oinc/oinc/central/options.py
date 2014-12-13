@@ -41,6 +41,11 @@ class DefaultNormalOptions:
     aliased or nested inside other values.
     """
     
+    autodetect_input_rels = False
+    """If True, automatically detect sets in the input program that
+    can be considered as relations.
+    """
+    
     pattern_in =            False
     """If True, the input program is expressed with pattern matching."""
     pattern_out =           False
