@@ -2,28 +2,27 @@
 
 # We use "PyAST" to refer to ASTs that use only node types that exist
 # in Python code, and "IncAST" for ASTs that may also include our own
-# node types. This terminology is independent of whether the
-# representation of the AST uses the classes defined in the standard
-# library's ast module or the structs in the iast package.
+# node types. This terminology is independent of whether the AST is
+# represented by Struct classes (used by iAST and our system) or by
+# the native node classes defined in the "ast" standard library.
 
 
 __all__ = [
-    'incpy_nodes',
-    'incstruct_nodes',
+    'native_nodes',
+    'incast_nodes',
     
-    # Programmatically modified to include the struct representations
-    # for all IncAST nodes.
+    # Programmatically modified to include the keys of incast_nodes.
 ]
 
 
-import copy
+import ast
+from iast import PatVar
+from iast.python.python34 import native_nodes as _native_nodes, py_nodes
 
-from simplestruct.util import make_frozen
+from util.collections import make_frozen
 
-import iast.node
-from iast.node import *
-from iast.node import struct_nodes
-from iast.pattern import PatVar
+# Flood the namespace with Struct nodes for PyASTs.
+globals().update(py_nodes)
 
 
 # IncAST-specific node type names.
@@ -62,21 +61,17 @@ inc_node_names = [
 ]
 
 
-import ast
-
-from iast.node import py_nodes
-
-
-# The only new node in Python node format is Comment, for source
+# The only new node in native format is Comment, for source
 # printing purposes.
 
 class Comment(ast.stmt):
     _fields = ('text',)     # string
 
-# Mapping for Python nodes.
-newpy_nodes = {'Comment': Comment}
-incpy_nodes = py_nodes.copy()
-incpy_nodes.update(newpy_nodes)
+# Namespace for native nodes.
+native_nodes = _native_nodes.copy()
+native_nodes.update({
+    'Comment': Comment,
+})
 
 del Comment
 
@@ -214,12 +209,9 @@ class Aggregate(expr):
 
 
 # Mapping for struct nodes including oinc nodes.
-newstruct_nodes = {name: globals()[name]
-                   for name in inc_node_names}
-incstruct_nodes = struct_nodes.copy()
-incstruct_nodes.update(newstruct_nodes)
+new_incast_nodes = {name: globals()[name]
+                    for name in inc_node_names}
+incast_nodes = py_nodes.copy()
+incast_nodes.update(new_incast_nodes)
 
-
-# Programmatically update __all__. Re-export all struct nodes
-# from iast.node.
-__all__.extend(sorted(incstruct_nodes))
+__all__.extend(incast_nodes.keys())

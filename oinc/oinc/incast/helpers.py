@@ -55,8 +55,7 @@ __all__ = [
 
 
 from functools import partial, wraps
-
-from simplestruct.util import trim
+from iast import trim
 from simplestruct.type import checktype, checktype_seq
 
 from .nodes import *

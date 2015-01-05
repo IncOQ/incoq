@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 
-from iast.pylang import Templater
+from iast.python.python34 import Templater
 
 from util.collections import SetDict, OrderedSet
 from util.topsort import topsort, get_cycle

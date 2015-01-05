@@ -6,7 +6,6 @@ import unittest
 from .nodes import *
 from .structconv import parse_structast, ProgramError
 from .macros import IncMacroProcessor
-
 from .treeconv import *
 
 
@@ -127,10 +126,10 @@ class TreeconvCase(unittest.TestCase):
         self.assertEqual(unused, exp_unused)
     
     def test_expand_maint(self):
-        maint_node = (Maintenance('Q', 'pass',
-                                  self.pc('print(1)'),
-                                  self.pc('pass'),
-                                  self.pc('print(2)')),)
+        maint_node = Maintenance('Q', 'pass',
+                                 self.pc('print(1)'),
+                                 self.pc('pass'),
+                                 self.pc('print(2)'))
         tree = Module((maint_node,))
         tree = MaintExpander.run(tree)
         

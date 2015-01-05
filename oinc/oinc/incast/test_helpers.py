@@ -3,11 +3,8 @@
 
 import unittest
 
-from iast.pattern import sub
-
 from .nodes import *
 from .structconv import parse_structast
-
 from .helpers import *
 
 

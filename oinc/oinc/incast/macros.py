@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 
-from iast.pylang import astargs
+from iast.python.python34 import astargs
 
 from .nodes import Str
 from .structconv import parse_structast

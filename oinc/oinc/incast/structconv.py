@@ -37,16 +37,15 @@ import sys
 import traceback
 
 import iast
-from iast.node import trim, dump
-from iast.visitor import NodeVisitor, NodeTransformer
-from iast.pattern import make_pattern
-from iast.pylang import extract_mod, Templater
+from iast import trim, dump, NodeVisitor, NodeTransformer
+from iast.python.python34 import (make_pattern, extract_tree, Templater,
+                                  parse as _parse)
 
-from .nodes import incpy_nodes, incstruct_nodes
+from .nodes import native_nodes, incast_nodes
 from . import unparse
 
 
-# TODO: simplifiy StructImporter and make it not rely on old iast.
+# TODO: simplify StructImporter and make it not rely on old iast.
 
 class StructImporter:
     
@@ -76,7 +75,7 @@ class StructImporter:
             new_value = self.visit(value)
             new_fields.append(new_value)
         
-        new_nodetype = incstruct_nodes[node.__class__.__name__]
+        new_nodetype = incast_nodes[node.__class__.__name__]
         return new_nodetype(*new_fields)
     
     def seq_visit(self, seq):
@@ -98,12 +97,15 @@ class StructExporter(NodeTransformer):
         return list(new_seq)
     
     def generic_visit(self, node):
-        new_node = super().generic_visit(node)
-        if new_node is None:
-            new_node = node
-        node = new_node
-        new_nodetype = incpy_nodes[node.__class__.__name__]
-        return new_nodetype(*(getattr(node, field) for field in node._fields))
+        repls = {}
+        for field in node._fields:
+            value = getattr(node, field)
+            result = self.visit(value)
+            repls[field] = result
+        
+        new_nodetype = native_nodes[node.__class__.__name__]
+        
+        return new_nodetype(**repls)
 
 def import_structast(tree):
     """Convert from Python representation to struct representation."""
@@ -115,11 +117,11 @@ def export_structast(tree):
 
 
 def parse_structast(source, *, mode=None, subst=None, patterns=False):
-    """Version of iast.node.parse() that also runs extract_mod(),
+    """Version of iast.node.parse() that also runs extract_tree(),
     subst(), and can be used on patterns.
     """
-    tree = iast.node.parse(source)
-    tree = extract_mod(tree, mode)
+    tree = _parse(source)
+    tree = extract_tree(tree, mode)
     if patterns:
         tree = make_pattern(tree)
     if subst is not None:

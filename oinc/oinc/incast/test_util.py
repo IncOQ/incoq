@@ -2,13 +2,11 @@
 
 
 import unittest
-
 from util.collections import OrderedSet
 
 from .nodes import *
 from .structconv import parse_structast, NodeTransformer
 from .nodeconv import IncLangImporter
-
 from .util import *
 from .util import FuncDefLister
 

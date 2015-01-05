@@ -11,9 +11,9 @@ __all__ = [
 
 
 from numbers import Number
+from iast.python.python34 import MacroProcessor, astargs, literal_eval
 
-from simplestruct.util import make_frozen, frozendict
-from iast.pylang import MacroProcessor, astargs, literal_eval
+from util.collections import make_frozen, frozendict
 
 from .nodes import *
 from .structconv import NodeTransformer, parse_structast

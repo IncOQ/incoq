@@ -22,9 +22,10 @@ __all__ = [
 
 from itertools import chain
 from contextlib import contextmanager
-
 from simplestruct.type import checktype, checktype_seq
-from iast.pylang import Templater, PatternTransformer
+import iast
+from iast import PatternTransformer
+from iast.python.python34 import Templater
 
 from util.collections import OrderedSet
 
@@ -74,10 +75,11 @@ class VarsFinder(NodeVisitor):
             self.usedvars.add(node.id)
     
     def visit_Call(self, node):
-        IGNORE = object()
+        class IGNORE(iast.AST):
+            _meta = True
         
         if isinstance(node.func, Name) and self.ignore_functions:
-            self.generic_visit(node._replace(func=IGNORE))
+            self.generic_visit(node._replace(func=IGNORE()))
         
         else:
             self.generic_visit(node)

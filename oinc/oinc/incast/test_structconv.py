@@ -6,7 +6,6 @@ import ast
 import sys
 
 from .nodes import *
-
 from .structconv import *
 
 
