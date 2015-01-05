@@ -49,6 +49,17 @@ class TestSetRegistry(unittest.TestCase):
         s.add('abc')
         s.discard('123')
         self.assertFalse('456' in s)
+    
+    def testFrozendict(self):
+        d = frozendict({1:2, 3:4})
+        with self.assertRaises(TypeError):
+            d[3] = 5
+        hash(d)
+    
+    def testFreeze(self):
+        val = make_frozen([{1: 2}, {3}])
+        exp_val = (frozendict({1: 2}), frozenset({3}))
+        self.assertEqual(val, exp_val)
 
 
 if __name__ == '__main__':
