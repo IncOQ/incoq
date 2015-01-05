@@ -3,6 +3,7 @@
 
 __all__ = [
     'VarsFinder',
+    'VarRenamer',
     'ScopeVisitor',
     'prefix_names',
     'NameGenerator',
@@ -22,6 +23,7 @@ __all__ = [
 
 from itertools import chain
 from contextlib import contextmanager
+from collections.abc import Callable
 from simplestruct.type import checktype, checktype_seq
 import iast
 from iast import PatternTransformer
@@ -134,6 +136,32 @@ class VarsFinder(NodeVisitor):
     visit_RCSetRefUpdate = update_helper
     visit_AssignKey = update_helper
     visit_DelKey = update_helper
+
+
+class VarRenamer(NodeTransformer):
+    
+    """Rename occurrences of variables according to a substitution
+    mapping. The mapping values can either be strings, or functions
+    that map from old variable name to new name. None indicates
+    no change.
+    """
+    
+    def __init__(self, subst):
+        super().__init__()
+        self.subst = subst
+    
+    def visit_Name(self, node):
+        val = self.subst.get(node.id, None)
+        if isinstance(val, Callable):
+            val = val(node.id)
+        
+        if val is None:
+            return node
+        elif isinstance(val, str):
+            return node._replace(id=val)
+        else:
+            raise ValueError("Bad substitution for '{}': {}".format(
+                             node.id, repr(val)))
 
 
 class ScopeVisitor(NodeVisitor):

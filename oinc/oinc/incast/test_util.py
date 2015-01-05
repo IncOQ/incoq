@@ -66,6 +66,18 @@ class UtilCase(unittest.TestCase):
         self.assertCountEqual(names1, ['x', 'S', 'R', 'T', 'y', 'Z'])
         self.assertCountEqual(names2, ['x', 'y'])
     
+    def test_varrenamer(self):
+        tree = self.p('''
+            (a, b, c) = (a, b, c)
+            ''')
+        nameit = iter(['b1', 'b2'])
+        subst = {'a': 'a1', 'b': lambda n: next(nameit)}
+        tree = VarRenamer.run(tree, subst)
+        exp_tree = self.p('''
+            (a1, b1, c) = (a1, b2, c)
+            ''')
+        self.assertEqual(tree, exp_tree)
+    
     def test_scope(self):
         os = OrderedSet
         
