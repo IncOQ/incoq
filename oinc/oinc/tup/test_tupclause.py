@@ -71,6 +71,7 @@ class TupClauseCase(unittest.TestCase):
         cl2 = TupClauseFactory.from_AST(clast)
         self.assertEqual(cl2, cl)
         
+        cl = TClause_NoTC('t', ['x', 'y'])
         cl2 = TupClauseFactory_NoTC.from_AST(clast)
         self.assertEqual(cl2, cl)
         self.assertIsInstance(cl2, TClause_NoTC)

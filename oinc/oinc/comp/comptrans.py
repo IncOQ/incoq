@@ -17,8 +17,6 @@ __all__ = [
     'comp_isvalid',
 ]
 
-import iast
-
 import oinc.incast as L
 from oinc.set import Mask
 

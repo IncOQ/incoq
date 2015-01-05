@@ -56,7 +56,7 @@ __all__ = [
 
 from abc import ABCMeta, abstractmethod
 
-from simplestruct import Struct, Field
+from simplestruct import Struct, Field, TypedField
 from simplestruct.type import checktype
 
 import oinc.incast as L
@@ -73,13 +73,13 @@ class AggrSpec(Struct):
     
     """Aggregate query specification."""
     
-    aggrop = Field(str)
+    aggrop = TypedField(str)
     """Aggregate operation."""
-    rel = Field(str)
+    rel = TypedField(str)
     """Operand relation."""
-    relmask = Field(Mask)
+    relmask = TypedField(Mask)
     """Operand setmatch mask (Mask.U if operand is just a variable)."""
-    params = Field(str, 'seq')
+    params = TypedField(str, seq=True)
     """Parameters."""
     oper_demname = Field()
     """Operand demand name, or None if operand does not use demand."""
@@ -161,17 +161,17 @@ class IncAggr(Struct):
     
     """Info for incrementalizing an aggregate query."""
     
-    aggr = Field(L.Aggregate)
+    aggr = TypedField(L.Aggregate)
     """Aggregate node."""
-    spec = Field(AggrSpec)
+    spec = TypedField(AggrSpec)
     """Aggregate query info."""
-    name = Field(str)
+    name = TypedField(str)
     """Result set name."""
     demname = Field()
     """Aggregate demand name, or None if not using demand."""
     uset_lru = Field()
     """None or an integer bound for LRU cache size."""
-    half_demand = Field(bool)
+    half_demand = TypedField(bool)
     """If using demand and this is True, use the "half-demand"
     strategy.
     """

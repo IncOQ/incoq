@@ -24,8 +24,8 @@ __all__ = [
 
 from abc import ABCMeta, abstractmethod, abstractclassmethod
 
-from simplestruct import Struct, MetaStruct, Field
-from iast.pylang import Templater, ContextSetter
+from simplestruct import Struct, MetaStruct, TypedField
+from iast.python.python34 import ContextSetter
 
 from util.type import checktype
 from util.seq import elim_duplicates
@@ -288,10 +288,10 @@ class Clause(metaclass=ABCMeta):
         clast = self.to_AST()
         if self.kind is Clause.KIND_ENUM:
             lhs = clast.target
-            lhs = Templater.run(lhs, subst)
+            lhs = L.VarRenamer.run(lhs, subst)
             clast = clast._replace(target=lhs)
         else:
-            clast = Templater.run(clast, subst)
+            clast = L.VarRenamer.run(clast, subst)
         return factory.from_AST(clast)
     
     def rewrite_lhs(self, subst, factory):
@@ -300,7 +300,7 @@ class Clause(metaclass=ABCMeta):
             return self
         clast = self.to_AST()
         lhs = clast.target
-        lhs = Templater.run(lhs, subst)
+        lhs = L.VarRenamer.run(lhs, subst)
         clast = clast._replace(target=lhs)
         return factory.from_AST(clast)
     
@@ -366,9 +366,9 @@ class EnumClause(Clause, ABCStruct):
     
     kind = Clause.KIND_ENUM
     
-    lhs = Field(str, 'seq')
+    lhs = TypedField(str, seq=True)
     """Tuple of variables on left-hand side."""
-    rel = Field(str)
+    rel = TypedField(str)
     """Name of iterated relation."""
     
     @classmethod
@@ -467,9 +467,9 @@ class SubClause(Clause, ABCStruct):
     
     robust = False
     
-    cl = Field(Clause)
+    cl = TypedField(Clause)
     """Underlying clause."""
-    excl = Field(L.expr)
+    excl = TypedField(L.expr)
     """Expression whose value is to be excluded."""
     
     pat_mask = None
@@ -540,9 +540,9 @@ class AugClause(Clause, ABCStruct):
     
     robust = False
     
-    cl = Field(Clause)
+    cl = TypedField(Clause)
     """Underlying clause."""
-    extra = Field(L.expr)
+    extra = TypedField(L.expr)
     """Expression whose value is to be added."""
     
     pat_mask = None
@@ -612,9 +612,9 @@ class LookupClause(EnumClause, ABCStruct):
     dependency from keys to value.
     """
     
-    lhs = Field(str, 'seq')
+    lhs = TypedField(str, seq=True)
     """Enumeration variables."""
-    rel = Field(str)
+    rel = TypedField(str)
     """Name of iterated relation."""
     
     @classmethod
@@ -669,9 +669,9 @@ class SingletonClause(Clause, ABCStruct):
     
     robust = False
     
-    lhs = Field(str, 'seq')
+    lhs = TypedField(str, seq=True)
     """Enumeration variables."""
-    val = Field(L.expr)
+    val = TypedField(L.expr)
     """Expression computing value of singleton element."""
     
     @classmethod
@@ -728,13 +728,13 @@ class DeltaClause(Clause, ABCStruct):
     isdelta = True
     robust = False
     
-    lhs = Field(str, 'seq')
+    lhs = TypedField(str, seq=True)
     """Enumeration variables."""
-    rel = Field(str)
+    rel = TypedField(str)
     """Relation that was updated."""
-    val = Field(L.expr)
+    val = TypedField(L.expr)
     """Expression computing value of singleton element."""
-    limit = Field(int)
+    limit = TypedField(int)
     
     @classmethod
     def from_AST(cls, node, factory):
@@ -808,7 +808,7 @@ class CondClause(Clause, ABCStruct):
     
     kind = Clause.KIND_COND
     
-    cond = Field(L.expr)
+    cond = TypedField(L.expr)
     """Condition expression."""
     
     @classmethod
@@ -893,7 +893,7 @@ class ClauseFactory:
         """Rewrite a clause to substitute variables in conditions
         and on the LHS of enumerators, according to the given mapping.
         The RHS of enumerators is (usually) unaffected. The substitution
-        mapping is as for iast.Templater. Also applies to conditions.
+        mapping is as for incast.VarRenamer. Also applies to conditions.
         """
         return cl.rewrite_subst(subst, cls)
     

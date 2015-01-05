@@ -14,7 +14,7 @@ __all__ = [
 from types import SimpleNamespace
 from operator import attrgetter
 
-from simplestruct import Struct, Field
+from simplestruct import Struct, Field, TypedField
 
 from oinc.set import Mask
 from oinc.comp import Clause, EnumClause, inst_wildcards, Join, CompSpec
@@ -31,15 +31,15 @@ KIND_USET = 'USET'
 class Tag(Struct):
     kind = KIND_TAG
     
-    i = Field(int)
+    i = TypedField(int)
     """Index of query enumerator for which tag is introduced."""
-    name = Field(str)
+    name = TypedField(str)
     """Name of tag set."""
-    var = Field(str)
+    var = TypedField(str)
     """Query variable being tagged."""
-    lhs = Field(str, 'seq')
+    lhs = TypedField(str, seq=True)
     """LHS of the query enumerator."""
-    rel = Field(str)
+    rel = TypedField(str)
     """Relation being projected. This is either the original relation
     iterated by the query enumerator, or else a filter over it.
     """
@@ -47,25 +47,25 @@ class Tag(Struct):
 class Filter(Struct):
     kind = KIND_FILTER
     
-    i = Field(int)
+    i = TypedField(int)
     """Index of query enumerator for which filter is introduced."""
-    name = Field(str)
+    name = TypedField(str)
     """Name of filter set."""
-    lhs = Field(str, 'seq')
+    lhs = TypedField(str, seq=True)
     """LHS of the query enumerator."""
-    rel = Field(str)
+    rel = TypedField(str)
     """RHS of the query enumerator, i.e., set being filtered."""
-    preds = Field(str, 'seq')
+    preds = TypedField(str, seq=True)
     """Names of predecessor tags."""
 
 class USet(Struct):
     kind = KIND_USET
     
-    i = Field(int)
+    i = TypedField(int)
     """Index of query enumerator where the subquery is iterated over."""
-    name = Field(str)
+    name = TypedField(str)
     """Name of associated demand name."""
-    vars = Field(str, 'seq')
+    vars = TypedField(str, seq=True)
     """Vars that get passed to the demand functions as parameters."""
     preds = Field()
     """Names of predecessor tags, or None if using clauses."""

@@ -7,10 +7,9 @@ __all__ = [
 
 
 from util.str import quote_items
+from util.collections import frozendict
 from oinc.incast import ProgramError
 from copy import deepcopy as dc
-
-from simplestruct.util import frozendict
 
 
 class DefaultNormalOptions:

@@ -9,7 +9,7 @@ __all__ = [
 
 
 from simplestruct.type import checktype
-from simplestruct import Field
+from simplestruct import TypedField
 
 import oinc.incast as L
 from oinc.set import Mask
@@ -22,9 +22,9 @@ class TClause(EnumClause):
     
     """An enumerator over a tuple relation."""
     
-    tup = Field(str)
+    tup = TypedField(str)
     """Var for tuple object."""
-    elts = Field(str, 'seq')
+    elts = TypedField(str, seq=True)
     """Vars for tuple elements."""
     
     @property
@@ -129,8 +129,8 @@ class TClause_NoTC(TClause):
     
     """TClause without type checks in emitted code."""
     
-    tup = Field(str)
-    elts = Field(str, 'seq')
+    tup = TypedField(str)
+    elts = TypedField(str, seq=True)
     
     typecheck = False
 

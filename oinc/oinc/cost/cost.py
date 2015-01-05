@@ -26,7 +26,7 @@ __all__ = [
 from itertools import product, chain, groupby
 from collections import Counter
 
-from simplestruct import Struct, Field
+from simplestruct import Struct, TypedField
 
 from util.collections import OrderedSet
 from oinc.set import Mask
@@ -46,22 +46,22 @@ class UnitCost(Cost):
         return '1'
 
 class NameCost(Cost):
-    name = Field(str)
+    name = TypedField(str)
     
     def __str__(self):
         return self.name
 
 class IndefImgsetCost(Cost):
-    rel = Field(str)
-    mask = Field(Mask)
+    rel = TypedField(str)
+    mask = TypedField(Mask)
     
     def __str__(self):
         return self.rel + '_' + str(self.mask)
 
 class DefImgsetCost(Cost):
-    rel = Field(str)
-    mask = Field(Mask)
-    key = Field(str, 'seq')
+    rel = TypedField(str)
+    mask = TypedField(Mask)
+    key = TypedField(str, seq=True)
     
     def __str__(self):
         return '{}_{}[{}]'.format(self.rel, self.mask,
@@ -75,7 +75,7 @@ class DefImgsetCost(Cost):
 
 class ProductCost(Cost):
     
-    terms = Field(Cost, 'seq')
+    terms = TypedField(Cost, seq=True)
     
     @classmethod
     def from_products(cls, costs):
@@ -88,7 +88,7 @@ class ProductCost(Cost):
 
 class SumCost(Cost):
     
-    terms = Field(Cost, 'seq')
+    terms = TypedField(Cost, seq=True)
     
     @classmethod
     def from_sums(cls, costs):
@@ -101,7 +101,7 @@ class SumCost(Cost):
 
 class MinCost(Cost):
     
-    terms = Field(Cost, 'seq')
+    terms = TypedField(Cost, seq=True)
     
     @classmethod
     def from_mins(cls, costs):

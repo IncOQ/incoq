@@ -7,7 +7,7 @@ __all__ = [
 ]
 
 
-from simplestruct import Field
+from simplestruct import TypedField
 from simplestruct.type import checktype
 
 import oinc.incast as L
@@ -26,11 +26,11 @@ class DemClause(Clause, ABCStruct):
     
     inc_safe = False
     
-    cl = Field(Clause)
+    cl = TypedField(Clause)
     """Underlying clause."""
-    demname = Field(str)
+    demname = TypedField(str)
     """Demand name."""
-    demparams = Field(str, 'seq')
+    demparams = TypedField(str, seq=True)
     """Demand parameters."""
     
     @property

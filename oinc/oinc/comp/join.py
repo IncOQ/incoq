@@ -10,7 +10,7 @@ __all__ = [
 from itertools import chain
 from collections import defaultdict
 
-from simplestruct import Struct, Field
+from simplestruct import Struct, Field, TypedField
 
 from util.type import checktype
 from util.seq import elim_duplicates, pairs
@@ -26,13 +26,13 @@ class DeltaInfo(Struct):
     
     """Information about maintenance joins."""
     
-    rel = Field(str)
+    rel = TypedField(str)
     """Delta relation."""
-    elem = Field(L.AST)
+    elem = TypedField(L.AST)
     """Delta element expression AST."""
-    lhs = Field(str, 'seq')
+    lhs = TypedField(str, seq=True)
     """Delta clause LHS identifier list."""
-    op = Field(str)
+    op = TypedField(str)
     """'add' or 'remove'."""
     
     @classmethod
@@ -74,7 +74,7 @@ class Join(Struct):
     comprehensions.
     """
     
-    clauses = Field(Clause, 'seq')
+    clauses = TypedField(Clause, seq=True)
     """Sequence of clauses."""
     factory = Field()
     """Clause factory to use."""

@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 
-from simplestruct import Struct, Field
+from simplestruct import Struct, TypedField
 
 from util.type import checktype
 from util.seq import pairs
@@ -77,9 +77,9 @@ class CompSpec(Struct):
     
     """Internal format for comprehensions."""
     
-    join = Field(Join)
-    resexp = Field(L.AST)
-    params = Field(str, 'seq nodups')
+    join = TypedField(Join)
+    resexp = TypedField(L.AST)
+    params = TypedField(str, seq=True, unique=True)
     
     @classmethod
     def from_comp(cls, node, factory):

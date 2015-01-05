@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 
-from iast.pylang import MacroProcessor
+from iast.python.python34 import MacroProcessor
 
 from util.collections import OrderedSet
 
