@@ -16,7 +16,7 @@ class TestProgramTask(Task):
     """
     
     def __init__(self, prog):
-        path = os.path.join('oinc/oinc/testprograms', prog)
+        path = os.path.join('oinc/tests/programs', prog)
         self.input_name = path + '_in.py'
         self.output_name = path + '_out.py'
         self.nopts = {'verbose': True, 'eol': 'lf'}
