@@ -1,4 +1,6 @@
 __pycache__
+.tox
+dist
 
 # Generated transformation statistics.
 transstats.pickle
