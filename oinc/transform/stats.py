@@ -34,10 +34,9 @@ try:
 except ImportError:
     HAVE_TABULATE = False
 
-from util.collections import SetDict
-
-from oinc.cost import (add_domain_names, reinterpret_cost,
-                       Simplifier, normalize, PrettyPrinter)
+from oinc.util.collections import SetDict
+from oinc.compiler.cost import (add_domain_names, reinterpret_cost,
+                                Simplifier, normalize, PrettyPrinter)
 
 
 class BaseSchema:

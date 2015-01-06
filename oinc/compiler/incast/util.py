@@ -30,7 +30,6 @@ from iast import PatternTransformer
 from iast.python.python34 import Templater
 
 from oinc.util.collections import OrderedSet
-
 from .helpers import is_vartuple, get_vartuple, get_plainfuncdef, plainfuncdef
 from .nodes import *
 from .structconv import NodeVisitor, NodeTransformer

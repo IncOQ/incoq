@@ -3,10 +3,9 @@
 
 import os
 from time import clock
+from simplestruct import Field, TypedField
 
-from simplestruct import Field
-
-from transform import Task, do_tasks
+from oinc.transform import Task, do_tasks
 
 
 class TestProgramTask(Task):
@@ -27,8 +26,8 @@ class TestProgramTask(Task):
 
 class TaskTemplate(Task):
     
-    display_name = Field(str)
-    base_name = Field(str)
+    display_name = TypedField(str)
+    base_name = TypedField(str)
     """Base name to use, relative to src/, excluding suffix like
     _in.py, _dem.py, etc.
     """
@@ -69,8 +68,8 @@ class TaskTemplate(Task):
 
 class IN(Task):
     
-    display_name = Field(str)
-    base_name = Field(str)
+    display_name = TypedField(str)
+    base_name = TypedField(str)
     
     def __init__(self, display_name, base_name):
         self.display_name = display_name + ' Input'

@@ -9,20 +9,20 @@ __all__ = [
 
 from os.path import normpath, relpath
 
-from simplestruct import Struct, Field
+from simplestruct import Struct, Field, TypedField
 
-from util.linecount import get_loc_file
-
-from oinc import transform_file, print_exc_with_ast
+from oinc.util.linecount import get_loc_file
+from oinc.compiler.incast import print_exc_with_ast
+from oinc.compiler.central import transform_file
 
 from .stats import StatsDB
 
 
 class Task(Struct):
     
-    display_name = Field(str)
+    display_name = TypedField(str)
     """Display name for status printing."""
-    input_name = Field(str)
+    input_name = TypedField(str)
     """Input filename."""
     output_name = Field()
     """Output filename, or None if no transformation."""
