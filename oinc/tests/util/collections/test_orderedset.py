@@ -8,7 +8,7 @@
 
 import unittest
 
-from .orderedset import *
+from oinc.util.collections.orderedset import *
 
 
 class TestOrderedSet(unittest.TestCase):

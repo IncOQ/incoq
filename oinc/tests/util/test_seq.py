@@ -8,7 +8,7 @@
 
 import unittest
 
-from .seq import *
+from oinc.util.seq import *
 
 
 class TestSeq(unittest.TestCase):

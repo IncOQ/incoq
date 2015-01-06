@@ -3,7 +3,7 @@
 
 import unittest
 
-from .unify import *
+from oinc.util.unify import *
 
 
 class UnifyCase(unittest.TestCase):

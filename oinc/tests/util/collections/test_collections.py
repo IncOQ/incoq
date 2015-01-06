@@ -8,7 +8,7 @@
 
 import unittest
 
-from .collections import *
+from oinc.util.collections import *
 
 
 class TestRegistry(unittest.TestCase):

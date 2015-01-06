@@ -3,7 +3,7 @@
 
 import unittest
 
-from .topsort import *
+from oinc.util.topsort import *
 
 
 class TopsortCase(unittest.TestCase):

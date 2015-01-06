@@ -8,7 +8,7 @@
 
 import unittest
 
-from .type import *
+from oinc.util.type import *
 
 
 class TestTypeChecking(unittest.TestCase, TypeCase):

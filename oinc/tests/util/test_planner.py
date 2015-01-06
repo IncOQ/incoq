@@ -3,7 +3,7 @@
 
 import unittest
 
-from .planner import *
+from oinc.util.planner import *
 
 
 class FactorState(State):

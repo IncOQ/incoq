@@ -8,7 +8,7 @@
 
 import unittest
 
-from .partitioning import *
+from oinc.util.collections.partitioning import *
 
 fs = frozenset
 

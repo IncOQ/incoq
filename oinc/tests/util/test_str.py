@@ -8,7 +8,7 @@
 
 import unittest
 
-from .str import *
+from oinc.util.str import *
 
 
 class TestStrings(unittest.TestCase):
