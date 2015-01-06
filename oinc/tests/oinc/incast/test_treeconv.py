@@ -25,9 +25,9 @@ class TreeconvCase(unittest.TestCase):
     def test_runtimelib(self):
         tree = self.p('''
             pass
-            from runtimelib import *
+            from oinc.runtime import *
             from foo import *
-            from runtimelib import *
+            from oinc.runtime import *
             ''')
         tree = remove_runtimelib(tree)
         exp_tree = self.p('''
@@ -38,7 +38,7 @@ class TreeconvCase(unittest.TestCase):
         
         tree = add_runtimelib(exp_tree)
         exp_tree = self.p('''
-            from runtimelib import *
+            from oinc.runtime import *
             pass
             from foo import *
             ''')

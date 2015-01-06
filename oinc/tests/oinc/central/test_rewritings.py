@@ -22,7 +22,7 @@ class RewriterCase(CentralCase):
     
     def test_relationfinder(self):
         tree = L.p('''
-            R = runtimelib.Set()
+            R = oinc.runtime.Set()
             S = set()
             T = 5
             

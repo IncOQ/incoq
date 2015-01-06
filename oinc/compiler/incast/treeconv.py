@@ -28,18 +28,18 @@ def ts(tree):
 
 
 def add_runtimelib(tree):
-    """Add the runtimelib import."""
-    stmt = parse_structast('from runtimelib import *', mode='stmt')
+    """Add the runtime import."""
+    stmt = parse_structast('from oinc.runtime import *', mode='stmt')
     tree = tree._replace(body=(stmt,) + tree.body)
     return tree
 
 def remove_runtimelib(tree):
-    """Remove imports of form "from runtimelib import *"."""
+    """Remove imports of form "from oinc.runtime import *"."""
     class Trans(NodeTransformer):
         def visit_ImportFrom(self, node):
             if is_importstar(node):
                 module = get_importstar(node)
-                if module == 'runtimelib':
+                if module == 'oinc.runtime':
                     return ()
     
     return Trans.run(tree)

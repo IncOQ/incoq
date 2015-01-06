@@ -77,7 +77,7 @@ class RelationFinder(L.NodeVisitor):
     initialization having one of the following forms:
     
         R = Set()
-        R = runtimelib.Set()
+        R = oinc.runtime.Set()
         R = set()
     
     and its only other occurrences must have the forms:
@@ -113,7 +113,7 @@ class RelationFinder(L.NodeVisitor):
     def visit_Assign(self, node):
         allowed_inits = [
             L.pe('Set()'),
-            L.pe('runtimelib.Set()'),
+            L.pe('oinc.runtime.Set()'),
             L.pe('set()'),
         ]
         # If this is a relation initializer, mark the relation name
@@ -263,7 +263,7 @@ class MacroSetUpdateRewriter(L.NodeTransformer):
 
 class SetTypeRewriter(L.StmtTransformer):
     
-    """Rewrite set expressions to use runtimelib.Set.
+    """Rewrite set expressions to use oinc.runtime.Set.
     
     If set_literals is True, handle set literal expressions, including
     ones that use set(...).
@@ -352,7 +352,7 @@ class SetTypeRewriter(L.StmtTransformer):
 
 class ObjTypeRewriter(L.NodeTransformer):
     
-    """Add runtimelib.Obj as a base class to all class definitions."""
+    """Add oinc.runtime.Obj as a base class to all class definitions."""
     
     def valid_baseclass(self, expr):
         if isinstance(expr, L.Name):
@@ -397,7 +397,7 @@ class MinMaxRewriter(L.NodeTransformer):
     """If a min/max operation is over a union of set literals or
     set comprehensions, distribute the min/max to each operand
     and take the overall min/max. The overall aggregate uses the
-    runtimelib's min2() and max2() functions, which are not
+    runtime's min2() and max2() functions, which are not
     incrementalized but allow their arguments to be None.
     """
     
@@ -418,7 +418,7 @@ class MinMaxRewriter(L.NodeTransformer):
         # Wrap each operand in an aggregate query with the same
         # options as the original aggregate. (This ensures that
         # 'impl' is carried over.) Set literals are wrapped in
-        # a call to runtimelib's min2()/max2() instead of an
+        # a call to oinc.runtime's min2()/max2() instead of an
         # Aggregate query node.
         terms = []
         for s in sets:

@@ -216,11 +216,13 @@ class CostAnalyzer(L.NodeVisitor):
         return ProductCost([UnknownCost(), bodycost])
     
     def visit_Call(self, node):
-        # If the function is runtimelib qualified, strip it
+        # If the function is oinc.runtime-qualified, strip it
         # so we can match const_funcs.
         if (isinstance(node.func, L.Attribute) and
-            isinstance(node.func.value, L.Name) and
-            node.func.value.id == 'runtimelib'):
+            isinstance(node.func.value, L.Attribute) and
+            node.func.value.attr == 'runtime' and
+            isinstance(node.func.value.value, L.Name) and
+            node.func.value.value.id == 'oinc'):
             call = node._replace(func=L.ln(node.func.attr))
         else:
             call = node
