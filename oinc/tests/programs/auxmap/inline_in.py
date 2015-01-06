@@ -1,6 +1,6 @@
 # Auxmaps, maint code inlined.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     maint_inline = True,

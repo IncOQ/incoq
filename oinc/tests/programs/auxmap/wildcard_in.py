@@ -1,6 +1,6 @@
 # Auxmaps with equality constraints.
 
-from runtimelib import *
+from oinc.runtime import *
 
 P = Set()
 

@@ -1,6 +1,6 @@
 # Outline mode.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     mode = 'outline',

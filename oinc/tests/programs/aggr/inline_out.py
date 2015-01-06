@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Aggr1 := sum(R, None)
 _m_Aggr1_u = Map()
 for x in [1, 2, 3, 4, 5]:

@@ -1,7 +1,7 @@
 # Test comprehension occurrences that don't try to add
 # to the demand set.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{z for (x, y) in E for (y2, z) in E if y == y2}',

@@ -1,6 +1,6 @@
 # Test pattern conversion.
 
-from runtimelib import *
+from oinc.runtime import *
 
 E = Set()
 S = Set()

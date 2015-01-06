@@ -1,6 +1,6 @@
 # Self-joins using augmented clauses.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     selfjoin_strat = 'aug',

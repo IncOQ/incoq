@@ -1,6 +1,6 @@
 # Check handling of deltas to enumerators with equalities.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{(x, w) for (x, x2, z) in S for (z2, w) in T if x == x2 if z == z2}',

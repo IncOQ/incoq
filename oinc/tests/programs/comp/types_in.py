@@ -1,6 +1,6 @@
 # Test conversion to runtimelib types.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{x.a for x in S}',

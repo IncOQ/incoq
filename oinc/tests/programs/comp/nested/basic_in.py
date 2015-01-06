@@ -1,6 +1,6 @@
 # Nested comprehensions.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{(a, c) for (a, b) in E for (b2, c) in E if b == b2}',

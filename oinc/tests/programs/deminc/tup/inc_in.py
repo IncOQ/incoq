@@ -1,6 +1,6 @@
 # Comprehensions with nested tuples, incremental.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{e for (a2, (b, c)) in R for (b2, (d, e)) in R if a2 == a if b2 == b}',

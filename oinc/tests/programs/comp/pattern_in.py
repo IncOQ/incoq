@@ -1,7 +1,7 @@
 # Disable pattern conversion (input and output both have patterns).
 # No output text file because program is not executable as Python code.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     pattern_in = True,

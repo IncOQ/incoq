@@ -1,6 +1,6 @@
 # Incrementalized comprehensions with U-set.
 
-from runtimelib import *
+from oinc.runtime import *
 
 R = Set()
 

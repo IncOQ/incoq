@@ -1,6 +1,6 @@
 # Basic tag-based demand incrementalization.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{z for (x, y) in E for (y2, z) in E if y == y2}',

@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 def query_Comp1(s):
     's -> {o_i : (s, o) in _M, (o, o_i) in _F_i}'
     result = set()

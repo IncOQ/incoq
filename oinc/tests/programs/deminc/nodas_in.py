@@ -1,6 +1,6 @@
 # Tags and no-das.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     selfjoin_strat = 'sub',

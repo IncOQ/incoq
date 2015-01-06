@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 _m_R_out = Map()
 def _maint__m_R_out_add(_e):
     (v1_1, v1_2) = _e

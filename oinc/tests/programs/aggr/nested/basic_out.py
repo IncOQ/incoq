@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Aggr1 := sum(R, None)
 # Comp1 := {x : x in S, _av1 in {Aggr1.smlookup('u', (), None)}, (x > _av1)}
 # Aggr1_delta := {() : _ in S}

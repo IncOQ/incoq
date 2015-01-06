@@ -1,6 +1,6 @@
 # Programs with comprehensions that we don't handle.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     default_impl = 'inc',

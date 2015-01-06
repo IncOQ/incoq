@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Aggr1 := count(R, None)
 # Aggr2 := count(setmatch(R, 'buu', a), None)
 _m_Aggr1_u = Map()

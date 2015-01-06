@@ -1,6 +1,6 @@
 # Alternative implementation strategies for comprehensions.
 
-from runtimelib import *
+from oinc.runtime import *
 
 E = Set()
 

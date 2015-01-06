@@ -1,6 +1,6 @@
 # Basic tag-based demand incrementalization.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

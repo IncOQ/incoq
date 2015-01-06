@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Comp1 := {(s, (o_i + 1)) : (s, o) in _M, (o, o_i) in _F_i}
 # Comp6 := {(s, None) : (s, _) in _M}
 _m_Comp6_out = Map()

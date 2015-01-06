@@ -1,6 +1,6 @@
 # Aggregate of a lookup.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     default_impl = 'inc',

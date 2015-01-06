@@ -1,6 +1,6 @@
 # Aggregate of a variable in the object domain.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

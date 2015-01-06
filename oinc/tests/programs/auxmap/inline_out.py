@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 _m_R_in = Map()
 _m_R_out = Map()
 R = Set()

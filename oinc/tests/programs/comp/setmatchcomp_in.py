@@ -1,6 +1,6 @@
 # Incrementalized comprehension with setmatch.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{(x, z) for (x, y) in E for (y2, z) in E if y == y2}',

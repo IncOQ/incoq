@@ -2,7 +2,7 @@
 # Demand invariant maintenance should still come before
 # query maintenance at additions and after it at removals.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     selfjoin_strat = 'aug',

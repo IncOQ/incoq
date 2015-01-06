@@ -1,7 +1,7 @@
 # Comprehension whose maintenance requires auxmaps for equalities
 # and wildcards.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{x for (x, x2, y, z) in P if y in S if x == x2}',

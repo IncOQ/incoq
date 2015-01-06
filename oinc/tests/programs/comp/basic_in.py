@@ -1,6 +1,6 @@
 # Basic incrementalized comprehensions.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{x for (x, y) in E if f(y)}',

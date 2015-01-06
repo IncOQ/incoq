@@ -1,6 +1,6 @@
 # Some sets in the input program are already relations.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

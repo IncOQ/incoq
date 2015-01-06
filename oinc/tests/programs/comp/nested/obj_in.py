@@ -1,6 +1,6 @@
 # Nested object-domain comprehensions.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

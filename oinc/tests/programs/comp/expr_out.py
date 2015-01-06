@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Comp1 := {(f(x), (y + 1), None) : (x, y) in S}
 Comp1 = RCSet()
 def _maint_Comp1_S_add(_e):

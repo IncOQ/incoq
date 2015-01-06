@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Comp1 := {(x, w) : (x, x, _) in S, (x, w) in T}
 _m_T_out = Map()
 def _maint__m_T_out_add(_e):

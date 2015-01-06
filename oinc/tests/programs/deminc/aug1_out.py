@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Comp1 := {(x, z) : (x, y) in E, (y, z) in E}
 # Comp1_Ty1 := {y : (x, y) in E}
 # Comp1_dE2 := {(y, z) : y in Comp1_Ty1, (y, z) in E}

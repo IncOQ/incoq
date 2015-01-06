@@ -4,7 +4,7 @@
 # filtered ones, augmented clauses should become non-augmented
 # and non-augmented should become subtractive.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     selfjoin_strat = 'aug',

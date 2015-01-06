@@ -1,6 +1,6 @@
 # Disable tag checks.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     tag_checks = False,

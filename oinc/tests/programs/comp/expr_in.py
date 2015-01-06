@@ -1,6 +1,6 @@
 # Result expressions that aren't just tuples of variables.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{(f(x), y + 1, None) for (x, y) in S}',

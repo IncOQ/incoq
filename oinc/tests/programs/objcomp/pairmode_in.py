@@ -1,6 +1,6 @@
 # Output as relations rather than objects.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

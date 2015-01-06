@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 N = Set()
 for i in range(1, 5):
     N._add(i)

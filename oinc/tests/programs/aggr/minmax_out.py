@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Aggr1 := min(R, None)
 # Aggr2 := max(R, None)
 _m_Aggr1_u = Map()

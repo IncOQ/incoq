@@ -1,6 +1,6 @@
 # Comprehensions with parameters.
 
-from runtimelib import *
+from oinc.runtime import *
 
 E = Set()
 

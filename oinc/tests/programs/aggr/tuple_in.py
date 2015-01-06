@@ -1,6 +1,6 @@
 # Aggregates over sets of tuples.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     default_impl = 'inc',

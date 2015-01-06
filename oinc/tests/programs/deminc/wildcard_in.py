@@ -1,6 +1,6 @@
 # Make sure demand filtering for clauses with wildcards works.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{b for (a2, b) in R for (b2, _) in R if a == a2 if b == b2}',

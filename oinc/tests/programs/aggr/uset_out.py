@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Comp1 := {(x, L, y) : L in _U_Comp1, (x, y) in E, (y < L)}
 # Aggr1 := sum(DEMQUERY(Comp1, [L], setmatch(Comp1, 'bbu', (x, L))), None)
 _m_Comp1_bbu = Map()

@@ -1,6 +1,6 @@
 # LRU cache on a U-set.
 
-from runtimelib import *
+from oinc.runtime import *
 
 E = Set()
 

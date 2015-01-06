@@ -1,6 +1,6 @@
 # Unconstrained parameters that force a batch recomputation when updated.
 
-from runtimelib import *
+from oinc.runtime import *
 
 E = Set()
 

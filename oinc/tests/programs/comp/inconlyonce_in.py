@@ -1,7 +1,7 @@
 # Don't incrementalize the same comp more than once if we can
 # avoid it.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{x for (x, y) in E}',

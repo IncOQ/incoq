@@ -1,7 +1,7 @@
 # Only run object domain conversion when necessary.
 # Don't include input relations as parameters.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

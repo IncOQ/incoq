@@ -1,6 +1,6 @@
 # Check handling of deltas to enumerators with wildcards.
 
-from runtimelib import *
+from oinc.runtime import *
 
 QUERYOPTIONS(
     '{(x, w) for (x, x2, z) in S for (x3, w) in T if x == x2 if x2 == x3}',

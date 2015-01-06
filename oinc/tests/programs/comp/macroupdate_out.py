@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Comp1 := {x : (x, y) in E, f(y)}
 # Comp4 := {(x, z) : (x, y) in E, (y, z) in E}
 _m_E_in = Map()

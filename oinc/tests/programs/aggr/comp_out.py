@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Comp1 := {(x, z) : (x, y) in E, (y, z) in E}
 # Aggr1 := sum(setmatch(Comp1, 'bu', x), None)
 _m_E_in = Map()

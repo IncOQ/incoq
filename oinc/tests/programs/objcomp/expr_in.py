@@ -1,7 +1,7 @@
 # Comprehensions with result expressions that are not just
 # simple variables.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

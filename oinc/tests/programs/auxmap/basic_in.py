@@ -1,6 +1,6 @@
 # Basic auxiliary map usage.
 
-from runtimelib import *
+from oinc.runtime import *
 
 R = Set()
 

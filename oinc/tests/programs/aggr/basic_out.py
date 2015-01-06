@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Aggr1 := sum(R, None)
 _m_Aggr1_u = Map()
 def _maint__m_Aggr1_u_add(_e):

@@ -1,6 +1,6 @@
 # Comprehension with a demand-driven aggregate.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     default_impl = 'inc',

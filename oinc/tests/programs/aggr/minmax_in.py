@@ -1,6 +1,6 @@
 # Min/max query.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     default_impl = 'inc',

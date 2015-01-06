@@ -1,6 +1,6 @@
 # Like nested_in, but use join instead of tags for subquery demand.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     subdem_tags = False,

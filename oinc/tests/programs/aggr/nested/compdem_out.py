@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Aggr1 := sum(S, None)
 # Comp1 := {(x, y) : x in _U_Comp1, (x, y) in E, _av1 in {Aggr1.smlookup('u', (), None)}, (y < _av1)}
 # Comp1_Tx1 := {x : x in _U_Comp1}

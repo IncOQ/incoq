@@ -2,7 +2,7 @@
 # If this doesn't happen, the query will look ok at the end but the
 # maintenance code won't be inserted.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

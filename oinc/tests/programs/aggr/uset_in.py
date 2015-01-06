@@ -1,6 +1,6 @@
 # Aggregate of a comprehension with a U-set.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     default_impl = 'inc',

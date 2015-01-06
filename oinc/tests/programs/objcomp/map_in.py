@@ -1,6 +1,6 @@
 # Map object-domain conversion.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

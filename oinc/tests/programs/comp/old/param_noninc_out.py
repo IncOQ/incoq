@@ -1,4 +1,4 @@
-from runtimelib import *
+from oinc.runtime import *
 # Comp1 := {(low, high, z) : low in Comp1_P_low, high in Comp1_P_high, (x, y) in E, (y, z) in E, (low <= x <= high)}
 # Comp10 := {(low, high, z) : low in Comp10_P_low, high in Comp10_P_high, (x, y) in E, (y, z) in E, (low <= x <= high)}
 _m_Comp10_bbu = Map('_m_Comp10_bbu')

@@ -1,6 +1,6 @@
 # Inline comp maintenance.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     maint_inline = True,

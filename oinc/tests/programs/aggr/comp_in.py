@@ -1,6 +1,6 @@
 # Aggregate of a comprehension.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     default_impl = 'inc',

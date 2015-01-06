@@ -1,7 +1,7 @@
 # Comprehension with non-enumvar parameter, which should be
 # automatically added to a U-set.
 
-from runtimelib import *
+from oinc.runtime import *
 
 E = Set()
 g = 1

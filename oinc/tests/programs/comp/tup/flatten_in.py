@@ -1,6 +1,6 @@
 # Check for flattening of relations that use nested tuples.
 
-from runtimelib import *
+from oinc.runtime import *
 
 OPTIONS(
     flatten_rels = ['R'],
