@@ -3,11 +3,11 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.set import Mask, AuxmapSpec
-from oinc.central import CentralCase
-from oinc.set.auxmap import *
-from oinc.set.auxmap import make_auxmap_maint_code
+import oinc.compiler.incast as L
+from oinc.compiler.set import Mask, AuxmapSpec
+from oinc.compiler.central import CentralCase
+from oinc.compiler.set.auxmap import *
+from oinc.compiler.set.auxmap import make_auxmap_maint_code
 
 
 class TestAuxmap(CentralCase):

@@ -8,10 +8,10 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.central import CentralCase
-from oinc.set.mask import Mask
-from oinc.set.setmatch import *
+import oinc.compiler.incast as L
+from oinc.compiler.central import CentralCase
+from oinc.compiler.set.mask import Mask
+from oinc.compiler.set.setmatch import *
 
 
 class TestSetmatchMacros(CentralCase):

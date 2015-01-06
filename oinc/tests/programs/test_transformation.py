@@ -32,7 +32,7 @@ them.
 import unittest
 import os
 
-from util.pyexec import pyexec_source
+from oinc.util.pyexec import pyexec_source
 from oinc.compiler.central import transform_source
 
 

@@ -3,9 +3,9 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.central import CentralCase
-from oinc.set.mask import *
+import oinc.compiler.incast as L
+from oinc.compiler.central import CentralCase
+from oinc.compiler.set.mask import *
 
 
 class TestMask(CentralCase):
