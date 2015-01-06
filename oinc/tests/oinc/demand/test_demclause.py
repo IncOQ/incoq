@@ -3,9 +3,9 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.comp import EnumClause, LookupClause, Rate
-from oinc.demand.demclause import *
+import oinc.compiler.incast as L
+from oinc.compiler.comp import EnumClause, LookupClause, Rate
+from oinc.compiler.demand.demclause import *
 
 
 class DemClauseFactory(DemClauseFactory_Mixin):

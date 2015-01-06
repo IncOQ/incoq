@@ -5,12 +5,13 @@ import unittest
 
 from simplestruct import Field
 
-import oinc.incast as L
+import oinc.compiler.incast as L
 
-from oinc.comp.clause import EnumClause, ClauseFactory as CF, ABCStruct
-from oinc.comp.join import Join
-from oinc.comp.compspec import *
-from oinc.comp.compspec import TupleTreeConstraintMaker
+from oinc.compiler.comp.clause import (EnumClause, ClauseFactory as CF,
+                                       ABCStruct)
+from oinc.compiler.comp.join import Join
+from oinc.compiler.comp.compspec import *
+from oinc.compiler.comp.compspec import TupleTreeConstraintMaker
 
 
 class CompSpecCase(unittest.TestCase):
@@ -280,7 +281,7 @@ class CompSpecCase(unittest.TestCase):
         self.assertCountEqual(constrs, exp_constrs)
     
     def test_memberships(self):
-        from oinc.tup import TupClauseFactory_Mixin
+        from oinc.compiler.tup import TupClauseFactory_Mixin
         spec = self.make_spec('(a, c) for (a, b, tup) in R '
                                      'for (tup, c, d) in _TUP2 '
                                      'for d in T for _ in U for (_, _) in U '

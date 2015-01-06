@@ -3,10 +3,10 @@
 
 import unittest
 
-from oinc.incast.nodes import *
-from oinc.incast.structconv import parse_structast
-from oinc.incast.nodeconv import *
-from oinc.incast.nodeconv import value_to_ast
+from oinc.compiler.incast.nodes import *
+from oinc.compiler.incast.structconv import parse_structast
+from oinc.compiler.incast.nodeconv import *
+from oinc.compiler.incast.nodeconv import value_to_ast
 
 
 class NodeconvCase(unittest.TestCase):

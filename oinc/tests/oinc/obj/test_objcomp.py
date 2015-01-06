@@ -3,15 +3,15 @@
 
 import unittest
 
-from util.collections import OrderedSet
-from oinc.comp import CompSpec
-import oinc.incast as L
+from oinc.util.collections import OrderedSet
+from oinc.compiler.comp import CompSpec
+import oinc.compiler.incast as L
 
-from oinc.obj.objclause import ObjClauseFactory_Mixin as CF
-from oinc.obj.objcomp import *
-from oinc.obj.objcomp import (RetrievalReplacer, RetrievalExpander,
-                              flatten_retrievals, unflatten_retrievals,
-                              flatten_sets, unflatten_sets)
+from oinc.compiler.obj.objclause import ObjClauseFactory_Mixin as CF
+from oinc.compiler.obj.objcomp import *
+from oinc.compiler.obj.objcomp import (
+        RetrievalReplacer, RetrievalExpander, flatten_retrievals,
+        unflatten_retrievals, flatten_sets, unflatten_sets)
 
 
 class ObjcompCase(unittest.TestCase):

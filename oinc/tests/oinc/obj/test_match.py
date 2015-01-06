@@ -3,10 +3,9 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.set import Mask
-
-from oinc.obj.match import *
+import oinc.compiler.incast as L
+from oinc.compiler.set import Mask
+from oinc.compiler.obj.match import *
 
 
 class BindmatchCase(unittest.TestCase):

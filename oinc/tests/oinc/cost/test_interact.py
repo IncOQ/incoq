@@ -4,16 +4,15 @@
 import unittest
 from types import SimpleNamespace
 
-from util.unify import unify
-import oinc.incast as L
-from oinc.set import Mask
-from oinc.comp import CompSpec
-from oinc.central import CentralCase
-
-from oinc.cost.cost import *
-from oinc.cost.interact import *
-from oinc.cost.interact import (make_dompath_eqs, split_resexp_vars,
-                                get_nondet_info, CostReinterpreter)
+from oinc.util.unify import unify
+import oinc.compiler.incast as L
+from oinc.compiler.set import Mask
+from oinc.compiler.comp import CompSpec
+from oinc.compiler.central import CentralCase
+from oinc.compiler.cost.cost import *
+from oinc.compiler.cost.interact import *
+from oinc.compiler.cost.interact import (make_dompath_eqs, split_resexp_vars,
+                                         get_nondet_info, CostReinterpreter)
 
 
 class DomainCase(CentralCase):

@@ -3,9 +3,9 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.comp import Rate
-from oinc.comp.clause import *
+import oinc.compiler.incast as L
+from oinc.compiler.comp import Rate
+from oinc.compiler.comp.clause import *
 
 
 class DummyFactory(ClauseFactory):

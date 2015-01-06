@@ -3,12 +3,12 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.set import Mask
-from oinc.central import CentralCase
+import oinc.compiler.incast as L
+from oinc.compiler.set import Mask
+from oinc.compiler.central import CentralCase
 
-from oinc.aggr.aggr import *
-from oinc.aggr.aggr import get_cg_class
+from oinc.compiler.aggr.aggr import *
+from oinc.compiler.aggr.aggr import get_cg_class
 
 
 class SpecCase(unittest.TestCase):

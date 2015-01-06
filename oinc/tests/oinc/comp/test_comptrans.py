@@ -3,12 +3,13 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.central import CentralCase
-from oinc.comp.compspec import CompSpec
-from oinc.comp.comptrans import *
-from oinc.comp.comptrans import (IncComp, RelcompMaintainer,
-                                 SubqueryArityFinder, get_subquery_demnames)
+import oinc.compiler.incast as L
+from oinc.compiler.central import CentralCase
+from oinc.compiler.comp.compspec import CompSpec
+from oinc.compiler.comp.comptrans import *
+from oinc.compiler.comp.comptrans import (
+        IncComp, RelcompMaintainer,
+        SubqueryArityFinder, get_subquery_demnames)
 
 
 class TestComp(CentralCase):

@@ -3,11 +3,10 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.central import CentralCase
-
-from oinc.aggr.aggrcomp import *
-from oinc.aggr.aggrcomp import LookupReplacer
+import oinc.compiler.incast as L
+from oinc.compiler.central import CentralCase
+from oinc.compiler.aggr.aggrcomp import *
+from oinc.compiler.aggr.aggrcomp import LookupReplacer
 
 
 class AggrcompCase(CentralCase):

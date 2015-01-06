@@ -3,9 +3,9 @@
 
 import unittest
 
-from oinc.incast.inline import *
-from oinc.incast.structconv import parse_structast
-from oinc.incast.nodeconv import IncLangImporter
+from oinc.compiler.incast.inline import *
+from oinc.compiler.incast.structconv import parse_structast
+from oinc.compiler.incast.nodeconv import IncLangImporter
 
 
 class InlineCase(unittest.TestCase):

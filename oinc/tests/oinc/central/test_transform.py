@@ -8,10 +8,10 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.central import CentralCase
-from oinc.central.transform import *
-from oinc.central.transform import transform_all_queries
+import oinc.compiler.incast as L
+from oinc.compiler.central import CentralCase
+from oinc.compiler.central.transform import *
+from oinc.compiler.central.transform import transform_all_queries
 
 
 class TestTransform(CentralCase):

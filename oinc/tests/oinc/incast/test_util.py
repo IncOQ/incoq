@@ -2,14 +2,14 @@
 
 
 import unittest
-from util.collections import OrderedSet
 
-from oinc.incast.nodes import *
-from oinc.incast.structconv import parse_structast, NodeTransformer
-from oinc.incast.nodeconv import IncLangImporter
-from oinc.incast.util import *
-from oinc.incast.util import FuncDefLister
-from oinc.incast import ts
+from oinc.util.collections import OrderedSet
+from oinc.compiler.incast.nodes import *
+from oinc.compiler.incast.structconv import parse_structast, NodeTransformer
+from oinc.compiler.incast.nodeconv import IncLangImporter
+from oinc.compiler.incast.util import *
+from oinc.compiler.incast.util import FuncDefLister
+from oinc.compiler.incast import ts
 
 
 class UtilCase(unittest.TestCase):

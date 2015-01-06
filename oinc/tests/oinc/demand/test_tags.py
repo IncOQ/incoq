@@ -4,13 +4,13 @@
 import unittest
 from itertools import chain
 
-import oinc.incast as L
-from oinc.comp import AsymptoticOrderer, Join, DeltaInfo
-from oinc.obj import ObjClauseFactory_Mixin
+import oinc.compiler.incast as L
+from oinc.compiler.comp import AsymptoticOrderer, Join, DeltaInfo
+from oinc.compiler.obj import ObjClauseFactory_Mixin
 
-from oinc.demand.demclause import DemClauseFactory_Mixin
-from oinc.demand.tags import *
-from oinc.demand.tags import Tag, Filter, USet
+from oinc.compiler.demand.demclause import DemClauseFactory_Mixin
+from oinc.compiler.demand.tags import *
+from oinc.compiler.demand.tags import Tag, Filter, USet
 
 
 #def format_structs(structs):

@@ -3,9 +3,9 @@
 
 import unittest
 
-from oinc.incast.nodes import *
-from oinc.incast.structconv import parse_structast
-from oinc.incast.helpers import *
+from oinc.compiler.incast.nodes import *
+from oinc.compiler.incast.structconv import parse_structast
+from oinc.compiler.incast.helpers import *
 
 
 class HelpersCase(unittest.TestCase):

@@ -3,9 +3,9 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.set import Mask
-from oinc.tup.tuprel import *
+import oinc.compiler.incast as L
+from oinc.compiler.set import Mask
+from oinc.compiler.tup.tuprel import *
 
 
 class TuprelCase(unittest.TestCase):

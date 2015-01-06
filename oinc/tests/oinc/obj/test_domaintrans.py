@@ -3,11 +3,10 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.central import CentralCase
-
-from oinc.obj.domaintrans import *
-from oinc.obj.domaintrans import (
+import oinc.compiler.incast as L
+from oinc.compiler.central import CentralCase
+from oinc.compiler.obj.domaintrans import *
+from oinc.compiler.obj.domaintrans import (
             UpdateToPairTransformer, UpdateToObjTransformer,
             flatten_all_comps, unflatten_all_comps,
             AggregatePreprocessor)

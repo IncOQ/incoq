@@ -5,8 +5,8 @@ import unittest
 import ast
 import sys
 
-from oinc.incast.nodes import *
-from oinc.incast.structconv import *
+from oinc.compiler.incast.nodes import *
+from oinc.compiler.incast.structconv import *
 
 
 # Use a derived class that doesn't rely on external unparsing logic.

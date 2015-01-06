@@ -2,8 +2,9 @@
 
 
 import unittest
-import oinc.incast as L
-from oinc.central.options import *
+
+import oinc.compiler.incast as L
+from oinc.compiler.central.options import *
 
 
 class DummyManager(OptionsManager):

@@ -3,11 +3,11 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.central import CentralCase
+import oinc.compiler.incast as L
+from oinc.compiler.central import CentralCase
 
-from oinc.cost.analyze import *
-from oinc.cost.analyze import CostAnalyzer, func_costs
+from oinc.compiler.cost.analyze import *
+from oinc.compiler.cost.analyze import CostAnalyzer, func_costs
 
 
 class AnalyzeCase(CentralCase):

@@ -3,10 +3,10 @@
 
 import unittest
 
-from oinc.incast.nodes import *
-from oinc.incast.structconv import parse_structast, ProgramError
-from oinc.incast.macros import IncMacroProcessor
-from oinc.incast.treeconv import *
+from oinc.compiler.incast.nodes import *
+from oinc.compiler.incast.structconv import parse_structast, ProgramError
+from oinc.compiler.incast.macros import IncMacroProcessor
+from oinc.compiler.incast.treeconv import *
 
 
 class TreeconvCase(unittest.TestCase):

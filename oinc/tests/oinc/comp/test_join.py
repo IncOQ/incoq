@@ -3,9 +3,10 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.comp.clause import EnumClause, CondClause, ClauseFactory as CF
-from oinc.comp.join import *
+import oinc.compiler.incast as L
+from oinc.compiler.comp.clause import (EnumClause, CondClause,
+                                       ClauseFactory as CF)
+from oinc.compiler.comp.join import *
 
 
 class JoinCase(unittest.TestCase):

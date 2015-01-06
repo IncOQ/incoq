@@ -3,8 +3,8 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.tup.tupletrans import *
+import oinc.compiler.incast as L
+from oinc.compiler.tup.tupletrans import *
 
 
 class TupletransCase(unittest.TestCase):

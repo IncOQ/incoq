@@ -3,10 +3,10 @@
 
 import unittest
 
-import oinc.incast as L
+import oinc.compiler.incast as L
 
-from oinc.tup.flatten import *
-from oinc.tup.flatten import (
+from oinc.compiler.tup.flatten import *
+from oinc.compiler.tup.flatten import (
         tuptree_to_type, tuptype_leaves, make_flattup_code,
         UpdateFlattener, get_clause_vars, ClauseFlattener, ReltypeGetter)
 

@@ -3,10 +3,9 @@
 
 import unittest
 
-import oinc.incast as L
-
-from oinc.comp.clause import EnumClause, CondClause
-from oinc.comp.order import *
+import oinc.compiler.incast as L
+from oinc.compiler.comp.clause import EnumClause, CondClause
+from oinc.compiler.comp.order import *
 State = AsymptoticOrderer.State
 
 

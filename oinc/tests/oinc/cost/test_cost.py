@@ -3,12 +3,12 @@
 
 import unittest
 
-from oinc.set import Mask
-
-from oinc.cost.cost import *
-from oinc.cost.cost import (without_duplicates, all_products_dominated,
-                            simplify_sum_of_products, simplify_min_of_sums,
-                            multiply_sums_of_products)
+from oinc.compiler.set import Mask
+from oinc.compiler.cost.cost import *
+from oinc.compiler.cost.cost import (
+        without_duplicates, all_products_dominated,
+        simplify_sum_of_products, simplify_min_of_sums,
+        multiply_sums_of_products)
 
 
 class CostCase(unittest.TestCase):

@@ -5,7 +5,7 @@ import unittest
 import ast
 import iast
 
-from oinc.incast.nodes import *
+from oinc.compiler.incast.nodes import *
 
 
 class NodesCast(unittest.TestCase):

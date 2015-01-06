@@ -3,10 +3,9 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.comp import Rate
-
-from oinc.obj.objclause import *
+import oinc.compiler.incast as L
+from oinc.compiler.comp import Rate
+from oinc.compiler.obj.objclause import *
 
 
 class ObjClauseFactory(ObjClauseFactory_Mixin):

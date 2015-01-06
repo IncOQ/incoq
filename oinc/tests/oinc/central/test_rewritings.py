@@ -3,9 +3,9 @@
 
 import unittest
 
-import oinc.incast as L
-from oinc.central.manager import CentralCase
-from oinc.central.rewritings import *
+import oinc.compiler.incast as L
+from oinc.compiler.central.manager import CentralCase
+from oinc.compiler.central.rewritings import *
 
 
 class RewriterCase(CentralCase):

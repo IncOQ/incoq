@@ -3,9 +3,8 @@
 
 import unittest
 
-import oinc.incast as L
-
-from oinc.obj.pairrel import *
+import oinc.compiler.incast as L
+from oinc.compiler.obj.pairrel import *
 
 
 class PairrelCase(unittest.TestCase):
