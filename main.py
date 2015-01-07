@@ -5,18 +5,18 @@ import os
 from time import clock
 from simplestruct import Field, TypedField
 
-from oinc.transform import Task, do_tasks
+from invinc.transform import Task, do_tasks
 
 
 class TestProgramTask(Task):
     
     prog = Field(str)
-    """Test program path, relative to the oinc/oinc/testprograms
+    """Test program path, relative to the invinc/tests/programs
     directory, excluding the "_in.py" suffix.
     """
     
     def __init__(self, prog):
-        path = os.path.join('oinc/tests/programs', prog)
+        path = os.path.join('invinc/tests/programs', prog)
         self.input_name = path + '_in.py'
         self.output_name = path + '_out.py'
         self.nopts = {'verbose': True, 'eol': 'lf'}

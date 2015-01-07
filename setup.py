@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name =          'InvInc',
     version =       '0.2.0-dev',
-    url =           'https://github.com/brandjon/oinc/oinc',
+    url =           'https://github.com/brandjon/invinc/invinc',
     
     author =        'Jon Brandvein',
     author_email =  'jon.brandvein@gmail.com',
@@ -18,9 +18,9 @@ setup(
         'Topic :: Software Development :: Compilers',
     ],
     
-    packages =      ['oinc'],
+    packages =      ['invinc'],
     
-    test_suite =    'oinc.tests',
+    test_suite =    'invinc.tests',
     
     install_requires = [
         'simplestruct >=0.2.1',
