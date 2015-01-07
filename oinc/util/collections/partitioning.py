@@ -14,7 +14,7 @@ __all__ = [
 
 from collections import MutableMapping
 
-from util.seq import pairs
+from oinc.util.seq import pairs
 
 
 class Partitioning:

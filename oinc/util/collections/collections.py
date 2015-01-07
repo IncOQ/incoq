@@ -13,10 +13,14 @@ __all__ = [
     
     'Registry',
     'SetRegistry',
+    
+    'frozendict',
+    'make_frozen',
 ]
 
 
 import collections
+from functools import reduce
 
 from .orderedset import OrderedSet
 
@@ -128,3 +132,40 @@ class SetRegistry(collections.MutableSet):
     def update(self, seq):
         for item in seq:
             self.add(item)
+
+
+# Inspired by a Stack Overflow answer by Mike Graham.
+# http://stackoverflow.com/questions/2703599/what-would-be-a-frozen-dict
+
+class frozendict(collections.Mapping):
+    
+    """Analogous to frozenset."""
+    
+    def __init__(self, *args, **kargs):
+        self.d = dict(*args, **kargs)
+        self.hash = reduce(lambda a, b: a ^ hash(b), self.items(), 0)
+    
+    def __iter__(self):
+        return iter(self.d)
+    
+    def __len__(self):
+        return len(self.d)
+    
+    def __getitem__(self, key):
+        return self.d[key]
+    
+    def __hash__(self):
+        return self.hash
+
+
+def make_frozen(v):
+    """Normalize mutable dicts to frozendicts and lists to tuples,
+    recursively.
+    """
+    if isinstance(v, (dict, frozendict)):
+        return frozendict({make_frozen(k): make_frozen(v)
+                           for k, v in v.items()})
+    elif isinstance(v, (list, tuple)):
+        return tuple(make_frozen(e) for e in v)
+    else:
+        return v
