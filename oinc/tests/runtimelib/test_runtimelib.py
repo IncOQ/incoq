@@ -9,8 +9,8 @@
 import unittest
 import pickle
 
-from .runtimelib import *
-from .runtimelib import tupify
+from oinc.runtime import *
+from oinc.runtime.runtimelib import tupify
 
 
 class TestRuntimelib(unittest.TestCase):

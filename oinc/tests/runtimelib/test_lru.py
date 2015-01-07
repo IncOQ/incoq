@@ -3,7 +3,7 @@
 
 import unittest
 
-from .lru import *
+from oinc.runtime.lru import *
 
 
 class TestLRU(unittest.TestCase):
