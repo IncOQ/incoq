@@ -71,6 +71,12 @@ class HelpersCase(unittest.TestCase):
         id, val = get_varassign(tree)
         self.assertEqual(id, 'a')
         self.assertEqual(val, self.pe('b + c'))
+        
+        # Try failure.
+        tree = self.p('a + b', mode='stmt')
+        with self.assertRaises(TypeError):
+            get_varassign(tree)
+        self.assertFalse(is_varassign(tree))
     
     def test_vartuple(self):
         tree = self.pe('(a, b)')

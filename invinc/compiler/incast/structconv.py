@@ -20,12 +20,16 @@ __all__ = [
     'ContextSetter',
     'astargs',
     'literal_eval',
+    'raw_match',
+    'match',
+    'MatchFailure',
 ]
 
 
 import ast
 
-from iast import trim, dump, NodeVisitor, NodeTransformer
+from iast import (trim, dump, NodeVisitor, NodeTransformer,
+                  raw_match, match, MatchFailure)
 from iast.python.python34 import (make_pattern, extract_tree, Templater,
                                   parse as _parse, MacroProcessor,
                                   ContextSetter, astargs, literal_eval)
