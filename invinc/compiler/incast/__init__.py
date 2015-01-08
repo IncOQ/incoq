@@ -1,5 +1,10 @@
 """Definition of the IncAST language nodes, and a suite of utilities
 for manipulating and converting them.
+
+We use "PyAST" to refer to ASTs representing Python programs. These
+ASTs may only contain Python node types, plus the special Comment
+node type. We use "IncAST" to refer to ASTs that may also include
+the types defined in nodes.py.
 """
 
 
@@ -10,6 +15,7 @@ for manipulating and converting them.
 # Exports.
 from .nodes import *
 from .structconv import *
+from .error import *
 from .helpers import *
 from .util import *
 from .nodeconv import *

@@ -1,11 +1,5 @@
 """Node definitions for IncAST."""
 
-# We use "PyAST" to refer to ASTs that use only node types that exist
-# in Python code, and "IncAST" for ASTs that may also include our own
-# node types. This terminology is independent of whether the AST is
-# represented by Struct classes (used by iAST and our system) or by
-# the native node classes defined in the "ast" standard library.
-
 
 __all__ = [
     'native_nodes',
@@ -16,7 +10,6 @@ __all__ = [
 
 
 import ast
-from iast import PatVar
 from iast.python.python34 import native_nodes as _native_nodes, py_nodes
 
 from invinc.util.collections import make_frozen
@@ -25,11 +18,8 @@ from invinc.util.collections import make_frozen
 globals().update(py_nodes)
 
 
-# IncAST-specific node type names.
-inc_node_names = [
-    # Include Patvar, for completeness.
-    'PatVar',
-    
+# Names of nodes unique to IncAST.
+incast_node_names = [
     'Comment',
     
     'NOptions',
@@ -76,7 +66,7 @@ native_nodes.update({
 del Comment
 
 
-# Struct node versions of invinc nodes.
+# Definitions for nodes unique to IncAST.
 
 class Comment(stmt):
     _fields = ('text',)     # string
@@ -208,9 +198,9 @@ class Aggregate(expr):
         return super().__new__(cls, value, op, options)
 
 
-# Mapping for struct nodes including invinc nodes.
+# Namespace for IncAST nodes.
 new_incast_nodes = {name: globals()[name]
-                    for name in inc_node_names}
+                    for name in incast_node_names}
 incast_nodes = py_nodes.copy()
 incast_nodes.update(new_incast_nodes)
 

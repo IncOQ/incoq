@@ -17,14 +17,12 @@ __all__ = [
 ]
 
 
-from iast.python.python34 import MacroProcessor
-
 from invinc.util.collections import OrderedSet
 import invinc.compiler.incast as L
 from invinc.compiler.obj import is_specialrel
 
 
-class DistalgoImporter(MacroProcessor):
+class DistalgoImporter(L.MacroProcessor):
     
     """Perform a few simple preprocessing steps.
     

@@ -25,7 +25,6 @@ __all__ = [
 from abc import ABCMeta, abstractmethod, abstractclassmethod
 
 from simplestruct import Struct, MetaStruct, TypedField
-from iast.python.python34 import ContextSetter
 
 from invinc.util.type import checktype
 from invinc.util.seq import elim_duplicates
@@ -984,7 +983,7 @@ class ClauseFactory:
         
         clast = cl.to_AST()
         lhs = clast.target
-        lhs = ContextSetter.run(lhs, L.Load)
+        lhs = L.ContextSetter.run(lhs, L.Load)
         rhs = clast.iter
         cond_ast = L.cmp(lhs, L.In(), rhs)
         return cls.from_AST(cond_ast)

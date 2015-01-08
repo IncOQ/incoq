@@ -7,8 +7,6 @@ __all__ = [
 ]
 
 
-from iast.python.python34 import ContextSetter
-
 from invinc.util.collections import OrderedSet
 import invinc.compiler.incast as L
 
@@ -217,7 +215,7 @@ def flatten_set_clause(cl, input_rels):
     if isinstance(cl, L.Enumerator) and should_trans(cl.iter):
         item = cl.target
         cont = cl.iter
-        cont = ContextSetter.run(cont, L.Store)
+        cont = L.ContextSetter.run(cont, L.Store)
         new_cl = L.Enumerator(L.tuplify((cont, item), lval=True),
                               L.ln(make_mrel()))
         return new_cl, True
@@ -245,7 +243,7 @@ def unflatten_set_clause(cl):
             return cl
         cont, item = res
         
-        cont = ContextSetter.run(cont, L.Load)
+        cont = L.ContextSetter.run(cont, L.Load)
         new_cl = L.Enumerator(item, cont)
         return new_cl
     

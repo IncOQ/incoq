@@ -4,7 +4,8 @@
 import unittest
 
 from invinc.compiler.incast.nodes import *
-from invinc.compiler.incast.structconv import parse_structast, ProgramError
+from invinc.compiler.incast.structconv import parse_structast
+from invinc.compiler.incast.error import ProgramError
 from invinc.compiler.incast.macros import IncMacroProcessor
 from invinc.compiler.incast.treeconv import *
 

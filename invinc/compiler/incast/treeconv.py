@@ -14,7 +14,8 @@ __all__ = [
 
 
 from .nodes import *
-from .structconv import parse_structast, NodeTransformer, ProgramError
+from .structconv import parse_structast, NodeTransformer
+from .error import ProgramError
 from .helpers import is_importstar, get_importstar
 from .util import ScopeVisitor, VarsFinder, N
 from .nodeconv import comp_to_setcomp
