@@ -26,4 +26,7 @@ setup(
         'simplestruct >=0.2.1',
         'iast >=0.2.1',
     ],
+    extras_require = {
+        'aggr':     ['bintrees >=2.0.1'],
+    }
 )
