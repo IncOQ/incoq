@@ -21,7 +21,9 @@ class ProgramError(Exception):
     @classmethod
     def ts(cls, tree):
         """Unparse method to use for AST."""
-        # Make sure we correctly handle IncAST nodes.
+        # Use the unparser in __init__.py. We can't use
+        # structconv.unparse_structast() because the tree
+        # may be an IncAST, not a PyAST.
         from . import ts
         return ts(tree)
     

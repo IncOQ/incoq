@@ -18,6 +18,8 @@ __all__ = [
     'Templater',
     'MacroProcessor',
     'ContextSetter',
+    'astargs',
+    'literal_eval',
 ]
 
 
@@ -26,7 +28,7 @@ import ast
 from iast import trim, dump, NodeVisitor, NodeTransformer
 from iast.python.python34 import (make_pattern, extract_tree, Templater,
                                   parse as _parse, MacroProcessor,
-                                  ContextSetter)
+                                  ContextSetter, astargs, literal_eval)
 
 from .nodes import native_nodes, incast_nodes
 from . import unparse

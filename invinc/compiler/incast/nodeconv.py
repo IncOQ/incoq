@@ -11,12 +11,12 @@ __all__ = [
 
 
 from numbers import Number
-from iast.python.python34 import MacroProcessor, astargs, literal_eval
 
 from invinc.util.collections import make_frozen, frozendict
 
 from .nodes import *
-from .structconv import NodeTransformer, parse_structast
+from .structconv import (NodeTransformer, parse_structast, MacroProcessor,
+                         astargs, literal_eval)
 
 
 def frozen_eval(tree):
