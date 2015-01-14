@@ -2,16 +2,16 @@
 # - added Controller
 # - wait for controller before terminating, instead of
 #   peer-to-peer Done messages
-# - changed s field to use runtimelib and copy from param
+# - changed s field to use invinc.runtime and copy from param
 
 import sys
 controller = import_da('controller')
-import runtimelib
+import invinc.runtime
 
 class P(process, controller.Controllee):
     def setup(ctl, _s, nrequests):
         super().setup(ctl)
-        self.s = runtimelib.Set()
+        self.s = invinc.runtime.Set()
         self.s.update(_s)
 
     def ctl_begin(): super().ctl_begin()

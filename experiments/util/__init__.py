@@ -9,7 +9,7 @@ from functools import partial
 
 from frexp.extractor import Extractor
 
-import runtimelib
+import invinc.runtime
 import osq
 
 
@@ -133,9 +133,9 @@ def canonize(tree, *, use_hash=False):
             underscores are turned into frozensets of their values.
             This includes empty dictionaries.
       
-      - Sets and RCSets from runtimelib get turned into frozensets.
+      - Sets and RCSets from invinc.runtime get turned into frozensets.
       
-      - Objs from runtimelib get turned into a pair of their class
+      - Objs from invinc.runtime get turned into a pair of their class
         name and a frozenset of their __dict__, excluding keys that
         begin with one or more underscores.
       
@@ -162,10 +162,11 @@ def canonize(tree, *, use_hash=False):
         if isinstance(tree, str):
             hash_kind = 'STRING'
     
-    elif isinstance(tree, (runtimelib.Set, runtimelib.RCSet, osq.incr.RCSet)):
+    elif isinstance(tree, (invinc.runtime.Set, invinc.runtime.RCSet,
+                           osq.incr.RCSet)):
         result = frozenset(can(v) for v in tree)
     
-    elif isinstance(tree, runtimelib.Obj):
+    elif isinstance(tree, invinc.runtime.Obj):
         name = tree.__class__.__name__
         attrs = frozenset((k, can(v))
                           for k, v in tree.__dict__.items()
