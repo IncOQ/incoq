@@ -79,7 +79,7 @@ class IN(Task):
 class COM(TaskTemplate):
     _inherit_fields = True
     extra_nopts = {'verbose': True,
-                   'maint_inline': True,
+                   'maint_inline': False,
                    'analyze_costs': True,
                    'selfjoin_strat': 'sub',
                    'default_aggr_halfdemand': True,
@@ -232,6 +232,10 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 #             {}, None, None))
 #add_task(DEM('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
 #             {}, None, None))
+#
+#add_impls('bday', 'experiments/other/bday/bday', [
+#    INC,
+#])
 #
 #add_impls('clpaxos', 'experiments/distalgo/clpaxos/clpaxos_inc', [
 #    INC_SUBDEM,
