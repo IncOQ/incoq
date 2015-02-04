@@ -267,7 +267,7 @@ class SetTypeRewriter(L.StmtTransformer):
     ones that use set(...).
     
     If orig_set_comps is True, handle set comprehensions marked
-    with the in_origianl option.
+    with the in_original option.
     """
     
     def __init__(self, namegen, *, set_literals, orig_set_comps):

@@ -266,6 +266,7 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 #    DEM,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
+#    INC_SUBDEM,
 #    DEM,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
