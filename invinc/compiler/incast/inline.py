@@ -9,13 +9,11 @@ __all__ = [
 ]
 
 
-from iast.python.python34 import Templater
-
 from invinc.util.collections import SetDict, OrderedSet
 from invinc.util.topsort import topsort, get_cycle
 
 from .nodes import *
-from .structconv import NodeVisitor, NodeTransformer
+from .structconv import NodeVisitor, NodeTransformer, Templater
 from .helpers import (is_plainfuncdef, get_plainfuncdef,
                       is_plaincall, get_plaincall)
 from .util import FuncEliminator, N

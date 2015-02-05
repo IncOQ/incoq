@@ -12,27 +12,27 @@ from invinc.compiler.incast.structconv import *
 class StructconvCase(unittest.TestCase):
     
     def test_convert(self):
-        struct_tree = Module((Pass(),))
+        struct_tree = Module((Return(Num(5)),))
         
         # Import.
-        tree = ast.parse('pass')
+        tree = ast.parse('return 5')
         tree = import_structast(tree)
         self.assertEqual(tree, struct_tree)
         
         # Parse.
-        tree = parse_structast('pass')
+        tree = parse_structast('return 5')
         self.assertEqual(tree, struct_tree)
         
         # Unparse.
         source = unparse_structast(struct_tree)
-        exp_source = 'pass'
+        exp_source = 'return 5'
         self.assertEqual(source, exp_source)
         
         # Export.
         tree = export_structast(struct_tree)
         self.assertTrue(isinstance(tree, ast.Module) and
                         len(tree.body) == 1 and
-                        isinstance(tree.body[0], ast.Pass))
+                        isinstance(tree.body[0], ast.Return))
     
     def test_parse(self):
         tree = parse_structast('_X + B', mode='expr',

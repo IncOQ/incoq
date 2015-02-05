@@ -8,10 +8,8 @@ __all__ = [
 ]
 
 
-from iast.python.python34 import astargs
-
 from .nodes import Str
-from .structconv import parse_structast
+from .structconv import parse_structast, astargs
 from .helpers import tuplify, sn
 from .nodeconv import IncLangImporter
 
