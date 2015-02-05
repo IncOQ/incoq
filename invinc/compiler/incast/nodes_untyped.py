@@ -108,6 +108,10 @@ class SetUpdate(stmt):
                'elem')      # expression
     
     def is_varupdate(self):
+        # Hackish. This only works for typed nodes, not untyped ones,
+        # and has to import the typed version of the node module
+        # to work. Should refactor.
+        from .nodes import Name
         return isinstance(self.target, Name)
     
     def get_varupdate(self):
