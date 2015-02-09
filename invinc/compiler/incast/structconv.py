@@ -27,6 +27,7 @@ __all__ = [
 
 
 import ast
+from types import SimpleNamespace
 
 import iast
 from iast import (trim, dump, NodeVisitor, NodeTransformer,
@@ -149,6 +150,8 @@ class Unparser(unparse.Unparser):
     
     # Add Comment printing to standard unparser.
     
+    ast = SimpleNamespace(**incast_nodes)
+    
     def _Comment(self, node):
         if node.text:
             lines = node.text.split('\n')
@@ -159,5 +162,4 @@ class Unparser(unparse.Unparser):
 
 def unparse_structast(tree):
     """Unparse from Struct AST to source code."""
-    tree = export_structast(tree)
     return Unparser.to_source(tree)

@@ -5,6 +5,10 @@
 
 # Overview of changes from standard 3.4 library version:
 #
+# - changed references to ast library within Unparser class to
+#   use a class attribute, to enable substituting a different
+#   set of node classes; made tuples acceptable wherever lists
+#   are expected
 # - added body() convenience method
 # - added to_source() class method
 # - slight changes to newline behavior
@@ -44,19 +48,21 @@ class Unparser:
     output source code for the abstract syntax; original formatting
     is disregarded. """
 
+    ast = ast
+
     @classmethod
     def to_source(cls, code):
         """Generate source for a single AST or for a list of ASTs
         (e.g. a list of statements).
         """
         unparse_buffer = io.StringIO()
-        if isinstance(code, ast.AST):
+        if isinstance(code, cls.ast.AST):
             cls(code, unparse_buffer)
-        elif isinstance(code, list):
+        elif isinstance(code, (list, tuple)):
             for tree in code:
                 cls(tree, unparse_buffer)
         else:
-            raise TypeError('Code must be AST or list of ASTs')
+            raise TypeError('Code must be AST or list/tuple of ASTs')
         
         # Get rid of the leading newline.
         source = unparse_buffer.getvalue()
@@ -98,7 +104,7 @@ class Unparser:
 
     def dispatch(self, tree):
         "Dispatcher function, dispatching tree type T to method _T."
-        if isinstance(tree, list):
+        if isinstance(tree, (list, tuple)):
             for t in tree:
                 self.dispatch(t)
             return
@@ -292,7 +298,7 @@ class Unparser:
         self.body(t.body)
         # collapse nested ifs into equivalent elifs.
         while (t.orelse and len(t.orelse) == 1 and
-               isinstance(t.orelse[0], ast.If)):
+               isinstance(t.orelse[0], self.ast.If)):
             t = t.orelse[0]
             self.fill("elif ")
             self.dispatch(t.test)
@@ -452,7 +458,7 @@ class Unparser:
         # Special case: 3.__abs__() is a syntax error, so if t.value
         # is an integer literal then we need to either parenthesize
         # it or add an extra space to get 3 .__abs__().
-        if isinstance(t.value, ast.Num) and isinstance(t.value.n, int):
+        if isinstance(t.value, self.ast.Num) and isinstance(t.value.n, int):
             self.write(" ")
         self.write(".")
         self.write(t.attr)
@@ -522,7 +528,11 @@ class Unparser:
     def _arguments(self, t):
         first = True
         # normal arguments
-        defaults = [None] * (len(t.args) - len(t.defaults)) + t.defaults
+        # (Modification for supporting tuples as well as lists:
+        # use same sequence type as t.defaults)
+        seqtype = type(t.defaults)
+        defaults = (seqtype([None]) * (len(t.args) - len(t.defaults)) +
+                    t.defaults)
         for a, d in zip(t.args, defaults):
             if first:first = False
             else: self.write(", ")
