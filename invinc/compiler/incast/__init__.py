@@ -15,6 +15,7 @@ the types defined in nodes.py.
 # Exports.
 from .nodes import *
 from .structconv import *
+from .types import *
 from .error import *
 from .helpers import *
 from .util import *
@@ -47,3 +48,7 @@ def pe(*args, mode=None, **kargs):
 def ts(tree):
     tree = IncLangExporter.run(tree)
     return unparse_structast(tree)
+
+def ts_typed(tree):
+    tree = IncLangExporter.run(tree)
+    return unparse_structast_typed(tree)

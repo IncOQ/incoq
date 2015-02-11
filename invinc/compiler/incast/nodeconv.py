@@ -422,10 +422,12 @@ class IncLangExporter(NodeTransformer):
             paramslist = List(tuple(Name(p, Load())
                                     for p in node.params), Load())
         opts = value_to_ast(node.options)
-        return self.pe('COMP(SETCOMP, PARAMS, OPTS)',
-                       subst={'SETCOMP': setcomp,
-                              'PARAMS': paramslist,
-                              'OPTS': opts})
+        result = self.pe('COMP(SETCOMP, PARAMS, OPTS)',
+                         subst={'SETCOMP': setcomp,
+                                'PARAMS': paramslist,
+                                'OPTS': opts})
+        result = result._replace(type=node.type)
+        return result
     
     def visit_Aggregate(self, node):
         node = self.generic_visit(node)

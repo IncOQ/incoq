@@ -17,7 +17,6 @@ __all__ = [
     'SetType',
     'DictType',
     'ObjType',
-    'FoldType',
     
     'TypedUnparser',
     'unparse_structast_typed',
@@ -30,7 +29,7 @@ from simplestruct import Struct, Field, TypedField
 
 from invinc.util.collections import frozendict
 
-from .nodes import expr, Not
+from .nodes import expr, Not, Index, Num
 from .structconv import AdvNodeTransformer, Unparser, export_structast
 
 
@@ -173,34 +172,9 @@ class DictType(Type):
 
 class ObjType(Type):
     name = TypedField(str)
-    attrs = FrozenDictField(str, Type)
-    
-    def __str__(self):
-        items = sorted(self.attrs.items())
-        return self.name + '(' + ', '.join('{} : {}'.format(attr, attrtype)
-                                           for attr, attrtype in items) + ')'
-    
-    def unify_helper(self, other):
-        if isinstance(other, ObjType) and self.name == other.name:
-            assert set(self.attrs.keys()) == set(other.attrs.keys())
-            attrs = {k: self.attrs[k].unify(other.attrs[k])
-                     for k in self.attrs}
-            return self._replace(attrs=attrs)
-        elif isinstance(other, FoldType) and self.name == other.name:
-            return other
-        else:
-            return bottomtype
-
-class FoldType(Type):
-    """Recursive folding for object types."""
-    name = TypedField(str)
     
     def __str__(self):
         return self.name
-    
-    def unify_helper(self, other):
-        if isinstance(other, ObjType) and other.name == self.name:
-            return self
 
 
 class TypedUnparser(Unparser):
@@ -235,6 +209,14 @@ class TypeAnnotator(AdvNodeTransformer):
         if objtypes is None:
             objtypes = {}
         self.objtypes = objtypes
+    
+    def visit_Assign(self, node):
+        value = self.visit(node.value)
+        t = value.type
+        targets = self.visit(node.targets, t)
+        return node._replace(targets=targets, value=value)
+    
+    # Expressions.
     
     # Expression and operands are bools.
     def visit_BoolOp(self, node, ctxtype=toptype):
@@ -320,6 +302,9 @@ class TypeAnnotator(AdvNodeTransformer):
     def visit_ListComp(self, node, ctxtype=toptype):
         return self.seqcomp_helper(node, ctxtype, ListType)
     
+    def visit_SetComp(self, node, ctxtype=toptype):
+        return self.seqcomp_helper(node, ctxtype, SetType)
+    
     def visit_DictComp(self, node, ctxtype=toptype):
         ckt = cvt = toptype
         if isinstance(ctxtype, DictType):
@@ -349,7 +334,7 @@ class TypeAnnotator(AdvNodeTransformer):
         ### TODO: Add context type passing based on what
         ### operator is used.
         node = self.generic_visit(node)
-        t = t.unify(booltype)
+        t = ctxtype.unify(booltype)
         return node._replace(type=t)
     
     ### TODO: Special case
@@ -385,38 +370,47 @@ class TypeAnnotator(AdvNodeTransformer):
     def visit_Ellipsis(self, node, ctxtype=toptype):
         return self.generic_visit(node)
     
+    # The object must either have top type or else have the type
+    # of an object that defines the requested attribute.
     def visit_Attribute(self, node, ctxtype=toptype):
         # We can't generate the object type from its attribute type,
         # so no context info to pass along.
         value = self.visit(node.value)
         vt = value.type
-        if isinstance(vt, ObjType):
-            t = vt.attrs.get(node.attr, None)
+        if vt is toptype:
+            t = toptype
+        elif isinstance(vt, ObjType):
+            attrs = self.objtypes[vt.name]
+            t = attrs.get(node.attr, bottomtype)
         else:
             t = bottomtype
         t = t.unify(ctxtype)
         return node._replace(value=value, type=t)
     
     # Subscripting a list or dict gives the element or value
-    # type respectively. Subscripting top gives top; anything else
-    # is bottom.
-    ### TODO: Can add subscripting of tuple types where the
-    ### index is an integer constant.
+    # type respectively. Subscripting a tuple where the index
+    # is an integer constant gives the element type.
+    # Subscripting top gives top. Anything else is bottom.
     def visit_Subscript(self, node, ctxtype=toptype):
         # We can't generate the list/dict type from its
         # element/value type, so no context info to pass along.
         value = self.visit(node.value)
+        slice = self.visit(node.slice)
         vt = value.type
         if isinstance(vt, ListType):
             t = vt.et
         elif isinstance(vt, DictType):
             t = vt.vt
+        elif isinstance(vt, TupleType):
+            if isinstance(slice, Index) and isinstance(slice.value, Num):
+                if 0 <= slice.value.n < len(vt.ets):
+                    t = vt.ets[slice.value.n]
         elif vt is toptype:
             t = toptype
         else:
             t = bottomtype
         t = t.unify(ctxtype)
-        return node._replace(value=value, type=t)
+        return node._replace(value=value, slice=slice, type=t)
     
     def visit_Starred(self, node, ctxtype=toptype):
         node = self.generic_visit(node, ctxtype)
@@ -426,6 +420,7 @@ class TypeAnnotator(AdvNodeTransformer):
         node = self.generic_visit(node)
         t = self.annotations.get(node.id, toptype)
         t = t.unify(ctxtype)
+        self.annotations[node.id] = t
         return node._replace(type=t)
     
     def visit_List(self, node, ctxtype=toptype):
@@ -442,3 +437,58 @@ class TypeAnnotator(AdvNodeTransformer):
         t = TupleType([elt.type for elt in elts])
         t = t.unify(ctxtype)
         return node._replace(elts=elts, type=t)
+    
+    # IncAST nodes follow.
+    
+    def visit_IsEmpty(self, node, ctxtype=toptype):
+        target = self.visit(node.target, SetType(toptype))
+        t = ctxtype.unify(booltype)
+        return node._replace(target=target, type=t)
+    
+    def visit_GetRef(self, node, ctxtype=toptype):
+        target = self.visit(node.target, SetType(toptype))
+        elem = self.visit(node.elem)
+        t = ctxtype.unify(numbertype)
+        return node._replace(target=target, elem=elem, type=t)
+    
+    def visit_Lookup(self, node, ctxtype=toptype):
+        target = self.visit(node.target, DictType(toptype, ctxtype))
+        key = self.visit(node.key)
+        default = self.visit(node.default, ctxtype)
+        t = ctxtype.unify(default.type)
+        return node._replace(target=target, key=key, default=default, type=t)
+    
+    def visit_ImgLookup(self, node, ctxtype=toptype):
+        target = self.visit(node.target, DictType(toptype, SetType(ctxtype)))
+        key = self.visit(node.key)
+        if (isinstance(target.type, DictType) and
+            isinstance(target.type.vt, SetType)):
+            t = t.unify(target.type.vt.et)
+        return node._replace(target=target, key=key, type=t)
+    
+    visit_RCImgLookup = visit_ImgLookup
+    
+    ### NOT IMPLEMENTED:
+    # SMLookup, DemQuery, NoDemQuery, Instr, SetMatch, DeltaMatch,
+    # Enumerator, Aggregate
+    
+    def visit_Enumerator(self, node, ctxtype=toptype):
+        iter = self.visit(node.iter)
+        it = iter.type
+        if isinstance(it, SetType):
+            tt = it.et
+        target = self.visit(node.target, tt)
+        return node._replace(target=target, iter=iter)
+    
+    def visit_Comp(self, node, ctxtype=toptype):
+        cet = toptype
+        if isinstance(ctxtype, SetType):
+            cet, = ctxtype
+        clauses = []
+        for cl in node.clauses:
+            t = booltype if isinstance(cl, expr) else toptype
+            cl = self.visit(cl, t)
+            clauses.append(cl)
+        resexp = self.visit(node.resexp, cet)
+        t = ctxtype.unify(resexp.type)
+        return node._replace(resexp=resexp, clauses=clauses, type=t)
