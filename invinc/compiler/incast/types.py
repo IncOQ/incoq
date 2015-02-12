@@ -18,6 +18,8 @@ __all__ = [
     'DictType',
     'ObjType',
     
+    'eval_typestr',
+    
     'TypedUnparser',
     'unparse_structast_typed',
     'TypeAnnotator',
@@ -175,6 +177,14 @@ class ObjType(Type):
     
     def __str__(self):
         return self.name
+
+
+def eval_typestr(s):
+    """eval() a string representing a type expression."""
+    ns = {k: v for k, v in globals().items()
+               if isinstance(v, Type) or
+                  (isinstance(v, type) and issubclass(v, Type))}
+    return eval(s, ns)
 
 
 class TypedUnparser(Unparser):
@@ -431,7 +441,7 @@ class TypeAnnotator(AdvNodeTransformer):
         # hetereogenously typed.
         nelems = len(node.elts)
         cets = [toptype] * nelems
-        if isinstance(ctxtype, TupleType) and len(ctxtype.elts) == nelems:
+        if isinstance(ctxtype, TupleType) and len(ctxtype.ets) == nelems:
             cets = ctxtype.ets
         elts = [self.visit(e, cet) for e, cet in zip(node.elts, cets)]
         t = TupleType([elt.type for elt in elts])
@@ -475,6 +485,7 @@ class TypeAnnotator(AdvNodeTransformer):
     def visit_Enumerator(self, node, ctxtype=toptype):
         iter = self.visit(node.iter)
         it = iter.type
+        tt = toptype
         if isinstance(it, SetType):
             tt = it.et
         target = self.visit(node.target, tt)
@@ -484,11 +495,11 @@ class TypeAnnotator(AdvNodeTransformer):
         cet = toptype
         if isinstance(ctxtype, SetType):
             cet, = ctxtype
-        clauses = []
+        clauses = ()
         for cl in node.clauses:
             t = booltype if isinstance(cl, expr) else toptype
             cl = self.visit(cl, t)
-            clauses.append(cl)
+            clauses += (cl,)
         resexp = self.visit(node.resexp, cet)
         t = ctxtype.unify(resexp.type)
         return node._replace(resexp=resexp, clauses=clauses, type=t)

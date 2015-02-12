@@ -407,9 +407,11 @@ class IncLangExporter(NodeTransformer):
                               'LIMIT': Num(node.limit)})
     
     def visit_Enumerator(self, node):
-        # Even though Enumerators are converted by comp_to_setcomp(),
-        # we still need to handle them in this visitor so that
-        # Enumerators can be printed out to source by themselves.
+        # Enumerators are converted by comp_to_setcomp() inside
+        # visit_Comp(). Nonetheless, we still need to handle them
+        # in this visitor in order to transform other nested
+        # expressions, and to be able to print source for
+        # Enumerator nodes by themselves.
         node = self.generic_visit(node)
         return comprehension(node.target, node.iter, ())
     

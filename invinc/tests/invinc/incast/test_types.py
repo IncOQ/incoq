@@ -34,6 +34,11 @@ class TypeCase(unittest.TestCase):
         self.assertEqual(t1.unify(t2), t1)
         self.assertEqual(t2.unify(t3), bottomtype)
     
+    def test_eval_typestr(self):
+        t = eval_typestr('SetType(numbertype)')
+        exp_t = SetType(numbertype)
+        self.assertEqual(t, exp_t)
+    
     def test_annotator(self):
         tree = self.p('''
             x = d['a']
