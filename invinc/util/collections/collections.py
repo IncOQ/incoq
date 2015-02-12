@@ -145,6 +145,17 @@ class frozendict(collections.Mapping):
         self.d = dict(*args, **kargs)
         self.hash = reduce(lambda a, b: a ^ hash(b), self.items(), 0)
     
+    def __repr__(self):
+        # Try sorting the items if possible.
+        items = list(self.d.items())
+        try:
+            items.sort()
+        except TypeError:
+            pass
+        return ('frozendict({' + ', '.join('{}: {}'.format(key, value)
+                                           for key, value in items) +
+                '})')
+    
     def __iter__(self):
         return iter(self.d)
     
