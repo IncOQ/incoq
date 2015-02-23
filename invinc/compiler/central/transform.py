@@ -31,7 +31,7 @@ from invinc.compiler.obj import to_pairdomain, to_objdomain
 from invinc.compiler.demand import deminc_relcomp
 from invinc.compiler.tup import (
         flatten_tuples, check_bad_setmatches, flatten_relations)
-from invinc.compiler.cost import analyze_costs
+#from invinc.compiler.cost import analyze_costs
 
 from .manager import get_clause_factory, make_manager
 from .rewritings import (DistalgoImporter, get_distalgo_message_sets,
@@ -440,6 +440,12 @@ def transform_ast(tree, *, nopts=None, qopts=None):
         input_rels.extend(r for r in detected_rels
                           if r not in input_rels)
     
+    # Get type annotations.
+    ann = opman.get_opt('var_types')
+    vartypes = {k: L.eval_typestr(v) for k, v in ann.items()}
+    manager.vartypes = vartypes
+    tree = manager.analyze_types(tree)
+    
     flatten_rels = opman.get_opt('flatten_rels')
     
     # DistAlgo message sets may be considered as relations
@@ -451,11 +457,14 @@ def transform_ast(tree, *, nopts=None, qopts=None):
             if s not in input_rels:
                 input_rels.append(s)
     
-    # Do the flattening.
-    if len(flatten_rels) > 0:
-        if verbose:
-            print('Flattening relations: ' + ', '.join(flatten_rels))
-        tree = flatten_relations(tree, flatten_rels, manager.namegen)
+    #################
+    # XXX: Disabled #
+    #################
+#    # Do the flattening.
+#    if len(flatten_rels) > 0:
+#        if verbose:
+#            print('Flattening relations: ' + ', '.join(flatten_rels))
+#        tree = flatten_relations(tree, flatten_rels, manager.namegen)
     
     tree = elim_inputrel_params(tree, input_rels)
     
@@ -489,12 +498,18 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     tree = SetTypeRewriter.run(tree, manager.namegen,
                                set_literals=False, orig_set_comps=True)
     
+    tree = manager.analyze_types(tree)
+    
     if opman.get_opt('analyze_costs'):
         print('Analyzing costs')
-        tree, costs, domain_subst = analyze_costs(manager, tree, warn=True)
-        manager.stats['funccosts'] = costs
-        manager.stats['domain_subst'] = domain_subst
-        manager.stats['invariants'] = manager.invariants
+        from invinc.compiler.cost import analyze_costs
+        tree, costs = analyze_costs(manager, tree, warn=True)
+#        tree, costs, domain_subst = analyze_costs(manager, tree, warn=True)
+#        manager.stats['funccosts'] = costs
+#        manager.stats['domain_subst'] = domain_subst
+#        manager.stats['invariants'] = manager.invariants
+    
+    print(L.ts_typed(tree))
     
     # Incrementalize setmatch queries.
     check_bad_setmatches(tree)

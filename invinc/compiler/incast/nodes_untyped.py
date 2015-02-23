@@ -197,19 +197,21 @@ class Comp(expr):
                'params',    # identifier list, or None
                'options')   # dictionary, or None
     
-    def __new__(cls, resexp, clauses, params, options, **kargs):
+    def __new__(cls, resexp, clauses, params, options, *args, **kargs):
         options = make_frozen(options)
         return super(cls, cls).__new__(
-                            cls, resexp, clauses, params, options, **kargs)
+                            cls, resexp, clauses, params, options,
+                            *args, **kargs)
 
 class Aggregate(expr):
     _fields = ('value',     # expression
                'op',        # operation string
                'options')   # dictionary
     
-    def __new__(cls, value, op, options, **kargs):
+    def __new__(cls, value, op, options, *args, **kargs):
         options = make_frozen(options)
-        return super(cls, cls).__new__(cls, value, op, options, **kargs)
+        return super(cls, cls).__new__(cls, value, op, options,
+                                       *args, **kargs)
 
 
 # Namespace for IncAST nodes.

@@ -5,6 +5,7 @@ __all__ = [
     'CostAnalyzer',
     'func_costs',
     'CostLabelAdder',
+    'analyze_costs',
 ]
 
 
@@ -385,13 +386,13 @@ class CostLabelAdder(L.NodeTransformer):
 #    
 #    subst = unify(constrs)
 #    return subst
-#
-#def analyze_costs(manager, tree, *, warn=False):
-#    """Analyze function costs. Return a tree modified by adding cost
-#    annotations, a dictionary of these costs, and a substitution mapping
-#    for domain constraints.
-#    """
-#    costmap = func_costs(tree, warn=warn)
-#    tree = CostLabelAdder.run(tree, costmap)
+
+def analyze_costs(manager, tree, *, warn=False):
+    """Analyze function costs. Return a tree modified by adding cost
+    annotations, a dictionary of these costs, and a substitution mapping
+    for domain constraints.
+    """
+    costmap = func_costs(tree, warn=warn)
+    tree = CostLabelAdder.run(tree, costmap)
 #    domain_subst = find_domain_constrs(manager, tree)
-#    return tree, costmap, domain_subst
+    return tree, costmap #, domain_subst

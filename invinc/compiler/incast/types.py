@@ -23,6 +23,8 @@ __all__ = [
     'TypedUnparser',
     'unparse_structast_typed',
     'TypeAnnotator',
+    
+    'analyze_types',
 ]
 
 
@@ -130,8 +132,8 @@ class TupleType(Type):
     
     def unify_helper(self, other):
         if type(self) == type(other) and len(self.ets) == len(other.ets):
-            return TupleType(e1.unify(e2)
-                             for e1, e2 in zip(self.ets, other.ets))
+            return TupleType([e1.unify(e2)
+                              for e1, e2 in zip(self.ets, other.ets)])
         else:
             return bottomtype
 
@@ -211,20 +213,43 @@ class TypeAnnotator(AdvNodeTransformer):
     
     """Add type information to all expression nodes where possible."""
     
-    def __init__(self, annotations=None, objtypes=None):
+    def __init__(self, vartypes=None, objtypes=None):
         super().__init__()
-        if annotations is None:
-            annotations = {}
-        self.annotations = annotations
+        if vartypes is None:
+            vartypes = {}
+        self.vartypes = vartypes
         if objtypes is None:
             objtypes = {}
         self.objtypes = objtypes
+    
+    def process(self, tree):
+        tree = super().process(tree)
+        return tree, self.vartypes
+    
+    # Statements.
     
     def visit_Assign(self, node):
         value = self.visit(node.value)
         t = value.type
         targets = self.visit(node.targets, t)
         return node._replace(targets=targets, value=value)
+    
+    def visit_SetUpdate(self, node):
+        elem = self.visit(node.elem)
+        target = self.visit(node.target, SetType(elem.type))
+        return node._replace(target=target, elem=elem)
+    
+    def visit_MacroSetUpdate(self, node):
+        t = SetType(toptype)
+        if node.other is None:
+            other = None
+        else:
+            other = self.visit(node.other)
+            t = t.unify(other.type)
+        target = self.visit(node.target, t)
+        return node._replace(target=target, other=other)
+    
+    visit_RCSetRefUpdate = visit_SetUpdate
     
     # Expressions.
     
@@ -383,6 +408,8 @@ class TypeAnnotator(AdvNodeTransformer):
     # The object must either have top type or else have the type
     # of an object that defines the requested attribute.
     def visit_Attribute(self, node, ctxtype=toptype):
+        ### TODO: Special cases for methods, e.g. ".elements()".
+        
         # We can't generate the object type from its attribute type,
         # so no context info to pass along.
         value = self.visit(node.value)
@@ -428,9 +455,9 @@ class TypeAnnotator(AdvNodeTransformer):
     
     def visit_Name(self, node, ctxtype=toptype):
         node = self.generic_visit(node)
-        t = self.annotations.get(node.id, toptype)
+        t = self.vartypes.get(node.id, toptype)
         t = t.unify(ctxtype)
-        self.annotations[node.id] = t
+        self.vartypes[node.id] = t
         return node._replace(type=t)
     
     def visit_List(self, node, ctxtype=toptype):
@@ -469,8 +496,9 @@ class TypeAnnotator(AdvNodeTransformer):
         return node._replace(target=target, key=key, default=default, type=t)
     
     def visit_ImgLookup(self, node, ctxtype=toptype):
-        target = self.visit(node.target, DictType(toptype, SetType(ctxtype)))
+        t = ctxtype.unify(SetType(toptype))
         key = self.visit(node.key)
+        target = self.visit(node.target, DictType(key.type, t))
         if (isinstance(target.type, DictType) and
             isinstance(target.type.vt, SetType)):
             t = t.unify(target.type.vt.et)
@@ -478,9 +506,41 @@ class TypeAnnotator(AdvNodeTransformer):
     
     visit_RCImgLookup = visit_ImgLookup
     
-    ### NOT IMPLEMENTED:
-    # SMLookup, DemQuery, NoDemQuery, Instr, SetMatch, DeltaMatch,
-    # Enumerator, Aggregate
+    def visit_SMLookup(self, node, ctxtype=toptype):
+        t = ctxtype
+        key = self.visit(node.key)
+        target = self.visit(node.target, SetType(t))
+        if (isinstance(target.type, DictType) and
+            isinstance(target.type.vt, SetType)):
+            t = t.unify(target.type.vt.et)
+        return node._replace(target=target, key=key, type=t)
+    
+    def visit_DemQuery(self, node, ctxtype=toptype):
+        args = self.visit(node.args)
+        value = self.visit(node.value, ctxtype)
+        t = ctxtype.unify(value.type)
+        return node._replace(args=args, value=value, type=t)
+    
+    def visit_NoDemQuery(self, node, ctxtype=toptype):
+        return self.generic_visit(node, ctxtype)
+    
+    def visit_Instr(self, node, ctxtype=toptype):
+        value = self.visit(node.value, ctxtype)
+        expvalue = self.visit(node.value, value.type)
+        t = ctxtype.unify(value.type, expvalue.type)
+        return node._replace(value=value, expvalue=expvalue, type=t)
+        
+    def visit_SetMatch(self, node, ctxtype=toptype):
+        t = ctxtype.unify(SetType(toptype))
+        key = self.visit(node.key)
+        target = self.visit(node.target, t)
+        return node._replace(target=target, key=key, type=t)
+    
+    def visit_DeltaMatch(self, node, ctxtype=toptype):
+        t = ctxtype.unify(SetType(toptype))
+        elem = self.visit(node.elem)
+        target = self.visit(node.target, t)
+        return node._replace(target=target, elem=elem, type=t)
     
     def visit_Enumerator(self, node, ctxtype=toptype):
         iter = self.visit(node.iter)
@@ -503,3 +563,31 @@ class TypeAnnotator(AdvNodeTransformer):
         resexp = self.visit(node.resexp, cet)
         t = ctxtype.unify(resexp.type)
         return node._replace(resexp=resexp, clauses=clauses, type=t)
+    
+    def visit_Aggregate(self, node, ctxtype=toptype):
+        if node.op == 'count':
+            t = numbertype
+            at = toptype
+        elif node.op == 'sum':
+            t = at = numbertype
+        elif node.op in ['min', 'max']:
+            t = ctxtype
+            at = SetType(t)
+        else:
+            assert()
+        value = self.visit(node.value, at)
+        t = t.unify(ctxtype)
+        if node.op in ['min', 'max'] and isinstance(value.type, SetType):
+            t = t.unify(value.type.et)
+        return node._replace(value=value, type=t)
+
+def analyze_types(tree, vartypes=None, objtypes=None):
+    changed = True
+    count = 0
+    while changed and count < 10:
+        oldtree = tree
+        tree, vartypes = TypeAnnotator.run(tree, vartypes, objtypes)
+        changed = oldtree != tree
+        count += 1
+    print('Iterated type analysis {} times'.format(count))
+    return tree, vartypes

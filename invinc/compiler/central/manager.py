@@ -96,8 +96,8 @@ class Manager:
         self.header_comments = []
         """List of comments to emit at top of code."""
         
-        self.repinc_seen = set()
-        """Set of comp queries already transformed."""
+        self.vartypes = {}
+        """Variable types."""
         
         self.stats = {
             'trans time': 0,        # transformation time (process time)
@@ -171,6 +171,13 @@ class Manager:
         assert isinstance(inv, (IncComp, IncAggr))
         self.invariants[name] = inv
         self.add_note('{name} := {inv.spec}'.format(**locals()))
+    
+    def analyze_types(self, tree):
+        """Do type analysis on a program fragment using saved type info.
+        Return the annotated fragment and update the saved info.
+        """
+        tree, self.vartypes = L.analyze_types(tree, self.vartypes)
+        return tree
 
 
 def make_manager():

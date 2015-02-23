@@ -108,10 +108,13 @@ class RelcompMaintainer(L.OuterMaintTransformer):
                         'RESINIT': resinit})
         
         for rel in self.inccomp.spec.join.rels:
+            prefix1 = self.manager.namegen.next_prefix()
+            prefix2 = self.manager.namegen.next_prefix()
+            
             add_code, add_comps = make_comp_maint_code(
                 self.inccomp.spec, self.inccomp.name,
                 rel, 'add', L.pe('_e'),
-                self.manager.namegen.next_prefix(),
+                prefix1,
                 maint_impl=self.inccomp.maint_impl,
                 rc=self.inccomp.rc,
                 selfjoin=self.inccomp.selfjoin)
@@ -119,7 +122,7 @@ class RelcompMaintainer(L.OuterMaintTransformer):
             remove_code, remove_comps = make_comp_maint_code(
                 self.inccomp.spec, self.inccomp.name,
                 rel, 'remove', L.pe('_e'),
-                self.manager.namegen.next_prefix(),
+                prefix2,
                 maint_impl=self.inccomp.maint_impl,
                 rc=self.inccomp.rc,
                 selfjoin=self.inccomp.selfjoin)
@@ -136,6 +139,12 @@ class RelcompMaintainer(L.OuterMaintTransformer):
                             '<c>ADDCODE': add_code,
                             '<def>REMOVEFUNC': self.removefuncs[rel],
                             '<c>REMOVECODE': remove_code})
+            
+            vt = self.manager.vartypes
+            for e in self.inccomp.spec.join.enumvars:
+                if e in vt:
+                    vt[prefix1 + e] = vt[e]
+                    vt[prefix2 + e] = vt[e]
         
         node = node._replace(body=code + node.body)
         node = self.generic_visit(node)

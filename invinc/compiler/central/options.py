@@ -131,6 +131,16 @@ class DefaultNormalOptions:
     
     analyze_costs =         False
     """If True, emit cost analysis information for each function."""
+    
+    var_types =             {}
+    """Mapping from variable names to strings that can be evaluated to
+    produce a type term.
+    """
+    
+    obj_types =             {}
+    """Mapping from names of object types to dictionaries that map
+    from attribute name to attribute types (expressed as strings, as above).
+    """
 
 
 class DefaultQueryOptions:
