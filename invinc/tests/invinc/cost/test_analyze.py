@@ -103,7 +103,8 @@ class AnalyzeCase(CentralCase):
                 for y in setmatch(R, 'bu', x):
                     pass
             ''')
-        tree, _costs, _subst = analyze_costs(self.manager, tree)
+        costmap = func_costs(tree)
+        tree = CostLabelAdder.run(tree, costmap)
         exp_tree = L.pc('''
             def f(x):
                 Comment('Cost: O(R_out[x])')

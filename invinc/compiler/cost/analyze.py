@@ -1,16 +1,15 @@
-"""Asymptotic cost analysis and simplification."""
+"""Asymptotic cost analysis of program fragments."""
 
 
 __all__ = [
     'CostAnalyzer',
-    'analyze_costs',
+    'func_costs',
+    'CostLabelAdder',
 ]
 
 
-from invinc.util.unify import unify
 import invinc.compiler.incast as L
 from invinc.compiler.set import Mask
-from invinc.compiler.comp import IncComp
 
 from .cost import *
 
@@ -22,26 +21,29 @@ class CostAnalyzer(L.NodeVisitor):
     code are determined using argmap and costmap.
     """
     
-    # We list AST node types that have a simple rule for determining
-    # their cost: ones that take constant time, ones that take the
-    # sum of their children's times, and ones that are unknown or
-    # not handled. Other cases like loops are covered with explicit
-    # visitor methods below. Note that these lists may include non-
-    # terminal types in the ASDL.
-    
-    ### Python 3.4: These lists will need to be modified.
+    # Most nodes either take constant time or the sum of the costs
+    # of their children. We list these nodes below. The remaining
+    # ones have visitor handlers.
+    #
+    # For conciseness, the lists may use a non-terminal node type
+    # instead of all of its terminal node types, e.g. expr_context
+    # instead of Load, Store, etc.
+    #
+    # Lists are by name, and programmatically replaced by nodes
+    # after.
     
     const_nodes = [
         'FunctionDef', 'ClassDef', 'Import', 'ImportFrom',
         'Global', 'Nonlocal', 'Pass', 'Break', 'Continue',
-        'Lambda', 'Yield', 'Num', 'Str', 'Bytes', 'Ellipsis',
-        'Name', 'NameConstant',
+        'Lambda', 'Yield', 'YieldFrom', 'Num', 'Str', 'Bytes',
+        'NameConstant', 'Ellipsis', 'Name', 'NameConstant',
+        
         'expr_context', 'boolop', 'operator', 'unaryop', 'cmpop',
-        'alias', 'withitem',
+        'alias',
         
         'Comment',
-        # These two should be incrementalized away
-        'SetMatch', 'DeltaMatch',
+        
+        'NOptions', 'QOptions', 'DeltaMatch',
     ]
     
     sum_nodes = [
@@ -50,27 +52,21 @@ class CostAnalyzer(L.NodeVisitor):
         'BoolOp', 'BinOp', 'UnaryOp', 'IfExp', 'Dict', 'Set',
         'Compare', 'Attribute', 'Subscript', 'Starred',
         'List', 'Tuple',
-        'slice', 'excepthandler',
         
-        'Maintenance', 'NoDemQuery', 'Instr',
-        'SetUpdate', 'RCSetRefUpdate', 'IsEmpty', 'GetRef',
-        'AssignKey', 'DelKey', 'Lookup', 'ImgLookup', 'RCImgLookup',
-        'SMLookup',
-    ]
-    
-    unknown_nodes = [
-        'ListComp', 'SetComp', 'DictComp', 'GeneratorExp',
-        'comprehension',
-        'arguments', 'arg', 'keyword',
+        'slice', 'excepthandler', 'arguments', 'arg', 'keyword',
+        'withitem',
         
-        'Enumerator', 'Comp', 'Aggregate',
+        'Maintenance', 'SetUpdate', 'RCSetRefUpdate', 'IsEmpty',
+        'GetRef', 'AssignKey', 'DelKey', 'Lookup', 'ImgLookup',
+        'RCImgLookup', 'SMLookup',  'NoDemQuery', 'Instr',
     ]
     
     const_nodes = tuple(getattr(L, n) for n in const_nodes)
     sum_nodes = tuple(getattr(L, n) for n in sum_nodes)
-    unknown_nodes = tuple(getattr(L, n) for n in unknown_nodes)
     
-    # Also keep a list of known constant-time built-in functions.
+    # We also have lists of known constant-time built-in functions
+    # and methods.
+    
     const_funcs = [
         'set', 'Set', 'Obj', 'Tree',
         'isinstance', 'hasattr',
@@ -79,8 +75,10 @@ class CostAnalyzer(L.NodeVisitor):
         'len', # constant because when it's used in generated code,
                # it's used for checking tuple arity, not aggregate
                # queries
-        'max2', 'min2',
+        'max2', 'min2', # constant because they're used on a
+                        # fixed number of arguments
     ]
+    
     const_meths = [
         '__min__', '__max__', 'singlelookup'
     ]
@@ -140,9 +138,6 @@ class CostAnalyzer(L.NodeVisitor):
                 costs.append(cost)
             return SumCost(costs)
         
-        elif isinstance(node, self.unknown_nodes):
-            return self.WarnUnknownCost(node)
-        
         else:
             raise AssertionError('Unhandled node type: ' +
                                  type(node).__name__)
@@ -154,16 +149,6 @@ class CostAnalyzer(L.NodeVisitor):
             cost = self.visit(item)
             costs.append(cost)
         return SumCost(costs)
-    
-    def visit_MacroSetUpdate(self, node):
-        if isinstance(node.target, L.Name):
-            if node.other is None:
-                return NameCost(node.target.id)
-            elif isinstance(node.other, L.Name):
-                return SumCost([NameCost(node.target),
-                                NameCost(node.other)])
-        
-        return self.WarnUnknownCost(node)
     
     def expr_tosizecost(self, expr):
         """Turn an iterated expression into a cost bound for its
@@ -202,18 +187,107 @@ class CostAnalyzer(L.NodeVisitor):
             return self.WarnUnknownCost(expr)
     
     def visit_For(self, node):
-        # For loops are the product of their body and the number
-        # of times run, plus the else branch.
-        sizecost = self.expr_tosizecost(node.iter)
+        # For loops are the one-time cost of evaluating the iter,
+        # plus the product of the number of times repeated (size
+        # of iter) with the cost of the body and evaluating the
+        # target, plus the cost of the else branch.
+        targetcost = self.visit(node.target)
+        itercost = self.visit(node.iter)
+        repeatcost = self.expr_tosizecost(node.iter)
         bodycost = self.visit(node.body)
         orelsecost = self.visit(node.orelse)
-        loopcost = ProductCost([sizecost, bodycost])
-        return SumCost([loopcost, orelsecost])
+        loopcost = ProductCost([repeatcost, SumCost([bodycost, targetcost])])
+        return SumCost([itercost, loopcost, orelsecost])
     
     def visit_While(self, node):
         # While loops run an unknown number of times.
+        # Their cost is the product of an unknown with the
+        # body cost, plus the else branch.
         bodycost = self.visit(node.body)
-        return ProductCost([UnknownCost(), bodycost])
+        orelsecost = self.visit(node.orelse)
+        loopcost = ProductCost([UnknownCost(), bodycost])
+        return SumCost([loopcost, orelsecost])
+    
+    def comp_helper(self, node):
+        # Comprehensions and their variants are the products of all
+        # generators and the result expression.
+        gencosts = [self.visit(g) for g in node.generators]
+        eltcost = self.visit(node.elt)
+        return ProductCost(gencosts + [eltcost])
+    
+    visit_ListComp = comp_helper
+    visit_SetComp = comp_helper
+    
+    def visit_DictComp(self, node):
+        gencosts = [self.visit(g) for g in node.generators]
+        eltcost = SumCost([self.visit(node.key), self.visit(node.value)])
+        return ProductCost(gencosts + [eltcost])
+    
+    visit_GeneratorExp = comp_helper
+    
+    def visit_comprehension(self, node):
+        itercost = self.visit(node.iter)
+        targetcost = self.visit(node.target)
+        ifcost = self.visit(node.ifs)
+        repeatcost = self.expr_tosizecost(node.iter)
+        loopcost = ProductCost([SumCost([targetcost, ifcost]), repeatcost])
+        return SumCost([itercost, loopcost])
+    
+    # IncAST-specific nodes.
+    
+    def visit_MacroSetUpdate(self, node):
+        # Cost of evaluating each side, plus cost of size of each side.
+        leftcost = self.visit(node.target)
+        leftsize = self.expr_tosizecost(node.target)
+        if node.other is None:
+            rightcost = rightsize = UnitCost()
+        else:
+            rightcost = self.visit(node.other)
+            rightsize = self.expr_tosizecost(node.other)
+        return SumCost([leftcost, leftsize, rightcost, rightsize])
+    
+    def visit_DemQuery(self, node):
+        # Translate into a call to the demand function. Cost is
+        # that plus the result retrieval cost.
+        callnode = L.Call(L.ln(L.N.queryfunc(node.demname)), node.args,
+                          (), None, None)
+        callcost = self.visit(callnode)
+        retrievecost = self.visit(node.value)
+        return SumCost([callcost, retrievecost])
+    
+    def visit_SetMatch(self, node):
+        # Cost of evaluating. Size doesn't matter since the image
+        # set can be returned in constant time via auxiliary map.
+        return SumCost([self.visit(node.target), self.visit(node.key)])
+    
+    def visit_Enumerator(self, node):
+        itercost = self.visit(node.iter)
+        targetcost = self.visit(node.target)
+        repeatcost = self.expr_tosizecost(node.iter)
+        loopcost = ProductCost([targetcost, repeatcost])
+        return SumCost([itercost, loopcost])
+    
+    def visit_Comp(self, node):
+        # Cost based on a left-to-right evaluation order.
+        # We look at the clauses rightmost first and multiply
+        # or add its cost depending on whether it is an
+        # Enumerator or condition.
+        cost = self.visit(node.resexp)
+        for cl in node.clauses:
+            clcost = self.visit(cl)
+            if isinstance(cl, L.Enumerator):
+                cost = ProductCost([clcost, cost])
+            else:
+                cost = SumCost([clcost, cost])
+        return cost
+    
+    def visit_Aggregate(self, node):
+        # Evaluation cost plus size cost.
+        evalcost = self.visit(node.value)
+        sizecost = self.expr_tosizecost(node.value)
+        return SumCost([evalcost, sizecost])
+    
+    # The all-powerful Call case.
     
     def visit_Call(self, node):
         # If the function is invinc.runtime-qualified, strip it
@@ -266,13 +340,7 @@ class CostAnalyzer(L.NodeVisitor):
         
         cost = ImgkeySubstitutor.run(self.costmap[name], subst)
         return cost
-    
-    def visit_DemQuery(self, node):
-        callnode = L.Call(L.ln(L.N.queryfunc(node.demname)), node.args,
-                          (), None, None)
-        callcost = self.visit(callnode)
-        retrievecost = self.visit(node.value)
-        return SumCost([callcost, retrievecost])
+
 
 def func_costs(tree, *, warn=False):
     funcs = L.PlainFunctionFinder.run(tree, stmt_only=False)
@@ -288,6 +356,7 @@ def func_costs(tree, *, warn=False):
         cost_map[f] = cost
     
     return cost_map
+
 
 class CostLabelAdder(L.NodeTransformer):
     
@@ -305,23 +374,24 @@ class CostLabelAdder(L.NodeTransformer):
             header = (L.Comment('Cost: O({})'.format(str(cost))),)
             return node._replace(body=header + node.body)
 
-def find_domain_constrs(manager, tree):
-    """Return domain constraints for the program."""
-    constrs = []
-    for inv in manager.invariants.values():
-        name = inv.name
-        new_constrs = inv.spec.get_domain_constraints(name)
-        constrs.extend(new_constrs)
-    
-    subst = unify(constrs)
-    return subst
 
-def analyze_costs(manager, tree, *, warn=False):
-    """Analyze function costs. Return a tree modified by adding cost
-    annotations, a dictionary of these costs, and a substitution mapping
-    for domain constraints.
-    """
-    costmap = func_costs(tree, warn=warn)
-    tree = CostLabelAdder.run(tree, costmap)
-    domain_subst = find_domain_constrs(manager, tree)
-    return tree, costmap, domain_subst
+#def find_domain_constrs(manager, tree):
+#    """Return domain constraints for the program."""
+#    constrs = []
+#    for inv in manager.invariants.values():
+#        name = inv.name
+#        new_constrs = inv.spec.get_domain_constraints(name)
+#        constrs.extend(new_constrs)
+#    
+#    subst = unify(constrs)
+#    return subst
+#
+#def analyze_costs(manager, tree, *, warn=False):
+#    """Analyze function costs. Return a tree modified by adding cost
+#    annotations, a dictionary of these costs, and a substitution mapping
+#    for domain constraints.
+#    """
+#    costmap = func_costs(tree, warn=warn)
+#    tree = CostLabelAdder.run(tree, costmap)
+#    domain_subst = find_domain_constrs(manager, tree)
+#    return tree, costmap, domain_subst

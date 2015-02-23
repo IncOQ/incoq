@@ -1,4 +1,4 @@
-"""Definitions of cost terms and framework for manipulation."""
+"""Definitions of cost terms and framework for algebraic manipulation."""
 
 
 __all__ = [
@@ -191,8 +191,6 @@ class CostTransformer(BaseCostVisitor):
         
         for c in cost.terms:
             result = self.visit(c)
-            if result is None:
-                result = c
             if result is not c:
                 changed = True
             if isinstance(result, (tuple, list)):
@@ -404,13 +402,15 @@ def simplify_sum_of_products(sumcost):
     
     # A naive approach only keeps terms that are not dominated by any
     # other term. This would incorrectly remove two terms that are
-    # domianted only by each other. Once a term is dominated, we remove
+    # dominated only by each other. Once a term is dominated, we remove
     # it from the set so it can't be used to dominate anything else.
     
     terms = list(OrderedSet(sumcost.terms))
     factorcounts = build_factor_counts(terms)
     
-    # Go right-to-left so that we keep the left occurrence of tied terms.
+    # Go right-to-left so that we keep the left occurrence of distinct
+    # tied terms. (Non-distinct tied terms are eliminated as duplicates
+    # above.)
     for prod in reversed(list(terms)):
         rest = OrderedSet(terms) - {prod}
         if all_products_dominated([prod], rest, factorcounts):
