@@ -4,10 +4,13 @@
 import unittest
 
 import invinc.compiler.incast as L
+from invinc.compiler.set import Mask
 from invinc.compiler.central import CentralCase
 
+from invinc.compiler.cost.cost import *
 from invinc.compiler.cost.analyze import *
-from invinc.compiler.cost.analyze import CostAnalyzer, func_costs
+from invinc.compiler.cost.analyze import (CostAnalyzer, func_costs,
+                                          type_to_cost, VarRewriter)
 
 
 class AnalyzeCase(CentralCase):
@@ -112,6 +115,30 @@ class AnalyzeCase(CentralCase):
                     pass
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_typetocost(self):
+        ST, TT, OT = L.SetType, L.TupleType, L.ObjType
+        t = TT([OT('A'), OT('B'), TT([OT('C'), OT('D')])])
+        cost = type_to_cost(t)
+        exp_cost = ProductCost([NameCost('A'), NameCost('B'),
+                                ProductCost([NameCost('C'), NameCost('D')])])
+        self.assertEqual(cost, exp_cost)
+    
+    def test_VarRewriter(self):
+        ST, TT, OT = L.SetType, L.TupleType, L.ObjType
+        t = ST(TT([OT('A'), OT('B'), TT([OT('C'), OT('D')])]))
+        self.manager.vartypes['R'] = t
+        
+        cost = NameCost('R')
+        cost = VarRewriter.run(cost, self.manager)
+        exp_cost = ProductCost([NameCost('A'), NameCost('B'),
+                                NameCost('C'), NameCost('D')])
+        self.assertEqual(cost, exp_cost)
+        
+        cost = IndefImgsetCost('R', Mask('buu'))
+        cost = VarRewriter.run(cost, self.manager)
+        exp_cost = ProductCost([NameCost('B'), NameCost('C'), NameCost('D')])
+        self.assertEqual(cost, exp_cost)
 
 
 if __name__ == '__main__':

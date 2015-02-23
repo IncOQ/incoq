@@ -503,8 +503,8 @@ def transform_ast(tree, *, nopts=None, qopts=None):
         print('Analyzing costs')
         from invinc.compiler.cost import analyze_costs
         tree, costs = analyze_costs(manager, tree, warn=True)
-        for k, v in costs.items():
-            print('{}  --  {}'.format(k, v))
+#        for k, v in costs.items():
+#            print('{}  --  {}'.format(k, v))
 #        tree, costs, domain_subst = analyze_costs(manager, tree, warn=True)
 #        manager.stats['funccosts'] = costs
 #        manager.stats['domain_subst'] = domain_subst

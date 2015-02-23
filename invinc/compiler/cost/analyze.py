@@ -376,16 +376,58 @@ class CostLabelAdder(L.NodeTransformer):
             return node._replace(body=header + node.body)
 
 
-#def find_domain_constrs(manager, tree):
-#    """Return domain constraints for the program."""
-#    constrs = []
-#    for inv in manager.invariants.values():
-#        name = inv.name
-#        new_constrs = inv.spec.get_domain_constraints(name)
-#        constrs.extend(new_constrs)
-#    
-#    subst = unify(constrs)
-#    return subst
+def type_to_cost(t):
+    """Turn a type into a cost term based on its domain size."""
+    if t in [L.toptype, L.bottomtype]:
+        return UnknownCost()
+    elif isinstance(t, L.PrimitiveType):
+        return NameCost(t.t.__name__)
+    elif isinstance(t, L.TupleType):
+        return ProductCost([type_to_cost(et) for et in t.ets])
+    elif isinstance(t, L.ObjType):
+        return NameCost(t.name)
+    else:
+        return UnknownCost()
+
+
+class VarRewriter(CostTransformer):
+    
+    """Rewrite cost terms by replacing costs based on variable names
+    with costs based on their types.
+    """
+    
+    def __init__(self, manager):
+        super().__init__()
+        self.manager = manager
+    
+    def process(self, tree):
+        res = super().process(tree)
+        res = Simplifier.run(res)
+        res = normalize(res)
+        return res
+    
+    def visit_NameCost(self, cost):
+        rel = cost.name
+        t = self.manager.vartypes.get(rel, None)
+        if not isinstance(t, L.SetType):
+            return cost
+        c = type_to_cost(t.et)
+        if isinstance(c, UnknownCost):
+            return cost
+        return c
+    
+    def visit_IndefImgsetCost(self, cost):
+        rel = cost.rel
+        t = self.manager.vartypes.get(rel, None)
+        if not isinstance(t, L.SetType):
+            return cost
+        if not (isinstance(t.et, L.TupleType) and
+                len(cost.mask) == len(t.et.ets)):
+            return cost
+        _bts, uts, _eqs = cost.mask.split_vars(t.et.ets)
+        ucosts = [type_to_cost(ut) for ut in uts]
+        return ProductCost(ucosts)
+
 
 def analyze_costs(manager, tree, *, warn=False):
     """Analyze function costs. Return a tree modified by adding cost
@@ -393,6 +435,13 @@ def analyze_costs(manager, tree, *, warn=False):
     for domain constraints.
     """
     costmap = func_costs(tree, warn=warn)
+    
+    for k in costmap:
+        c1 = costmap[k]
+        costmap[k] = VarRewriter.run(costmap[k], manager)
+        c2 = costmap[k]
+        if c1 != c2:
+            print('{}   --->   {}'.format(c1, c2))
+    
     tree = CostLabelAdder.run(tree, costmap)
-#    domain_subst = find_domain_constrs(manager, tree)
-    return tree, costmap #, domain_subst
+    return tree, costmap
