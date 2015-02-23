@@ -190,7 +190,28 @@ class ReltypeGetter(L.NodeVisitor):
             assert self.tuptype == tuptype
 
 
-def flatten_relations(tree, rels, namegen):
+def path_to_elttype(path, vartype):
+    """Given a path (sequence of tuple tree indices) and a vartype
+    (as in the manager), return the type for that component or None.
+    """
+    if not isinstance(vartype, L.SetType):
+        return None
+    
+    def helper(path, vartype):
+        next, *rest = path
+        if not (isinstance(vartype, L.TupleType) and
+                next < len(vartype.ets)):
+            return None
+        
+        if len(rest) == 0:
+            return vartype.ets[next]
+        else:
+            return helper(rest, vartype.ets[next])
+    
+    return helper(path, vartype.et)
+
+
+def flatten_relations(tree, rels, manager):
     """Return a modified tree where the structure of the given relations
     is flattened.
     
@@ -204,5 +225,15 @@ def flatten_relations(tree, rels, namegen):
         if not (isinstance(tuptype, tuple) and tuptype[0] == '<T>'):
             continue
         tree = ClauseFlattener.run(tree, rel, tuptype)
-        tree = UpdateFlattener.run(tree, rel, tuptype, namegen)
+        tree = UpdateFlattener.run(tree, rel, tuptype, manager.namegen)
+        
+        # Update relation type in manager.
+        orig_vartype = manager.vartypes.get(rel, None)
+        if orig_vartype is not None:
+            paths = tuptype_leaves(tuptype)
+            elt_types = [path_to_elttype(p, orig_vartype) for p in paths]
+            if None not in elt_types:
+                manager.vartypes[rel] = L.SetType(L.TupleType(elt_types))
+            else:
+                del manager.vartypes[rel]
     return tree

@@ -444,7 +444,6 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     ann = opman.get_opt('var_types')
     vartypes = {k: L.eval_typestr(v) for k, v in ann.items()}
     manager.vartypes = vartypes
-    tree = manager.analyze_types(tree)
     
     flatten_rels = opman.get_opt('flatten_rels')
     
@@ -457,16 +456,16 @@ def transform_ast(tree, *, nopts=None, qopts=None):
             if s not in input_rels:
                 input_rels.append(s)
     
-    #################
-    # XXX: Disabled #
-    #################
-#    # Do the flattening.
-#    if len(flatten_rels) > 0:
-#        if verbose:
-#            print('Flattening relations: ' + ', '.join(flatten_rels))
-#        tree = flatten_relations(tree, flatten_rels, manager.namegen)
+    # Do the flattening.
+    if len(flatten_rels) > 0:
+        if verbose:
+            print('Flattening relations: ' + ', '.join(flatten_rels))
+        # This will also update manager.vartypes.
+        tree = flatten_relations(tree, flatten_rels, manager)
     
     tree = elim_inputrel_params(tree, input_rels)
+    
+    tree = manager.analyze_types(tree)
     
     # Go to the pair domain.
     if objdomain:
@@ -504,6 +503,8 @@ def transform_ast(tree, *, nopts=None, qopts=None):
         print('Analyzing costs')
         from invinc.compiler.cost import analyze_costs
         tree, costs = analyze_costs(manager, tree, warn=True)
+        for k, v in costs.items():
+            print('{}  --  {}'.format(k, v))
 #        tree, costs, domain_subst = analyze_costs(manager, tree, warn=True)
 #        manager.stats['funccosts'] = costs
 #        manager.stats['domain_subst'] = domain_subst
