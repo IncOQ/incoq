@@ -4,6 +4,7 @@
 import unittest
 
 import invinc.compiler.incast as L
+from invinc.compiler.cost import UnitCost
 
 from invinc.compiler.tup.flatten import *
 from invinc.compiler.tup.flatten import (
@@ -105,6 +106,11 @@ class FlattenCase(CentralCase):
         self.assertEqual(res, OT('D'))
     
     def test_flatten(self):
+        ST, TT, OT = L.SetType, L.TupleType, L.ObjType
+        self.manager.vartypes = {'R': ST(TT([OT('A'),
+                                             TT([OT('B'), OT('C')])]))}
+        self.manager.domcosts = {'R': {(1, 0): UnitCost(),
+                                       (1,): UnitCost()}}
         code = L.p('''
             R.add((1, (2, 3)))
             print(COMP({x for x in S for (x, (y, z)) in R}, [], {}))
@@ -116,7 +122,11 @@ class FlattenCase(CentralCase):
             R.add(_ftv1)
             print(COMP({x for x in S for (x, y, z) in R}, [], {}))
             ''')
+        exp_vartypes = {'R': ST(TT([OT('A'), OT('B'), OT('C')]))}
+        exp_domcosts = {'R': {(1,): UnitCost()}}
         self.assertEqual(code, exp_code)
+        self.assertEqual(self.manager.vartypes, exp_vartypes)
+        self.assertEqual(self.manager.domcosts, exp_domcosts)
 
 
 if __name__ == '__main__':

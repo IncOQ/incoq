@@ -12,6 +12,8 @@ __all__ = [
     'SumCost',
     'MinCost',
     
+    'eval_coststr',
+    
     'BaseCostVisitor',
     'CostVisitor',
     'CostTransformer',
@@ -111,6 +113,13 @@ class MinCost(Cost):
     
     def __str__(self):
         return 'min(' + ', '.join(str(s) for s in self.terms) + ')'
+
+
+def eval_coststr(s):
+    """eval() a string representing a cost expression."""
+    ns = {k: v for k, v in globals().items()
+               if isinstance(v, type) and issubclass(v, Cost)}
+    return eval(s, ns)
 
 
 class BaseCostVisitor:

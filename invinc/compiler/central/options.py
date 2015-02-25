@@ -141,6 +141,11 @@ class DefaultNormalOptions:
     """Mapping from names of object types to dictionaries that map
     from attribute name to attribute types (expressed as strings, as above).
     """
+    
+    dom_costs =             {}
+    """Mapping from domain names to strings that can be evaluated to
+    produce a cost term.
+    """
 
 
 class DefaultQueryOptions:

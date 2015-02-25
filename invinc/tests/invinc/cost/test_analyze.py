@@ -123,21 +123,27 @@ class AnalyzeCase(CentralCase):
         exp_cost = ProductCost([NameCost('A'), NameCost('B'),
                                 ProductCost([NameCost('C'), NameCost('D')])])
         self.assertEqual(cost, exp_cost)
+        
+        cost = type_to_cost(t, {(1,): UnitCost(), (2, 1): UnitCost()})
+        exp_cost = ProductCost([NameCost('A'), UnitCost(),
+                                ProductCost([NameCost('C'), UnitCost()])])
+        self.assertEqual(cost, exp_cost)
     
     def test_VarRewriter(self):
         ST, TT, OT = L.SetType, L.TupleType, L.ObjType
         t = ST(TT([OT('A'), OT('B'), TT([OT('C'), OT('D')])]))
         self.manager.vartypes['R'] = t
+        self.manager.domcosts = {'R': {(2, 0): UnitCost()}}
         
         cost = NameCost('R')
         cost = VarRewriter.run(cost, self.manager)
         exp_cost = ProductCost([NameCost('A'), NameCost('B'),
-                                NameCost('C'), NameCost('D')])
+                                NameCost('D')])
         self.assertEqual(cost, exp_cost)
         
         cost = IndefImgsetCost('R', Mask('buu'))
         cost = VarRewriter.run(cost, self.manager)
-        exp_cost = ProductCost([NameCost('B'), NameCost('C'), NameCost('D')])
+        exp_cost = ProductCost([NameCost('B'), NameCost('D')])
         self.assertEqual(cost, exp_cost)
 
 

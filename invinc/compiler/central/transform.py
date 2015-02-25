@@ -31,7 +31,7 @@ from invinc.compiler.obj import to_pairdomain, to_objdomain
 from invinc.compiler.demand import deminc_relcomp
 from invinc.compiler.tup import (
         flatten_tuples, check_bad_setmatches, flatten_relations)
-#from invinc.compiler.cost import analyze_costs
+from invinc.compiler.cost import analyze_costs, eval_coststr
 
 from .manager import get_clause_factory, make_manager
 from .rewritings import (DistalgoImporter, get_distalgo_message_sets,
@@ -440,10 +440,20 @@ def transform_ast(tree, *, nopts=None, qopts=None):
         input_rels.extend(r for r in detected_rels
                           if r not in input_rels)
     
-    # Get type annotations.
-    ann = opman.get_opt('var_types')
-    vartypes = {k: L.eval_typestr(v) for k, v in ann.items()}
+    # Get type annotations and cost annotations/
+    typeann = opman.get_opt('var_types')
+    vartypes = {k: L.eval_typestr(v) for k, v in typeann.items()}
     manager.vartypes = vartypes
+    
+    costann = opman.get_opt('dom_costs')
+    domcosts = {}
+    for k, v in costann.items():
+        head, *tail = k.split('.')
+        tail = tuple(int(i) for i in tail)
+        map = domcosts.setdefault(head, {})
+        cost = eval_coststr(v)
+        map[tail] = cost
+    manager.domcosts = domcosts
     
     flatten_rels = opman.get_opt('flatten_rels')
     
@@ -460,7 +470,7 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     if len(flatten_rels) > 0:
         if verbose:
             print('Flattening relations: ' + ', '.join(flatten_rels))
-        # This will also update manager.vartypes.
+        # This will also update the manager vartypes and domcosts.
         tree = flatten_relations(tree, flatten_rels, manager)
     
     tree = elim_inputrel_params(tree, input_rels)
@@ -501,7 +511,6 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     
     if opman.get_opt('analyze_costs'):
         print('Analyzing costs')
-        from invinc.compiler.cost import analyze_costs
         tree, costs = analyze_costs(manager, tree, warn=True)
 #        for k, v in costs.items():
 #            print('{}  --  {}'.format(k, v))

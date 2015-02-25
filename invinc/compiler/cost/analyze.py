@@ -81,7 +81,9 @@ class CostAnalyzer(L.NodeVisitor):
     ]
     
     const_meths = [
-        '__min__', '__max__', 'singlelookup'
+        '__min__', '__max__', 'singlelookup',
+        'elements', # Note that this is the cost of invoking the method,
+                    # not iterating over its result.
     ]
     
     def __init__(self, args, argmap, costmap, *, warn=False):
@@ -376,14 +378,26 @@ class CostLabelAdder(L.NodeTransformer):
             return node._replace(body=header + node.body)
 
 
-def type_to_cost(t):
-    """Turn a type into a cost term based on its domain size."""
+def type_to_cost(t, pathcosts=None, path=()):
+    """Turn a type into a cost term. Usually this is based on the
+    domain size of the type, i.e. the number of possible values
+    for the type.
+    
+    If path and pathcosts are given, they are used to possibly
+    override this with a custom cost. path is a tuple of indices
+    indicating an access path in a tuple tree value. pathcosts is
+    a mapping from such paths to the cost to return.
+    """
+    if pathcosts is not None and path in pathcosts:
+        return pathcosts[path]
+    
     if t in [L.toptype, L.bottomtype]:
         return UnknownCost()
     elif isinstance(t, L.PrimitiveType):
         return NameCost(t.t.__name__)
     elif isinstance(t, L.TupleType):
-        return ProductCost([type_to_cost(et) for et in t.ets])
+        return ProductCost([type_to_cost(et, pathcosts, path + (i,))
+                            for i, et in enumerate(t.ets)])
     elif isinstance(t, L.ObjType):
         return NameCost(t.name)
     else:
@@ -411,7 +425,9 @@ class VarRewriter(CostTransformer):
         t = self.manager.vartypes.get(rel, None)
         if not isinstance(t, L.SetType):
             return cost
-        c = type_to_cost(t.et)
+        
+        dcosts = self.manager.domcosts.get(rel, {})
+        c = type_to_cost(t.et, dcosts)
         if isinstance(c, UnknownCost):
             return cost
         return c
@@ -424,9 +440,28 @@ class VarRewriter(CostTransformer):
         if not (isinstance(t.et, L.TupleType) and
                 len(cost.mask) == len(t.et.ets)):
             return cost
-        _bts, uts, _eqs = cost.mask.split_vars(t.et.ets)
-        ucosts = [type_to_cost(ut) for ut in uts]
-        return ProductCost(ucosts)
+        
+        # Get indices and types of unbound parts.
+        ets = [(i, et) for i, et in enumerate(t.et.ets)
+                       if cost.mask.parts[i] == 'u']
+        
+        # Special case for aggregates: If the keys have no
+        # wildcards, the result component is functionally
+        # determined and can therefore be omitted from the cost.
+        if 'w' not in cost.mask.parts[:-1]:
+            ets = [(i, et) for i, et in ets
+                           if i != len(cost.mask.parts) - 1]
+        
+        dcosts = self.manager.domcosts.get(rel, {})
+        # When we use type_to_cost, start at the index for
+        # each unbound part.
+        ecosts = [type_to_cost(et, dcosts, (i,)) for i, et in ets]
+        if any(isinstance(c, UnknownCost) for c in ecosts):
+            return cost
+        return ProductCost(ecosts)
+    
+    def visit_DefImgsetCost(self, cost):
+        return self.visit_IndefImgsetCost(cost)
 
 
 def analyze_costs(manager, tree, *, warn=False):
