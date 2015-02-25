@@ -167,6 +167,51 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
         {'uset_lru': 1},
     }, 'dem_lru', '(LRU)')
 
+class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
+    _inherit_fields = True
+    extra_nopts = {
+        'var_types': {
+            '_PReceivedEvent_0':
+                '''SetType(TupleType([
+                    toptype, toptype, TupleType([
+                        strtype, ObjType('clocks'), ObjType('procs')
+                    ])]))''',
+            '_PReceivedEvent_1':
+                '''SetType(TupleType([
+                    toptype, toptype, TupleType([
+                        strtype, ObjType('clocks'), ObjType('procs')
+                    ])]))''',
+            '_PReceivedEvent_2':
+                '''SetType(TupleType([
+                    toptype, toptype, TupleType([
+                        strtype, ObjType('clocks'), ObjType('procs')
+                    ])]))''',
+            'SELF_ID':
+                '''ObjType('procs')''',
+            'P_mutex_c':
+                '''ObjType('clocks')''',
+            'P_s':
+                '''SetType(ObjType('procs'))''',
+            },
+        'dom_costs': {
+            '_PReceivedEvent_0.2.0': '''UnitCost()''',
+            '_PReceivedEvent_1.2.0': '''UnitCost()''',
+            '_PReceivedEvent_2.2.0': '''UnitCost()''',
+            },
+    }
+#    def __init__(self, *args, **kargs):
+#        self.qopts = {
+#            '''{(p, c3)
+#                for (_, _, (_ConstantPattern25_, c3, _FreePattern27_))
+#                  in _PReceivedEvent_1
+#                if (_ConstantPattern25_ == 'release')
+#                if (_FreePattern27_ == p) if (c3 > c2)}''':
+#            {'uset_mode': 'explicit',
+#             'uset_params': ['p', 'c2']
+#            }
+#        }
+#        super().__init__(*args, **kargs)
+
 
 # ---- Uncomment to rebuild experiment programs. ---
 
@@ -253,17 +298,17 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 #    INC_SUBDEM,
 #    DEM,
 #])
-#add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
-#    INC_SUBDEM,
+add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
+    INC_SUBDEM_LAMUTEX,
 #    DEM,
 #    DEM_SUBDEM,
-#])
+])
 #add_task(lamutex_lru)
 #add_impls('lamutex opt', 'experiments/distalgo/lamutex/lamutex_opt_inc', [
-#    DEM,
+#    INC_SUBDEM_LAMUTEX,
 #])
 #add_impls('lamutex opt2', 'experiments/distalgo/lamutex/lamutex_opt2_inc', [
-#    DEM,
+#    INC_SUBDEM_LAMUTEX,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
 #    INC_SUBDEM,
