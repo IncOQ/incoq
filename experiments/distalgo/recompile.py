@@ -2,81 +2,47 @@
 
 import sys
 import shutil
+from multiprocessing import Process
 
 import da
 
 
 def compile(dafile, incfile_from, incfile_to):
-    sys.argv.append('-i')
-    sys.argv.append('--jb-style')
-    sys.argv.append('--no-table3')
-    sys.argv.append('--no-table4')
+    sys.argv = [
+        sys.argv[0],
+        '-i', '--jb-style',
+        '--no-table3', '--no-table4'
+    ]
     sys.argv.append(dafile)
     
-    da.compiler.main()
+    # Use a separate subprocess because the compiler doesn't
+    # like being called multiple times from the same process.
+    p = Process(target=da.compiler.main)
+    p.start()
+    p.join()
     
     shutil.move(incfile_from, incfile_to)
 
+def task(path):
+    compile('{}.da'.format(path),
+            '{}_inc.py'.format(path),
+            '{}_inc_in.py'.format(path))
 
-# Uncomment at most one at a time.
 
-#compile('clpaxos/clpaxos.da',
-#        'clpaxos/clpaxos_inc.py',
-#        'clpaxos/clpaxos_inc_in.py')
-
-#compile('crleader/crleader.da',
-#        'crleader/crleader_inc.py',
-#        'crleader/crleader_inc_in.py')
-
-#compile('dscrash/dscrash.da',
-#        'dscrash/dscrash_inc.py',
-#        'dscrash/dscrash_inc_in.py')
-
-#compile('hsleader/hsleader.da',
-#        'hsleader/hsleader_inc.py',
-#        'hsleader/hsleader_inc_in.py')
-
-#compile('lamutex/lamutex.da',
-#        'lamutex/lamutex_inc.py',
-#        'lamutex/lamutex_inc_in.py')
-
-#compile('lamutex/lamutex_opt.da',
-#        'lamutex/lamutex_opt_inc.py',
-#        'lamutex/lamutex_opt_inc_in.py')
-
-#compile('lamutex/lamutex_opt2.da',
-#        'lamutex/lamutex_opt2_inc.py',
-#        'lamutex/lamutex_opt2_inc_in.py')
-
-#compile('lamutex/lamutex_orig.da',
-#        'lamutex/lamutex_orig_inc.py',
-#        'lamutex/lamutex_orig_inc_in.py')
-
-#compile('lapaxos/lapaxos.da',
-#        'lapaxos/lapaxos_inc.py',
-#        'lapaxos/lapaxos_inc_in.py')
-
-#compile('ramutex/ramutex.da',
-#        'ramutex/ramutex_inc.py',
-#        'ramutex/ramutex_inc_in.py')
-
-#compile('ratoken/ratoken.da',
-#        'ratoken/ratoken_inc.py',
-#        'ratoken/ratoken_inc_in.py')
-
-#compile('sktoken/sktoken.da',
-#        'sktoken/sktoken_inc.py',
-#        'sktoken/sktoken_inc_in.py')
-
-#compile('tpcommit/tpcommit.da',
-#        'tpcommit/tpcommit_inc.py',
-#        'tpcommit/tpcommit_inc_in.py')
-
-# Doesn't work until witnesses are supported.
-#compile('vrpaxos/vrpaxos.da',
-#        'vrpaxos/vrpaxos_inc.py',
-#        'vrpaxos/vrpaxos_inc_in.py')
-
-#compile('vrpaxos/orig_majority_top.da',
-#        'vrpaxos/orig_majority_top_inc.py',
-#        'vrpaxos/orig_majority_top_inc_in.py')
+if __name__ == '__main__':
+    pass
+#    task('clpaxos/clpaxos')
+#    task('crleader/crleader')
+#    task('dscrash/dscrash')
+#    task('hsleader/hsleader')
+#    task('lamutex/lamutex')
+#    task('lamutex/lamutex_opt')
+#    task('lamutex/lamutex_opt2')
+#    task('lamutex/lamutex_orig')
+#    task('lapaxos/lapaxos')
+#    task('ramutex/ramutex')
+#    task('ratoken/ratoken')
+#    task('sktoken/sktoken')
+#    task('tpcommit/tpcommit')
+#    task('vrpaxos/vrpaxos')
+#    task('vrpaxos/orig_majority_top')
