@@ -4,12 +4,12 @@
 
 import sys
 controller = import_da('controller')
-import runtimelib
+import invinc.runtime
 
 class P(process, controller.Controllee):
     def setup(ctl, _s, nrequests):
         super().setup(ctl)
-        self.s = runtimelib.Set()
+        self.s = invinc.runtime.Set()
         self.s.update(_s)
 
     def ctl_begin(): super().ctl_begin()
@@ -31,7 +31,7 @@ class P(process, controller.Controllee):
     def receive(msg=('request', c3, p)):
         send(('ack', c3, self.id), to= p)
 
-    def main():
+    def run():
         ctl_begin()
 
         def task(): output('in cs')
