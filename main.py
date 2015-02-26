@@ -329,18 +329,16 @@ class INC_SUBDEM_LAMUTEX2(INC_SUBDEM):
 #])
 #add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
 #    INC_SUBDEM,
-#    DEM,
-#    DEM_SUBDEM,
 #])
 #add_task(lamutex_lru)
-#add_impls('lamutex opt', 'experiments/distalgo/lamutex/lamutex_opt_inc', [
-#    DEM,
+#add_impls('lamutex opt1', 'experiments/distalgo/lamutex/lamutex_opt1_inc', [
+#    INC_SUBDEM,
 #])
 #add_impls('lamutex opt2', 'experiments/distalgo/lamutex/lamutex_opt2_inc', [
-#    DEM,
+#    INC_SUBDEM,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
-#    INC_SUBDEM_LAMUTEX2,
+#    INC_SUBDEM,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,

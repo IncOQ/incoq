@@ -1,22 +1,17 @@
-# Compiled DistAlgo helper files.
+# Copied/generated DistAlgo helper files.
+controller.da
 controller.py
 
-# Generated incrementalization interface files.
-*_inc_*.py
+# Copied/generated DistAlgo example programs.
 
-# Compiled DistAlgo driver files.
-clpaxos.py
-crleader.py
-dscrash.py
-hsleader.py
-lamutex.py
-lamutex_opt.py
-lamutex_opt2.py
-lamutex_orig.py
-lapaxos.py
-ramutex.py
-ratoken.py
-sktoken.py
-tpcommit.py
-vrpaxos/orig_majority_top.py
-vrpaxos.py
+clpaxos/
+crleader/
+dscrash/
+hsleader/
+lamutex/
+lapaxos/
+ramutex/
+ratoken/
+sktoken/
+tpcommit/
+vrpaxos/
