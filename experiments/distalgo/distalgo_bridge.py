@@ -6,7 +6,6 @@ the DistAlgo entry point.
 """
 
 
-import sys
 import os
 import json
 import subprocess

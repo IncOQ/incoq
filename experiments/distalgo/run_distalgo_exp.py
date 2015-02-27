@@ -331,18 +331,15 @@ class LAMutexWorkflow(DistalgoWorkflow):
         progs_ex = [
             ('lamutex/lamutex.da', 'lamutex_inc_in'),
             ('lamutex/lamutex.da', 'lamutex_inc_inc'),
-            ('lamutex/lamutex.da', 'lamutex_inc_dem'),
-#            ('lamutex/lamutex.da', 'lamutex_inc_dem_lru'),
-#            ('lamutex/lamutex.da', 'lamutex_inc_dem_subdem'),
             
-#            ('lamutex/lamutex_opt.da', 'lamutex_opt_inc_in'),
-#            ('lamutex/lamutex_opt.da', 'lamutex_opt_inc_dem'),
+#            ('lamutex/lamutex_opt1.da', 'lamutex_opt1_inc_in'),
+#            ('lamutex/lamutex_opt1.da', 'lamutex_opt1_inc_inc'),
             
 #            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_in'),
-#            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_dem'),
+#            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_inc'),
             
 #            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_in'),
-#            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_dem'),
+#            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_inc'),
         ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
