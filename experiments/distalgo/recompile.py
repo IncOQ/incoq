@@ -55,6 +55,7 @@ def do_tasks(tasks):
     benchpath = get_benchmark_path()
     
     for inpath, outpath in tasks:
+        os.makedirs(dirname(outpath))
         orig_dafile = join(benchpath, '{}.da'.format(inpath))
         copy(orig_dafile, '{}.da'.format(outpath))
         compile('{}.da'.format(outpath),
