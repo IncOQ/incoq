@@ -1,82 +1,88 @@
 """Recompile Distalgo programs."""
 
 import sys
-import shutil
+import os
+from os.path import dirname, join
+from multiprocessing import Process
+from configparser import ConfigParser
+from shutil import copy
 
 import da
 
 
-def compile(dafile, incfile_from, incfile_to):
-    sys.argv.append('-i')
-    sys.argv.append('--jb-style')
-    sys.argv.append('--no-table3')
-    sys.argv.append('--no-table4')
-    sys.argv.append(dafile)
+def get_benchmark_path():
+    """Return the path to the distalgo benchmarks directory."""
+    config = ConfigParser()
+    mydir = dirname(__file__)
+    config.read(join(mydir, '../config.txt'))
+    dapath = config['python']['DISTALGO_PATH']
+    return join(dapath, 'benchmarks')
+
+
+def compile(dafile, pyfile, incfile):
+    """Compile the input dafile to two output files: the main module
+    pyfile and the incrementalization interface incfile.
+    """
+    sys.argv = [
+        sys.argv[0],
+        '-o', pyfile,
+        '-i', '-m', incfile,
+        '--jb-style',
+        '--no-table3', '--no-table4',
+        dafile
+    ]
     
-    da.compiler.main()
+    # Use a separate subprocess because the distalgo compiler
+    # doesn't like being called multiple times from the same
+    # process.
+    p = Process(target=da.compiler.main)
+    p.start()
+    p.join()
+
+def do_tasks(tasks):
+    """Perform several compilation steps. For each task, copy over
+    the .da file from the distalgo benchmarks directory to the local
+    directory, and do the compilation. Also copy the controller.da
+    file to the local directory.
     
-    shutil.move(incfile_from, incfile_to)
+    Each task is a pair of the input filename minus the .da suffix,
+    relative to the distalgo benchmarks directory; and the output
+    file prefix minus the .py or _inc_in.py suffix, relative to the
+    local directory.
+    """
+    mydir = dirname(__file__)
+    os.chdir(mydir)
+    benchpath = get_benchmark_path()
+    
+    for inpath, outpath in tasks:
+        os.makedirs(dirname(outpath))
+        orig_dafile = join(benchpath, '{}.da'.format(inpath))
+        copy(orig_dafile, '{}.da'.format(outpath))
+        compile('{}.da'.format(outpath),
+                '{}.py'.format(outpath),
+                '{}_inc_in.py'.format(outpath))
+    
+    copy(join(benchpath, 'controller.da'), 'controller.da')
 
 
-# Uncomment at most one at a time.
+tasks = [
+#    ('clpaxos/spec', 'clpaxos/clpaxos'),
+#    ('crleader/orig', 'crleader/crleader'),
+#    ('dscrash/spec', 'dscrash/dscrash'),
+#    ('hsleader/spec', 'hsleader/hsleader'),
+#    
+#    ('lamutex/spec_unopt_relack', 'lamutex/lamutex'),
+#    ('lamutex/spec_unopt_ack', 'lamutex/lamutex_opt1'),
+#    ('lamutex/spec', 'lamutex/lamutex_opt2'),
+#    ('lamutex/orig', 'lamutex/lamutex_orig'),
+    
+#    ('lapaxos/orig', 'lapaxos/lapaxos'),
+#    ('ramutex/spec', 'ramutex/ramutex'),
+#    ('ratoken/spec', 'ratoken/ratoken'),
+#    ('sktoken/orig', 'sktoken/sktoken'),
+#    ('2pcommit/spec', 'tpcommit/tpcommit'),
+#    ('vrpaxos/orig', 'vrpaxos/vrpaxos'),
+]
 
-#compile('clpaxos/clpaxos.da',
-#        'clpaxos/clpaxos_inc.py',
-#        'clpaxos/clpaxos_inc_in.py')
-
-#compile('crleader/crleader.da',
-#        'crleader/crleader_inc.py',
-#        'crleader/crleader_inc_in.py')
-
-#compile('dscrash/dscrash.da',
-#        'dscrash/dscrash_inc.py',
-#        'dscrash/dscrash_inc_in.py')
-
-#compile('hsleader/hsleader.da',
-#        'hsleader/hsleader_inc.py',
-#        'hsleader/hsleader_inc_in.py')
-
-#compile('lamutex/lamutex.da',
-#        'lamutex/lamutex_inc.py',
-#        'lamutex/lamutex_inc_in.py')
-
-#compile('lamutex/lamutex_opt.da',
-#        'lamutex/lamutex_opt_inc.py',
-#        'lamutex/lamutex_opt_inc_in.py')
-
-#compile('lamutex/lamutex_opt2.da',
-#        'lamutex/lamutex_opt2_inc.py',
-#        'lamutex/lamutex_opt2_inc_in.py')
-
-#compile('lamutex/lamutex_orig.da',
-#        'lamutex/lamutex_orig_inc.py',
-#        'lamutex/lamutex_orig_inc_in.py')
-
-#compile('lapaxos/lapaxos.da',
-#        'lapaxos/lapaxos_inc.py',
-#        'lapaxos/lapaxos_inc_in.py')
-
-#compile('ramutex/ramutex.da',
-#        'ramutex/ramutex_inc.py',
-#        'ramutex/ramutex_inc_in.py')
-
-#compile('ratoken/ratoken.da',
-#        'ratoken/ratoken_inc.py',
-#        'ratoken/ratoken_inc_in.py')
-
-#compile('sktoken/sktoken.da',
-#        'sktoken/sktoken_inc.py',
-#        'sktoken/sktoken_inc_in.py')
-
-#compile('tpcommit/tpcommit.da',
-#        'tpcommit/tpcommit_inc.py',
-#        'tpcommit/tpcommit_inc_in.py')
-
-# Doesn't work until witnesses are supported.
-#compile('vrpaxos/vrpaxos.da',
-#        'vrpaxos/vrpaxos_inc.py',
-#        'vrpaxos/vrpaxos_inc_in.py')
-
-#compile('vrpaxos/orig_majority_top.da',
-#        'vrpaxos/orig_majority_top_inc.py',
-#        'vrpaxos/orig_majority_top_inc_in.py')
+if __name__ == '__main__':
+    do_tasks(tasks)

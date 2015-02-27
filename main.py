@@ -212,6 +212,35 @@ class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
 #        }
 #        super().__init__(*args, **kargs)
 
+class INC_SUBDEM_LAMUTEX2(INC_SUBDEM):
+    _inherit_fields = True
+    extra_nopts = {
+        'var_types': {
+            '_PReceivedEvent_0':
+                '''SetType(TupleType([
+                    toptype, toptype, toptype, ObjType('procs'),
+                        TupleType([strtype, ObjType('clocks')
+                    ])]))''',
+            'SELF_ID':
+                '''ObjType('procs')''',
+            'P_mutex_c':
+                '''ObjType('clocks')''',
+            'P_cs_reqc':
+                '''ObjType('clocks')''',
+            'P_ps':
+                '''SetType(ObjType('procs'))''',
+            'P_q':
+                '''SetType(TupleType([ObjType('clocks'),
+                                      ObjType('procs')]))''',
+            },
+        'dom_costs': {
+            '_PReceivedEvent_0.2.0': '''UnitCost()''',
+            '_U_Comp1.0': '''UnitCost()''',
+            '_U_Comp1.1': '''UnitCost()''',
+            '_U_Comp6': '''UnitCost()''',
+            },
+    }
+
 
 # ---- Uncomment to rebuild experiment programs. ---
 
@@ -298,21 +327,18 @@ class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
 #    INC_SUBDEM,
 #    DEM,
 #])
-add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
-    INC_SUBDEM_LAMUTEX,
-#    DEM,
-#    DEM_SUBDEM,
-])
+#add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
+#    INC_SUBDEM,
+#])
 #add_task(lamutex_lru)
-#add_impls('lamutex opt', 'experiments/distalgo/lamutex/lamutex_opt_inc', [
-#    INC_SUBDEM_LAMUTEX,
+#add_impls('lamutex opt1', 'experiments/distalgo/lamutex/lamutex_opt1_inc', [
+#    INC_SUBDEM,
 #])
 #add_impls('lamutex opt2', 'experiments/distalgo/lamutex/lamutex_opt2_inc', [
-#    INC_SUBDEM_LAMUTEX,
+#    INC_SUBDEM,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
 #    INC_SUBDEM,
-#    DEM,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,
