@@ -338,7 +338,7 @@ class INC_SUBDEM_LAMUTEX2(INC_SUBDEM):
 #    INC_SUBDEM,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
-#    INC_SUBDEM,
+#    INC_SUBDEM_LAMUTEX2,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,

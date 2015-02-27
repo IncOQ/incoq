@@ -65,6 +65,28 @@ class FrozenDictField(TypedField):
 
 class Type(Struct):
     
+    def join(self, *others):
+        """Take the join (in the lattice sense) with one or more
+        other types, returning a new type.
+        """
+        t = self
+        for o in others:
+            t = t.join_one(o)
+        return t
+    
+    def join_one(self, other):
+        if toptype in [self, other]:
+            return toptype
+        elif self is bottomtype:
+            return other
+        elif other is bottomtype:
+            return self
+        # Neither top nor bottom.
+        elif self == other:
+            return self
+        else:
+            return toptype
+    
     def unify(self, *others):
         """Unify this type with one or more others, returning
         a new type.
