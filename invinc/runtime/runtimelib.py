@@ -24,7 +24,6 @@ __all__ =[
     
     'get_structure_sizes',
     'get_total_structure_size',
-    'ENSURE_EQUAL',
     
     'Type',
     'Obj',
@@ -92,17 +91,6 @@ def get_total_structure_size(namespace):
     module's global namespace.
     """
     return sum(get_structure_sizes(namespace).values())
-
-def ENSURE_EQUAL(value, expvalue):
-    """Raise AssertionError if the two values are not equal.
-    Return the value otherwise.
-    
-    Values are compared for equality by seeing whether their string
-    representations are the same. This is not robust.
-    """
-    if str(value) != str(expvalue):
-        raise AssertionError('Semantic failure: expressions not equal')
-    return value
 
 
 # ---- Directive helpers ----

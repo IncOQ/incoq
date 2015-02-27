@@ -59,7 +59,7 @@ class CostAnalyzer(L.NodeVisitor):
         
         'Maintenance', 'SetUpdate', 'RCSetRefUpdate', 'IsEmpty',
         'GetRef', 'AssignKey', 'DelKey', 'Lookup', 'ImgLookup',
-        'RCImgLookup', 'SMLookup',  'NoDemQuery', 'Instr',
+        'RCImgLookup', 'SMLookup',  'NoDemQuery',
     ]
     
     const_nodes = tuple(getattr(L, n) for n in const_nodes)

@@ -41,7 +41,6 @@ incast_node_names = [
     
     'DemQuery',
     'NoDemQuery',
-    'Instr',
     
     'SetMatch',
     'DeltaMatch',
@@ -171,10 +170,6 @@ class DemQuery(expr):
 
 class NoDemQuery(expr):
     _fields = ('value',)    # expression
-
-class Instr(expr):
-    _fields = ('value',     # expression
-               'expvalue')  # expression
 
 class SetMatch(expr):
     _fields = ('target',    # expression

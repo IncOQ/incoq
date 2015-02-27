@@ -134,9 +134,6 @@ class IncLangImporter(MacroProcessor):
     
     handle_fe_NODEMAND = handle_fe_NODEMQUERY
     
-    def handle_fe_INSTR(self, value, expvalue):
-        return Instr(value, expvalue)
-    
     # Set operations.
     
     def handle_ms_add(self, f, target, elem):
@@ -384,12 +381,6 @@ class IncLangExporter(NodeTransformer):
         node = self.generic_visit(node)
         return self.pe('NODEMQUERY(VALUE)',
                        subst={'VALUE': node.value})
-    
-    def visit_Instr(self, node):
-        node = self.generic_visit(node)
-        return self.pe('INSTR(VALUE, EXPVALUE)',
-                       subst={'VALUE': node.value,
-                              'EXPVALUE': node.expvalue})
     
     def visit_SetMatch(self, node):
         node = self.generic_visit(node)

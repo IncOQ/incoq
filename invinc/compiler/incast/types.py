@@ -546,12 +546,6 @@ class TypeAnnotator(AdvNodeTransformer):
     def visit_NoDemQuery(self, node, ctxtype=toptype):
         return self.generic_visit(node, ctxtype)
     
-    def visit_Instr(self, node, ctxtype=toptype):
-        value = self.visit(node.value, ctxtype)
-        expvalue = self.visit(node.value, value.type)
-        t = ctxtype.unify(value.type, expvalue.type)
-        return node._replace(value=value, expvalue=expvalue, type=t)
-        
     def visit_SetMatch(self, node, ctxtype=toptype):
         t = ctxtype.unify(SetType(toptype))
         key = self.visit(node.key)

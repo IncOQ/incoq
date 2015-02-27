@@ -91,11 +91,6 @@ class DefaultNormalOptions:
     upgraded to using dem if it is required for handling a subquery.
     """ 
     
-    default_instrument =    False
-    """If True, instrument transformed queries for correctness
-    by default.
-    """
-    
     selfjoin_strat =        'das'
     """Selects what implementation strategy to use to handle self-joins.
     Allowed values are 'das', 'sub', 'aug', 'assume_disjoint', and
@@ -178,14 +173,6 @@ class DefaultQueryOptions:
     """If True, aggregate queries using demand will use the
     "half-demand" strategy where possible. If None, use the global
     default value.
-    """
-    instrument =            None
-    """If True, instrument the query for correctness, so that its
-    value is computed both straightforwardly and incrementally
-    and dynamically compared for equality. If None, rely on the
-    global default.
-    
-    Implemented only for inc on comprehensions at the moment.
     """
     notransform =           False
     """If True, do not transform, even if default_impl says to. This is

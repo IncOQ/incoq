@@ -108,8 +108,7 @@ def deminc_relcomp(tree, manager, comp, compname):
     # Incrementalize query comp.
     # (Since we've unwrapped demand clauses, the logic for defining
     # inner queries' U-sets for if filtering weren't used won't fire.)
-    tree, maintcomps = inc_relcomp_helper(tree, manager, inccomp,
-                                          instrument=False)
+    tree, maintcomps = inc_relcomp_helper(tree, manager, inccomp)
     
     # Rewrite maintcomps to use filters. Prune structures.
     tree, ds = filter_comps(tree, factory, ds, maintcomps,

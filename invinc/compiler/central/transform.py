@@ -135,7 +135,6 @@ class QueryFinder(L.NodeVisitor):
     
     # Helper info format is a dictionary with entries:
     #   'impl':        impl to use (before considering fallbacks)
-    #   'instr':       whether to use instrumentation
     #   'in_inccomp':  whether this query appears inside a
     #                  comprehension we expect to incrementalize
     #   'half_demand': (Aggregates only) whether to prefer the half-
@@ -161,12 +160,6 @@ class QueryFinder(L.NodeVisitor):
         assert impl in ['batch', 'auxonly', 'inc', 'dem']
         return impl
     
-    def get_query_instrument(self, query):
-        instrument = self.opman.get_queryopt(query, 'instrument')
-        if instrument is None:
-            instrument = self.opman.get_opt('default_instrument')
-        return instrument
-    
     def process(self, tree):
         # Track the number of comprehensions we're currently inside
         # of that have an impl of 'inc' or 'dem' (i.e., a depth).
@@ -183,7 +176,6 @@ class QueryFinder(L.NodeVisitor):
     
     def visit_Comp(self, node):
         impl = self.get_query_impl(node)
-        instr = self.get_query_instrument(node)
         inccomp = impl in ['inc', 'dem']
         
         if inccomp:
@@ -197,13 +189,12 @@ class QueryFinder(L.NodeVisitor):
         if (impl != 'batch' and
             not self.opman.get_queryopt(node, 'notransform') and
             not node.options.get('_invalid', False)):
-            info = {'impl': impl, 'instr': instr,
+            info = {'impl': impl,
                     'in_inccomp': self.inccomp_depth > 0}
             raise self.Found(node, info)
     
     def visit_Aggregate(self, node):
         impl = self.get_query_impl(node)
-        instr = self.get_query_instrument(node)
         half_demand = self.opman.get_queryopt(node, 'aggr_halfdemand')
         if half_demand is None:
             half_demand = self.opman.get_opt('default_aggr_halfdemand')
@@ -213,7 +204,7 @@ class QueryFinder(L.NodeVisitor):
         
         if (impl in ['inc', 'dem'] and
             not node.options.get('_invalid', False)):
-            info = {'impl': impl, 'instr': instr,
+            info = {'impl': impl,
                     'in_inccomp': self.inccomp_depth > 0,
                     'half_demand': half_demand}
             raise self.Found(node, info)
@@ -228,7 +219,6 @@ def transform_query(tree, manager, query, info):
     aggr_batch_fallback = opman.get_opt('aggr_batch_fallback')
     aggr_dem_fallback = opman.get_opt('aggr_dem_fallback')
     impl = info['impl']
-    instr = info['instr']
     in_inccomp = info['in_inccomp']
     
     if isinstance(query, L.Comp):
@@ -270,8 +260,7 @@ def transform_query(tree, manager, query, info):
             tree = impl_auxonly_relcomp(tree, manager, query, name)
             manager.stats['comps expanded'] += 1
         elif impl == 'inc':
-            tree = inc_relcomp(tree, manager, query, name,
-                               instrument=instr)
+            tree = inc_relcomp(tree, manager, query, name)
         elif impl == 'dem':
             tree = deminc_relcomp(tree, manager, query, name)
         else:
