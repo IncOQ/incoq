@@ -2,7 +2,7 @@
 
 import sys
 import os
-from os.path import dirname, join, normpath
+from os.path import dirname, join
 from multiprocessing import Process
 from configparser import ConfigParser
 from shutil import copy
@@ -65,28 +65,23 @@ def do_tasks(tasks):
 
 
 tasks = [
-    ('lamutex/spec_unopt_relack', 'lamutex/lamutex'),
-    ('lamutex/spec_unopt_ack', 'lamutex/lamutex_opt1'),
-    ('lamutex/spec', 'lamutex/lamutex_opt2'),
-    ('lamutex/orig', 'lamutex/lamutex_orig'),
+#    ('clpaxos/spec', 'clpaxos/clpaxos'),
+#    ('crleader/orig', 'crleader/crleader'),
+#    ('dscrash/spec', 'dscrash/dscrash'),
+#    ('hsleader/spec', 'hsleader/hsleader'),
+#    
+#    ('lamutex/spec_unopt_relack', 'lamutex/lamutex'),
+#    ('lamutex/spec_unopt_ack', 'lamutex/lamutex_opt1'),
+#    ('lamutex/spec', 'lamutex/lamutex_opt2'),
+#    ('lamutex/orig', 'lamutex/lamutex_orig'),
     
+#    ('lapaxos/orig', 'lapaxos/lapaxos'),
+#    ('ramutex/spec', 'ramutex/ramutex'),
+#    ('ratoken/spec', 'ratoken/ratoken'),
+#    ('sktoken/orig', 'sktoken/sktoken'),
+#    ('2pcommit/spec', 'tpcommit/tpcommit'),
+#    ('vrpaxos/orig', 'vrpaxos/vrpaxos'),
 ]
-
-#    task('clpaxos/clpaxos')
-#    task('crleader/crleader')
-#    task('dscrash/dscrash')
-#    task('hsleader/hsleader')
-#    task('lamutex/lamutex')
-#    task('lamutex/lamutex_opt')
-#    task('lamutex/lamutex_opt2')
-#    task('lamutex/lamutex_orig')
-#    task('lapaxos/lapaxos')
-#    task('ramutex/ramutex')
-#    task('ratoken/ratoken')
-#    task('sktoken/sktoken')
-#    task('tpcommit/tpcommit')
-#    task('vrpaxos/vrpaxos')
-#    task('vrpaxos/orig_majority_top')
 
 if __name__ == '__main__':
     do_tasks(tasks)
