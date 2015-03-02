@@ -57,7 +57,7 @@ class TypeCase(unittest.TestCase):
         
         t4 = DictType(toptype, numbertype)
         t5 = DictType(numbertype, bottomtype)
-        t6 = DictType(numbertype, numbertype)
+        t6 = DictType(toptype, numbertype)
         self.assertEqual(t4.join(t5), t6)
     
     def test_expand_types(self):

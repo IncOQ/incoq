@@ -256,23 +256,23 @@ class DictType(Type):
     kt = TypedField(Type)
     vt = TypedField(Type)
     
+    # Contravariant key types were also considered as a possibility.
+    # This would affect each of the helpers below.
+    
     def __str__(self): 
         return '{' + str(self.kt) + ': ' + str(self.vt) + '}'
     
     def issubtype_helper(self, other):
-        # Contravariant keys.
-        return (other.kt.issubtype(self.kt) and
+        return (self.kt.issubtype(other.kt) and
                 self.vt.issubtype(other.vt))
     
     def join_helper(self, other, *, inverted=True):
-        # Note that key types are contravariant, so we flip inverted.
-        new_kt = self.kt.join(other.kt, inverted=not inverted)
+        new_kt = self.kt.join(other.kt, inverted=inverted)
         new_vt = self.vt.join(other.vt, inverted=inverted)
         return self._replace(kt=new_kt, vt=new_vt)
     
     def match_against_helper(self, other):
-        # Flip key.
-        return [(other.kt, self.kt), (self.vt, other.vt)]
+        return [(self.kt, self.kt), (other.vt, other.vt)]
     
     def expand(self, store):
         new_kt = self.kt.expand(store)
