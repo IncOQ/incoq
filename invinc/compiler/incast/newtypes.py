@@ -32,6 +32,7 @@ __all__ = [
 from numbers import Number
 from simplestruct import Struct, Field, TypedField
 
+from invinc.util.seq import pairs
 from invinc.util.collections import frozendict
 
 from .nodes import expr, Not, Index, Num, expr
@@ -430,75 +431,91 @@ class ConstraintGenerator(NodeVisitor):
         super().process(tree)
         return self.constrs
     
+    def add(self, node, *terms):
+        # t1 <= ..., <= tn
+        for lhs, rhs in pairs(terms):
+            self.constrs.add((node, lhs, rhs))
+    
+    def addeqs(self, node, *terms):
+        # t1 = ... = tn
+        for lhs, rhs in pairs(terms):
+            self.constrs.add((node, lhs, rhs))
+            self.constrs.add((node, rhs, lhs))
+    
     # Statements.
     
     def visit_Assign(self, node):
         # rhs <= lhs
         self.generic_visit(node)
         for t in node.targets:
-            self.constrs.add((node, node.value.type, t.type))
+            self.add(node, node.value.type, t.type)
     
     def visit_SetUpdate(self, node):
-        # set<elem> <= target
-        # target <= set<top>
+        # set<elem> <= target <= set<top>
         self.generic_visit(node)
-        self.constrs.add((node, SetType(node.elem.type), node.target.type))
-        self.constrs.add((node, node.target.type, SetType(toptype)))
+        self.add(node, SetType(node.elem.type),
+                 node.target.type, SetType(toptype))
     
     def visit_MacroSetUpdate(self, node):
         # set<bottom> <= target <= set<top>
         # if other is present:
         #    set<bottom> <= other <= target
         self.generic_visit(node)
-        self.constrs.add((node, SetType(bottomtype), node.target.type))
-        self.constrs.add((node, node.target.type, SetType(toptype)))
+        self.add(node, SetType(bottomtype),
+                 node.target.type, SetType(toptype))
         if node.other is not None:
-            self.constrs.add((node, SetType(bottomtype), node.other.type))
-            self.constrs.add((node, node.other.type, node.target.type))
+            self.add(node, SetType(bottomtype),
+                     node.other.type, node.target.type)
     
     visit_RCSetRefUpdate = visit_SetUpdate
     
     # Expressions.
     
+    def visit_BoolOp(self, node):
+        # bool = node = operands
+        terms = [node.type] + [v.type for v in node.values]
+        self.addeqs(node, booltype, *terms)
+    
+    def visit_BinOp(self, node):
+        # number = node = left = right
+        terms = [node.type, node.left.type, node.right.type]
+        self.addeqs(node, numbertype, *terms)
+    
+    def visit_UnaryOp(self, node):
+        # if "not":
+        #    bool = node = operand
+        # otherwise:
+        #    number = node = operand
+        t = booltype if isinstance(node.op, Not) else numbertype
+        terms = [node.type, node.operand.type]
+        self.addeqs(node, t, *terms)
+    
+    # no constraints for Lambda
+    
+    def visit_IfExp(self, node):
+        # truepart <= node
+        # falsepart <= node
+        # cond = bool
+        self.add(node, node.body.type, node.type)
+        self.add(node, node.orelse.type, node.type)
+        self.addeqs(node, booltype, node.test.type)
+    
     def visit_Str(self, node):
         # node = str
-        self.constrs.add((node, node.type, strtype))
-        self.constrs.add((node, strtype, node.type))
+        self.addeqs(node, node.type, strtype)
     
     def visit_Name(self, node):
         # node = vartype
-        self.constrs.add((node, node.type, TypeVar(node.id)))
-        self.constrs.add((node, TypeVar(node.id), node.type))
+        self.addeqs(node, node.type, TypeVar(node.id))
     
     def visit_Tuple(self, node):
         # node = tuple<elt1, ..., eltn>
         self.generic_visit(node)
         t = TupleType([elt.type for elt in node.elts])
-        self.constrs.add((node, node.type, t))
-        self.constrs.add((node, t, node.type))
+        self.addeqs(node, node.type, t)
      
 #    # Expressions.
 #    
-#    # Expression and operands are bools.
-#    def visit_BoolOp(self, node, ctxtype=toptype):
-#        values = [self.visit(v, booltype) for v in node.values]
-#        return node._replace(values=values, type=booltype)
-#    
-#    # Expression and operands are numbers.
-#    def visit_BinOp(self, node, ctxtype=toptype):
-#        left = self.visit(node.left, numbertype)
-#        right = self.visit(node.right, numbertype)
-#        return node._replace(left=left, right=right, type=numbertype)
-#    
-#    # Boolean if "not", otherwise numerical.
-#    # Expression and operand are same type.
-#    def visit_UnaryOp(self, node, ctxtype=toptype):
-#        if isinstance(node.op, Not):
-#            t = booltype
-#        else:
-#            t = numbertype
-#        operand = self.visit(node.operand, t)
-#        return node._replace(operand=operand, type=t)
 #    
 #    # No type info.
 #    def visit_Lambda(self, node, ctxtype=toptype):
