@@ -15,8 +15,8 @@ the types defined in nodes.py.
 # Exports.
 from .nodes import *
 from .structconv import *
-from .types import *
 from .error import *
+from .types import *
 from .helpers import *
 from .util import *
 from .nodeconv import *
