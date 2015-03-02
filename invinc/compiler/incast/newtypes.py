@@ -348,7 +348,7 @@ class TypeVarAdder(NodeTransformer):
         return node
 
 def add_typevars(tree):
-    namegen = NameGenerator('T{}')
+    namegen = NameGenerator('_T{}')
     return TypeVarAdder.run(tree, namegen)
 
 
@@ -365,86 +365,92 @@ class TypeAnalysisFailure(ProgramError):
                 '(expanded form: {} <= {})'.format(
                 lhs, rhs, lhs.expand(self.store), rhs.expand(self.store)))
 
-class ConstraintApplier:
-    
-    """Applies constraints to a typevar store. The store is modified
+def apply_constraint(store, lower, upper, node=None):
+    """Apply constraints to a typevar store. The store is modified
     in-place. If at any point the constraints become unsatisfiable,
-    raises TypeAnalysisFailure.
+    raise TypeAnalysisFailure.
+    
+    Types of variables and expression nodes are held in the store.
+    Each constraint has form lhs <= rhs. There are three cases:
+    
+      1) rhs is a typevar: this typevar is updated to be the
+         join of the expansions of lhs and rhs.
+    
+      2) the expansions of lhs and rhs (with respect to the
+         current store) have compatible functor symbols/arities:
+         new constraints are generated/applied for corresponding
+         subterms, respecting variance.
+    
+      3) otherwise: if the expansions of the lhs and rhs do not
+         satisfy the subtype relation, raise TypeAnalysisFailure.
     """
-    
-    # Types of variables and expression nodes are held in the store.
-    # Each constraint has form lhs <= rhs. There are three cases:
-    #
-    #   1) rhs is a typevar: this typevar is updated to be the
-    #      join of the expansions of lhs and rhs.
-    #
-    #   2) the expansions of lhs and rhs (with respect to the
-    #      current store) have compatible functor symbols/arities:
-    #      new constraints are generated/applied for corresponding
-    #      subterms, respecting variance.
-    #
-    #   3) otherwise: if the expansions of the lhs and rhs do not
-    #      satisfy the subtype relation, raise TypeAnalysisFailure.
-    
-    def __init__(self, store):
-        super().__init__()
-        self.store = store
-    
-    def apply(self, lower, upper, node=None):
-        """Apply the constraint lower <= upper."""
-        lhs = lower.expand(self.store)
-        rhs = upper.expand(self.store)
-        # Case 1.
-        if isinstance(upper, TypeVar):
-            new = lhs.join(rhs)
-            self.store[upper.name] = new
-        # Case 2.
-        elif lhs.matches(rhs):
-            # We don't want to expand away typevars in the
-            # new smaller constraints. Only expand a typevar
-            # if it is the top-level term on the left-hand side
-            # (the right hand side case is handled above).
-            if isinstance(lower, TypeVar):
-                lower = self.store[lower.name]
-            constrs = lower.match_against(upper)
-            for c_lhs, c_rhs in constrs:
-                self.apply(c_lhs, c_rhs)
-        # Case 3.
-        else:
-            if not lhs.issubtype(rhs):
-                raise TypeAnalysisFailure(node, (lower, upper), self.store)
+    lhs = lower.expand(store)
+    rhs = upper.expand(store)
+    # Case 1.
+    if isinstance(upper, TypeVar):
+        new = lhs.join(rhs)
+        store[upper.name] = new
+    # Case 2.
+    elif lhs.matches(rhs):
+        # We don't want to expand away typevars in the
+        # new smaller constraints. Only expand a typevar
+        # if it is the top-level term on the left-hand side
+        # (the right hand side case is handled above).
+        if isinstance(lower, TypeVar):
+            lower = store[lower.name]
+        constrs = lower.match_against(upper)
+        for c_lhs, c_rhs in constrs:
+            apply_constraint(store, c_lhs, c_rhs, node=node)
+    # Case 3.
+    else:
+        if not lhs.issubtype(rhs):
+            raise TypeAnalysisFailure(node, (lower, upper), store)
 
 
-class TypeAnalyzer(NodeTransformer):
+class TypeAnalyzer(NodeTransformer): ###
     
-    """Generates constraints based on nodes and apply them to a
-    typevar store. The store is modified in-place. If at any point
-    the constraints become unsatisfiable, raises TypeAnalysisFailure.
+    """Generates constraints based on nodes and applies them to a
+    typevar store. May raise TypeAnalysisFailure.
     """
     
     def __init__(self, store, objtypes=None):
         super().__init__()
         self.store = store
-        if self.objtypes is None:
+        if objtypes is None:
             self.objtypes = {}
         self.objtypes = objtypes
+    
+    def apply(self, node, lhs, rhs):
+        apply_constraint(self.store, lhs, rhs, node=node)
     
     # Statements.
     
     def visit_Assign(self, node):
-        
-        
-        
-        value = self.visit(node.value)
-        t = value.type
-        targets = self.visit(node.targets, t)
-        return node._replace(targets=targets, value=value)
+        node = self.generic_visit(node)
+        for t in node.targets:
+            self.apply(node, node.value.type, t.type)
     
-#    def visit_SetUpdate(self, node):
-#        elem = self.visit(node.elem)
-#        target = self.visit(node.target, SetType(elem.type))
-#        return node._replace(target=target, elem=elem)
-#    
+    def visit_SetUpdate(self, node):
+        node = self.generic_visit(node)
+        self.apply(node, SetType(node.elem.type), node.target.type)
+        self.apply(node, node.target.type, SetType(toptype))
+    
+    # Expressions.
+    
+    def visit_Str(self, node):
+        self.apply(node, node.type, strtype)
+        self.apply(node, strtype, node.type)
+    
+    def visit_Name(self, node):
+        self.apply(node, node.type, TypeVar(node.id))
+        self.apply(node, TypeVar(node.id), node.type)
+    
+    def visit_Tuple(self, node):
+        node = self.generic_visit(node)
+        t = TupleType([elt.type for elt in node.elts])
+        self.apply(node, node.type, t)
+        self.apply(node, t, node.type)
+     
 #    def visit_MacroSetUpdate(self, node):
 #        t = SetType(toptype)
 #        if node.other is None:

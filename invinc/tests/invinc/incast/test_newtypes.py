@@ -7,7 +7,7 @@ from simplestruct import Struct
 
 from invinc.compiler.incast.newtypes import *
 from invinc.compiler.incast.newtypes import (
-        add_typevars, ConstraintApplier)
+        add_typevars, apply_constraint, TypeAnalyzer)
 from invinc.compiler.incast.structconv import parse_structast
 from invinc.compiler.incast.nodeconv import IncLangImporter
 from invinc.compiler.incast import ts, ts_typed, trim
@@ -72,14 +72,6 @@ class TypeCase(unittest.TestCase):
         exp_t = SetType(numbertype)
         self.assertEqual(t, exp_t)
     
-    def test_addtypevars(self):
-        tree = self.p('''
-            for x in S:
-                S.add(x)
-            ''')
-        tree = add_typevars(tree)
-        print(ts_typed(tree))
-    
     def test_constraint_applier(self):
         """Constraints:
             tuple<number, T3> <= T1
@@ -94,13 +86,12 @@ class TypeCase(unittest.TestCase):
         c4 = (TupleType([toptype, bottomtype]), TypeVar('T1'))
         c5 = (toptype, TypeVar('T3'))
         store = {'T1': bottomtype, 'T2': bottomtype, 'T3': bottomtype}
-        solver = ConstraintApplier(store)
-        solver.apply(*c1)
-        solver.apply(*c2)
-        solver.apply(*c3)
-        solver.apply(*c4)
-        solver.apply(*c5)
-        solver.apply(*c1)
+        apply_constraint(store, *c1)
+        apply_constraint(store, *c2)
+        apply_constraint(store, *c3)
+        apply_constraint(store, *c4)
+        apply_constraint(store, *c5)
+        apply_constraint(store, *c1)
         
         exp_store = {
             'T1': TupleType([toptype, toptype]),
@@ -109,9 +100,46 @@ class TypeCase(unittest.TestCase):
         }
         self.assertEqual(store, exp_store)
         
-        c5 = (TypeVar('T1'), bottomtype)
+        c6 = (TypeVar('T1'), bottomtype)
         with self.assertRaises(TypeAnalysisFailure):
-            solver.apply(*c5)
+            apply_constraint(store, *c6)
+    
+    def test_analyze(self):
+        # given that v is a tuple<number, top>
+        # conclude that R is a set<top>
+        tree = self.p('''
+            (x, y) = v
+            R.add(x)
+            R.add('a')
+            ''')
+        tree = add_typevars(tree)
+        store = {'_T' + str(i): bottomtype for i in range(1, 8+1)}
+        store.update({k: bottomtype for k in ['x', 'y', 'v', 'R']})
+        store['v'] = TupleType([numbertype, toptype])
+        
+        # Should converge within 10 goes.
+        for _ in range(10):
+            oldstore = store.copy()
+            tree = TypeAnalyzer.run(tree, store)
+        self.assertEqual(oldstore, store)
+        
+        exp_store = {
+            '_T1': numbertype,
+            '_T2': toptype,
+            '_T3': TupleType([numbertype, toptype]),
+            '_T4': TupleType([numbertype, toptype]),
+            '_T5': SetType(toptype),
+            '_T6': numbertype,
+            '_T7': SetType(toptype),
+            '_T8': strtype,
+            'R': SetType(toptype),
+            'v': TupleType([numbertype, toptype]),
+            'x': numbertype,
+            'y': toptype,
+        }
+        self.assertEqual(store, exp_store)
+        
+#        print(ts_typed(tree))
     
 #    def test_annotator(self):
 #        tree = self.p('''
