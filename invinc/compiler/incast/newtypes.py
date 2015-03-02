@@ -35,7 +35,8 @@ from simplestruct import Struct, Field, TypedField
 from invinc.util.seq import pairs
 from invinc.util.collections import frozendict
 
-from .nodes import expr, Not, Index, Num, expr
+from .nodes import (AST, expr, Not, Index, Num, Enumerator,
+                    Eq, NotEq, Lt, LtE, Gt, GtE, Is, IsNot, In, NotIn)
 from .structconv import (NodeVisitor, NodeTransformer,
                          Unparser, export_structast)
 from .error import ProgramError
@@ -433,6 +434,8 @@ class ConstraintGenerator(NodeVisitor):
     
     def add(self, node, *terms):
         # t1 <= ..., <= tn
+        assert isinstance(node, AST)
+        assert all(isinstance(t, Type) for t in terms)
         for lhs, rhs in pairs(terms):
             self.constrs.add((node, lhs, rhs))
     
@@ -449,6 +452,12 @@ class ConstraintGenerator(NodeVisitor):
         self.generic_visit(node)
         for t in node.targets:
             self.add(node, node.value.type, t.type)
+    
+    def visit_For(self, node):
+        # set<bottom> <= iter <= set<target>
+        self.generic_visit(node)
+        self.add(node, SetType(bottomtype),
+                 node.iter.type, SetType(node.target.type))
     
     def visit_SetUpdate(self, node):
         # set<elem> <= target <= set<top>
@@ -471,6 +480,17 @@ class ConstraintGenerator(NodeVisitor):
     
     # Expressions.
     
+    def seq_helper(self, node, seqtype):
+        # seq<elt> <= node for each elt
+        self.generic_visit(node)
+        for elt in node.elts:
+            self.add(node, seqtype(elt.type), node.type)
+    
+    def seqcomp_helper(self, node, seqtype):
+        # seq<elt> = node
+        self.generic_visit(node)
+        self.addeqs(node, node.type, seqtype(node.elt.type))
+    
     def visit_BoolOp(self, node):
         # bool = node = operands
         terms = [node.type] + [v.type for v in node.values]
@@ -478,6 +498,7 @@ class ConstraintGenerator(NodeVisitor):
     
     def visit_BinOp(self, node):
         # number = node = left = right
+        self.generic_visit(node)
         terms = [node.type, node.left.type, node.right.type]
         self.addeqs(node, numbertype, *terms)
     
@@ -486,173 +507,106 @@ class ConstraintGenerator(NodeVisitor):
         #    bool = node = operand
         # otherwise:
         #    number = node = operand
+        self.generic_visit(node)
         t = booltype if isinstance(node.op, Not) else numbertype
         terms = [node.type, node.operand.type]
         self.addeqs(node, t, *terms)
     
-    # no constraints for Lambda
+    # No constraints for Lambda.
     
     def visit_IfExp(self, node):
         # truepart <= node
         # falsepart <= node
         # cond = bool
+        self.generic_visit(node)
         self.add(node, node.body.type, node.type)
         self.add(node, node.orelse.type, node.type)
         self.addeqs(node, booltype, node.test.type)
+    
+    def visit_Dict(self, node):
+        # dict<bottom, bottom> <= node <= dict<top, top>
+        # dict<k, v> <= node for each k, v pair
+        self.generic_visit(node)
+        self.add(node, DictType(bottomtype, bottomtype),
+                 node.type, DictType(toptype, toptype))
+        for k, v in zip(node.keys, node.values):
+            self.add(node, DictType(k.type, v.type), node.type)
+    
+    def visit_Set(self, node):
+        self.seq_helper(node, SetType)
+    
+    def visit_ListComp(self, node):
+        self.seqcomp_helper(node, ListType)
+    
+    def visit_SetComp(self, node):
+        self.seqcomp_helper(node, SetType)
+    
+    def visit_DictComp(self, node):
+        # dict<key, value> = node
+        self.generic_visit(node)
+        self.addeqs(node, node.type, DictType(node.key, node.value))
+    
+    # No constraints for GeneratorExp, Yield, or YieldFrom.
+    
+    def compare_helper(self, node, op, lhs, rhs):
+        # if arithmetic:
+        #    number = node = lhs = rhs
+        # otherwise if (negation of) equality/identity:
+        #    node = bool
+        #    lhs = rhs
+        # otherwise (membership check):
+        #    set<lhs> <= rhs <= set<top>
+        if isinstance(op, (Lt, LtE, Gt, GtE)):
+            self.addeqs(node, numbertype, node.type, lhs.type, rhs.type)
+        elif isinstance(op, (Eq, NotEq, Is, IsNot)):
+            self.addeqs(node, booltype, node.type)
+            self.addeqs(node, lhs.type, rhs.type)
+        elif isinstance(op, (In, NotIn)):
+            self.add(node, SetType(lhs.type), rhs.type, SetType(toptype))
+        else:
+            assert()
+    
+    def visit_Compare(self, node):
+        self.generic_visit(node)
+        for (lhs, rhs), op in zip(pairs([node.left] + node.comparators),
+                                  node.ops):
+            self.compare_helper(node, op, lhs, rhs)
+    
+    def visit_Call(self, node):
+        ### Probably need special cases here.
+        self.generic_visit(node)
+    
+    def visit_Num(self, node):
+        # node = number
+        self.addeqs(node, node.type, numbertype)
     
     def visit_Str(self, node):
         # node = str
         self.addeqs(node, node.type, strtype)
     
-    def visit_Name(self, node):
-        # node = vartype
-        self.addeqs(node, node.type, TypeVar(node.id))
+    # No constraints for Bytes.
     
-    def visit_Tuple(self, node):
-        # node = tuple<elt1, ..., eltn>
-        self.generic_visit(node)
-        t = TupleType([elt.type for elt in node.elts])
-        self.addeqs(node, node.type, t)
-     
-#    # Expressions.
-#    
-#    
-#    # No type info.
-#    def visit_Lambda(self, node, ctxtype=toptype):
-#        return self.generic_visit(node)
-#    
-#    # Expression is the same as the type of the two branches,
-#    # or None if they disagree. No propagation is done between
-#    # the branches. The condition is a bool.
-#    def visit_IfExp(self, node, ctxtype=toptype):
-#        test = self.visit(node.test, booltype)
-#        body = self.visit(node.body, ctxtype)
-#        orelse = self.visit(node.orelse, ctxtype)
-#        t = toptype.unify(body.type, orelse.type)
-#        return node._replace(test=test, body=body, orelse=orelse, type=t)
-#    
-#    # A set literal has set type {E} where E is the type of all
-#    # the elements. E is None if the elements are heterogeneously
-#    # typed.
-#    #
-#    # The same pattern is applied analogously to other literals.
-#    #
-#    # Comprehensions have their collection type, except that
-#    # generators have no type.
-#    
-#    def visit_Dict(self, node, ctxtype=toptype):
-#        # Get the context key/value types and recurse.
-#        ckt = cvt = toptype
-#        if isinstance(ctxtype, DictType):
-#            ckt, cvt = ctxtype
-#        keys = [self.visit(k, ckt) for k in node.keys]
-#        values = [self.visit(v, cvt) for v in node.values]
-#        # Get the actual inferred key/value types.
-#        t = DictType(ckt.unify(*(k.type for k in keys)),
-#                     cvt.unify(*(v.type for v in values)))
-#        t = t.unify(ctxtype)
-#        return node._replace(keys=keys, values=values, type=t)
-#    
-#    def seq_helper(self, node, ctxtype, seqtype):
-#        """Helper for homogenously typed sequences."""
-#        cet = toptype
-#        if isinstance(ctxtype, seqtype):
-#            cet, = ctxtype
-#        elts = [self.visit(e, cet) for e in node.elts]
-#        t = seqtype(cet.unify(*(e.type for e in elts)))
-#        t = t.unify(ctxtype)
-#        return node._replace(elts=elts, type=t)
-#    
-#    def visit_Set(self, node, ctxtype=toptype):
-#        return self.seq_helper(node, toptype, SetType)
-#    
-#    def seqcomp_helper(self, node, ctxtype, seqtype):
-#        """Helper for sequence comprehensions."""
-#        cet = toptype
-#        if isinstance(ctxtype, seqtype):
-#            cet, = ctxtype
-#        elt = self.visit(node.elt, cet)
-#        generators = self.visit(node.generators)
-#        t = seqtype(elt.type)
-#        t = t.unify(ctxtype)
-#        return node._replace(elt=elt, generators=generators, type=t)
-#    
-#    def visit_ListComp(self, node, ctxtype=toptype):
-#        return self.seqcomp_helper(node, ctxtype, ListType)
-#    
-#    def visit_SetComp(self, node, ctxtype=toptype):
-#        return self.seqcomp_helper(node, ctxtype, SetType)
-#    
-#    def visit_DictComp(self, node, ctxtype=toptype):
-#        ckt = cvt = toptype
-#        if isinstance(ctxtype, DictType):
-#            ckt, cvt = ctxtype
-#        key = self.visit(node.key, vkt)
-#        value = self.visit(node.value, cvt)
-#        generators = self.visit(node.generators)
-#        t = DictType(key.type, value.type)
-#        t = t.unify(ctxtype)
-#        return node._replace(key=key, value=value,
-#                             generators=generators, type=t)
-#    
-#    # No type info.
-#    def visit_GeneratorExp(self, node, ctxtype=toptype):
-#        return self.generic_visit(node)
-#    
-#    def visit_Yield(self, node, ctxtype=toptype):
-#        node = self.generic_visit(node, ctxtype)
-#        return node._replace(type=node.value.type)
-#    
-#    def visit_YieldFrom(self, node, ctxtype=toptype):
-#        node = self.generic_visit(node, ctxtype)
-#        return node._replace(type=node.value.type)
-#    
-#    # Comparison operators have boolean type.
-#    def visit_Compare(self, node, ctxtype=toptype):
-#        ### TODO: Add context type passing based on what
-#        ### operator is used.
-#        node = self.generic_visit(node)
-#        t = ctxtype.unify(booltype)
-#        return node._replace(type=t)
-#    
-#    ### TODO: Special case
-#    def visit_Call(self, node, ctxtype=toptype):
-#        node = self.generic_visit(node)
-#        return node._replace(type=toptype)
-#    
-#    def visit_Num(self, node, ctxtype=toptype):
-#        t = ctxtype.unify(numbertype)
-#        return node._replace(type=t)
-#    
-#    def visit_Str(self, node, ctxtype=toptype):
-#        t = ctxtype.unify(strtype)
-#        return node._replace(type=t)
-#    
-#    # Untyped.
-#    def visit_Bytes(self, node, ctxtype=toptype):
-#        return node
-#    
-#    # True/False are booleans, None itself is untyped.
-#    def visit_NameConstant(self, node, ctxtype=toptype):
-#        node = self.generic_visit(node)
-#        if node.value in [True, False]:
-#            t = booltype
-#        elif node.value is None:
-#            t = toptype
-#        else:
-#            assert()
-#        t = t.unify(ctxtype)
-#        return node._replace(type=t)
-#    
-#    # Untyped.
-#    def visit_Ellipsis(self, node, ctxtype=toptype):
-#        return self.generic_visit(node)
-#    
-#    # The object must either have top type or else have the type
-#    # of an object that defines the requested attribute.
-#    def visit_Attribute(self, node, ctxtype=toptype):
+    def visit_NameConstant(self, node):
+        # if True/False:
+        #    node = bool
+        # otherwise (None):
+        #    no constraint
+        if node.value in [True, False]:
+            self.add(node, node.type, booltype)
+    
+    # No constraints for Ellipsis.
+    
+#    def visit_Attribute(self, node):
+#        # if object in objtypes:
+#        #    node = objtypes[object][attribute]
+#        
 #        ### TODO: Special cases for methods, e.g. ".elements()".
 #        
+#        self.generic_visit(node)
+#        if node.value.type.expand(self.store)
+        
+        ###
+        
 #        # We can't generate the object type from its attribute type,
 #        # so no context info to pass along.
 #        value = self.visit(node.value)
@@ -666,8 +620,13 @@ class ConstraintGenerator(NodeVisitor):
 #            t = bottomtype
 #        t = t.unify(ctxtype)
 #        return node._replace(value=value, type=t)
-#    
-#    # Subscripting a list or dict gives the element or value
+    
+#    def visit_Subscript(self, node):
+#        
+#        pass
+    
+    
+    #    # Subscripting a list or dict gives the element or value
 #    # type respectively. Subscripting a tuple where the index
 #    # is an integer constant gives the element type.
 #    # Subscripting top gives top. Anything else is bottom.
@@ -691,132 +650,136 @@ class ConstraintGenerator(NodeVisitor):
 #            t = bottomtype
 #        t = t.unify(ctxtype)
 #        return node._replace(value=value, slice=slice, type=t)
-#    
-#    def visit_Starred(self, node, ctxtype=toptype):
-#        node = self.generic_visit(node, ctxtype)
-#        return node._replace(type=node.value.type)
-#    
-#    def visit_Name(self, node, ctxtype=toptype):
-#        node = self.generic_visit(node)
-#        t = self.vartypes.get(node.id, toptype)
-#        t = t.unify(ctxtype)
-#        self.vartypes[node.id] = t
-#        return node._replace(type=t)
-#    
-#    def visit_List(self, node, ctxtype=toptype):
-#        return self.seq_helper(node, toptype, ListType)
-#    
-#    def visit_Tuple(self, node, ctxtype=toptype):
-#        # Can't use seq_helper() because tuples are
-#        # hetereogenously typed.
-#        nelems = len(node.elts)
-#        cets = [toptype] * nelems
-#        if isinstance(ctxtype, TupleType) and len(ctxtype.ets) == nelems:
-#            cets = ctxtype.ets
-#        elts = [self.visit(e, cet) for e, cet in zip(node.elts, cets)]
-#        t = TupleType([elt.type for elt in elts])
-#        t = t.unify(ctxtype)
-#        return node._replace(elts=elts, type=t)
-#    
-#    # IncAST nodes follow.
-#    
-#    def visit_IsEmpty(self, node, ctxtype=toptype):
-#        target = self.visit(node.target, SetType(toptype))
-#        t = ctxtype.unify(booltype)
-#        return node._replace(target=target, type=t)
-#    
-#    def visit_GetRef(self, node, ctxtype=toptype):
-#        target = self.visit(node.target, SetType(toptype))
-#        elem = self.visit(node.elem)
-#        t = ctxtype.unify(numbertype)
-#        return node._replace(target=target, elem=elem, type=t)
-#    
-#    def visit_Lookup(self, node, ctxtype=toptype):
-#        target = self.visit(node.target, DictType(toptype, ctxtype))
-#        key = self.visit(node.key)
-#        default = self.visit(node.default, ctxtype)
-#        t = ctxtype.unify(default.type)
-#        return node._replace(target=target, key=key, default=default, type=t)
-#    
-#    def visit_ImgLookup(self, node, ctxtype=toptype):
-#        t = ctxtype.unify(SetType(toptype))
-#        key = self.visit(node.key)
-#        target = self.visit(node.target, DictType(key.type, t))
-#        if (isinstance(target.type, DictType) and
-#            isinstance(target.type.vt, SetType)):
-#            t = t.unify(target.type.vt.et)
-#        return node._replace(target=target, key=key, type=t)
-#    
-#    visit_RCImgLookup = visit_ImgLookup
-#    
-#    def visit_SMLookup(self, node, ctxtype=toptype):
-#        t = ctxtype
-#        key = self.visit(node.key)
-#        target = self.visit(node.target, SetType(t))
-#        if (isinstance(target.type, DictType) and
-#            isinstance(target.type.vt, SetType)):
-#            t = t.unify(target.type.vt.et)
-#        return node._replace(target=target, key=key, type=t)
-#    
-#    def visit_DemQuery(self, node, ctxtype=toptype):
-#        args = self.visit(node.args)
-#        value = self.visit(node.value, ctxtype)
-#        t = ctxtype.unify(value.type)
-#        return node._replace(args=args, value=value, type=t)
-#    
-#    def visit_NoDemQuery(self, node, ctxtype=toptype):
-#        return self.generic_visit(node, ctxtype)
-#    
-#    def visit_SetMatch(self, node, ctxtype=toptype):
-#        t = ctxtype.unify(SetType(toptype))
-#        key = self.visit(node.key)
-#        target = self.visit(node.target, t)
-#        return node._replace(target=target, key=key, type=t)
-#    
-#    def visit_DeltaMatch(self, node, ctxtype=toptype):
-#        t = ctxtype.unify(SetType(toptype))
-#        elem = self.visit(node.elem)
-#        target = self.visit(node.target, t)
-#        return node._replace(target=target, elem=elem, type=t)
-#    
-#    def visit_Enumerator(self, node, ctxtype=toptype):
-#        iter = self.visit(node.iter)
-#        it = iter.type
-#        tt = toptype
-#        if isinstance(it, SetType):
-#            tt = it.et
-#        target = self.visit(node.target, tt)
-#        return node._replace(target=target, iter=iter)
-#    
-#    def visit_Comp(self, node, ctxtype=toptype):
-#        cet = toptype
-#        if isinstance(ctxtype, SetType):
-#            cet, = ctxtype
-#        clauses = ()
-#        for cl in node.clauses:
-#            t = booltype if isinstance(cl, expr) else toptype
-#            cl = self.visit(cl, t)
-#            clauses += (cl,)
-#        resexp = self.visit(node.resexp, cet)
-#        t = ctxtype.unify(resexp.type)
-#        return node._replace(resexp=resexp, clauses=clauses, type=t)
-#    
-#    def visit_Aggregate(self, node, ctxtype=toptype):
-#        if node.op == 'count':
-#            t = numbertype
-#            at = toptype
-#        elif node.op == 'sum':
-#            t = at = numbertype
-#        elif node.op in ['min', 'max']:
-#            t = ctxtype
-#            at = SetType(t)
-#        else:
-#            assert()
-#        value = self.visit(node.value, at)
-#        t = t.unify(ctxtype)
-#        if node.op in ['min', 'max'] and isinstance(value.type, SetType):
-#            t = t.unify(value.type.et)
-#        return node._replace(value=value, type=t)
+
+    
+    # No constraints for Starred.
+    
+    def visit_Name(self, node):
+        # node = vartype
+        self.addeqs(node, node.type, TypeVar(node.id))
+    
+    def visit_List(self, node):
+        return self.seq_helper(node, ListType)
+    
+    def visit_Tuple(self, node):
+        # node = tuple<elt1, ..., eltn>
+        self.generic_visit(node)
+        t = TupleType([elt.type for elt in node.elts])
+        self.addeqs(node, node.type, t)
+    
+    def visit_IsEmpty(self, node):
+        # node = bool
+        # set<bottom> <= target <= set<top>
+        self.generic_visit(node)
+        self.addeqs(node, node.type, booltype)
+        self.add(node, SetType(bottomtype),
+                 node.target.type, SetType(toptype))
+    
+    def visit_GetRef(self, node):
+        # node = numbertype
+        # set<elem> <= target <= set<top>
+        self.generic_visit(node)
+        self.addeqs(node, node.type, numbertype)
+        self.add(node, SetType(node.elem.type),
+                 node.target.type, SetType(toptype))
+    
+    def map_helper(self, node):
+        # dict<bottom, bottom> <= target <= dict<top, top>
+        # target <= dict<top, node>
+        # dict<bottom, node> <= target
+        self.add(node, DictType(bottomtype, bottomtype),
+                 node.target.type, DictType(toptype, toptype))
+        self.add(node, node.target.type, DictType(toptype, node.type))
+        self.add(node, DictType(bottomtype, node.type), node.target.type)
+    
+    def visit_Lookup(self, node):
+        # map constraints
+        # dict<bottom, default> <= target
+        self.generic_visit(node)
+        self.map_helper(node)
+        self.add(node, DictType(bottomtype, node.default.type),
+                 node.target.type)
+    
+    def visit_ImgLookup(self, node):
+        # map constraints
+        # set<bottom> <= node <= set<top>
+        self.generic_visit(node)
+        self.map_helper(node)
+        self.add(node, SetType(bottomtype), node.type, SetType(toptype))
+    
+    visit_RCImgLookup = visit_ImgLookup
+    
+    def visit_SMLookup(self, node):
+        # dict<bottom, set<node>> <= target <= dict<top, set<node>>
+        self.generic_visit(node)
+        self.add(node, DictType(bottomtype, SetType(node.type)),
+                 node.target.type, DictType(toptype, SetType(node.type)))
+    
+    def visit_DemQuery(self, node):
+        # node = value
+        self.addeqs(node, node.type, node.value.type)
+    
+    def visit_NoDemQuery(self, node):
+        # node = value
+        self.addeqs(node, node.type, node.value.type)
+    
+    # SetMatch and DeltaMatch omitted.
+    # Requires analysis of mask for types.
+    
+    def visit_Comp(self, node):
+        # set<resexp> = node
+        # for each if, cond = bool
+        self.generic_visit(node)
+        self.add(node, node.resexp.type, node.type)
+        for c in node.clauses:
+            if isinstance(c, Enumerator):
+                continue
+            self.add(node, c.type, booltype)
+    
+    def visit_Aggregate(self, node):
+        # all:
+        #    set<bottom> <= value <= set<top>
+        # count:
+        #    node = number
+        # sum:
+        #    node = number
+        #    value <= set<number>
+        # min/max:
+        #    set<node> = value
+        self.generic_visit(node)
+        self.add(node, SetType(bottomtype),
+                 node.value.type, SetType(toptype))
+        if node.op == 'count':
+            self.addeqs(node, node.type, numbertype)
+        elif node.op == 'sum':
+            self.addeqs(node, node.type, numbertype)
+            self.add(node, node.value.type, SetType(numbertype))
+        elif node.op in ['min', 'max']:
+            self.addeqs(node, SetType(node.type), node.value.type)
+        else:
+            assert()
+    
+    # Other nodes.
+    
+    def visit_Index(self, node):
+        # node = value
+        self.generic_visit(node)
+        self.addeqs(node, node.type, node.value.type)
+    
+    def visit_comprehension(self, node):
+        # set<bottom> <= iter <= set<target>
+        # for each if, cond = bool
+        self.generic_visit(node)
+        self.add(node, SetType(bottomtype),
+                 node.iter.type, SetType(node.target.type))
+        for c in node.ifs:
+            self.addeqs(node, c.type, booltype)
+    
+    def visit_Enumerator(self, node):
+        # set<bottom> <= iter <= set<target>
+        self.generic_visit(node)
+        self.add(node, SetType(bottomtype),
+                 node.iter.type, SetType(node.target.type))
 
 def analyze_types(tree, vartypes=None, objtypes=None):
     store = dict(vartypes)
