@@ -337,13 +337,16 @@ def unparse_structast_typed(tree):
 def add_fresh_typevars(tree):
     """Add fresh typevars to all expression nodes."""
     namegen = NameGenerator('_T{}')
+    tvars = set()
     class Trans(NodeTransformer):
         def visit(self, node):
             node = super().visit(node)
             if isinstance(node, expr):
-                node = node._replace(type=TypeVar(next(namegen)))
+                tname = next(namegen)
+                node = node._replace(type=TypeVar(tname))
+                tvars.add(tname)
             return node
-    return Trans.run(tree)
+    return Trans.run(tree), tvars
 
 def subst_typevars(tree, store):
     """Substitute typevars into all expression nodes."""
@@ -412,62 +415,68 @@ def apply_constraint(store, lower, upper, node=None):
             raise TypeAnalysisFailure(node, (lower, upper), store)
 
 
-class TypeAnalyzer(NodeVisitor):
+class ConstraintGenerator(NodeVisitor):
     
-    """Generates constraints based on nodes and applies them to a
-    typevar store. May raise TypeAnalysisFailure.
-    """
+    """Generates constraints over typevars based on AST."""
     
-    def __init__(self, store, objtypes=None):
+    def __init__(self, objtypes=None):
         super().__init__()
-        self.store = store
         if objtypes is None:
             self.objtypes = {}
         self.objtypes = objtypes
     
-    def apply(self, node, lhs, rhs):
-        apply_constraint(self.store, lhs, rhs, node=node)
+    def process(self, tree):
+        self.constrs = set()
+        super().process(tree)
+        return self.constrs
     
     # Statements.
     
     def visit_Assign(self, node):
+        # rhs <= lhs
         self.generic_visit(node)
         for t in node.targets:
-            self.apply(node, node.value.type, t.type)
+            self.constrs.add((node, node.value.type, t.type))
     
     def visit_SetUpdate(self, node):
+        # set<elem> <= target
+        # target <= set<top>
         self.generic_visit(node)
-        self.apply(node, SetType(node.elem.type), node.target.type)
-        self.apply(node, node.target.type, SetType(toptype))
+        self.constrs.add((node, SetType(node.elem.type), node.target.type))
+        self.constrs.add((node, node.target.type, SetType(toptype)))
+    
+    def visit_MacroSetUpdate(self, node):
+        # set<bottom> <= target <= set<top>
+        # if other is present:
+        #    set<bottom> <= other <= target
+        self.generic_visit(node)
+        self.constrs.add((node, SetType(bottomtype), node.target.type))
+        self.constrs.add((node, node.target.type, SetType(toptype)))
+        if node.other is not None:
+            self.constrs.add((node, SetType(bottomtype), node.other.type))
+            self.constrs.add((node, node.other.type, node.target.type))
+    
+    visit_RCSetRefUpdate = visit_SetUpdate
     
     # Expressions.
     
     def visit_Str(self, node):
-        self.apply(node, node.type, strtype)
-        self.apply(node, strtype, node.type)
+        # node = str
+        self.constrs.add((node, node.type, strtype))
+        self.constrs.add((node, strtype, node.type))
     
     def visit_Name(self, node):
-        self.apply(node, node.type, TypeVar(node.id))
-        self.apply(node, TypeVar(node.id), node.type)
+        # node = vartype
+        self.constrs.add((node, node.type, TypeVar(node.id)))
+        self.constrs.add((node, TypeVar(node.id), node.type))
     
     def visit_Tuple(self, node):
+        # node = tuple<elt1, ..., eltn>
         self.generic_visit(node)
         t = TupleType([elt.type for elt in node.elts])
-        self.apply(node, node.type, t)
-        self.apply(node, t, node.type)
+        self.constrs.add((node, node.type, t))
+        self.constrs.add((node, t, node.type))
      
-#    def visit_MacroSetUpdate(self, node):
-#        t = SetType(toptype)
-#        if node.other is None:
-#            other = None
-#        else:
-#            other = self.visit(node.other)
-#            t = t.unify(other.type)
-#        target = self.visit(node.target, t)
-#        return node._replace(target=target, other=other)
-#    
-#    visit_RCSetRefUpdate = visit_SetUpdate
-#    
 #    # Expressions.
 #    
 #    # Expression and operands are bools.

@@ -7,7 +7,8 @@ from simplestruct import Struct
 
 from invinc.compiler.incast.newtypes import *
 from invinc.compiler.incast.newtypes import (
-        add_fresh_typevars, subst_typevars, apply_constraint, TypeAnalyzer)
+        add_fresh_typevars, subst_typevars, apply_constraint,
+        ConstraintGenerator)
 from invinc.compiler.incast.structconv import parse_structast
 from invinc.compiler.incast.nodeconv import IncLangImporter
 from invinc.compiler.incast import ts, ts_typed, trim
@@ -104,7 +105,7 @@ class TypeCase(unittest.TestCase):
         with self.assertRaises(TypeAnalysisFailure):
             apply_constraint(store, *c6)
     
-    def test_analyze(self):
+    def test_analyzer_visitor(self):
         # given that v is a tuple<number, top>
         # conclude that R is a set<top>
         tree = self.p('''
@@ -112,15 +113,19 @@ class TypeCase(unittest.TestCase):
             R.add(x)
             R.add('a')
             ''')
-        tree = add_fresh_typevars(tree)
-        store = {'_T' + str(i): bottomtype for i in range(1, 8+1)}
+        tree, tvars = add_fresh_typevars(tree)
+        store = {tvar: bottomtype for tvar in tvars}
         store.update({k: bottomtype for k in ['x', 'y', 'v', 'R']})
         store['v'] = TupleType([numbertype, toptype])
         
+        constrs = ConstraintGenerator.run(tree, store)
+        
         # Should converge within 10 goes.
         for _ in range(10):
-            oldstore = store.copy()
-            TypeAnalyzer.run(tree, store)
+            for node, lhs, rhs in constrs:
+                oldstore = store.copy()
+                apply_constraint(store, lhs, rhs, node=node)
+            
         self.assertEqual(oldstore, store)
         
         exp_store = {
@@ -142,8 +147,9 @@ class TypeCase(unittest.TestCase):
         tree = subst_typevars(tree, store)
         self.assertEqual(tree.body[0].value.type,
                          TupleType([numbertype, toptype]))
-        
-        print(ts_typed(tree))
+    
+#    def test_analyze(self):
+#        pass
     
 #    def test_annotator(self):
 #        tree = self.p('''
