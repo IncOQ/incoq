@@ -7,7 +7,7 @@ from simplestruct import Struct
 
 from invinc.compiler.incast.newtypes import *
 from invinc.compiler.incast.newtypes import (
-        add_typevars, apply_constraint, TypeAnalyzer)
+        add_fresh_typevars, subst_typevars, apply_constraint, TypeAnalyzer)
 from invinc.compiler.incast.structconv import parse_structast
 from invinc.compiler.incast.nodeconv import IncLangImporter
 from invinc.compiler.incast import ts, ts_typed, trim
@@ -112,7 +112,7 @@ class TypeCase(unittest.TestCase):
             R.add(x)
             R.add('a')
             ''')
-        tree = add_typevars(tree)
+        tree = add_fresh_typevars(tree)
         store = {'_T' + str(i): bottomtype for i in range(1, 8+1)}
         store.update({k: bottomtype for k in ['x', 'y', 'v', 'R']})
         store['v'] = TupleType([numbertype, toptype])
@@ -120,7 +120,7 @@ class TypeCase(unittest.TestCase):
         # Should converge within 10 goes.
         for _ in range(10):
             oldstore = store.copy()
-            tree = TypeAnalyzer.run(tree, store)
+            TypeAnalyzer.run(tree, store)
         self.assertEqual(oldstore, store)
         
         exp_store = {
@@ -139,7 +139,11 @@ class TypeCase(unittest.TestCase):
         }
         self.assertEqual(store, exp_store)
         
-#        print(ts_typed(tree))
+        tree = subst_typevars(tree, store)
+        self.assertEqual(tree.body[0].value.type,
+                         TupleType([numbertype, toptype]))
+        
+        print(ts_typed(tree))
     
 #    def test_annotator(self):
 #        tree = self.p('''

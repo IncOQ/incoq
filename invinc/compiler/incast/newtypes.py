@@ -35,7 +35,8 @@ from simplestruct import Struct, Field, TypedField
 from invinc.util.collections import frozendict
 
 from .nodes import expr, Not, Index, Num, expr
-from .structconv import NodeTransformer, Unparser, export_structast
+from .structconv import (NodeVisitor, NodeTransformer,
+                         Unparser, export_structast)
 from .error import ProgramError
 from .util import NameGenerator
 
@@ -333,23 +334,27 @@ def unparse_structast_typed(tree):
     return TypedUnparser.to_source(tree)
 
 
-class TypeVarAdder(NodeTransformer):
-    
+def add_fresh_typevars(tree):
     """Add fresh typevars to all expression nodes."""
-    
-    def __init__(self, namegen):
-        super().__init__()
-        self.namegen = namegen
-    
-    def visit(self, node):
-        node = super().visit(node)
-        if isinstance(node, expr):
-            node = node._replace(type=TypeVar(next(self.namegen)))
-        return node
-
-def add_typevars(tree):
     namegen = NameGenerator('_T{}')
-    return TypeVarAdder.run(tree, namegen)
+    class Trans(NodeTransformer):
+        def visit(self, node):
+            node = super().visit(node)
+            if isinstance(node, expr):
+                node = node._replace(type=TypeVar(next(namegen)))
+            return node
+    return Trans.run(tree)
+
+def subst_typevars(tree, store):
+    """Substitute typevars into all expression nodes."""
+    class Trans(NodeTransformer):
+        def visit(self, node):
+            node = super().visit(node)
+            if isinstance(node, expr):
+                assert isinstance(node.type, TypeVar)
+                node = node._replace(type=store[node.type.name])
+            return node
+    return Trans.run(tree)
 
 
 class TypeAnalysisFailure(ProgramError):
@@ -407,7 +412,7 @@ def apply_constraint(store, lower, upper, node=None):
             raise TypeAnalysisFailure(node, (lower, upper), store)
 
 
-class TypeAnalyzer(NodeTransformer): ###
+class TypeAnalyzer(NodeVisitor):
     
     """Generates constraints based on nodes and applies them to a
     typevar store. May raise TypeAnalysisFailure.
@@ -426,12 +431,12 @@ class TypeAnalyzer(NodeTransformer): ###
     # Statements.
     
     def visit_Assign(self, node):
-        node = self.generic_visit(node)
+        self.generic_visit(node)
         for t in node.targets:
             self.apply(node, node.value.type, t.type)
     
     def visit_SetUpdate(self, node):
-        node = self.generic_visit(node)
+        self.generic_visit(node)
         self.apply(node, SetType(node.elem.type), node.target.type)
         self.apply(node, node.target.type, SetType(toptype))
     
@@ -446,7 +451,7 @@ class TypeAnalyzer(NodeTransformer): ###
         self.apply(node, TypeVar(node.id), node.type)
     
     def visit_Tuple(self, node):
-        node = self.generic_visit(node)
+        self.generic_visit(node)
         t = TupleType([elt.type for elt in node.elts])
         self.apply(node, node.type, t)
         self.apply(node, t, node.type)
