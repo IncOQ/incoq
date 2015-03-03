@@ -155,7 +155,7 @@ class TypeCase(unittest.TestCase):
             R.add('a')
             ''')
         stype = SetType(TupleType([numbertype, bottomtype]))
-        tree = analyze_types(tree, {'S': stype})
+        tree, vartypes = analyze_types(tree, {'S': stype})
         source = ts_typed(tree)
         exp_source = trim('''
             for (((x : Number), (y : Bottom)) : (Number, Bottom)) in (S : {(Number, Bottom)}):
@@ -163,6 +163,7 @@ class TypeCase(unittest.TestCase):
             (R : {Top}).add(('a' : str))
             ''')
         self.assertEqual(source, exp_source)
+        self.assertEqual(vartypes['R'], SetType(toptype))
         
         tree = self.p('''
             t = (5, 'a')
@@ -170,7 +171,7 @@ class TypeCase(unittest.TestCase):
             d = {5: 'a'}
             y = d[5]
             ''')
-        tree = analyze_types(tree, {})
+        tree, vartypes = analyze_types(tree, {})
         source = ts_typed(tree)
         exp_source = trim('''
             (t : (Number, str)) = (((5 : Number), ('a' : str)) : (Number, str))
@@ -179,6 +180,7 @@ class TypeCase(unittest.TestCase):
             (y : str) = ((d : {Number: str})[(5 : Number)] : str)
             ''')
         self.assertEqual(source, exp_source)
+        self.assertEqual(vartypes['y'], strtype)
     
 #    def test_annotator(self):
 #        tree = self.p('''

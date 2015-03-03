@@ -305,7 +305,9 @@ class TypeVar(Type):
     join = illegalop
     
     def expand(self, store):
-        return store[self.name]
+        t = store[self.name]
+        assert isinstance(t, Type)
+        return t
 
 
 def eval_typestr(s):
@@ -365,6 +367,7 @@ def subst_typevars(tree, store):
 class TypeAnalysisFailure(ProgramError):
     
     def __init__(self, node, constraint, store):
+        super().__init__(node=node)
         self.node = node
         self.constraint = constraint
         self.store = store
@@ -394,6 +397,7 @@ def apply_constraint(store, lower, upper, node=None):
       3) otherwise: if the expansions of the lhs and rhs do not
          satisfy the subtype relation, raise TypeAnalysisFailure.
     """
+    assert isinstance(lower, Type) and isinstance(upper, Type)
     lhs = lower.expand(store)
     rhs = upper.expand(store)
     # Case 1.
@@ -565,7 +569,7 @@ class ConstraintGenerator(NodeVisitor, BaseConstraintGenerator):
     
     def visit_Compare(self, node):
         self.generic_visit(node)
-        for (lhs, rhs), op in zip(pairs([node.left] + node.comparators),
+        for (lhs, rhs), op in zip(pairs((node.left,) + node.comparators),
                                   node.ops):
             self.compare_helper(node, op, lhs, rhs)
     
@@ -894,4 +898,5 @@ def analyze_types(tree, vartypes=None, objtypes=None):
     
     print('Iterated type analysis {} times'.format(count))
     tree = subst_typevars(tree, store)
-    return tree
+    new_vartypes = {name: store[name] for name in varnames}
+    return tree, new_vartypes
