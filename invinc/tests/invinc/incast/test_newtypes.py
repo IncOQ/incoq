@@ -112,14 +112,13 @@ class TypeCase(unittest.TestCase):
             (x, y) = v
             R.add(x)
             R.add('a')
-            for x in S: pass
             ''')
         tree, tvars = add_fresh_typevars(tree)
         store = {tvar: bottomtype for tvar in tvars}
-        store.update({k: bottomtype for k in ['x', 'y', 'v', 'R', 'S']})
+        store.update({k: bottomtype for k in ['x', 'y', 'v', 'R']})
         store['v'] = TupleType([numbertype, toptype])
         
-        constrs = ConstraintGenerator.run(tree, store)
+        constrs = ConstraintGenerator.run(tree)
         
         # Should converge within 10 goes.
         for _ in range(10):
@@ -143,15 +142,43 @@ class TypeCase(unittest.TestCase):
             'x': numbertype,
             'y': toptype,
         }
-#        self.assertEqual(store, exp_store)
+        self.assertEqual(store, exp_store)
         
         tree = subst_typevars(tree, store)
         self.assertEqual(tree.body[0].value.type,
                          TupleType([numbertype, toptype]))
-        print(ts_typed(tree))
     
-#    def test_analyze(self):
-#        pass
+    def test_analyze(self):
+        tree = self.p('''
+            for x, y in S:
+                R.add(x)
+            R.add('a')
+            ''')
+        stype = SetType(TupleType([numbertype, bottomtype]))
+        tree = analyze_types(tree, {'S': stype})
+        source = ts_typed(tree)
+        exp_source = trim('''
+            for (((x : Number), (y : Bottom)) : (Number, Bottom)) in (S : {(Number, Bottom)}):
+                (R : {Top}).add((x : Number))
+            (R : {Top}).add(('a' : str))
+            ''')
+        self.assertEqual(source, exp_source)
+        
+        tree = self.p('''
+            t = (5, 'a')
+            x = t[0]
+            d = {5: 'a'}
+            y = d[5]
+            ''')
+        tree = analyze_types(tree, {})
+        source = ts_typed(tree)
+        exp_source = trim('''
+            (t : (Number, str)) = (((5 : Number), ('a' : str)) : (Number, str))
+            (x : Number) = ((t : (Number, str))[(0 : Number)] : Number)
+            (d : {Number: str}) = ({(5 : Number): ('a' : str)} : {Number: str})
+            (y : str) = ((d : {Number: str})[(5 : Number)] : str)
+            ''')
+        self.assertEqual(source, exp_source)
     
 #    def test_annotator(self):
 #        tree = self.p('''

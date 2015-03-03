@@ -40,7 +40,7 @@ from .nodes import (AST, expr, Not, Index, Num, Enumerator,
 from .structconv import (NodeVisitor, NodeTransformer,
                          Unparser, export_structast)
 from .error import ProgramError
-from .util import NameGenerator
+from .util import NameGenerator, VarsFinder
 
 
 class FrozenDictField(TypedField):
@@ -417,20 +417,7 @@ def apply_constraint(store, lower, upper, node=None):
             raise TypeAnalysisFailure(node, (lower, upper), store)
 
 
-class ConstraintGenerator(NodeVisitor):
-    
-    """Generates constraints over typevars based on AST."""
-    
-    def __init__(self, objtypes=None):
-        super().__init__()
-        if objtypes is None:
-            self.objtypes = {}
-        self.objtypes = objtypes
-    
-    def process(self, tree):
-        self.constrs = set()
-        super().process(tree)
-        return self.constrs
+class BaseConstraintGenerator:
     
     def add(self, node, *terms):
         # t1 <= ..., <= tn
@@ -444,6 +431,16 @@ class ConstraintGenerator(NodeVisitor):
         for lhs, rhs in pairs(terms):
             self.constrs.add((node, lhs, rhs))
             self.constrs.add((node, rhs, lhs))
+
+
+class ConstraintGenerator(NodeVisitor, BaseConstraintGenerator):
+    
+    """Generates constraints over typevars based on AST."""
+    
+    def process(self, tree):
+        self.constrs = set()
+        super().process(tree)
+        return self.constrs
     
     # Statements.
     
@@ -596,62 +593,6 @@ class ConstraintGenerator(NodeVisitor):
     
     # No constraints for Ellipsis.
     
-#    def visit_Attribute(self, node):
-#        # if object in objtypes:
-#        #    node = objtypes[object][attribute]
-#        
-#        ### TODO: Special cases for methods, e.g. ".elements()".
-#        
-#        self.generic_visit(node)
-#        if node.value.type.expand(self.store)
-        
-        ###
-        
-#        # We can't generate the object type from its attribute type,
-#        # so no context info to pass along.
-#        value = self.visit(node.value)
-#        vt = value.type
-#        if vt is toptype:
-#            t = toptype
-#        elif isinstance(vt, ObjType):
-#            attrs = self.objtypes[vt.name]
-#            t = attrs.get(node.attr, bottomtype)
-#        else:
-#            t = bottomtype
-#        t = t.unify(ctxtype)
-#        return node._replace(value=value, type=t)
-    
-#    def visit_Subscript(self, node):
-#        
-#        pass
-    
-    
-    #    # Subscripting a list or dict gives the element or value
-#    # type respectively. Subscripting a tuple where the index
-#    # is an integer constant gives the element type.
-#    # Subscripting top gives top. Anything else is bottom.
-#    def visit_Subscript(self, node, ctxtype=toptype):
-#        # We can't generate the list/dict type from its
-#        # element/value type, so no context info to pass along.
-#        value = self.visit(node.value)
-#        slice = self.visit(node.slice)
-#        vt = value.type
-#        if isinstance(vt, ListType):
-#            t = vt.et
-#        elif isinstance(vt, DictType):
-#            t = vt.vt
-#        elif isinstance(vt, TupleType):
-#            if isinstance(slice, Index) and isinstance(slice.value, Num):
-#                if 0 <= slice.value.n < len(vt.ets):
-#                    t = vt.ets[slice.value.n]
-#        elif vt is toptype:
-#            t = toptype
-#        else:
-#            t = bottomtype
-#        t = t.unify(ctxtype)
-#        return node._replace(value=value, slice=slice, type=t)
-
-    
     # No constraints for Starred.
     
     def visit_Name(self, node):
@@ -761,11 +702,6 @@ class ConstraintGenerator(NodeVisitor):
     
     # Other nodes.
     
-    def visit_Index(self, node):
-        # node = value
-        self.generic_visit(node)
-        self.addeqs(node, node.type, node.value.type)
-    
     def visit_comprehension(self, node):
         # set<bottom> <= iter <= set<target>
         # for each if, cond = bool
@@ -781,16 +717,181 @@ class ConstraintGenerator(NodeVisitor):
         self.add(node, SetType(bottomtype),
                  node.iter.type, SetType(node.target.type))
 
-def analyze_types(tree, vartypes=None, objtypes=None):
-    store = dict(vartypes)
+
+class StoreConstraintGenerator(NodeVisitor, BaseConstraintGenerator):
     
-    # Fixpoint with bailout.
-    changed = True
+    """Generate constraints for Attribute and Subscript nodes,
+    which depend on the current state of the typevar store.
+    """
+    
+    def __init__(self, store, objtypes=None):
+        self.store = store
+        if objtypes is None:
+            self.objtypes = {}
+        self.objtypes = objtypes
+    
+    def process(self, tree):
+        self.constrs = set()
+        super().process(tree)
+        return self.constrs
+    
+    def visit_Subscript(self, node):
+        # Handle the ad hoc polymorphism of overloading the
+        # subscript operator for dictionaries, lists, and tuples.
+        #
+        # The rules are based on the current store for the
+        # subscripted value. We're careful not to constrain
+        # typevars from above because the inputs may rise
+        # in the lattice as the fixpoint continues. This
+        # is tricky because we need to keep in mind the
+        # distinction between typevars and ground type terms.
+        #
+        # if value is top:
+        #    top <= node
+        #    top <= key
+        # otherwise if value is a dict<K, V>:
+        #    (note that K and V are possibly ground terms,
+        #     not typevars)
+        #    dict<key, bottom> <= value
+        #    V <= node
+        # otherwise if value is a list<T>:
+        #    number <= key
+        #    T <= node
+        # otherwise if value is a tuple<T1, ..., Tn>:
+        #    if key is an integer constant i:
+        #       Ti <= node
+        #    otherwise:
+        #       number <= key
+        #       Tj <= node for each j
+        # otherwise:
+        #    no constraints
+        
+        self.generic_visit(node)
+        if not isinstance(node.slice, Index):
+            return
+        vt = node.value.type
+        vt_exp = vt.expand(self.store)
+        kt = node.slice.value.type
+        rt = node.type
+        
+        if vt_exp is toptype:
+            self.add(node, toptype, vt)
+            self.add(node, toptype, kt)
+        elif isinstance(vt_exp, DictType):
+            self.add(node, DictType(kt, bottomtype), vt)
+            self.add(node, vt_exp.vt, rt)
+        elif isinstance(vt_exp, ListType):
+            self.add(node, numbertype, kt)
+            self.add(node, vt_exp.et, rt)
+        elif isinstance(vt_exp, TupleType):
+            if (isinstance(node.slice.value, Num) and
+                0 <= node.slice.value.n < len(vt_exp.ets)):
+                self.add(node, vt_exp.ets[node.slice.value.n], rt)
+            else:
+                self.add(node, numbertype, kt)
+                for et in vt_exp.ets:
+                    self.add(node, et, rt)
+        else:
+            # No constraints.
+            pass
+    
+#    def visit_Attribute(self, node):
+#        # if object in objtypes:
+#        #    node = objtypes[object][attribute]
+#        
+#        ### TODO: Special cases for methods, e.g. ".elements()".
+#        
+#        self.generic_visit(node)
+#        if node.value.type.expand(self.store)
+        
+        ###
+        
+#        # We can't generate the object type from its attribute type,
+#        # so no context info to pass along.
+#        value = self.visit(node.value)
+#        vt = value.type
+#        if vt is toptype:
+#            t = toptype
+#        elif isinstance(vt, ObjType):
+#            attrs = self.objtypes[vt.name]
+#            t = attrs.get(node.attr, bottomtype)
+#        else:
+#            t = bottomtype
+#        t = t.unify(ctxtype)
+#        return node._replace(value=value, type=t)
+    
+#    def visit_Subscript(self, node):
+#        
+#        pass
+    
+    
+    #    # Subscripting a list or dict gives the element or value
+#    # type respectively. Subscripting a tuple where the index
+#    # is an integer constant gives the element type.
+#    # Subscripting top gives top. Anything else is bottom.
+#    def visit_Subscript(self, node, ctxtype=toptype):
+#        # We can't generate the list/dict type from its
+#        # element/value type, so no context info to pass along.
+#        value = self.visit(node.value)
+#        slice = self.visit(node.slice)
+#        vt = value.type
+#        if isinstance(vt, ListType):
+#            t = vt.et
+#        elif isinstance(vt, DictType):
+#            t = vt.vt
+#        elif isinstance(vt, TupleType):
+#            if isinstance(slice, Index) and isinstance(slice.value, Num):
+#                if 0 <= slice.value.n < len(vt.ets):
+#                    t = vt.ets[slice.value.n]
+#        elif vt is toptype:
+#            t = toptype
+#        else:
+#            t = bottomtype
+#        t = t.unify(ctxtype)
+#        return node._replace(value=value, slice=slice, type=t)
+
+
+def analyze_types(tree, vartypes=None, objtypes=None):
+    """Analyze types."""
+    if vartypes is None:
+        vartypes = {}
+    
+    varnames = VarsFinder.run(tree)
+    
+    # Plug in fresh type variables
+    tree, tvars = add_fresh_typevars(tree)
+    # Initialize the store with entries for expression typevars
+    # and variable typevars.
+    store = {tvar: bottomtype for tvar in tvars}
+    store.update({var: vartypes.get(var, bottomtype)
+                  for var in varnames})
+    
+    # Get static (non-store-dependent) constraints.
+    constrs = ConstraintGenerator.run(tree)
+    
+    # Fixed-point computation to solve constraints.
+    # Bailout if it takes too many iterations.
+    limit = 20
     count = 0
-    while changed and count < 10:
+    changed = True
+    while changed and count < limit:
+        changed = False
         oldstore = store.copy()
-        tree = TypeAnalyzer.run(tree, store, objtypes)
-        changed = store != oldstore
+        
+        # Generate new store-dependent constraints.
+        new_constrs = StoreConstraintGenerator.run(tree, store)
+        new_constrs.difference_update(constrs)
+        if len(new_constrs) > 0:
+            changed = True
+        constrs.update(new_constrs)
+        
+        # Apply all constraints.
+        for node, lhs, rhs in constrs:
+            apply_constraint(store, lhs, rhs, node=node)
+        
+        changed |= oldstore != store
         count += 1
+    
     print('Iterated type analysis {} times'.format(count))
-    return tree, vartypes
+    tree = subst_typevars(tree, store)
+    return tree
