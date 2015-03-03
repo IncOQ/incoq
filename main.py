@@ -174,24 +174,24 @@ class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
             '_PReceivedEvent_0':
                 '''SetType(TupleType([
                     toptype, toptype, TupleType([
-                        strtype, ObjType('clocks'), ObjType('procs')
+                        strtype, numbertype, numbertype    #ObjType('clocks'), ObjType('procs')
                     ])]))''',
             '_PReceivedEvent_1':
                 '''SetType(TupleType([
                     toptype, toptype, TupleType([
-                        strtype, ObjType('clocks'), ObjType('procs')
+                        strtype, numbertype, numbertype,   #ObjType('clocks'), ObjType('procs')
                     ])]))''',
             '_PReceivedEvent_2':
                 '''SetType(TupleType([
                     toptype, toptype, TupleType([
-                        strtype, ObjType('clocks'), ObjType('procs')
+                        strtype, numbertype, numbertype,   #ObjType('clocks'), ObjType('procs')
                     ])]))''',
             'SELF_ID':
-                '''ObjType('procs')''',
+                '''numbertype#ObjType('procs')''',
             'P_mutex_c':
-                '''ObjType('clocks')''',
+                '''numbertype#ObjType('clocks')''',
             'P_s':
-                '''SetType(ObjType('procs'))''',
+                '''SetType(numbertype)#ObjType('procs'))''',
             },
         'dom_costs': {
             '_PReceivedEvent_0.2.0': '''UnitCost()''',
@@ -327,15 +327,15 @@ class INC_SUBDEM_LAMUTEX2(INC_SUBDEM):
 #    INC_SUBDEM,
 #    DEM,
 #])
-#add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
-#    INC_SUBDEM,
-#])
+add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
+    INC_SUBDEM_LAMUTEX,
+])
 #add_task(lamutex_lru)
 #add_impls('lamutex opt1', 'experiments/distalgo/lamutex/lamutex_opt1_inc', [
-#    INC_SUBDEM,
+#    INC_SUBDEM_LAMUTEX,
 #])
 #add_impls('lamutex opt2', 'experiments/distalgo/lamutex/lamutex_opt2_inc', [
-#    INC_SUBDEM,
+#    INC_SUBDEM_LAMUTEX,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
 #    INC_SUBDEM_LAMUTEX2,

@@ -655,10 +655,10 @@ class ConstraintGenerator(NodeVisitor, BaseConstraintGenerator):
     visit_RCImgLookup = visit_ImgLookup
     
     def visit_SMLookup(self, node):
-        # dict<bottom, set<node>> <= target <= dict<top, set<node>>
+        # set<bottom> <= target <= set<top>
         self.generic_visit(node)
-        self.add(node, DictType(bottomtype, SetType(node.type)),
-                 node.target.type, DictType(toptype, SetType(node.type)))
+        self.add(node, SetType(bottomtype),
+                 node.target.type, SetType(toptype))
     
     def visit_DemQuery(self, node):
         # node = value
