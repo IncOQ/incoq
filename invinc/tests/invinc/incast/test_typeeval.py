@@ -27,9 +27,9 @@ class ConstraintCase(unittest.TestCase):
             [1, 2, 'a']
             {x for x in S}
             ''')
-        res = analyze_types(tree, {'S': SetType(strtype)})
-        for t in res.items():
-            print(t)
+        tree, store = analyze_types(tree, {'S': SetType(strtype)})
+        print(ts_typed(tree))
+        print(store)
 
 
 if __name__ == '__main__':

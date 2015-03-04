@@ -12,7 +12,7 @@ from invinc.util.seq import pairs
 
 from .nodes import (Load, Store, Not, Eq, NotEq, Lt, LtE, Gt, GtE,
                     Is, IsNot, In, NotIn, Enumerator, expr)
-from .structconv import NodeTransformer, AdvNodeVisitor
+from .structconv import AdvNodeTransformer
 from .error import ProgramError
 from .util import VarsFinder
 from .types import *
@@ -37,7 +37,7 @@ class TypeAnalysisFailure(ProgramError):
         return s
 
 
-class TypeAnalyzer(AdvNodeVisitor):
+class TypeAnalyzer(AdvNodeTransformer):
     
     """Abstract interpreter for type analysis.
     
@@ -52,6 +52,9 @@ class TypeAnalyzer(AdvNodeVisitor):
     
     There is a separate store mapping variables to their type
     information.
+    
+    Expression node type fields are updated as they are passed
+    up or down the tree.
     """
     
     def __init__(self, store=None):
@@ -62,8 +65,8 @@ class TypeAnalyzer(AdvNodeVisitor):
     
     def top_helper(self, node, input=None):
         # Result: top
-        self.generic_visit(node)
-        return toptype
+        node = self.generic_visit(node)
+        return node._replace(type=toptype)
     
     # Statements.
     
@@ -73,40 +76,44 @@ class TypeAnalyzer(AdvNodeVisitor):
     
     def visit_Assign(self, node):
         # Action: target <- value for each target
-        t_value = self.visit(node.value)
-        for t in node.targets:
-            self.visit(t, t_value)
+        value = self.visit(node.value)
+        targets = [self.visit(t, value.type) for t in node.targets]
+        return node._replace(value=value, targets=targets)
     
     def visit_For(self, node):
         # Trigger: iter = set<T> for some T
         #   Action: target <- T
-        t_iter = self.visit(node.iter)
-        if isinstance(t_iter, SetType):
-            self.visit(node.target, t_iter.et)
-        self.visit(node.body)
-        self.visit(node.orelse)
+        iter = self.visit(node.iter)
+        if isinstance(iter.type, SetType):
+            target = self.visit(node.target, iter.type.et)
+        else:
+            target = node.target
+        body = self.visit(node.body)
+        orelse = self.visit(node.orelse)
+        return node._replace(iter=iter, target=target,
+                             body=body, orelse=orelse)
     
     # Expressions.
     
     def visit_BoolOp(self, node):
         # Result: bool
         # Cond: v <= bool for each value v
-        t_values = [self.visit(v) for v in node.values]
-        if not all(t_v.issubtype(booltype) for t_v in t_values):
+        values = [self.visit(v) for v in node.values]
+        if not all(v.type.issubtype(booltype) for v in values):
             raise TypeAnalysisFailure('BoolOp has non-bool arg',
                                       node, self.store)
-        return booltype
+        return node._replace(values=values, type=booltype)
     
     def visit_BinOp(self, node):
         # Result: number
         # Cond: left <= number, right <= number
-        t_left = self.visit(node.left)
-        t_right = self.visit(node.right)
-        if not (t_left.issubtype(numbertype) and
-                t_right.issubtype(numbertype)):
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        if not (left.type.issubtype(numbertype) and
+                right.type.issubtype(numbertype)):
             raise TypeAnalysisFailure('BinOp has non-number arg',
                                       node, self.store)
-        return numbertype
+        return node._replace(left=left, right=right, type=numbertype)
     
     def visit_UnaryOp(self, node):
         # If op is "not":
@@ -115,61 +122,65 @@ class TypeAnalyzer(AdvNodeVisitor):
         # Otherwise:
         #     Result: number
         #     Cond: operand <= number
-        t_operand = self.visit(node.operand)
+        operand = self.visit(node.operand)
         resulttype = (booltype if isinstance(node.op, Not)
                       else numbertype)
-        t = resulttype.join(t_operand)
+        t = resulttype.join(operand.type)
         if not t.issubtype(resulttype):
             raise TypeAnalysisFailure('UnaryOp requires ' + str(resulttype),
                                       node, self.store)
-        return t
+        return node._replace(operand=operand, type=t)
     
     visit_Lambda = top_helper
     
     def visit_IfExp(self, node):
         # Result: join(body, orelse)
         # Cond: test <= bool
-        t_test = self.visit(node.test)
-        t_body = self.visit(node.body)
-        t_orelse = self.visit(node.orelse)
-        t = t_body.join(t_orelse)
-        if not t_test.issubtype(booltype):
+        test = self.visit(node.test)
+        body = self.visit(node.body)
+        orelse = self.visit(node.orelse)
+        t = body.type.join(orelse.type)
+        if not test.type.issubtype(booltype):
             raise TypeAnalysisFailure('IfExp requires bool condition',
                                       node, self.store)
-        return t
+        return node._replace(test=test, body=body, orelse=orelse, type=t)
     
     def visit_Dict(self, node):
         # Result: dict<join(keys), join(values)>
-        t_keys = [self.visit(k) for k in node.keys]
-        t_values = [self.visit(v) for v in node.values]
-        return DictType(bottomtype.join(*t_keys), bottomtype.join(*t_values))
+        keys = [self.visit(k) for k in node.keys]
+        values = [self.visit(v) for v in node.values]
+        t = DictType(bottomtype.join(*[k.type for k in keys]),
+                        bottomtype.join(*[v.type for v in values]))
+        return node._replace(keys=keys, value=values, type=t)
     
     def visit_Set(self, node):
         # Result: set<join(elts)>
-        t_elts = [self.visit(e) for e in node.elts]
-        return SetType(bottomtype.join(*t_elts))
+        elts = [self.visit(e) for e in node.elts]
+        t = SetType(bottomtype.join(*[e.type for e in elts]))
+        return node._replace(elts=elts, type=t)
     
     def visit_ListComp(self, node):
         # Result: list<elt>
-        for gen in node.generators:
-            self.visit(gen)
-        t_elt = self.visit(node.elt)
-        return ListType(t_elt)
+        generators = [self.visit(gen) for gen in node.generators]
+        elt = self.visit(node.elt)
+        t = ListType(elt.type)
+        return node._replace(generators=generators, elt=elt, type=t)
     
     def visit_SetComp(self, node):
         # Result: set<elt>
-        for gen in node.generators:
-            self.visit(gen)
-        t_elt = self.visit(node.elt)
-        return SetType(t_elt)
+        generators = [self.visit(gen) for gen in node.generators]
+        elt = self.visit(node.elt)
+        t = SetType(elt.type)
+        return node._replace(generators=generators, elt=elt, type=t)
     
     def visit_DictComp(self, node):
         # Result: dict<key, value>
-        for gen in node.generators:
-            self.visit(gen)
-        t_key = self.visit(node.key)
-        t_value = self.visit(node.value)
-        return DictType(t_key, t_value)
+        generators = [self.visit(gen) for gen in node.generators]
+        key = self.visit(node.key)
+        value = self.visit(node.value)
+        t = DictType(key.type, value.type)
+        return node._replace(generators=generators,
+                             key=key, value=value, type=t)
     
     visit_GeneratorExp = top_helper
     visit_Yield = top_helper
@@ -212,25 +223,25 @@ class TypeAnalyzer(AdvNodeVisitor):
         # Result: bool
         # Cond: compare_helper(left, op, right) for each pair
         values = (node.left,) + node.comparators
-        t_values = [self.visit(v) for v in values]
-        print(values)
-        for (t_left, t_right), op in zip(pairs(t_values), node.ops):
-            self.compare_helper(node, op, t_left, t_right)
-        return booltype
+        values = [self.visit(v) for v in values]
+        for (left, right), op in zip(pairs(values), node.ops):
+            self.compare_helper(node, op, left.type, right.type)
+        return node._replace(left=values[0], comparators=values[1:],
+                             type=booltype)
     
     def visit_Call(self, node):
         ### TODO
         # ???
-        self.generic_visit(node)
-        return bottomtype
+        node = self.generic_visit(node)
+        return node._replace(type=bottomtype)
     
     def visit_Num(self, node):
         # Result: number
-        return numbertype
+        return node._replace(type=numbertype)
     
     def visit_Str(self, node):
         # Result: str
-        return strtype
+        return node._replace(type=strtype)
     
     visit_Bytes = top_helper
     
@@ -240,9 +251,10 @@ class TypeAnalyzer(AdvNodeVisitor):
         # If None:
         #     Result: top
         if node.value in [True, False]:
-            return booltype
+            t = booltype
         else:
-            return toptype
+            t = toptype
+        return node._replace(type=t)
     
     visit_Ellipsis = top_helper
     
@@ -254,11 +266,11 @@ class TypeAnalyzer(AdvNodeVisitor):
     
     def visit_Attribute(self, node, input=None):
         ### TODO
-        return bottomtype
+        return node._replace(type=bottomtype)
     
     def visit_Subscript(self, node, input=None):
         ### TODO
-        return bottomtype
+        return node._replace(type=bottomtype)
     
     visit_Starred = top_helper
     
@@ -269,10 +281,12 @@ class TypeAnalyzer(AdvNodeVisitor):
         #     Action: store[id] <- input
         if isinstance(node.ctx, Load):
             assert input is None
-            return self.store[node.id]
+            t = self.store[node.id]
+            return node._replace(type=t)
         elif isinstance(node.ctx, Store):
             assert input is not None
-            self.store[node.id] = self.store[node.id].join(input)
+            self.store[node.id] = t = self.store[node.id].join(input)
+            return node._replace(type=t)
     
     def visit_List(self, node, input=None):
         # In load context:
@@ -282,15 +296,16 @@ class TypeAnalyzer(AdvNodeVisitor):
         #     Action: elt_i <- T for each i
         if isinstance(node.ctx, Load):
             assert input is None
-            t_elts = [self.visit(e) for e in node.elts]
-            return ListType(bottomtype.join(*t_elts))
+            elts = [self.visit(e) for e in node.elts]
+            t = ListType(bottomtype.join(*[e.type for e in elts]))
+            return node._replace(elts=elts, type=t)
         elif isinstance(node.ctx, Store):
             assert input is not None
             if not isinstance(input, ListType):
                 raise TypeAnalysisFailure('Store to List requires list type',
                                           node, self.store)
-            for e in node.elts:
-                self.visit(e, input.et)
+            elts = [self.visit(e, input.et) for e in node.elts]
+            return node._replace(elts=elts, type=input)
     
     def visit_Tuple(self, node, input=None):
         # In load context:
@@ -300,13 +315,16 @@ class TypeAnalyzer(AdvNodeVisitor):
         #       Action: elt_i <- input_i for each i
         if isinstance(node.ctx, Load):
             assert input is None
-            return TupleType([self.visit(e) for e in node.elts])
+            elts = [self.visit(e) for e in node.elts]
+            t = TupleType([e.type for e in elts])
+            return node._replace(elts=elts, type=t)
         elif isinstance(node.ctx, Store):
             assert input is not None
             if (isinstance(input, TupleType) and
                 len(input.ets) == len(node.elts)):
-                for e, i in zip(node.elts, input.ets):
-                    self.visit(e, i)
+                elts = [self.visit(e, i)
+                        for e, i in zip(node.elts, input.ets)]
+                return node._replace(elts=elts, type=input)
     
     # Other nodes.
     
@@ -314,102 +332,124 @@ class TypeAnalyzer(AdvNodeVisitor):
         # Trigger: iter = set<T> for some T
         #   Action: target <- T
         # Cond: cond = bool for each cond
-        t_iter = self.visit(node.iter)
-        if isinstance(t_iter, SetType):
-            self.visit(node.target, t_iter.et)
-        for cond in node.ifs:
-            t_cond = self.visit(cond)
-            if not t_cond.issubtype(booltype):
+        iter = self.visit(node.iter)
+        if isinstance(iter.type, SetType):
+            target = self.visit(node.target, iter.type.et)
+        else:
+            target = node.target
+        ifs = [self.visit(i) for i in node.ifs]
+        for cond in ifs:
+            if not cond.type.issubtype(booltype):
                 raise TypeAnalysisFailure('Condition clause requires '
                                           'bool type', node, self.store)
+        return node._replace(iter=iter, target=target, ifs=ifs)
     
     # IncAST nodes.
     
     def visit_Enumerator(self, node):
         # Trigger: iter = set<T> for some T
         #   Action: target <- T
-        t_iter = self.visit(node.iter)
-        if isinstance(t_iter, SetType):
-            self.visit(node.target, t_iter.et)
+        iter = self.visit(node.iter)
+        if isinstance(iter.type, SetType):
+            target = self.visit(node.target, iter.type.et)
+        else:
+            target = node.target
+        return node._replace(iter=iter, target=target)
     
     def visit_Comp(self, node):
         # Result: set<elt>
+        clauses = []
         for cl in node.clauses:
             if isinstance(cl, Enumerator):
-                self.visit(cl)
+                cl = self.visit(cl)
             else:
-                t_cl = self.visit(cl)
-                if not t_cl.issubtype(booltype):
+                cl = self.visit(cl)
+                if not cl.type.issubtype(booltype):
                     raise TypeAnalysisFailure('Condition clause requires '
                                               'bool type', node, self.store)
-        t_resexp = self.visit(node.resexp)
-        return SetType(t_resexp)
+            clauses.append(cl)
+        resexp = self.visit(node.resexp)
+        t = SetType(resexp.type)
+        return node._replace(resexp=resexp, clauses=clauses, type=t)
     
     def visit_Aggregate(self, node):
         ### TODO
-        return bottomtype
+        return node._replace(type=bottomtype)
     
     def visit_SetUpdate(self, node):
         # Cond: target <= set<top>
-        t_target = self.visit(node.target)
-        if not t_target.issubtype(SetType(toptype)):
+        target = self.visit(node.target)
+        if not target.type.issubtype(SetType(toptype)):
             raise TypeAnalysisFailure('SetUpdate requires set type',
                                       node, self.store)
-        self.visit(node.elem)
+        elem = self.visit(node.elem)
+        return node._replace(target=target, elem=elem)
     
     def visit_MacroSetUpdate(self, node):
         # Cond: target <= set<top>
         # Cond: other <= set<top> if other is present
-        t_target = self.visit(node.target)
-        if not t_target.issubtype(SetType(toptype)):
+        target = self.visit(node.target)
+        if not target.type.issubtype(SetType(toptype)):
             raise TypeAnalysisFailure('MacroSetUpdate requires set type',
                                       node, self.store)
         if node.other is not None:
-            t_other = self.visit(node.other)
-            if not t_other.issubtype(SetType(toptype)):
+            other = self.visit(node.other)
+            if not other.type.issubtype(SetType(toptype)):
                 raise TypeAnalysisFailure('MacroSetUpdate requires '
                                           'set type', node, self.store)
+        else:
+            other = None
+        return node._replace(target=target, other=other)
     
     visit_RCSetRefUpdate = visit_SetUpdate
     
     def visit_IsEmpty(self, node):
         # Result: bool
         # Cond: target <= set<top>
-        t_target = self.visit(node.target)
-        if not t_target.issubtype(SetType(toptype)):
+        target = self.visit(node.target)
+        if not target.type.issubtype(SetType(toptype)):
             raise TypeAnalysisFailure('IsEmpty requires set type',
                                       node, self.store)
-        return booltype
+        return node._replace(target=target, type=booltype)
     
     def visit_GetRef(self, node):
         # Result: numbertype
         # Cond: target <= set<top>
-        t_target = self.visit(node.target)
-        if not t_target.issubtype(SetType(toptype)):
+        target = self.visit(node.target)
+        if not target.type.issubtype(SetType(toptype)):
             raise TypeAnalysisFailure('IsEmpty requires set type',
                                       node, self.store)
-        self.visit(node.elem)
-        return numbertype
+        elem = self.visit(node.elem)
+        return node._replace(target=target, elem=elem, type=numbertype)
     
     def lookup_helper(self, node, check_default=False):
         # Cond: target = dict<K, V> for some K, V
         # Cond: key <= K
         # Result: V
         # Cond: default <= V if a default is applicable and provided
-        t_target = self.visit(node.target)
-        t_key = self.visit(node.key)
-        if not isinstance(t_target, DictType):
+        target = self.visit(node.target)
+        key = self.visit(node.key)
+        if not isinstance(target.type, DictType):
             raise TypeAnalysisFailure('Lookup requires dict type',
                                        node, self.store)
-        if not t_key.issubtype(t_target.kt):
+        if not key.type.issubtype(target.type.kt):
             raise TypeAnalysisFailure('Lookup key does not fit dict '
                                       'key type', node, self.store)
-        if check_default and node.default is not None:
-            t_default = self.visit(node.default)
-            if not t_default.issubtype(t_target.vt):
-                raise TypeAnalysisFailure('Lookup default does not fit '
-                                          'dict value type', node, self.store)
-        return t_target.vt
+        t = target.type.vt
+        if check_default:
+            if node.default is not None:
+                default = self.visit(node.default)
+                if not default.type.issubtype(target.type.vt):
+                    raise TypeAnalysisFailure('Lookup default does not fit '
+                                              'dict value type',
+                                              node, self.store)
+            else:
+                default = None
+            node = node._replace(target=target, key=key,
+                                 default=default, type=t)
+        else:
+            node = node._replace(target=target, key=key, type=t)
+        return node
     
     def visit_Lookup(self, node):
         return self.lookup_helper(node, check_default=True)
@@ -423,23 +463,23 @@ class TypeAnalyzer(AdvNodeVisitor):
     
     def visit_SMLookup(self, node):
         ### TODO
-        return bottomtype
+        return node._replace(type=bottomtype)
     
     def visit_DemQuery(self, node):
         ### TODO
-        return bottomtype
+        return node._replace(type=bottomtype)
     
     def visit_NoDemQuery(self, node):
         ### TODO
-        return bottomtype
+        return node._replace(type=bottomtype)
     
     def visit_SetMatch(self, node):
         ### TODO
-        return bottomtype
+        return node._replace(type=bottomtype)
     
     def visit_DeltaMatch(self, node):
         ### TODO
-        return bottomtype
+        return node._replace(type=bottomtype)
 
 
 #class TypeAnnotator(NodeTransformer):
@@ -460,9 +500,9 @@ def analyze_types(tree, vartypes=None):
     store = {var: vartypes.get(var, bottomtype)
              for var in varnames}
     
-    TypeAnalyzer.run(tree, store)
+    tree = TypeAnalyzer.run(tree, store)
     
     for k, v in store.items():
         print('  {} -- {}'.format(k, v))
     
-    return store
+    return tree, store
