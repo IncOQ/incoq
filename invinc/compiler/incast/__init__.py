@@ -17,6 +17,7 @@ from .nodes import *
 from .structconv import *
 from .error import *
 from .types import *
+from .typeconstraints import *
 from .helpers import *
 from .util import *
 from .nodeconv import *
