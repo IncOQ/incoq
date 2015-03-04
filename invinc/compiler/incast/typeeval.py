@@ -11,7 +11,7 @@ __all__ = [
 from invinc.util.seq import pairs
 
 from .nodes import (Load, Store, Not, Eq, NotEq, Lt, LtE, Gt, GtE,
-                    Is, IsNot, In, NotIn, Enumerator, expr)
+                    Is, IsNot, In, NotIn, Enumerator, expr, Name)
 from .structconv import AdvNodeTransformer
 from .error import ProgramError
 from .util import VarsFinder
@@ -370,10 +370,11 @@ class TypeAnalyzer(AdvNodeTransformer):
             clauses.append(cl)
         resexp = self.visit(node.resexp)
         t = SetType(resexp.type)
-        return node._replace(resexp=resexp, clauses=clauses, type=t)
+        return node._replace(resexp=resexp, clauses=tuple(clauses), type=t)
     
     def visit_Aggregate(self, node):
         ### TODO
+        node = self.generic_visit(node)
         return node._replace(type=bottomtype)
     
     def visit_SetUpdate(self, node):
@@ -383,6 +384,14 @@ class TypeAnalyzer(AdvNodeTransformer):
             raise TypeAnalysisFailure('SetUpdate requires set type',
                                       node, self.store)
         elem = self.visit(node.elem)
+        
+        # Hack: If target is a Name, update it and its store
+        # variable to be at least set<target>.
+        if isinstance(target, Name):
+            t_target = target.type.join(SetType(elem.type))
+            target = target._replace(type=t_target)
+            self.store[target.id] = t_target
+        
         return node._replace(target=target, elem=elem)
     
     def visit_MacroSetUpdate(self, node):
@@ -463,22 +472,27 @@ class TypeAnalyzer(AdvNodeTransformer):
     
     def visit_SMLookup(self, node):
         ### TODO
+        node = self.generic_visit(node)
         return node._replace(type=bottomtype)
     
     def visit_DemQuery(self, node):
         ### TODO
+        node = self.generic_visit(node)
         return node._replace(type=bottomtype)
     
     def visit_NoDemQuery(self, node):
         ### TODO
+        node = self.generic_visit(node)
         return node._replace(type=bottomtype)
     
     def visit_SetMatch(self, node):
         ### TODO
+        node = self.generic_visit(node)
         return node._replace(type=bottomtype)
     
     def visit_DeltaMatch(self, node):
         ### TODO
+        node = self.generic_visit(node)
         return node._replace(type=bottomtype)
 
 
@@ -500,9 +514,19 @@ def analyze_types(tree, vartypes=None):
     store = {var: vartypes.get(var, bottomtype)
              for var in varnames}
     
-    tree = TypeAnalyzer.run(tree, store)
+    count = 0
+    limit = 5
+    oldtree = None
+    while count < limit:
+        if tree == oldtree:
+            break
+        oldtree = tree
+        tree = TypeAnalyzer.run(tree, store)
+        count += 1
+    else:
+        print('Type analysis cut off after {} iterations'.format(count))
     
-    for k, v in store.items():
-        print('  {} -- {}'.format(k, v))
+#    for k, v in store.items():
+#        print('  {} -- {}'.format(k, v))
     
     return tree, store
