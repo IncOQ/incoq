@@ -49,7 +49,7 @@ class ConstraintCase(unittest.TestCase):
         self.assertEqual(store, exp_store)
         
         c6 = (TypeVar('T1'), bottomtype)
-        with self.assertRaises(TypeAnalysisFailure):
+        with self.assertRaises(TypeConstraintFailure):
             apply_constraint(store, *c6)
     
     def test_analyzer_visitor(self):

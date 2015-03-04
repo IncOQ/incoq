@@ -2,7 +2,7 @@
 
 
 __all__ = [
-    'TypeAnalysisFailure',
+    'TypeConstraintFailure',
     'analyze_types',
 ]
 
@@ -19,7 +19,7 @@ from .error import ProgramError
 from .util import VarsFinder
 
 
-class TypeAnalysisFailure(ProgramError):
+class TypeConstraintFailure(ProgramError):
     
     def __init__(self, node, constraint, store):
         super().__init__(node=node)
@@ -36,7 +36,7 @@ class TypeAnalysisFailure(ProgramError):
 def apply_constraint(store, lower, upper, node=None):
     """Apply constraints to a typevar store. The store is modified
     in-place. If at any point the constraints become unsatisfiable,
-    raise TypeAnalysisFailure.
+    raise TypeConstraintFailure.
     
     Types of variables and expression nodes are held in the store.
     Each constraint has form lhs <= rhs. There are three cases:
@@ -50,7 +50,7 @@ def apply_constraint(store, lower, upper, node=None):
          subterms, respecting variance.
     
       3) otherwise: if the expansions of the lhs and rhs do not
-         satisfy the subtype relation, raise TypeAnalysisFailure.
+         satisfy the subtype relation, raise TypeConstraintFailure.
     """
     assert isinstance(lower, Type) and isinstance(upper, Type)
     lhs = lower.expand(store)
@@ -73,7 +73,7 @@ def apply_constraint(store, lower, upper, node=None):
     # Case 3.
     else:
         if not lhs.issubtype(rhs):
-            raise TypeAnalysisFailure(node, (lower, upper), store)
+            raise TypeConstraintFailure(node, (lower, upper), store)
 
 
 class BaseConstraintGenerator:
