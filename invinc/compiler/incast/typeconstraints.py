@@ -3,7 +3,7 @@
 
 __all__ = [
     'TypeConstraintFailure',
-    'analyze_types',
+    'analyze_types_constraints',
 ]
 
 
@@ -510,7 +510,7 @@ class StoreConstraintGenerator(NodeVisitor, BaseConstraintGenerator):
 #        return node._replace(value=value, slice=slice, type=t)
 
 
-def analyze_types(tree, vartypes=None, objtypes=None):
+def analyze_types_constraints(tree, vartypes=None, objtypes=None):
     """Analyze types."""
     if vartypes is None:
         vartypes = {}

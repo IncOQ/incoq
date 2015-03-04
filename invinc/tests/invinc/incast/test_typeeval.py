@@ -21,12 +21,14 @@ class ConstraintCase(unittest.TestCase):
     
     def test(self):
         tree = self.p('''
+            print(x)
             x, y = (1+2, True and False)
             (x, y)
             [1, 2, 'a']
+            {x for x in S}
             ''')
-        res = TypeAnalyzer.run(tree)
-        for t in res:
+        res = analyze_types(tree, {'S': SetType(strtype)})
+        for t in res.items():
             print(t)
 
 

@@ -102,7 +102,7 @@ class ConstraintCase(unittest.TestCase):
             R.add('a')
             ''')
         stype = SetType(TupleType([numbertype, bottomtype]))
-        tree, vartypes = analyze_types(tree, {'S': stype})
+        tree, vartypes = analyze_types_constraints(tree, {'S': stype})
         source = ts_typed(tree)
         exp_source = trim('''
             for (((x : Number), (y : Bottom)) : (Number, Bottom)) in (S : {(Number, Bottom)}):
@@ -118,7 +118,7 @@ class ConstraintCase(unittest.TestCase):
             d = {5: 'a'}
             y = d[5]
             ''')
-        tree, vartypes = analyze_types(tree, {})
+        tree, vartypes = analyze_types_constraints(tree, {})
         source = ts_typed(tree)
         exp_source = trim('''
             (t : (Number, str)) = (((5 : Number), ('a' : str)) : (Number, str))

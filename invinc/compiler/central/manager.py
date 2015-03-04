@@ -181,7 +181,9 @@ class Manager:
         """Do type analysis on a program fragment using saved type info.
         Return the annotated fragment and update the saved info.
         """
-        tree, self.vartypes = L.analyze_types(tree, self.vartypes)
+        tree, self.vartypes = L.analyze_types_constraints(
+                                        tree, self.vartypes)
+        store = L.analyze_types(tree, self.vartypes)
         return tree
 
 
