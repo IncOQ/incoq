@@ -57,30 +57,23 @@ class TypeCase(unittest.TestCase):
                          TupleType([numbertype, toptype]))
         self.assertEqual(t, exp_t)
     
+    def test_widen(self):
+        t = DictType(SetType(numbertype),
+                     TupleType([toptype, SetType(toptype)]))
+        t1 = t.widen(0)
+        self.assertEqual(t1, toptype)
+        t2 = t.widen(1)
+        self.assertEqual(t2, DictType(toptype, toptype))
+        t3 = t.widen(2)
+        self.assertEqual(t3, DictType(SetType(toptype),
+                                      TupleType([toptype, toptype])))
+        t4 = t.widen(3)
+        self.assertEqual(t4, t)
+    
     def test_eval_typestr(self):
         t = eval_typestr('SetType(numbertype)')
         exp_t = SetType(numbertype)
         self.assertEqual(t, exp_t)
-    
-    
-#    def test_annotator(self):
-#        tree = self.p('''
-#            x = d['a']
-#            y = ('a', 1)
-#            z = {'b': 2, x: y[1]}
-#            print({o.f for o in S if o.f > 0})
-#            ''')
-#        ann = {'d': DictType(strtype, strtype),
-#               'S': SetType(ObjType('O'))}
-#        objtypes = {'O': {'f': numbertype}}
-#        tree = TypeAnnotator.run(tree, ann, objtypes)
-#        source = ts_typed(tree)
-#        exp_source = trim('''
-#            (x : str) = ((d : {str: str})[('a' : str)] : str)
-#            (y : (str, Number)) = ((('a' : str), (1 : Number)) : (str, Number))
-#            (z : {str: Number}) = ({('b' : str): (2 : Number), (x : str): ((y : (str, Number))[(1 : Number)] : Number)} : {str: Number})
-#            ((print : Top)((COMP({((o : O).f : Number) for (o : O) in (S : {O}) if ((((o : O).f : Number) > (0 : Number)) : bool)}, None, None) : Number)) : Top)
-#        ''')
 
 
 if __name__ == '__main__':

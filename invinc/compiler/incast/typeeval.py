@@ -523,14 +523,19 @@ def analyze_types(tree, vartypes=None):
     store = {var: vartypes.get(var, bottomtype)
              for var in varnames}
     
+    def widen(store):
+        for n, t in store.items():
+            store[n] = t.widen(5)
+    
     count = 0
-    limit = 5
+    limit = 10
     oldtree = None
     while count < limit:
         if tree == oldtree:
             break
         oldtree = tree
         tree = TypeAnalyzer.run(tree, store)
+        widen(store)
         count += 1
     else:
         print('Type analysis cut off after {} iterations'.format(count))

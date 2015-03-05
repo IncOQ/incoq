@@ -150,6 +150,18 @@ class Type(Struct):
         (a mapping from typevar names to ground type expressions).
         """
         return self
+    
+    def widen(self, limit):
+        """Return a widened type that replaces nested types with
+        top if they are at least limit levels deep.
+        """
+        if limit == 0:
+            return toptype
+        else:
+            return self.widen_helper(limit)
+    
+    def widen_helper(self, limit):
+        return self
 
 class TopTypeClass(Type):
     """No type info."""
@@ -217,6 +229,10 @@ class TupleType(Type):
     def expand(self, store):
         new_ets = [et.expand(store) for et in self.ets]
         return self._replace(ets=new_ets)
+    
+    def widen_helper(self, limit):
+        new_ets = [et.widen(limit - 1) for et in self.ets]
+        return self._replace(ets=new_ets)
 
 class SeqType(Type):
     et = TypedField(Type)
@@ -237,6 +253,10 @@ class SeqType(Type):
     
     def expand(self, store):
         new_et = self.et.expand(store)
+        return self._replace(et=new_et)
+    
+    def widen_helper(self, limit):
+        new_et = self.et.widen(limit - 1)
         return self._replace(et=new_et)
 
 class ListType(SeqType):
@@ -272,6 +292,11 @@ class DictType(Type):
     def expand(self, store):
         new_kt = self.kt.expand(store)
         new_vt = self.vt.expand(store)
+        return self._replace(kt=new_kt, vt=new_vt)
+    
+    def widen_helper(self, limit):
+        new_kt = self.kt.widen(limit - 1)
+        new_vt = self.vt.widen(limit - 1)
         return self._replace(kt=new_kt, vt=new_vt)
 
 class ObjType(Type):

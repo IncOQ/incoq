@@ -42,6 +42,16 @@ class ConstraintCase(unittest.TestCase):
             ''')
         tree, store = analyze_types(tree, {'x': numbertype})
         self.assertEqual(store['S'], SetType(numbertype))
+    
+    def test_program3(self):
+        tree = self.p('''
+            S.add(T)
+            T.add(S)
+            ''')
+        tree, store = analyze_types(tree)
+        s = str(store['S'])
+        exp_s = '{{{{{Top}}}}}'
+        self.assertEqual(s, exp_s)
 
 
 if __name__ == '__main__':
