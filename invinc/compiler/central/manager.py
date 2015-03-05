@@ -98,11 +98,6 @@ class Manager:
         
         self.vartypes = {}
         """Variable types. Keys are variable names, values are type terms."""
-        self.domcosts = {}
-        """Domain costs. This is a mapping from relation name to a second
-        mapping, whose keys are tuple tree access paths -- tuples of
-        indices -- and whose values are cost terms.
-        """
         
         self.stats = {
             'trans time': 0,        # transformation time (process time)

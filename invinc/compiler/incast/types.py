@@ -17,7 +17,9 @@ __all__ = [
     'SetType',
     'DictType',
     'ObjType',
+    'RestrictiveType',
     'RefineType',
+    'EnumType',
     'TypeVar',
     
     'eval_typestr',
@@ -310,7 +312,7 @@ class ObjType(Type):
     def matches_helper(self, other):
         return False
 
-class RefineType(Type):
+class RestrictiveType(Type):
     name = TypedField(str)
     base = TypedField(Type)
     
@@ -350,6 +352,13 @@ class RefineType(Type):
         else:
             new_type = self
         return new_type
+
+class RefineType(RestrictiveType):
+    _inherit_fields = True
+
+class EnumType(RestrictiveType):
+    _inherit_fields = True
+    
 
 class TypeVar(Type):
     name = TypedField(str)

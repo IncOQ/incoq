@@ -236,18 +236,5 @@ def flatten_relations(tree, rels, manager):
                 manager.vartypes[rel] = L.SetType(L.TupleType(elt_types))
             else:
                 del manager.vartypes[rel]
-        
-        # Update domain costs in manager.
-        if rel in manager.domcosts:
-            rel_domcosts = manager.domcosts[rel]
-            new_domcosts = {}
-            for path, cost in rel_domcosts.items():
-                if path not in paths:
-                    # Unfortunately, no new domain cost is available
-                    # to replace the old one.
-                    continue
-                idx = paths.index(path)
-                new_domcosts[(idx,)] = cost
-            manager.domcosts[rel] = new_domcosts
     
     return tree

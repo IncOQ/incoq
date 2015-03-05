@@ -434,16 +434,6 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     vartypes = {k: L.eval_typestr(v) for k, v in typeann.items()}
     manager.vartypes = vartypes
     
-    costann = opman.get_opt('dom_costs')
-    domcosts = {}
-    for k, v in costann.items():
-        head, *tail = k.split('.')
-        tail = tuple(int(i) for i in tail)
-        map = domcosts.setdefault(head, {})
-        cost = eval_coststr(v)
-        map[tail] = cost
-    manager.domcosts = domcosts
-    
     flatten_rels = opman.get_opt('flatten_rels')
     
     # DistAlgo message sets may be considered as relations
@@ -459,7 +449,7 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     if len(flatten_rels) > 0:
         if verbose:
             print('Flattening relations: ' + ', '.join(flatten_rels))
-        # This will also update the manager vartypes and domcosts.
+        # This will also update the manager vartypes.
         tree = flatten_relations(tree, flatten_rels, manager)
     
     tree = elim_inputrel_params(tree, input_rels)

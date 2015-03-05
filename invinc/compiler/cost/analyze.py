@@ -401,6 +401,8 @@ def type_to_cost(t, pathcosts=None, path=()):
                             for i, et in enumerate(t.ets)])
     elif isinstance(t, (L.ObjType, L.RefineType)):
         return NameCost(t.name)
+    elif isinstance(t, L.EnumType):
+        return UnitCost()
     else:
         return UnknownCost()
 
@@ -427,8 +429,7 @@ class VarRewriter(CostTransformer):
         if not isinstance(t, L.SetType):
             return cost
         
-        dcosts = self.manager.domcosts.get(rel, {})
-        c = type_to_cost(t.et, dcosts)
+        c = type_to_cost(t.et)
         if isinstance(c, UnknownCost):
             return cost
         return c
@@ -453,10 +454,8 @@ class VarRewriter(CostTransformer):
             ets = [(i, et) for i, et in ets
                            if i != len(cost.mask.parts) - 1]
         
-        dcosts = self.manager.domcosts.get(rel, {})
-        # When we use type_to_cost, start at the index for
-        # each unbound part.
-        ecosts = [type_to_cost(et, dcosts, (i,)) for i, et in ets]
+        # The index i stuff is leftover from when domcosts were used.
+        ecosts = [type_to_cost(et) for i, et in ets]
         if any(isinstance(c, UnknownCost) for c in ecosts):
             return cost
         return ProductCost(ecosts)

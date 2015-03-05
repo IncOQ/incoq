@@ -169,34 +169,22 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 
 class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
     _inherit_fields = True
+    
+    msgset_t = '''SetType(TupleType([
+        toptype, toptype, TupleType([
+             EnumType('msglabel', strtype),
+             RefineType('clocks', numbertype),
+             RefineType('procs', numbertype),
+        ])]))'''
+    
     extra_nopts = {
         'var_types': {
-            '_PReceivedEvent_0':
-                '''SetType(TupleType([
-                    toptype, toptype, TupleType([
-                        strtype, numbertype, numbertype    #ObjType('clocks'), ObjType('procs')
-                    ])]))''',
-            '_PReceivedEvent_1':
-                '''SetType(TupleType([
-                    toptype, toptype, TupleType([
-                        strtype, numbertype, numbertype,   #ObjType('clocks'), ObjType('procs')
-                    ])]))''',
-            '_PReceivedEvent_2':
-                '''SetType(TupleType([
-                    toptype, toptype, TupleType([
-                        strtype, numbertype, numbertype,   #ObjType('clocks'), ObjType('procs')
-                    ])]))''',
-            'SELF_ID':
-                '''numbertype#ObjType('procs')''',
-            'P_mutex_c':
-                '''numbertype#ObjType('clocks')''',
-            'P_s':
-                '''SetType(numbertype)#ObjType('procs'))''',
-            },
-        'dom_costs': {
-            '_PReceivedEvent_0.2.0': '''UnitCost()''',
-            '_PReceivedEvent_1.2.0': '''UnitCost()''',
-            '_PReceivedEvent_2.2.0': '''UnitCost()''',
+            '_PReceivedEvent_0': msgset_t,
+            '_PReceivedEvent_1': msgset_t,
+            '_PReceivedEvent_2': msgset_t,
+            'SELF_ID': "RefineType('procs', numbertype)",
+            'P_mutex_c':  "RefineType('clocks', numbertype)",
+            'P_s':  "SetType(RefineType('procs', numbertype))",
             },
     }
 #    def __init__(self, *args, **kargs):
