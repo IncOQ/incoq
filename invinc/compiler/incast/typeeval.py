@@ -249,11 +249,20 @@ class TypeAnalyzer(AdvNodeTransformer):
         # If True/False:
         #     Result: bool
         # If None:
-        #     Result: top
+        #     Result: bottom
         if node.value in [True, False]:
             t = booltype
         else:
-            t = toptype
+            # Arguably, None should be toptype since it is
+            # definitively a value that doesn't fit into
+            # other classifications. But this messes with
+            # global variable initialization in some of the
+            # distalgo examples (SELF_ID = None at the header
+            # makes SELF_ID be considered to have top type).
+            #
+            # The tradeoff is that expressions like 5 + None
+            # won't be caught as type errors.
+            t = bottomtype
         return node._replace(type=t)
     
     visit_Ellipsis = top_helper
