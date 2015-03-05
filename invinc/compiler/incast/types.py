@@ -17,6 +17,7 @@ __all__ = [
     'SetType',
     'DictType',
     'ObjType',
+    'RefineType',
     'TypeVar',
     
     'eval_typestr',
@@ -73,10 +74,8 @@ class Type(Struct):
             return True
         elif self == other:
             return True
-        elif type(self) == type(other):
-            return self.issubtype_helper(other)
         else:
-            return False
+            return self.issubtype_helper(other)
     
     def issubtype_helper(self, other):
         return False
@@ -116,23 +115,14 @@ class Type(Struct):
         return t
     
     def join_one(self, other, *, inverted=False):
-        top, bottom = toptype, bottomtype
-        if inverted:
-            top, bottom = bottom, top
-        
-        if top in [self, other]:
-            return top
-        elif self is bottom:
-            return other
-        elif other is bottom:
-            return self
-        # Neither top nor bottom.
+        if self.issubtype(other):
+            return other if not inverted else self
+        elif other.issubtype(self):
+            return self if not inverted else other
         elif self == other:
             return self
-        elif type(self) == type(other):
-            return self.join_helper(other, inverted=inverted)
         else:
-            return top
+            return self.join_helper(other, inverted=inverted)
     
     def join_helper(self, other, *, inverted=False):
         """Join with one other type of the same class as this one.
@@ -143,7 +133,7 @@ class Type(Struct):
     def meet(self, *others, inverted=False):
         """Take the lattice meet with one or more other types,
         returning a new type."""
-        return self.join(*others, inverted=inverted)
+        return self.join(*others, inverted=not inverted)
     
     def expand(self, store):
         """Expand a type expression, given a typevar store
@@ -207,6 +197,8 @@ class TupleType(Type):
         return '(' + ', '.join(str(et) for et in self.ets) + ')'
     
     def issubtype_helper(self, other):
+        if type(self) != type(other):
+            return False
         if len(self.ets) != len(other.ets):
             return False
         return all(et1.issubtype(et2)
@@ -220,6 +212,8 @@ class TupleType(Type):
     
     def join_helper(self, other, *, inverted=False):
         top = toptype if not inverted else bottomtype
+        if type(self) != type(other):
+            return top
         if len(self.ets) != len(other.ets):
             return top
         new_ets = [et1.join(et2, inverted=inverted)
@@ -242,9 +236,13 @@ class SeqType(Type):
         return self.brackets[0] + str(self.et) + self.brackets[1]
     
     def issubtype_helper(self, other):
+        if type(self) != type(other):
+            return False
         return self.et.issubtype(other.et)
     
     def join_helper(self, other, inverted=False):
+        if type(self) != type(other):
+            return toptype if not inverted else bottomtype
         new_et = self.et.join(other.et, inverted=inverted)
         return self._replace(et=new_et)
     
@@ -278,10 +276,14 @@ class DictType(Type):
         return '{' + str(self.kt) + ': ' + str(self.vt) + '}'
     
     def issubtype_helper(self, other):
+        if type(self) != type(other):
+            return False
         return (self.kt.issubtype(other.kt) and
                 self.vt.issubtype(other.vt))
     
-    def join_helper(self, other, *, inverted=True):
+    def join_helper(self, other, *, inverted=False):
+        if type(self) != type(other):
+            return toptype if not inverted else bottomtype
         new_kt = self.kt.join(other.kt, inverted=inverted)
         new_vt = self.vt.join(other.vt, inverted=inverted)
         return self._replace(kt=new_kt, vt=new_vt)
@@ -302,11 +304,52 @@ class DictType(Type):
 class ObjType(Type):
     name = TypedField(str)
     
+    def __str__(self):
+        return self.name
+    
+    def matches_helper(self, other):
+        return False
+
+class RefineType(Type):
+    name = TypedField(str)
+    base = TypedField(Type)
+    
+    def __str(self):
+        return self.name
+    
+    def issubtype_helper(self, other):
+        return self.base.issubtype(other)
+    
     def matches_helper(self, other):
         return False
     
-    def __str__(self):
-        return self.name
+    def join_helper(self, other, *, inverted=False):
+        # My join with any type that's not directly comparable
+        # is the same as my base's join with that type, since
+        # my base is my only direct ancestor.
+        #
+        # My meet with any type that's not directly comparable
+        # is bottom, since the only possible non-bottom subtypes
+        # are other refinements, which would have no ancestors
+        # that are incomparable to me.
+        if not inverted:
+            return self.base.join(other, inverted=inverted)
+        else:
+            return bottomtype
+    
+    def expand(self, store):
+        new_base = self.base.expand(store)
+        return self._replace(base=new_base)
+    
+    def widen_helper(self, limit):
+        # Rather than lose information in the base, it's probably
+        # better to just replace ourselves with the base.
+        widened_base = self.base.widen(limit - 1)
+        if self.base != widened_base:
+            new_type = self.base.widen(limit)
+        else:
+            new_type = self
+        return new_type
 
 class TypeVar(Type):
     name = TypedField(str)

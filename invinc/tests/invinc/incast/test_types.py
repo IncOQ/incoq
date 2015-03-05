@@ -70,6 +70,17 @@ class TypeCase(unittest.TestCase):
         t4 = t.widen(3)
         self.assertEqual(t4, t)
     
+    def test_refine(self):
+        t1 = RefineType('foo', numbertype)
+        self.assertTrue(t1.issubtype(numbertype))
+        self.assertEqual(t1.join(numbertype), numbertype)
+        t2 = RefineType('bar', numbertype)
+        self.assertTrue(t1.join(t2), numbertype)
+        self.assertEqual(t1.meet(t2), bottomtype)
+        
+        t3 = RefineType('baz', SetType(numbertype))
+        self.assertEqual(t3.widen(2), SetType(numbertype))
+    
     def test_eval_typestr(self):
         t = eval_typestr('SetType(numbertype)')
         exp_t = SetType(numbertype)

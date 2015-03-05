@@ -374,7 +374,8 @@ class CostLabelAdder(L.NodeTransformer):
         if cost is None:
             return node
         else:
-            header = (L.Comment('Cost: O({})'.format(str(cost))),)
+            pretty = PrettyPrinter.run(cost)
+            header = (L.Comment('Cost: O({})'.format(pretty)),)
             return node._replace(body=header + node.body)
 
 
@@ -398,7 +399,7 @@ def type_to_cost(t, pathcosts=None, path=()):
     elif isinstance(t, L.TupleType):
         return ProductCost([type_to_cost(et, pathcosts, path + (i,))
                             for i, et in enumerate(t.ets)])
-    elif isinstance(t, L.ObjType):
+    elif isinstance(t, (L.ObjType, L.RefineType)):
         return NameCost(t.name)
     else:
         return UnknownCost()
