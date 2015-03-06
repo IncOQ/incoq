@@ -170,21 +170,19 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
     _inherit_fields = True
     
-    msgset_t = '''SetType(TupleType([
-        toptype, toptype, TupleType([
-             EnumType('msglabel', strtype),
-             RefineType('clocks', numbertype),
-             RefineType('procs', numbertype),
-        ])]))'''
+    msgset_t = '''set(tuple([top, top, tuple([
+                               enum('msglabel', str),
+                               subtype('clocks', number),
+                               subtype('procs', number)])]))'''
     
     extra_nopts = {
         'var_types': {
             '_PReceivedEvent_0': msgset_t,
             '_PReceivedEvent_1': msgset_t,
             '_PReceivedEvent_2': msgset_t,
-            'SELF_ID': "RefineType('procs', numbertype)",
-            'P_mutex_c':  "RefineType('clocks', numbertype)",
-            'P_s':  "SetType(RefineType('procs', numbertype))",
+            'SELF_ID': "subtype('procs', number)",
+            'P_mutex_c':  "subtype('clocks', number)",
+            'P_s':  "set(subtype('procs', number))",
             },
     }
 #    def __init__(self, *args, **kargs):

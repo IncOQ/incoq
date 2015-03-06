@@ -23,6 +23,7 @@ __all__ = [
     'TypeVar',
     
     'eval_typestr',
+    'parse_typestr',
     
     'TypedUnparser',
     'unparse_structast_typed',
@@ -386,6 +387,24 @@ def eval_typestr(s):
     ns = {k: v for k, v in globals().items()
                if isinstance(v, Type) or
                   (isinstance(v, type) and issubclass(v, Type))}
+    return eval(s, ns)
+
+def parse_typestr(s):
+    """Parse a string representing a type expression."""
+    ns = {
+        'top':      toptype,
+        'bottom':   bottomtype,
+        'bool':     booltype,
+        'number':   numbertype,
+        'str':      strtype,
+        'tuple':    TupleType,
+        'list':     ListType,
+        'set':      SetType,
+        'dict':     DictType,
+        'obj':      ObjType,
+        'subtype':  RefineType,
+        'enum':     EnumType,
+    }
     return eval(s, ns)
 
 

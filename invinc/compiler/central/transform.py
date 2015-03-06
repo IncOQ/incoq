@@ -431,7 +431,7 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     
     # Get type annotations and cost annotations/
     typeann = opman.get_opt('var_types')
-    vartypes = {k: L.eval_typestr(v) for k, v in typeann.items()}
+    vartypes = {k: L.parse_typestr(v) for k, v in typeann.items()}
     manager.vartypes = vartypes
     
     flatten_rels = opman.get_opt('flatten_rels')
