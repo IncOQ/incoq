@@ -11,6 +11,7 @@ __all__ = [
 
 import invinc.compiler.incast as L
 from invinc.compiler.set import Mask
+from invinc.compiler.aggr import IncAggr
 
 from .cost import *
 
@@ -450,9 +451,12 @@ class VarRewriter(CostTransformer):
         # Special case for aggregates: If the keys have no
         # wildcards, the result component is functionally
         # determined and can therefore be omitted from the cost.
-        if 'w' not in cost.mask.parts[:-1]:
-            ets = [(i, et) for i, et in ets
-                           if i != len(cost.mask.parts) - 1]
+        aggr_names = [name for name, inv in self.manager.invariants.items()
+                          if isinstance(inv, IncAggr)]
+        if (rel in aggr_names and 
+            'w' not in cost.mask.parts[:-1]):
+                ets = [(i, et) for i, et in ets
+                               if i != len(cost.mask.parts) - 1]
         
         # The index i stuff is leftover from when domcosts were used.
         ecosts = [type_to_cost(et) for i, et in ets]
