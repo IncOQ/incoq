@@ -194,8 +194,13 @@ class TypeAnalyzer(AdvNodeTransformer):
         # If op is membership or its negation:
         #     Cond: right <= set<top>
         def allowed(t):
-            return (t.issubtype(numbertype) or
-                    isinstance(t, TupleType))
+            return (t.issubtype(booltype) or
+                    t.issubtype(numbertype) or
+                    t.issubtype(strtype) or
+                    isinstance(t, TupleType) or
+                    isinstance(t, ListType) or
+                    isinstance(t, SetType) or
+                    isinstance(t, DictType))
         
         if isinstance(op, (Lt, LtE, Gt, GtE)):
             if not (allowed(t_left) and allowed(t_right)):
