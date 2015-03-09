@@ -50,7 +50,7 @@ class ConstraintCase(unittest.TestCase):
             ''')
         tree, store = analyze_types(tree)
         s = str(store['S'])
-        exp_s = '{{{{{Top}}}}}'
+        exp_s = '{{{{{{{{{{Top}}}}}}}}}}'
         self.assertEqual(s, exp_s)
 
 

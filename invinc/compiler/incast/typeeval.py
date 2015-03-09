@@ -529,7 +529,7 @@ def analyze_types(tree, vartypes=None):
     
     def widen(store):
         for n, t in store.items():
-            store[n] = t.widen(5)
+            store[n] = t.widen(10)
     
     count = 0
     limit = 10
