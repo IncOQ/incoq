@@ -1,139 +1,9 @@
 """Invoke the transformation system."""
 
 
-import os
 from time import clock
-from simplestruct import Field, TypedField
 
-from invinc.transform import Task, do_tasks
-
-
-class TestProgramTask(Task):
-    
-    prog = Field(str)
-    """Test program path, relative to the invinc/tests/programs
-    directory, excluding the "_in.py" suffix.
-    """
-    
-    def __init__(self, prog):
-        path = os.path.join('invinc/tests/programs', prog)
-        self.input_name = path + '_in.py'
-        self.output_name = path + '_out.py'
-        self.nopts = {'verbose': True, 'eol': 'lf'}
-        self.qopts = {}
-        self.display_name = prog
-
-
-class TaskTemplate(Task):
-    
-    display_name = TypedField(str)
-    base_name = TypedField(str)
-    """Base name to use, relative to src/, excluding suffix like
-    _in.py, _dem.py, etc.
-    """
-    qopts = Field()
-    
-    out_suffix_override = Field()
-    display_suffix_override = Field()
-    """If given, override the class default."""
-    
-    out_suffix = None
-    """Suffix appended to output filename, excluding .py."""
-    
-    display_suffix = None
-    """Suffix appended to display name."""
-    
-    extra_nopts = {}
-    """nopts to use. Note that entries in this dictionary are inherited
-    and merged with entries in subclasses.
-    """
-    
-    def __init__(self, display_name, base_name, qopts,
-                 out_suffix_override, display_suffix_override):
-        if out_suffix_override is not None:
-            self.out_suffix = out_suffix_override
-        if display_suffix_override is not None:
-            self.display_suffix = display_suffix_override
-        
-        self.input_name = base_name + '_in.py'
-        self.output_name = '{}_{}.py'.format(base_name, self.out_suffix)
-        
-        bases = [c for c in type(self).__mro__
-                   if issubclass(c, TaskTemplate)]
-        self.nopts = {}
-        for c in reversed(bases):
-            self.nopts.update(c.extra_nopts)
-        
-        self.display_name = display_name + ' ' + self.display_suffix
-
-class IN(Task):
-    
-    display_name = TypedField(str)
-    base_name = TypedField(str)
-    
-    def __init__(self, display_name, base_name):
-        self.display_name = display_name + ' Input'
-        self.input_name = base_name + '_in.py'
-        self.output_name = None
-
-class COM(TaskTemplate):
-    _inherit_fields = True
-    extra_nopts = {'verbose': True,
-                   'maint_inline': False,
-                   'analyze_costs': True,
-                   'selfjoin_strat': 'sub',
-                   'default_aggr_halfdemand': True,
-                   'autodetect_input_rels': True}
-
-class AUX(COM):
-    _inherit_fields = True
-    out_suffix = 'aux'
-    display_suffix = 'Batch w/ maps'
-    extra_nopts = {'default_impl': 'auxonly'}
-
-class INC(COM):
-    _inherit_fields = True
-    out_suffix = 'inc'
-    display_suffix = 'Unfiltered'
-    extra_nopts = {'default_impl': 'inc'}
-
-class INC_SUBDEM(INC):
-    _inherit_fields = True
-    extra_nopts = {'subdem_tags': False}
-
-class INC_SUBDEM_OBJ(INC_SUBDEM):
-    _inherit_fields = True
-    extra_nopts = {'obj_domain': True}
-
-class DEM(COM):
-    _inherit_fields = True
-    out_suffix = 'dem'
-    display_suffix = 'Filtered'
-    extra_nopts = {'default_impl': 'dem'}
-
-class DEM_NONINLINE(DEM):
-    _inherit_fields = True
-    out_suffix = 'dem_noninline'
-    display_suffix = 'Filtered (no inline)'
-    extra_nopts = {'maint_inline': False}
-
-class DEM_NO_TAG_CHECK(DEM):
-    _inherit_fields = True
-    out_suffix = 'dem_notagcheck'
-    display_suffix = 'Filtered (no demand checks)'
-    extra_nopts = {'tag_checks': False}
-
-class DEM_OBJ(DEM):
-    _inherit_fields = True
-    out_suffix = 'dem'
-    display_suffix = 'Filtered (obj)'
-    extra_nopts = {'obj_domain': True}
-
-class DEM_SUBDEM(DEM):
-    _inherit_fields = True
-    out_suffix = 'dem_subdem'
-    display_suffix = 'Filtered (alternate subquery demand)'
-    extra_nopts = {'subdem_tags': False}
+from invinc.transform import *
 
 
 all_tasks = []
@@ -142,30 +12,15 @@ def add_task(task):
     all_tasks.append(task)
 
 def add_impls(display_name, base_name, templates):
-    add_task(IN(display_name, base_name))
+    add_task(make_in_task(display_name, base_name))
     for template in templates:
-        add_task(template(display_name, base_name, {}, None, None))
+        in_name = base_name + '_in.py'
+        out_name = base_name + '.py'
+        task = Task(display_name, in_name, out_name, {}, {})
+        add_task(task_from_template(task, template))
 
 
 # ---- Program-specific tasks ----
-
-lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
-    {
-     '''count({(c2, p) for (_, _, (_ConstantPattern11_, c2, p)) in
-        _PReceivedEvent_0 if (_ConstantPattern11_ == 'request')
-        if (not ((count({(c3, p) for (_, _, (_ConstantPattern25_, c3,
-        _FreePattern27_)) in _PReceivedEvent_1 if (_ConstantPattern25_
-        == 'release') if (_FreePattern27_ == p) if (c3 > c2)}) > 0) or
-        ((P_mutex_c, SELF_ID) < (c2, p))))})
-     ''':
-        {'uset_lru': 1},
-     
-     '''count({p for p in P_s for (_, _, (_ConstantPattern40_, c2,
-        _FreePattern42_)) in _PReceivedEvent_2 if (_ConstantPattern40_
-        == 'ack') if (_FreePattern42_ == p) if (c2 > P_mutex_c)})
-     ''':
-        {'uset_lru': 1},
-    }, 'dem_lru', '(LRU)')
 
 class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
     _inherit_fields = True
@@ -183,47 +38,6 @@ class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
             'SELF_ID': "subtype('procs', number)",
             'P_mutex_c':  "subtype('clocks', number)",
             'P_s':  "set(subtype('procs', number))",
-            },
-    }
-#    def __init__(self, *args, **kargs):
-#        self.qopts = {
-#            '''{(p, c3)
-#                for (_, _, (_ConstantPattern25_, c3, _FreePattern27_))
-#                  in _PReceivedEvent_1
-#                if (_ConstantPattern25_ == 'release')
-#                if (_FreePattern27_ == p) if (c3 > c2)}''':
-#            {'uset_mode': 'explicit',
-#             'uset_params': ['p', 'c2']
-#            }
-#        }
-#        super().__init__(*args, **kargs)
-
-class INC_SUBDEM_LAMUTEX2(INC_SUBDEM):
-    _inherit_fields = True
-    extra_nopts = {
-        'var_types': {
-            '_PReceivedEvent_0':
-                '''SetType(TupleType([
-                    toptype, toptype, toptype, ObjType('procs'),
-                        TupleType([strtype, ObjType('clocks')
-                    ])]))''',
-            'SELF_ID':
-                '''ObjType('procs')''',
-            'P_mutex_c':
-                '''ObjType('clocks')''',
-            'P_cs_reqc':
-                '''ObjType('clocks')''',
-            'P_ps':
-                '''SetType(ObjType('procs'))''',
-            'P_q':
-                '''SetType(TupleType([ObjType('clocks'),
-                                      ObjType('procs')]))''',
-            },
-        'dom_costs': {
-            '_PReceivedEvent_0.2.0': '''UnitCost()''',
-            '_U_Comp1.0': '''UnitCost()''',
-            '_U_Comp1.1': '''UnitCost()''',
-            '_U_Comp6': '''UnitCost()''',
             },
     }
 
@@ -313,9 +127,9 @@ class INC_SUBDEM_LAMUTEX2(INC_SUBDEM):
 #    INC_SUBDEM,
 #    DEM,
 #])
-add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
-    INC_SUBDEM_LAMUTEX,
-])
+#add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
+#    INC_SUBDEM_LAMUTEX,
+#])
 #add_task(lamutex_lru)
 #add_impls('lamutex opt1', 'experiments/distalgo/lamutex/lamutex_opt1_inc', [
 #    INC_SUBDEM_LAMUTEX,
@@ -324,7 +138,7 @@ add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
 #    INC_SUBDEM_LAMUTEX,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
-#    INC_SUBDEM_LAMUTEX2,
+#    INC_SUBDEM,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,
@@ -428,7 +242,7 @@ test_programs = [
 ]
 
 for name in test_programs:
-    add_task(TestProgramTask(name))
+    add_task(make_testprogram_task(name))
 
 
 t1 = clock()
