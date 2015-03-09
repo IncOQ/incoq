@@ -250,3 +250,7 @@ do_tasks(all_tasks)
 t2 = clock()
 
 print('Done  ({:.3f} s)'.format(t2 - t1))
+
+from invinc.transform import StatsDB, Session
+stats = StatsDB('transstats.pickle')
+Session.interact(stats, name='Social Unfiltered')

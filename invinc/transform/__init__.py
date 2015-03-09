@@ -3,3 +3,4 @@
 
 # Exports.
 from .trans import *
+from .statsdb import *

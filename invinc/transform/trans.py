@@ -81,10 +81,7 @@ def do_tasks(tasks):
     for t in tasks:
         cur_stats = run_task(t)
         if cur_stats is not None:
-            # Merge new stats with old. Note that 'costrules' and
-            # other persistent interactive data will be left alone.
-            stats = statsdb.stats.setdefault(t.display_name, {})
-            stats.update(cur_stats)
+            statsdb.stats[t.display_name] = cur_stats
     
     statsdb.save()
 

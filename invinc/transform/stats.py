@@ -283,7 +283,9 @@ class BaseStatsDB:
 
 class StatsDB(BaseStatsDB):
     
-    db_path = os.path.dirname(__file__)
+    @property
+    def db_path(self):
+        return os.getcwd()
     db_name = 'transstats.pickle'
     csv_format = 'transstats-{}.csv'
     
