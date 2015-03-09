@@ -23,6 +23,7 @@ __all__ = [
 ]
 
 
+from time import clock
 from os.path import normpath, relpath, join, splitext
 
 from simplestruct import Struct, Field, TypedField
@@ -31,7 +32,7 @@ from invinc.util.linecount import get_loc_file
 from invinc.compiler.incast import print_exc_with_ast
 from invinc.compiler.central import transform_file
 
-from .stats import StatsDB
+from .statsdb import StatsDB
 
 
 class Task(Struct):
@@ -71,19 +72,22 @@ def run_task(task):
         return None
 
 
-def do_tasks(tasks):
+def do_tasks(tasks, path):
     """Run a sequence of transformation tasks, updating the
-    stats database.
+    stats database. Return the time elapsed.
     """
-    statsdb = StatsDB()
+    t1 = clock()
+    statsdb = StatsDB(path)
     statsdb.load()
     
     for t in tasks:
         cur_stats = run_task(t)
         if cur_stats is not None:
-            statsdb.stats[t.display_name] = cur_stats
+            statsdb.allstats[t.display_name] = cur_stats
     
     statsdb.save()
+    t2 = clock()
+    return t2 - t1
 
 
 def make_testprogram_task(prog):

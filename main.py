@@ -1,9 +1,10 @@
 """Invoke the transformation system."""
 
 
-from time import clock
-
 from invinc.transform import *
+
+
+STATS_FILE = 'transstats.pickle'
 
 
 all_tasks = []
@@ -245,12 +246,17 @@ for name in test_programs:
     add_task(make_testprogram_task(name))
 
 
-t1 = clock()
-do_tasks(all_tasks)
-t2 = clock()
+elapsed = do_tasks(all_tasks, STATS_FILE)
 
-print('Done  ({:.3f} s)'.format(t2 - t1))
+print('Done  ({:.3f} s)'.format(elapsed))
 
-from invinc.transform import StatsDB, Session
-stats = StatsDB('transstats.pickle')
-Session.interact(stats, name='Social Unfiltered')
+from invinc.transform import StatsDB, Session, StandardSchema
+class MySchema(StandardSchema):
+    rows = [
+        ('Social Input', 'Twitter Orig'),
+        ('Social Unfiltered', 'Twitter Inc'),
+        ('Social Filtered', 'Twitter Dem'),
+    ]
+stats = StatsDB(STATS_FILE)
+print(MySchema(stats.allstats).to_ascii())
+#Session.interact(stats, name='Social Unfiltered')

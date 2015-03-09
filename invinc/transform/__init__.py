@@ -2,5 +2,6 @@
 
 
 # Exports.
-from .trans import *
 from .statsdb import *
+from .schema import *
+from .trans import *

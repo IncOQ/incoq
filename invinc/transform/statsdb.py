@@ -3,6 +3,7 @@
 
 __all__ = [
     'StatsDB',
+    'BaseSession',
     'Session',
 ]
 
@@ -14,21 +15,27 @@ import code
 
 class StatsDB:
     
+    """A collection of transformation stats and an associated path
+    to a persistent file. Stats are represented as a mapping from
+    an entry name (the display name for that particular transformation)
+    to a stats dictionary (as returned by the compiler).
+    """
+    
     def __init__(self, path):
         self.path = path
-        self.stats = {}
+        self.allstats = {}
         self.load()
     
     def load(self):
         """Load stats from file if it exists."""
         if os.path.exists(self.path):
             with open(self.path, 'rb') as db:
-                self.stats = pickle.load(db)
+                self.allstats = pickle.load(db)
     
     def save(self):
         """Save stats and csv."""
         with open(self.path, 'wb') as db:
-            pickle.dump(self.stats, db)
+            pickle.dump(self.allstats, db)
 
 
 class BaseSession:
@@ -60,7 +67,7 @@ class BaseSession:
     def __init__(self, statsdb):
         self.ns = self.Namespace(self)
         self.ns['statsdb'] = statsdb
-        self.ns['allstats'] = statsdb.stats
+        self.ns['allstats'] = statsdb.allstats
     
     def cmd_reload(self):
         self.ns['statsdb'].load()
