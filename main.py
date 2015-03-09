@@ -169,34 +169,20 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 
 class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
     _inherit_fields = True
+    
+    msgset_t = '''set(tuple([top, top, tuple([
+                               enum('msglabel', str),
+                               subtype('clocks', number),
+                               subtype('procs', number)])]))'''
+    
     extra_nopts = {
         'var_types': {
-            '_PReceivedEvent_0':
-                '''SetType(TupleType([
-                    toptype, toptype, TupleType([
-                        strtype, ObjType('clocks'), ObjType('procs')
-                    ])]))''',
-            '_PReceivedEvent_1':
-                '''SetType(TupleType([
-                    toptype, toptype, TupleType([
-                        strtype, ObjType('clocks'), ObjType('procs')
-                    ])]))''',
-            '_PReceivedEvent_2':
-                '''SetType(TupleType([
-                    toptype, toptype, TupleType([
-                        strtype, ObjType('clocks'), ObjType('procs')
-                    ])]))''',
-            'SELF_ID':
-                '''ObjType('procs')''',
-            'P_mutex_c':
-                '''ObjType('clocks')''',
-            'P_s':
-                '''SetType(ObjType('procs'))''',
-            },
-        'dom_costs': {
-            '_PReceivedEvent_0.2.0': '''UnitCost()''',
-            '_PReceivedEvent_1.2.0': '''UnitCost()''',
-            '_PReceivedEvent_2.2.0': '''UnitCost()''',
+            '_PReceivedEvent_0': msgset_t,
+            '_PReceivedEvent_1': msgset_t,
+            '_PReceivedEvent_2': msgset_t,
+            'SELF_ID': "subtype('procs', number)",
+            'P_mutex_c':  "subtype('clocks', number)",
+            'P_s':  "set(subtype('procs', number))",
             },
     }
 #    def __init__(self, *args, **kargs):
@@ -327,18 +313,18 @@ class INC_SUBDEM_LAMUTEX2(INC_SUBDEM):
 #    INC_SUBDEM,
 #    DEM,
 #])
-#add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
-#    INC_SUBDEM,
-#])
+add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
+    INC_SUBDEM_LAMUTEX,
+])
 #add_task(lamutex_lru)
 #add_impls('lamutex opt1', 'experiments/distalgo/lamutex/lamutex_opt1_inc', [
-#    INC_SUBDEM,
+#    INC_SUBDEM_LAMUTEX,
 #])
 #add_impls('lamutex opt2', 'experiments/distalgo/lamutex/lamutex_opt2_inc', [
-#    INC_SUBDEM,
+#    INC_SUBDEM_LAMUTEX,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
-#    INC_SUBDEM,
+#    INC_SUBDEM_LAMUTEX2,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,

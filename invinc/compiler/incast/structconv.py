@@ -14,7 +14,9 @@ __all__ = [
     'trim',
     'dump',
     'NodeVisitor',
+    'AdvNodeVisitor',
     'NodeTransformer',
+    'AdvNodeTransformer',
     'Templater',
     'MacroProcessor',
     'ContextSetter',
@@ -27,15 +29,28 @@ __all__ = [
 
 
 import ast
+from types import SimpleNamespace
 
+import iast
 from iast import (trim, dump, NodeVisitor, NodeTransformer,
+                  AdvNodeVisitor, AdvNodeTransformer,
                   raw_match, match, MatchFailure)
-from iast.python.python34 import (make_pattern, extract_tree, Templater,
-                                  parse as _parse, MacroProcessor,
-                                  ContextSetter, astargs, literal_eval)
+from iast.python.python34 import (make_pattern, extract_tree,
+                                  parse as _parse)
 
-from .nodes import native_nodes, incast_nodes
+from . import nodes
+from .nodes import native_nodes, incast_nodes, TypeAdder
 from . import unparse
+
+
+# Versions of the iast.python utilities that use our typed
+# nodes instead of the original untyped ones.
+pyutil_all = iast.python.pyutil.get_all(nodes)
+Templater = pyutil_all['Templater']
+MacroProcessor = pyutil_all['MacroProcessor']
+ContextSetter = pyutil_all['ContextSetter']
+astargs = pyutil_all['astargs']
+literal_eval = pyutil_all['literal_eval']
 
 
 # TODO: simplify StructImporter and make it not rely on old iast.
@@ -72,6 +87,11 @@ class StructImporter:
             new_fields.append(new_value)
         
         new_nodetype = incast_nodes[node.__class__.__name__]
+        
+        # For expressions, add a type information field.
+        if issubclass(new_nodetype, incast_nodes['expr']):
+            new_fields.append(None)
+        
         return new_nodetype(*new_fields)
     
     def seq_visit(self, seq):
@@ -113,11 +133,14 @@ def export_structast(tree):
     return StructExporter.run(tree)
 
 
-def parse_structast(source, *, mode=None, subst=None, patterns=False):
+def parse_structast(source, *, mode=None, subst=None, patterns=False,
+                    types=True):
     """Version of iast.python.native.parse() that also runs
     extract_tree(), subst(), and can be used on patterns.
+    Type information for expressions is set to None.
     """
     tree = _parse(source)
+    tree = TypeAdder.run(tree)
     tree = extract_tree(tree, mode)
     if patterns:
         tree = make_pattern(tree)
@@ -130,6 +153,8 @@ class Unparser(unparse.Unparser):
     
     # Add Comment printing to standard unparser.
     
+    ast = SimpleNamespace(**incast_nodes)
+    
     def _Comment(self, node):
         if node.text:
             lines = node.text.split('\n')
@@ -140,5 +165,4 @@ class Unparser(unparse.Unparser):
 
 def unparse_structast(tree):
     """Unparse from Struct AST to source code."""
-    tree = export_structast(tree)
     return Unparser.to_source(tree)

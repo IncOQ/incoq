@@ -31,7 +31,7 @@ from invinc.compiler.obj import to_pairdomain, to_objdomain
 from invinc.compiler.demand import deminc_relcomp
 from invinc.compiler.tup import (
         flatten_tuples, check_bad_setmatches, flatten_relations)
-from invinc.compiler.cost import analyze_costs
+from invinc.compiler.cost import analyze_costs, eval_coststr
 
 from .manager import get_clause_factory, make_manager
 from .rewritings import (DistalgoImporter, get_distalgo_message_sets,
@@ -135,7 +135,6 @@ class QueryFinder(L.NodeVisitor):
     
     # Helper info format is a dictionary with entries:
     #   'impl':        impl to use (before considering fallbacks)
-    #   'instr':       whether to use instrumentation
     #   'in_inccomp':  whether this query appears inside a
     #                  comprehension we expect to incrementalize
     #   'half_demand': (Aggregates only) whether to prefer the half-
@@ -161,12 +160,6 @@ class QueryFinder(L.NodeVisitor):
         assert impl in ['batch', 'auxonly', 'inc', 'dem']
         return impl
     
-    def get_query_instrument(self, query):
-        instrument = self.opman.get_queryopt(query, 'instrument')
-        if instrument is None:
-            instrument = self.opman.get_opt('default_instrument')
-        return instrument
-    
     def process(self, tree):
         # Track the number of comprehensions we're currently inside
         # of that have an impl of 'inc' or 'dem' (i.e., a depth).
@@ -183,7 +176,6 @@ class QueryFinder(L.NodeVisitor):
     
     def visit_Comp(self, node):
         impl = self.get_query_impl(node)
-        instr = self.get_query_instrument(node)
         inccomp = impl in ['inc', 'dem']
         
         if inccomp:
@@ -197,13 +189,12 @@ class QueryFinder(L.NodeVisitor):
         if (impl != 'batch' and
             not self.opman.get_queryopt(node, 'notransform') and
             not node.options.get('_invalid', False)):
-            info = {'impl': impl, 'instr': instr,
+            info = {'impl': impl,
                     'in_inccomp': self.inccomp_depth > 0}
             raise self.Found(node, info)
     
     def visit_Aggregate(self, node):
         impl = self.get_query_impl(node)
-        instr = self.get_query_instrument(node)
         half_demand = self.opman.get_queryopt(node, 'aggr_halfdemand')
         if half_demand is None:
             half_demand = self.opman.get_opt('default_aggr_halfdemand')
@@ -213,7 +204,7 @@ class QueryFinder(L.NodeVisitor):
         
         if (impl in ['inc', 'dem'] and
             not node.options.get('_invalid', False)):
-            info = {'impl': impl, 'instr': instr,
+            info = {'impl': impl,
                     'in_inccomp': self.inccomp_depth > 0,
                     'half_demand': half_demand}
             raise self.Found(node, info)
@@ -228,7 +219,6 @@ def transform_query(tree, manager, query, info):
     aggr_batch_fallback = opman.get_opt('aggr_batch_fallback')
     aggr_dem_fallback = opman.get_opt('aggr_dem_fallback')
     impl = info['impl']
-    instr = info['instr']
     in_inccomp = info['in_inccomp']
     
     if isinstance(query, L.Comp):
@@ -270,8 +260,7 @@ def transform_query(tree, manager, query, info):
             tree = impl_auxonly_relcomp(tree, manager, query, name)
             manager.stats['comps expanded'] += 1
         elif impl == 'inc':
-            tree = inc_relcomp(tree, manager, query, name,
-                               instrument=instr)
+            tree = inc_relcomp(tree, manager, query, name)
         elif impl == 'dem':
             tree = deminc_relcomp(tree, manager, query, name)
         else:
@@ -440,6 +429,11 @@ def transform_ast(tree, *, nopts=None, qopts=None):
         input_rels.extend(r for r in detected_rels
                           if r not in input_rels)
     
+    # Get type annotations and cost annotations/
+    typeann = opman.get_opt('var_types')
+    vartypes = {k: L.parse_typestr(v) for k, v in typeann.items()}
+    manager.vartypes = vartypes
+    
     flatten_rels = opman.get_opt('flatten_rels')
     
     # DistAlgo message sets may be considered as relations
@@ -455,9 +449,12 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     if len(flatten_rels) > 0:
         if verbose:
             print('Flattening relations: ' + ', '.join(flatten_rels))
-        tree = flatten_relations(tree, flatten_rels, manager.namegen)
+        # This will also update the manager vartypes.
+        tree = flatten_relations(tree, flatten_rels, manager)
     
     tree = elim_inputrel_params(tree, input_rels)
+    
+    tree = manager.analyze_types(tree)
     
     # Go to the pair domain.
     if objdomain:
@@ -489,12 +486,20 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     tree = SetTypeRewriter.run(tree, manager.namegen,
                                set_literals=False, orig_set_comps=True)
     
+    tree = manager.analyze_types(tree)
+    
     if opman.get_opt('analyze_costs'):
         print('Analyzing costs')
-        tree, costs, domain_subst = analyze_costs(manager, tree, warn=True)
-        manager.stats['funccosts'] = costs
-        manager.stats['domain_subst'] = domain_subst
-        manager.stats['invariants'] = manager.invariants
+        tree, costs = analyze_costs(manager, tree, warn=True)
+#        for k, v in costs.items():
+#            print('{}  --  {}'.format(k, v))
+#        tree, costs, domain_subst = analyze_costs(manager, tree, warn=True)
+#        manager.stats['funccosts'] = costs
+#        manager.stats['domain_subst'] = domain_subst
+#        manager.stats['invariants'] = manager.invariants
+    
+    # For debugging type information.
+#    print(L.ts_typed(tree))
     
     # Incrementalize setmatch queries.
     check_bad_setmatches(tree)

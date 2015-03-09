@@ -134,9 +134,6 @@ class IncLangImporter(MacroProcessor):
     
     handle_fe_NODEMAND = handle_fe_NODEMQUERY
     
-    def handle_fe_INSTR(self, value, expvalue):
-        return Instr(value, expvalue)
-    
     # Set operations.
     
     def handle_ms_add(self, f, target, elem):
@@ -385,12 +382,6 @@ class IncLangExporter(NodeTransformer):
         return self.pe('NODEMQUERY(VALUE)',
                        subst={'VALUE': node.value})
     
-    def visit_Instr(self, node):
-        node = self.generic_visit(node)
-        return self.pe('INSTR(VALUE, EXPVALUE)',
-                       subst={'VALUE': node.value,
-                              'EXPVALUE': node.expvalue})
-    
     def visit_SetMatch(self, node):
         node = self.generic_visit(node)
         return self.pe('setmatch(TARGET, MASK, KEY)',
@@ -407,9 +398,11 @@ class IncLangExporter(NodeTransformer):
                               'LIMIT': Num(node.limit)})
     
     def visit_Enumerator(self, node):
-        # Even though Enumerators are converted by comp_to_setcomp(),
-        # we still need to handle them in this visitor so that
-        # Enumerators can be printed out to source by themselves.
+        # Enumerators are converted by comp_to_setcomp() inside
+        # visit_Comp(). Nonetheless, we still need to handle them
+        # in this visitor in order to transform other nested
+        # expressions, and to be able to print source for
+        # Enumerator nodes by themselves.
         node = self.generic_visit(node)
         return comprehension(node.target, node.iter, ())
     
@@ -422,10 +415,12 @@ class IncLangExporter(NodeTransformer):
             paramslist = List(tuple(Name(p, Load())
                                     for p in node.params), Load())
         opts = value_to_ast(node.options)
-        return self.pe('COMP(SETCOMP, PARAMS, OPTS)',
-                       subst={'SETCOMP': setcomp,
-                              'PARAMS': paramslist,
-                              'OPTS': opts})
+        result = self.pe('COMP(SETCOMP, PARAMS, OPTS)',
+                         subst={'SETCOMP': setcomp,
+                                'PARAMS': paramslist,
+                                'OPTS': opts})
+        result = result._replace(type=node.type)
+        return result
     
     def visit_Aggregate(self, node):
         node = self.generic_visit(node)

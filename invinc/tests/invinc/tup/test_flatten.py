@@ -4,19 +4,21 @@
 import unittest
 
 import invinc.compiler.incast as L
+from invinc.compiler.cost import UnitCost
 
 from invinc.compiler.tup.flatten import *
 from invinc.compiler.tup.flatten import (
         tuptree_to_type, tuptype_leaves, make_flattup_code,
-        UpdateFlattener, get_clause_vars, ClauseFlattener, ReltypeGetter)
+        UpdateFlattener, get_clause_vars, ClauseFlattener, ReltypeGetter,
+        path_to_elttype)
+from invinc.compiler.central import CentralCase
 
 
-class FlattenCase(unittest.TestCase):
+class FlattenCase(CentralCase):
     
     def setUp(self):
         super().setUp()
         self.tuptype = ('<T>', 'a', ('<T>', 'b', 'c'))
-        self.namegen = L.NameGenerator('v{}')
     
     def test_tuptree_type(self):
         tree = L.pe('(x, (y, z))')
@@ -50,7 +52,8 @@ class FlattenCase(unittest.TestCase):
         tree = L.p('''
             R.add((1, (2, 3)))
             ''')
-        tree = UpdateFlattener.run(tree, 'R', self.tuptype, self.namegen)
+        tree = UpdateFlattener.run(tree, 'R', self.tuptype,
+                                   self.manager.namegen)
         exp_tree = L.p('''
             _tv1 = (1, (2, 3))
             _ftv1 = (_tv1[0], _tv1[1][0], _tv1[1][1])
@@ -89,20 +92,37 @@ class FlattenCase(unittest.TestCase):
         with self.assertRaises(AssertionError):
             ReltypeGetter.run(tree, 'R')
     
+    def test_pathtoelttype(self):
+        ST, TT, OT = L.SetType, L.TupleType, L.ObjType
+        vartype = ST(TT([OT('A'), OT('B'), TT([OT('C'), OT('D')])]))
+        
+        res = path_to_elttype([0], vartype)
+        self.assertEqual(res, OT('A'))
+        res = path_to_elttype([1], vartype)
+        self.assertEqual(res, OT('B'))
+        res = path_to_elttype([2, 0], vartype)
+        self.assertEqual(res, OT('C'))
+        res = path_to_elttype([2, 1], vartype)
+        self.assertEqual(res, OT('D'))
+    
     def test_flatten(self):
-        namegen = L.NameGenerator('v{}')
+        ST, TT, OT = L.SetType, L.TupleType, L.ObjType
+        self.manager.vartypes = {'R': ST(TT([OT('A'),
+                                             TT([OT('B'), OT('C')])]))}
         code = L.p('''
             R.add((1, (2, 3)))
             print(COMP({x for x in S for (x, (y, z)) in R}, [], {}))
             ''')
-        code = flatten_relations(code, ['R'], namegen)
+        code = flatten_relations(code, ['R'], self.manager)
         exp_code = L.p('''
             _tv1 = (1, (2, 3))
             _ftv1 = (_tv1[0], _tv1[1][0], _tv1[1][1])
             R.add(_ftv1)
             print(COMP({x for x in S for (x, y, z) in R}, [], {}))
             ''')
+        exp_vartypes = {'R': ST(TT([OT('A'), OT('B'), OT('C')]))}
         self.assertEqual(code, exp_code)
+        self.assertEqual(self.manager.vartypes, exp_vartypes)
 
 
 if __name__ == '__main__':

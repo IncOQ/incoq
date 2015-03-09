@@ -27,12 +27,11 @@ from collections.abc import Callable
 from simplestruct.type import checktype, checktype_seq
 import iast
 from iast import PatternTransformer
-from iast.python.python34 import Templater
 
 from invinc.util.collections import OrderedSet
 from .helpers import is_vartuple, get_vartuple, get_plainfuncdef, plainfuncdef
 from .nodes import *
-from .structconv import NodeVisitor, NodeTransformer
+from .structconv import NodeVisitor, NodeTransformer, Templater
 
 
 class VarsFinder(NodeVisitor):

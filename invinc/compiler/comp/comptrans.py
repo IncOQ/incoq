@@ -108,10 +108,13 @@ class RelcompMaintainer(L.OuterMaintTransformer):
                         'RESINIT': resinit})
         
         for rel in self.inccomp.spec.join.rels:
+            prefix1 = self.manager.namegen.next_prefix()
+            prefix2 = self.manager.namegen.next_prefix()
+            
             add_code, add_comps = make_comp_maint_code(
                 self.inccomp.spec, self.inccomp.name,
                 rel, 'add', L.pe('_e'),
-                self.manager.namegen.next_prefix(),
+                prefix1,
                 maint_impl=self.inccomp.maint_impl,
                 rc=self.inccomp.rc,
                 selfjoin=self.inccomp.selfjoin)
@@ -119,7 +122,7 @@ class RelcompMaintainer(L.OuterMaintTransformer):
             remove_code, remove_comps = make_comp_maint_code(
                 self.inccomp.spec, self.inccomp.name,
                 rel, 'remove', L.pe('_e'),
-                self.manager.namegen.next_prefix(),
+                prefix2,
                 maint_impl=self.inccomp.maint_impl,
                 rc=self.inccomp.rc,
                 selfjoin=self.inccomp.selfjoin)
@@ -136,6 +139,12 @@ class RelcompMaintainer(L.OuterMaintTransformer):
                             '<c>ADDCODE': add_code,
                             '<def>REMOVEFUNC': self.removefuncs[rel],
                             '<c>REMOVECODE': remove_code})
+            
+            vt = self.manager.vartypes
+            for e in self.inccomp.spec.join.enumvars:
+                if e in vt:
+                    vt[prefix1 + e] = vt[e]
+                    vt[prefix2 + e] = vt[e]
         
         node = node._replace(body=code + node.body)
         node = self.generic_visit(node)
@@ -190,11 +199,10 @@ class CompReplacer(L.NodeTransformer):
     
     """Replace comp queries with uses of their saved results."""
     
-    def __init__(self, manager, inccomp, instrument):
+    def __init__(self, manager, inccomp):
         super().__init__()
         self.manager = manager
         self.inccomp = inccomp
-        self.instrument = instrument
     
     def process(self, tree):
         self.manager.add_invariant(self.inccomp.name, self.inccomp)
@@ -222,13 +230,6 @@ class CompReplacer(L.NodeTransformer):
         
         else:
             code = L.ln(self.inccomp.name)
-        
-        if self.instrument:
-            new_comp = self.inccomp.comp
-            new_opts = dict(new_comp.options)
-            new_opts['notransform'] = True
-            new_comp = new_comp._replace(options=new_opts)
-            code = L.Instr(code, new_comp)
         
         return code
     
@@ -502,7 +503,7 @@ def make_inccomp(tree, manager, comp, name, *,
                    uset_params, rc, selfjoin_strat, maint_impl,
                    outsideinvs, uset_lru)
 
-def inc_relcomp_helper(tree, manager, inccomp, *, instrument):
+def inc_relcomp_helper(tree, manager, inccomp):
     """Incrementalize a comprehension based on an IncComp structure.
     Also return maintenance comprehensions.
     """
@@ -554,7 +555,7 @@ def inc_relcomp_helper(tree, manager, inccomp, *, instrument):
     new_spec = spec._replace(join=spec.join._replace(clauses=new_clauses))
     inccomp.spec = new_spec
     
-    tree = CompReplacer.run(tree, manager, inccomp, instrument)
+    tree = CompReplacer.run(tree, manager, inccomp)
     tree, comps = RelcompMaintainer.run(tree, manager, inccomp)
     
     # If this was an original query, register it with the manager.
@@ -563,19 +564,17 @@ def inc_relcomp_helper(tree, manager, inccomp, *, instrument):
     
     return tree, comps
 
-def inc_relcomp(tree, manager, comp, name, *, instrument=False, outsideinvs=()):
+def inc_relcomp(tree, manager, comp, name, *, outsideinvs=()):
     """Incrementalize a comprehension."""
     inccomp = make_inccomp(tree, manager, comp, name, outsideinvs=outsideinvs)
-    tree, _comps = inc_relcomp_helper(tree, manager, inccomp,
-                                      instrument=instrument)
+    tree, _comps = inc_relcomp_helper(tree, manager, inccomp)
     return tree
 
 def inc_changetrack(tree, manager, comp, name):
     """Generate change-tracking code."""
     inccomp = make_inccomp(tree, manager, comp, name)
     inccomp.change_tracker = True
-    tree, _comps = inc_relcomp_helper(tree, manager, inccomp,
-                                      instrument=False)
+    tree, _comps = inc_relcomp_helper(tree, manager, inccomp)
     return tree
 
 

@@ -1,207 +1,56 @@
-"""Node definitions for IncAST."""
+"""Node definitions for IncAST, with type information."""
 
 
 __all__ = [
-    'native_nodes',
-    'incast_nodes',
+    'TypeAdder',
     
-    # Programmatically modified to include the keys of incast_nodes.
+    # Add in nodes_untyped.__all__
 ]
 
 
-import ast
-from iast.python.python34 import native_nodes as _native_nodes, py_nodes
+from simplestruct import Field
+from iast import NodeTransformer
 
-from invinc.util.collections import make_frozen
+from .nodes_untyped import (__all__ as untyped_all, native_nodes,
+                            incast_nodes as incast_nodes_untyped)
 
-# Flood the namespace with Struct nodes for PyASTs.
-globals().update(py_nodes)
+__all__.extend(untyped_all)
 
 
-# Names of nodes unique to IncAST.
-incast_node_names = [
-    'Comment',
+incast_nodes = incast_nodes_untyped.copy()
+
+# Programmatically generate new versions of all the expr subclasses
+# so they contain a "type" field.
+expr_node = incast_nodes['expr']
+for name, node in incast_nodes.items():
+    if issubclass(node, expr_node) and node is not expr_node:
+        # Copy the old class's namespace.
+        namespace = node.__dict__.copy()
+        fields = node._fields + ('type',)
+        namespace['_fields'] = fields
+        namespace['__module__'] = __name__
+        namespace['type'] = Field(default=None)
+        # The only base class is expr, which itself remains unchanged.
+        assert node.__bases__ == (expr_node,)
+        new_node = type(name, (expr_node,), namespace)
+        incast_nodes[name] = new_node
+
+globals().update(incast_nodes)
+
+
+class TypeAdder(NodeTransformer):
     
-    'NOptions',
-    'QOptions',
+    """Replace untyped expression nodes with typed ones.
+    Use None as the type.
+    """
     
-    'Maintenance',
-    
-    'SetUpdate',
-    'MacroSetUpdate',
-    'RCSetRefUpdate',
-    'IsEmpty',
-    'GetRef',
-    'AssignKey',
-    'DelKey',
-    'Lookup',
-    'ImgLookup',
-    'RCImgLookup',
-    'SMLookup',
-    
-    'DemQuery',
-    'NoDemQuery',
-    'Instr',
-    
-    'SetMatch',
-    'DeltaMatch',
-    'Enumerator',
-    'Comp',
-    'Aggregate',
-]
-
-
-# The only new node in native format is Comment, for source
-# printing purposes.
-
-class Comment(ast.stmt):
-    _fields = ('text',)     # string
-
-# Namespace for native nodes.
-native_nodes = _native_nodes.copy()
-native_nodes.update({
-    'Comment': Comment,
-})
-
-del Comment
-
-
-# Definitions for nodes unique to IncAST.
-
-class Comment(stmt):
-    _fields = ('text',)     # string
-
-class NOptions(stmt):
-    _fields = ('opts',)     # dictionary
-    
-    def __new__(cls, opts):
-        opts = make_frozen(opts)
-        return super().__new__(cls, opts)
-
-class QOptions(stmt):
-    _fields = ('query',     # string
-               'opts')      # dictionary
-    
-    def __new__(cls, query, opts):
-        opts = make_frozen(opts)
-        return super().__new__(cls, query, opts)
-
-class Maintenance(stmt):
-    _fields = ('name',      # identifier
-               'desc',      # string
-               'precode',   # statement list
-               'update',    # statement list
-               'postcode')  # statement list
-
-class SetUpdate(stmt):
-    _fields = ('target',    # expression
-               'op',        # 'add' or 'remove'
-               'elem')      # expression
-    
-    def is_varupdate(self):
-        return isinstance(self.target, Name)
-    
-    def get_varupdate(self):
-        assert self.is_varupdate()
-        return self.target.id, self.op, self.elem
-
-class MacroSetUpdate(stmt):
-    _fields = ('target',    # expression
-               'op',        # 'union', 'inter', 'diff', 'symdiff',
-                            # 'assign', or 'clear'
-               'other')     # expression or None
-
-class RCSetRefUpdate(stmt):
-    _fields = ('target',    # expression
-               'op',        # 'incref' or 'decref'
-               'elem')      # expression 
-
-class IsEmpty(expr):
-    _fields = ('target',)   # expression
-
-class GetRef(expr):
-    _fields = ('target',    # expression
-               'elem')      # expression
-
-class AssignKey(stmt):
-    _fields = ('target',    # expression
-               'key',       # expression
-               'value')     # expression
-
-class DelKey(stmt):
-    _fields = ('target',    # expression
-               'key')       # expression
-
-class Lookup(expr):
-    _fields = ('target',    # expression
-               'key',       # expression
-               'default')   # expression or None
-
-class ImgLookup(expr):
-    _fields = ('target',    # expression
-               'key')       # expression
-
-class RCImgLookup(expr):
-    _fields = ('target',    # expression
-               'key')       # expression
-
-class SMLookup(expr):
-    _fields = ('target',    # expression
-               'mask',      # string
-               'key',       # expression
-               'default')   # expression or None
-
-class DemQuery(expr):
-    _fields = ('demname',   # string
-               'args',      # expression list
-               'value')     # expression option
-
-class NoDemQuery(expr):
-    _fields = ('value',)    # expression
-
-class Instr(expr):
-    _fields = ('value',     # expression
-               'expvalue')  # expression
-
-class SetMatch(expr):
-    _fields = ('target',    # expression
-               'mask',      # string
-               'key')       # expression
-
-class DeltaMatch(expr):
-    _fields = ('target',    # expression
-               'mask',      # string
-               'elem',      # expression
-               'limit')     # integer
-
-class Enumerator(AST):
-    _fields = ('target',    # expression
-               'iter')      # expression
-
-class Comp(expr):
-    _fields = ('resexp',    # expression
-               'clauses',   # list of Enumerator and expression nodes
-               'params',    # identifier list, or None
-               'options')   # dictionary, or None
-    
-    def __new__(cls, resexp, clauses, params, options):
-        options = make_frozen(options)
-        return super().__new__(cls, resexp, clauses, params, options)
-
-class Aggregate(expr):
-    _fields = ('value',     # expression
-               'op',        # operation string
-               'options')   # dictionary
-    
-    def __new__(cls, value, op, options):
-        options = make_frozen(options)
-        return super().__new__(cls, value, op, options)
-
-
-# Namespace for IncAST nodes.
-new_incast_nodes = {name: globals()[name]
-                    for name in incast_node_names}
-incast_nodes = py_nodes.copy()
-incast_nodes.update(new_incast_nodes)
-
-__all__.extend(incast_nodes.keys())
+    def node_visit(self, node):
+        node = self.generic_visit(node)
+        
+        if isinstance(node, incast_nodes_untyped['expr']):
+            new_nodetype = incast_nodes[node.__class__.__name__]
+            fieldvals = [getattr(node, f) for f in node._fields]
+            fieldvals += [None]
+            node = new_nodetype(*fieldvals)
+        
+        return node

@@ -336,12 +336,6 @@ class TreeExporter(NodeTransformer):
         node = self.generic_visit(node)
         return node.value
     
-    def visit_Instr(self, node):
-        node = self.generic_visit(node)
-        return self.pe('ENSURE_EQUAL(VALUE, EXPVALUE)',
-                       subst={'VALUE': node.value,
-                              'EXPVALUE': node.expvalue})
-    
     def visit_Comp(self, node):
         node = self.generic_visit(node)
         return comp_to_setcomp(node)

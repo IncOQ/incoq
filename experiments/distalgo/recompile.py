@@ -55,7 +55,7 @@ def do_tasks(tasks):
     benchpath = get_benchmark_path()
     
     for inpath, outpath in tasks:
-        os.makedirs(dirname(outpath))
+        os.makedirs(dirname(outpath), exist_ok=True)
         orig_dafile = join(benchpath, '{}.da'.format(inpath))
         copy(orig_dafile, '{}.da'.format(outpath))
         compile('{}.da'.format(outpath),
@@ -75,7 +75,7 @@ tasks = [
 #    ('lamutex/spec_unopt_ack', 'lamutex/lamutex_opt1'),
 #    ('lamutex/spec', 'lamutex/lamutex_opt2'),
 #    ('lamutex/orig', 'lamutex/lamutex_orig'),
-    
+#    
 #    ('lapaxos/orig', 'lapaxos/lapaxos'),
 #    ('ramutex/spec', 'ramutex/ramutex'),
 #    ('ratoken/spec', 'ratoken/ratoken'),

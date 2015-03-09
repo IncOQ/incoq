@@ -196,8 +196,7 @@ class TestComp(CentralCase):
             print(COMP)
             ''', subst={'COMP': comp})
         inccomp = make_inccomp(tree, self.manager, comp, 'Q')
-        tree, maintcomps = inc_relcomp_helper(tree, self.manager, inccomp,
-                                              instrument=False)
+        tree, maintcomps = inc_relcomp_helper(tree, self.manager, inccomp)
         
         exp_tree = L.p('''
             Q = RCSet()

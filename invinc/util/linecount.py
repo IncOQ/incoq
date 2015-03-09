@@ -1,8 +1,16 @@
 """Get linecounts for files."""
 
 
-from os import walk, chdir
-from os.path import join, normpath
+__all__ = [
+    'get_loc_source',
+    'get_loc_file',
+    'get_counts_for_files',
+    'get_counts_for_dir',
+]
+
+
+from os import listdir
+from os.path import join, normpath, isdir
 from fnmatch import fnmatch
 
 
@@ -25,128 +33,53 @@ def get_loc_source(source,
         count += 1
     return count
 
-def get_loc_file(filename,
-                 ignore_whitespace=True,
-                 ignore_comments=True):
+def get_loc_file(filename, **kargs):
     """Same but for a file, which must exist."""
     with open(filename, 'rt') as file:
-        return get_loc_source(file.read(),
-                              ignore_whitespace=ignore_whitespace,
-                              ignore_comments=ignore_comments)
+        return get_loc_source(file.read(), **kargs)
 
-def get_counts_for_files(filenames,
-                         ignore_whitespace=True,
-                         ignore_comments=True):
+def get_counts_for_files(filenames, **kargs):
     """Given a list of file names, return the total line count, and
     a dict from filenames to individual line counts.
     """
-    
     total = 0
     counts = {}
     for fn in filenames:
-            count = get_loc_file(fn,
-                                 ignore_whitespace=ignore_whitespace,
-                                 ignore_comments=ignore_comments)
+            count = get_loc_file(fn, **kargs)
             counts[fn] = count
             total += count
     
     return total, counts
 
 
-def get_files_for_spec(include, exclude):
-    """Given a list of paths to include and exclude, with exclude
-    taking precedence, generate a list of Python program filenames.
+def get_counts_for_dir(dir, exclude_pats, **kargs):
+    """Given a directory, walk the directory and return a list of pairs
+    of paths and line counts. Paths are either Python filenames (.py) or
+    directory names. Counts for directories are the sum of the counts
+    for their contents.
     """
+    dir = normpath(dir)
+    # Grab dir entries, split by directory / python file,
+    # order alphabetically.
+    entries = sorted(listdir(dir))
+    entries = [join(dir, name)
+               for name in entries
+               if not any(fnmatch(name, pat) for pat in exclude_pats)]
+    entries = [(name, isdir(name)) for name in entries]
+    dir_entries = [name for name, d in entries if d]
+    py_entries = [name for name, d in entries
+                       if not d and name.endswith('.py')]
     
-    files = []
-    include = list(map(normpath, include))
-    exclude = list(map(normpath, exclude))
+    count = 0
+    result = []
+    for name in dir_entries:
+        subresult = get_counts_for_dir(name, exclude_pats, **kargs)
+        result += subresult
+        # First entry is the directory total.
+        count += subresult[0][1]
+    for name in py_entries:
+        subcount = get_loc_file(name, **kargs)
+        result += [(name, subcount)]
+        count += subcount
     
-    # Help catch errors in pathnames that would otherwise produce
-    # wrong results.
-    used_specifiers = set()
-    
-    def any_match(name, patterns):
-        for pat in patterns:
-            if fnmatch(name, pat):
-                used_specifiers.add(pat)
-                return True
-        return False
-    
-    for dirpath, dirnames, filenames in walk('.'):
-        
-        for name in list(dirnames):
-            path = normpath(join(dirpath, name))
-            if any_match(path, exclude):
-                dirnames.remove(name)
-        
-        for name in filenames:
-            path = normpath(join(dirpath, name))
-            if (not any_match(path, include) or
-                any_match(path, exclude) or
-                not path.endswith('.py')):
-                continue
-            
-            files.append(path)
-    
-    unused = set(include + exclude) - used_specifiers
-    if unused:
-        raise AssertionError('Unused path specifier(s): ' +
-                             ', '.join(unused))
-    
-    return files
-
-
-def get_counts_for_spec(include, exclude,
-                        ignore_whitespace=True,
-                        ignore_comments=True):
-    """Given a list of included and excluded file paths, return
-    the total count and count dict.
-    """
-    files = get_files_for_spec(include, exclude)
-    return get_counts_for_files(files,
-                                ignore_whitespace=ignore_whitespace,
-                                ignore_comments=ignore_comments)
-
-
-if __name__ == '__main__':
-    # All paths relative to top-level source dir.
-    chdir('../')
-    
-    TESTS = '*/test*.py'
-    
-    specs = [
-        ('Runtime library', ['runtimelib/runtimelib.py'], []),
-        ('Utilities', ['util/*'], ['*/test*.py']),
-        
-        ('Transformation system', ['invinc/*'],
-         ['invinc/testprograms/*', TESTS]),
-        (' |-- incast', ['invinc/incast/*'], [TESTS]),
-        (' |-- sets', ['invinc/set/*'], [TESTS]),
-        (' |-- comprehensions', ['invinc/comp/*'], [TESTS]),
-        (' |-- objects', ['invinc/obj/*'], [TESTS]),
-        (' |-- tup', ['invinc/tup/*'], [TESTS]),
-        (' |-- demand', ['invinc/demand/*'], [TESTS]),
-        (' |-- aggregates', ['invinc/aggr/*'], [TESTS]),
-        (' |-- cost', ['invinc/cost/*'], [TESTS]),
-        (' `-- central', ['invinc/central/*'], [TESTS]),
-        
-        ('Tests', ['invinc/testprograms/*', 'invinc/*/test*.py'], []),
-        
-        ('Experiments (incl. generated)', ['experiments/*'], []),
-    ]
-    
-    all_total = 0
-    for name, include, exclude in specs:
-        
-        # Uncomment to debug file listing.
-#        print(name)
-#        for f in get_files_for_spec(include, exclude):
-#            print('  ' + f)
-        
-        total, _counts = get_counts_for_spec(include, exclude)
-        print('{:<35}{:>6}'.format(name + ': ', total))
-        if not name.startswith(' '):
-            all_total += total
-    print('-' * 41)
-    print('{:<35}{:>6}'.format('Everything: ', all_total))
+    return [(dir, count)] + result
