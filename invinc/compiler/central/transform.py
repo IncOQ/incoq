@@ -498,7 +498,8 @@ def transform_ast(tree, *, nopts=None, qopts=None):
 #        manager.stats['domain_subst'] = domain_subst
 #        manager.stats['invariants'] = manager.invariants
     
-    print(L.ts_typed(tree))
+    # For debugging type information.
+#    print(L.ts_typed(tree))
     
     # Incrementalize setmatch queries.
     check_bad_setmatches(tree)
