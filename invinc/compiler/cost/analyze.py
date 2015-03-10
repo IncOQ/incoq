@@ -470,8 +470,7 @@ class VarRewriter(CostTransformer):
 
 def analyze_costs(manager, tree, *, warn=False):
     """Analyze function costs. Return a tree modified by adding cost
-    annotations, a dictionary of these costs, and a substitution mapping
-    for domain constraints.
+    annotations and a dictionary of these costs.
     """
     costmap = func_costs(tree, warn=warn)
     

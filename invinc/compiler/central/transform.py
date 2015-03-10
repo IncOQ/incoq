@@ -491,12 +491,7 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     if opman.get_opt('analyze_costs'):
         print('Analyzing costs')
         tree, costs = analyze_costs(manager, tree, warn=True)
-#        for k, v in costs.items():
-#            print('{}  --  {}'.format(k, v))
-#        tree, costs, domain_subst = analyze_costs(manager, tree, warn=True)
-#        manager.stats['funccosts'] = costs
-#        manager.stats['domain_subst'] = domain_subst
-#        manager.stats['invariants'] = manager.invariants
+        manager.stats['costs'] = costs
     
     # For debugging type information.
 #    print(L.ts_typed(tree))

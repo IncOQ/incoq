@@ -252,7 +252,7 @@ print('Done  ({:.3f} s)'.format(elapsed))
 
 from invinc.transform import StatsDB, Session, StandardSchema
 
-class MySchema(OrigIncFilterSchema):
+class OIFSchema(OrigIncFilterSchema):
     
     # (Not a method.)
     def _rowgen(dispname, name):
@@ -289,6 +289,16 @@ class MySchema(OrigIncFilterSchema):
 #         'Twitter'),
 #    ]
 
+class MySchema(StandardSchema):
+    
+    rows = [
+        ('lamutex Unfiltered', 'lamutex')
+    ]
+
 stats = StatsDB(STATS_FILE)
+#print(MySchema(stats.allstats).to_ascii())
 print(MySchema(stats.allstats).to_ascii())
 #Session.interact(stats, name='Social Unfiltered')
+session = Session(stats, name='lamutex Unfiltered')
+session.cmd_showcosts()
+#session.interact()

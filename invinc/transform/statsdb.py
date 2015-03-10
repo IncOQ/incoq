@@ -13,6 +13,13 @@ import pickle
 import code
 
 
+try:
+    from tabulate import tabulate
+    HAVE_TABULATE = True
+except ImportError:
+    HAVE_TABULATE = False
+
+
 class StatsDB:
     
     """A collection of transformation stats and an associated path
@@ -57,17 +64,18 @@ class BaseSession:
                 return cmd
             raise KeyError(key)
     
-    @classmethod
-    def interact(cls, statsdb, **kargs):
-        """Open an new session for the given database."""
-        session = cls(statsdb, **kargs)
-        code.interact(banner='Stats editor ({})'.format(statsdb.path),
-                      local=session.ns)
-    
     def __init__(self, statsdb):
         self.ns = self.Namespace(self)
         self.ns['statsdb'] = statsdb
         self.ns['allstats'] = statsdb.allstats
+    
+    def interact(self):
+        """Enter an interactive session until the user types exit()."""
+        banner = 'Stats editor ({})'.format(self.ns['statsdb'].path)
+        try:
+            code.interact(banner=banner, local=self.ns)
+        except SystemExit:
+            pass
     
     def cmd_reload(self):
         self.ns['statsdb'].load()
@@ -98,3 +106,20 @@ class Session(BaseSession):
     
     def cmd_switch(self, name):
         self.ns['stats'] = self.ns['allstats'][name]
+    
+    def cmd_showcosts(self, name=None):
+        if name is not None:
+            stats = self.ns['allstats'][name]
+        else:
+            stats = self.ns['stats']
+        rows = []
+        from invinc.compiler.cost import PrettyPrinter
+        for func, cost in sorted(stats['costs'].items()):
+            coststr = 'O({})'.format(PrettyPrinter.run(cost))
+            rows.append([func, coststr])
+        
+        if HAVE_TABULATE:
+            print(tabulate(rows, tablefmt='grid'))
+        else:
+            print('\n'.join('{:<20}  {}'.format(f + ':', c)
+                            for f, c in rows))
