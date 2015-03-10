@@ -251,11 +251,13 @@ elapsed = do_tasks(all_tasks, STATS_FILE)
 print('Done  ({:.3f} s)'.format(elapsed))
 
 from invinc.transform import StatsDB, Session, StandardSchema
-class MySchema(StandardSchema):
+class MySchema(OrigIncFilterSchema):
     rows = [
-        ('Social Input', 'Twitter Orig'),
-        ('Social Unfiltered', 'Twitter Inc'),
-        ('Social Filtered', 'Twitter Dem'),
+#        ('Social Input', 'Twitter Orig'),
+#        ('Social Unfiltered', 'Twitter Inc'),
+#        ('Social Filtered', 'Twitter Dem'),
+        (['Social Input', 'Social Unfiltered', 'Social Filtered'],
+         'Twitter'),
     ]
 stats = StatsDB(STATS_FILE)
 print(MySchema(stats.allstats).to_ascii())
