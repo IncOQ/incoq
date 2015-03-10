@@ -136,6 +136,11 @@ class DefaultNormalOptions:
     """Mapping from names of object types to dictionaries that map
     from attribute name to attribute types (expressed as strings, as above).
     """
+    
+    rewrite_costsastypes =  True
+    """If True, rewrite cost terms using type domains. Thus, variable
+    names get replaced by their types.
+    """
 
 
 class DefaultQueryOptions:

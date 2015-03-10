@@ -297,8 +297,8 @@ class MySchema(StandardSchema):
 
 stats = StatsDB(STATS_FILE)
 #print(MySchema(stats.allstats).to_ascii())
-print(MySchema(stats.allstats).to_ascii())
+#print(MySchema(stats.allstats).to_ascii())
 #Session.interact(stats, name='Social Unfiltered')
 session = Session(stats, name='lamutex Unfiltered')
-session.cmd_showcosts()
-#session.interact()
+#session.cmd_showcosts()
+session.interact()

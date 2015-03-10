@@ -7,6 +7,7 @@ from invinc.compiler.set import Mask
 from invinc.compiler.cost.cost import *
 from invinc.compiler.cost.cost import (
         without_duplicates, all_products_dominated,
+        all_sums_of_products_dominate,
         simplify_sum_of_products, simplify_min_of_sums,
         multiply_sums_of_products)
 
@@ -67,19 +68,38 @@ class CostCase(unittest.TestCase):
         self.assertEqual(cost, exp_cost)
     
     def test_products_dominated(self):
+        pc, nc = ProductCost, NameCost
         # [a*a, a*b]
-        right = [ProductCost((NameCost('a'), NameCost('a'))),
-                 ProductCost((NameCost('a'), NameCost('b')))]
+        right = [pc((nc('a'), nc('a'))),
+                 pc((nc('a'), nc('b')))]
         # [a*a, a]
-        left1 = [ProductCost((NameCost('a'), NameCost('a'))),
-                 ProductCost((NameCost('a'),))]
+        left1 = [pc((nc('a'), nc('a'))),
+                 pc((nc('a'),))]
         # [a, b, c]
-        left2 = [ProductCost((NameCost('a'),)),
-                 ProductCost((NameCost('b'),)),
-                 ProductCost((NameCost('c'),))]
+        left2 = [pc((nc('a'),)),
+                 pc((nc('b'),)),
+                 pc((nc('c'),))]
         
         self.assertTrue(all_products_dominated(left1, right))
         self.assertFalse(all_products_dominated(left2, right))
+        
+        self.assertTrue(all_products_dominated(
+                        [pc((UnitCost(),))], [pc((NameCost('a'),))]))
+    
+    def test_sums_dominate(self):
+        sc, pc, nc = SumCost, ProductCost, NameCost
+        # [a*a*a*b + a*b*b, a*b*b*b*b]
+        left = [sc((pc((nc('a'), nc('a'), nc('a'), nc('b'))),
+                    pc((nc('a'), nc('b'), nc('b'))))),
+                sc((pc((nc('a'), nc('b'), nc('b'), nc('b'), nc('b'))),))]
+        # [a*a*b + a*b*b, a*b*b*b + 1]
+        right = [sc((pc((nc('a'), nc('a'), nc('b'))),
+                     pc((nc('a'), nc('b'), nc('b'))))),
+                 sc((pc((nc('a'), nc('b'), nc('b'), nc('b'))),
+                     pc((UnitCost(),))))]
+        
+        self.assertTrue(all_sums_of_products_dominate(left, right))
+        self.assertFalse(all_sums_of_products_dominate(right, left))
     
     def test_simplify_sum_of_products(self):
         # a*a + a*a + a + a*b -> a*a + a*b
@@ -131,6 +151,23 @@ class CostCase(unittest.TestCase):
         exp_cost_str = ('((a*c*e) + (a*c*f) + (a*d*e) + (a*d*f) + '
                          '(b*c*e) + (b*c*f) + (b*d*e) + (b*d*f))')
         self.assertEqual(str(cost), exp_cost_str)
+    
+    def test_lteq(self):
+        sc, pc, nc = SumCost, ProductCost, NameCost
+        # min(a*a*b + a*b*b, a*b*b*b + 1)
+        left = [sc((pc((nc('a'), nc('a'), nc('b'))),
+                    pc((nc('a'), nc('b'), nc('b'))))),
+                sc((pc((nc('a'), nc('b'), nc('b'), nc('b'))),
+                    pc((UnitCost(),))))]
+        left = MinCost(left)
+        # min(a*a*a*b + a*b*b, a*b*b*b*b)
+        right = [sc((pc((nc('a'), nc('a'), nc('a'), nc('b'))),
+                     pc((nc('a'), nc('b'), nc('b'))))),
+                 sc((pc((nc('a'), nc('b'), nc('b'), nc('b'), nc('b'))),))]
+        right = MinCost(right)
+        
+        self.assertTrue(lteq(left, right))
+        self.assertFalse(lteq(right, left))
 
 
 if __name__ == '__main__':
