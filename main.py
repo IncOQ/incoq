@@ -1,9 +1,10 @@
 """Invoke the transformation system."""
 
 
-from time import clock
-
 from invinc.transform import *
+
+
+STATS_FILE = 'transstats.pickle'
 
 
 all_tasks = []
@@ -179,7 +180,7 @@ test_programs = [
 #    'comp/inline',
 #    'comp/nonpattern',
 #    'comp/parameter',
-##    'comp/inconlyonce',
+#    'comp/inconlyonce',
 #    'comp/pattern',
 #    'comp/patternmaint',
 #    'comp/setmatchcomp',
@@ -195,7 +196,6 @@ test_programs = [
 #    'comp/nested/outline',
 #    'comp/nested/param',
 #    'comp/tup/flatten',
-#    'comp/instr',
 #    'comp/macroupdate',
 #    'comp/unhandled',
 #    'comp/types',
@@ -245,8 +245,59 @@ for name in test_programs:
     add_task(make_testprogram_task(name))
 
 
-t1 = clock()
-do_tasks(all_tasks)
-t2 = clock()
+elapsed = do_tasks(all_tasks, STATS_FILE)
 
-print('Done  ({:.3f} s)'.format(t2 - t1))
+print('Done  ({:.3f} s)'.format(elapsed))
+
+from invinc.transform import StatsDB, Session, StandardSchema
+
+class OIFSchema(OrigIncFilterSchema):
+    
+    # (Not a method.)
+    def _rowgen(dispname, name):
+        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
+                dispname)
+    
+    rows = [
+        _rowgen('Social', 'Social'),
+#        _rowgen('JQLbench1', 'JQL 1'),
+#        _rowgen('JQLbench2', 'JQL 2'),
+#        _rowgen('JQLbench3', 'JQL 3'),
+        _rowgen('Wifi', 'Wifi'),
+#        _rowgen('Auth', 'Auth'),
+#        ('Access', 'CoreRBAC Input',
+#         'CoreRBAC Unfiltered (CA)', 'CoreRBAC Filtered (CA)'),
+#        _rowgen('CoreRBAC', 'CoreRBAC'),
+#        _rowgen('SSD', 'Constr. RBAC'),
+#        _rowgen('clpaxos', 'clpaxos'),
+#        _rowgen('crleader', 'crleader'),
+#        ('dscrash', 'dscrash Input',
+#         'dscrash Unfiltered', 'dscrash Filtered (obj)'),
+#        _rowgen('hsleader', 'hsleader'),
+#        _rowgen('lamutex', 'lamutex'),
+#        _rowgen('lapaxos', 'lapaxos'),
+#        _rowgen('ramutex', 'ramutex'),
+#        _rowgen('2pcommit', '2pcommit'),
+    ]
+    
+#    rows = [
+##        ('Social Input', 'Twitter Orig'),
+##        ('Social Unfiltered', 'Twitter Inc'),
+##        ('Social Filtered', 'Twitter Dem'),
+#        (['Social Input', 'Social Unfiltered', 'Social Filtered'],
+#         'Twitter'),
+#    ]
+
+class MySchema(StandardSchema):
+    
+    rows = [
+        ('lamutex Unfiltered', 'lamutex')
+    ]
+
+stats = StatsDB(STATS_FILE)
+#print(MySchema(stats.allstats).to_ascii())
+#print(MySchema(stats.allstats).to_ascii())
+#Session.interact(stats, name='Social Unfiltered')
+session = Session(stats, name='lamutex Unfiltered')
+#session.cmd_showcosts()
+#session.interact()

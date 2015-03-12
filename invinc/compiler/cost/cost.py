@@ -23,6 +23,7 @@ __all__ = [
     'ImgkeySubstitutor',
     'Simplifier',
     'normalize',
+    'lteq',
 ]
 
 from itertools import product, chain, groupby
@@ -396,7 +397,33 @@ def all_products_dominated(prods1, prods2, factorcounts=None):
             c2 = factorcounts[p2]
             # t1 is dominated if for each of its factors,
             # t2 has at least that many occurrences of the factor.
-            if all(c2[f] >= c1[f] for f in c1.keys()):
+            if all(isinstance(f, UnitCost) or c2[f] >= c1[f]
+                   for f in c1.keys()):
+                break
+        else:
+            return False
+    return True
+
+def all_sums_of_products_dominate(sums1, sums2, factorcounts=None):
+    """Return True if for every sum-of-products cost in sums1, there
+    is some sum-of-products cost in sums2 that it dominates. Note that
+    the "dominate" order is opposite the above function.
+    
+    If factorcounts is not given, it will be computed from scratch.
+    """
+    allsums = list(chain(sums1, sums2))
+    assert all(isinstance(s, SumCost) for s in allsums)
+    assert all(isinstance(p, ProductCost)
+               for s in allsums for p in s.terms)
+    
+    if factorcounts is None:
+        factorcounts = build_factor_counts(
+                        list(chain.from_iterable(s.terms for s in allsums)))
+    
+    # Do a pairwise comparison.
+    for s1 in sums1:
+        for s2 in sums2:
+            if all_products_dominated(s2.terms, s1.terms):
                 break
         else:
             return False
@@ -529,3 +556,11 @@ def normalize(cost):
     cost = Normalizer.run(cost)
     cost = Simplifier.run(cost)
     return cost
+
+def lteq(left, right):
+    """Return True if the left cost is equal to or dominated by
+    the right cost. This is a partial order over costs.
+    """
+    left = Normalizer.run(left)
+    right = Normalizer.run(right)
+    return all_sums_of_products_dominate(right.terms, left.terms)

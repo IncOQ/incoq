@@ -57,11 +57,6 @@ def check_basepath(base_path):
 #        'objcomp/*',
 #        'deminc/*',
 #        'aggr/*',
-        
-        'comp/param_noninc', # disabled, WIP
-        'comp/old/*',
-        
-        'comp/inconlyonce', # not supported at the moment
     ]
     
     # TODO: This include/exclude path logic could be refactored into

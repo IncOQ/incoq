@@ -187,6 +187,9 @@ class CostAnalyzer(L.NodeVisitor):
         elif isinstance(expr, L.DeltaMatch):
             return UnitCost()
         
+        elif isinstance(expr, (L.Set, L.List, L.Tuple, L.Dict)):
+            return UnitCost()
+        
         else:
             return self.WarnUnknownCost(expr)
     
@@ -468,19 +471,20 @@ class VarRewriter(CostTransformer):
         return self.visit_IndefImgsetCost(cost)
 
 
-def analyze_costs(manager, tree, *, warn=False):
+def analyze_costs(manager, tree, *, rewrite_types=False,
+                  verbose=False, warn=False):
     """Analyze function costs. Return a tree modified by adding cost
-    annotations, a dictionary of these costs, and a substitution mapping
-    for domain constraints.
+    annotations and a dictionary of these costs.
     """
     costmap = func_costs(tree, warn=warn)
     
-    for k in costmap:
-        c1 = costmap[k]
-        costmap[k] = VarRewriter.run(costmap[k], manager)
-        c2 = costmap[k]
-        if c1 != c2:
-            print('{}   --->   {}'.format(c1, c2))
+    if rewrite_types:
+        for k in costmap:
+            c1 = costmap[k]
+            costmap[k] = VarRewriter.run(costmap[k], manager)
+            c2 = costmap[k]
+            if verbose and c1 != c2:
+                print('{}   --->   {}'.format(c1, c2))
     
     tree = CostLabelAdder.run(tree, costmap)
     return tree, costmap
