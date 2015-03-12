@@ -180,7 +180,7 @@ test_programs = [
 #    'comp/inline',
 #    'comp/nonpattern',
 #    'comp/parameter',
-##    'comp/inconlyonce',
+#    'comp/inconlyonce',
 #    'comp/pattern',
 #    'comp/patternmaint',
 #    'comp/setmatchcomp',
@@ -196,7 +196,6 @@ test_programs = [
 #    'comp/nested/outline',
 #    'comp/nested/param',
 #    'comp/tup/flatten',
-#    'comp/instr',
 #    'comp/macroupdate',
 #    'comp/unhandled',
 #    'comp/types',
@@ -301,4 +300,4 @@ stats = StatsDB(STATS_FILE)
 #Session.interact(stats, name='Social Unfiltered')
 session = Session(stats, name='lamutex Unfiltered')
 #session.cmd_showcosts()
-session.interact()
+#session.interact()
