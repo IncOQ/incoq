@@ -3,7 +3,7 @@
 # Celebs to their set of followers is 1-to-1, but this
 # fact doesn't really change the join orders.
 
-from runtimelib import *
+from invinc.runtime import *
 
 OPTIONS(
     obj_domain = True,
