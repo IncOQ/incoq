@@ -42,6 +42,26 @@ class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
             },
     }
 
+class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
+    _inherit_fields = True
+    
+    msgset_t = '''set(tuple([top, top, tuple([
+                               enum('msglabel', str),
+                               subtype('clocks', number),
+                               subtype('procs', number)])]))'''
+    
+    extra_nopts = {
+        'var_types': {
+            '_PReceivedEvent_0': msgset_t,
+            'SELF_ID': "subtype('procs', number)",
+            'P_mutex_c':  "subtype('clocks', number)",
+            'P_s':  "set(subtype('procs', number))",
+            'P_q': '''set(tuple([enum('msglabel', str),
+                                 subtype('clocks', number),
+                                 subtype('procs', number)]))''',
+            },
+    }
+
 
 # ---- Uncomment to rebuild experiment programs. ---
 
@@ -114,19 +134,15 @@ class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
 #
 #add_impls('clpaxos', 'experiments/distalgo/clpaxos/clpaxos_inc', [
 #    INC_SUBDEM,
-#    DEM,
 #])
 #add_impls('crleader', 'experiments/distalgo/crleader/crleader_inc', [
 #    INC_SUBDEM,
-#    DEM,
 #])
 #add_impls('dscrash', 'experiments/distalgo/dscrash/dscrash_inc', [
 #    INC_SUBDEM_OBJ,
-#    DEM_OBJ,
 #])
 #add_impls('hsleader', 'experiments/distalgo/hsleader/hsleader_inc', [
 #    INC_SUBDEM,
-#    DEM,
 #])
 #add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
 #    INC_SUBDEM_LAMUTEX,
@@ -139,7 +155,7 @@ class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
 #    INC_SUBDEM_LAMUTEX,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
-#    INC_SUBDEM,
+#    INC_SUBDEM_LAMUTEX_ORIG,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,
@@ -147,11 +163,9 @@ class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
 #])
 #add_impls('ramutex', 'experiments/distalgo/ramutex/ramutex_inc', [
 #    INC_SUBDEM,
-#    DEM,
 #])
 #add_impls('2pcommit', 'experiments/distalgo/tpcommit/tpcommit_inc', [
 #    INC_SUBDEM,
-#    DEM,
 #])
 #add_impls('vrpaxos', 'experiments/distalgo/vrpaxos/vrpaxos_inc', [
 #    DEM_NONINLINE,
@@ -260,24 +274,16 @@ class OIFSchema(OrigIncFilterSchema):
     
     rows = [
         _rowgen('Social', 'Social'),
-#        _rowgen('JQLbench1', 'JQL 1'),
-#        _rowgen('JQLbench2', 'JQL 2'),
-#        _rowgen('JQLbench3', 'JQL 3'),
+        _rowgen('JQLbench1', 'JQL 1'),
+        _rowgen('JQLbench2', 'JQL 2'),
+        _rowgen('JQLbench3', 'JQL 3'),
         _rowgen('Wifi', 'Wifi'),
-#        _rowgen('Auth', 'Auth'),
+        _rowgen('Auth', 'Auth'),
+        _rowgen('Auth (Simp.)', 'Simplified Auth'),
 #        ('Access', 'CoreRBAC Input',
 #         'CoreRBAC Unfiltered (CA)', 'CoreRBAC Filtered (CA)'),
 #        _rowgen('CoreRBAC', 'CoreRBAC'),
 #        _rowgen('SSD', 'Constr. RBAC'),
-#        _rowgen('clpaxos', 'clpaxos'),
-#        _rowgen('crleader', 'crleader'),
-#        ('dscrash', 'dscrash Input',
-#         'dscrash Unfiltered', 'dscrash Filtered (obj)'),
-#        _rowgen('hsleader', 'hsleader'),
-#        _rowgen('lamutex', 'lamutex'),
-#        _rowgen('lapaxos', 'lapaxos'),
-#        _rowgen('ramutex', 'ramutex'),
-#        _rowgen('2pcommit', '2pcommit'),
     ]
     
 #    rows = [
@@ -288,16 +294,37 @@ class OIFSchema(OrigIncFilterSchema):
 #         'Twitter'),
 #    ]
 
-class MySchema(StandardSchema):
+class DistalgoSchema(OrigIncFilterSchema):
+   
+    cols = [
+        ((0, 'lines'), 'Original LOC', None),
+        ((1, 'orig queries'), 'Queries', None),
+        ((1, 'orig updates'), 'Updates', None),
+        ((1, 'lines'), 'Inc. LOC', None),
+        ((1, 'trans time'), 'Inc. trans. time', '.3f'),
+    ]
+    
+    def _rowgen(name):
+        return ([name + ' Input', name + ' Unfiltered'],
+                name)
     
     rows = [
-        ('lamutex Unfiltered', 'lamutex')
+        _rowgen('2pcommit'),
+        _rowgen('clpaxos'),
+        _rowgen('crleader'),
+        _rowgen('dscrash'),
+        _rowgen('hsleader'),
+        _rowgen('lamutex'),
+        _rowgen('lamutex opt1'),
+        _rowgen('lamutex opt2'),
+        _rowgen('lamutex orig'),
+        _rowgen('ramutex'),
     ]
 
 stats = StatsDB(STATS_FILE)
-#print(MySchema(stats.allstats).to_ascii())
-#print(MySchema(stats.allstats).to_ascii())
+#print(OIFSchema(stats.allstats).to_ascii())
+print(DistalgoSchema(stats.allstats).to_ascii())
 #Session.interact(stats, name='Social Unfiltered')
-session = Session(stats, name='lamutex Unfiltered')
+#session = Session(stats, name='lamutex Unfiltered')
 #session.cmd_showcosts()
 #session.interact()
