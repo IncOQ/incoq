@@ -46,7 +46,7 @@ class BaseSchema:
         filelike = io.StringIO(newline='')
         writer = csv.writer(filelike)
         writer.writerow(self.header)
-        for line in self.data:
+        for line in self.body:
             writer.writerow(line)
         return filelike.getvalue()
     
@@ -58,6 +58,10 @@ class BaseSchema:
             return tabulate(self.body, self.header, tablefmt='grid')
         else:
             return self.to_csv()
+    
+    def save_csv(self, name):
+        with open(name, 'wt') as file:
+            file.write(self.to_csv())
 
 
 class StatkeySchema(BaseSchema):

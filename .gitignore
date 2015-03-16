@@ -4,4 +4,4 @@ dist
 
 # Generated transformation statistics.
 transstats.pickle
-transstats-*.csv
+*_stats.csv

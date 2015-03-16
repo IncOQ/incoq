@@ -322,8 +322,14 @@ class DistalgoSchema(OrigIncFilterSchema):
     ]
 
 stats = StatsDB(STATS_FILE)
-#print(OIFSchema(stats.allstats).to_ascii())
-print(DistalgoSchema(stats.allstats).to_ascii())
+oifschema = OIFSchema(stats.allstats)
+distalgoschema = DistalgoSchema(stats.allstats)
+oifschema.save_csv('oif_stats.csv')
+distalgoschema.save_csv('distalgo_stats.csv')
+
+print(oifschema.to_ascii())
+print(distalgoschema.to_ascii())
+
 #Session.interact(stats, name='Social Unfiltered')
 #session = Session(stats, name='lamutex Unfiltered')
 #session.cmd_showcosts()
