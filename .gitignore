@@ -3,5 +3,4 @@ __pycache__
 dist
 
 # Generated transformation statistics.
-transstats.pickle
-*_stats.csv
+stats/*

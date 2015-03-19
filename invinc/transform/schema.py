@@ -7,6 +7,7 @@ __all__ = [
     'StandardSchema',
     'GroupedSchema',
     'OrigIncFilterSchema',
+    'CostSchema',
 ]
 
 
@@ -23,9 +24,6 @@ except ImportError:
 class BaseSchema:
     
     """View derived from an allstats dictionary."""
-    
-    name = None
-    """Name of schema."""
     
     def __init__(self, stats):
         self.header = self.get_header()
@@ -55,7 +53,7 @@ class BaseSchema:
         is available, or csv format otherwise.
         """
         if HAVE_TABULATE:
-            return tabulate(self.body, self.header, tablefmt='grid')
+            return tabulate(self.body, self.header)
         else:
             return self.to_csv()
     
@@ -83,6 +81,9 @@ class StatkeySchema(BaseSchema):
         """Hook for modifying how rows are retrieved."""
         return allstats.get(key, None)
     
+    def get_coldata(self, stats, key):
+        return stats.get(key, None)
+    
     def get_body(self, allstats):
         body = []
         for row_key, row_disp in self.rows:
@@ -90,10 +91,11 @@ class StatkeySchema(BaseSchema):
             if stats is not None:
                 row = []
                 for col_key, col_disp, col_fmt in self.cols:
-                    if col_key in stats:
+                    col_data = self.get_coldata(stats, col_key)
+                    if col_data is not None:
                         if col_fmt is None:
                             col_fmt = ''
-                        row.append(format(stats[col_key], col_fmt))
+                        row.append(format(col_data, col_fmt))
                     else:
                         row.append('---')
             else:
@@ -132,7 +134,7 @@ class GroupedSchema(StatkeySchema):
     
     cols = []
     """List of quadruples: (variant identifier, stat name,
-    display name, display format). varient identifier is the
+    display name, display format). variant identifier is the
     index of the entry we want to examine from the current group.
     """
     
@@ -159,3 +161,22 @@ class OrigIncFilterSchema(GroupedSchema):
         ((2, 'lines'), 'Filtered LOC', None),
         ((2, 'trans time'), 'Filtered trans. time', '.3f'),
     ]
+
+
+class CostSchema(StatkeySchema):
+    
+    """Table of costs."""
+    
+    rows = []
+    """List of pairs: (entry name, display name)."""
+    
+    cols = []
+    """List of triples: (function name, display name, display format)."""
+    
+    def get_coldata(self, stats, key):
+        from invinc.compiler.cost import PrettyPrinter
+        cost = stats.get('costs', {}).get(key, None)
+        if cost is None:
+            return None
+        coststr = PrettyPrinter.run(cost)
+        return 'O({})'.format(coststr)

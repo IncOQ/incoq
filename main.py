@@ -4,7 +4,8 @@
 from invinc.transform import *
 
 
-STATS_FILE = 'transstats.pickle'
+STATS_DIR = 'stats/'
+STATS_FILE = STATS_DIR + 'transstats.pickle'
 
 
 all_tasks = []
@@ -321,15 +322,49 @@ class DistalgoSchema(OrigIncFilterSchema):
         _rowgen('ramutex'),
     ]
 
+class LamutexspecCostSchema(CostSchema):
+    rows = [
+        ('lamutex Unfiltered', 'lamutex'),
+        ('lamutex opt1 Unfiltered', 'lamutex opt1'),
+        ('lamutex opt2 Unfiltered', 'lamutex opt2'),
+    ]
+    cols = [
+        ('Query_0', 'Query', None),
+        ('Update__PReceivedEvent_0_0', 'Rec Request', None),
+        ('Update__PReceivedEvent_1_0', 'Rec Release', None),
+        ('Update__PReceivedEvent_2_0', 'Rec Ack', None),
+    ]
+class LamutexorigCostSchema(CostSchema):
+    rows = [
+        ('lamutex orig Unfiltered', 'lamutex orig'),
+    ]
+    cols = [
+        ('Query_0', 'Query 1', None),
+        ('Query_1', 'Query 2', None),
+        ('Update_P_q_2', 'Update q (send request)', None),
+        ('Update_P_q_3', 'Update q (send release)', None),
+        ('Update_P_q_4', 'Update q (rec request / send ack)', None),
+        ('Update_P_q_5', 'Update q (rec release)', None),
+        ('Update__PReceivedEvent_0_0', 'Rec Ack', None),
+    ]
+
 stats = StatsDB(STATS_FILE)
-oifschema = OIFSchema(stats.allstats)
-distalgoschema = DistalgoSchema(stats.allstats)
-oifschema.save_csv('oif_stats.csv')
-distalgoschema.save_csv('distalgo_stats.csv')
+oif_schema = OIFSchema(stats.allstats)
+distalgo_schema = DistalgoSchema(stats.allstats)
+lamutexspec_costschema= LamutexspecCostSchema(stats.allstats)
+lamutexorig_costschema= LamutexorigCostSchema(stats.allstats)
 
-print(oifschema.to_ascii())
-print(distalgoschema.to_ascii())
+oif_schema.save_csv(STATS_DIR + 'oif_stats.csv')
+distalgo_schema.save_csv(STATS_DIR + 'distalgo_stats.csv')
+lamutexspec_costschema.save_csv(STATS_DIR + 'lamutexspec_cost_stats.csv')
+lamutexorig_costschema.save_csv(STATS_DIR + 'lamutexorig_cost_stats.csv')
 
+#print(oif_schema.to_ascii())
+#print(distalgo_schema.to_ascii())
+print(lamutexspec_costschema.to_ascii())
+print(lamutexorig_costschema.to_ascii())
+
+#session = Session(stats)
 #Session.interact(stats, name='Social Unfiltered')
 #session = Session(stats, name='lamutex Unfiltered')
 #session.cmd_showcosts()
