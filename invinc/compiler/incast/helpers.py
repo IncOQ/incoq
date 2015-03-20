@@ -394,7 +394,8 @@ def get_mapassign(node):
     
         <alpha>[<beta>] = <value>
     
-    and returns alpha, beta, and value.
+    and returns alpha, beta, and value. As a special case, if alpha
+    is the function call "globals()", do not match.
     """
     checktype(node, AST)
     
@@ -402,7 +403,15 @@ def get_mapassign(node):
         len(node.targets) == 1 and
         isinstance(node.targets[0], Subscript) and
         isinstance(node.targets[0].slice, Index)):
-        return node.targets[0].value, node.targets[0].slice.value, node.value
+        # Catch globals().
+        target = node.targets[0].value
+        if (isinstance(target, Call) and
+            isinstance(target.func, Name) and
+            target.func.id == 'globals'):
+            pass
+        else:
+            return (node.targets[0].value, node.targets[0].slice.value,
+                    node.value)
     
     from . import ts
     raise TypeError('get_mapassign failed: ' + ts(node))
@@ -414,7 +423,8 @@ def get_delmap(node):
     
         del <alpha>[<beta>]
     
-    and return alpha and beta.
+    and return alpha and beta. As a special case, if alphas is
+    the function call "globals()", do not match.
     """
     checktype(node, AST)
     
@@ -422,7 +432,13 @@ def get_delmap(node):
         len(node.targets) == 1 and
         isinstance(node.targets[0], Subscript) and
         isinstance(node.targets[0].slice, Index)):
-        return node.targets[0].value, node.targets[0].slice.value
+        target = node.targets[0].value
+        if (isinstance(target, Call) and
+            isinstance(target.func, Name) and
+            target.func.id == 'globals'):
+            pass
+        else:
+            return node.targets[0].value, node.targets[0].slice.value
     
     from . import ts
     raise TypeError('get_delmap failed: ' + ts(node))

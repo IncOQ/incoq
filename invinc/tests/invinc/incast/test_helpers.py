@@ -158,12 +158,18 @@ class HelpersCase(unittest.TestCase):
         self.assertEqual(map, self.pe('a'))
         self.assertEqual(key, self.pe('b.c'))
         self.assertEqual(val, self.pe('5'))
+        
+        tree = self.ps('globals()[a] = 5')
+        self.assertFalse(is_mapassign(tree))
     
     def test_delmap(self):
         tree = self.ps('del a[b.c]')
         map, key = get_delmap(tree)
         self.assertEqual(map, self.pe('a'))
         self.assertEqual(key, self.pe('b.c'))
+        
+        tree = self.ps('del globals()[a]')
+        self.assertFalse(is_delmap(tree))
     
     def test_importstar(self):
         tree = self.ps('from foo import *')
