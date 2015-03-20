@@ -242,7 +242,7 @@ class CostAnalyzer(L.NodeVisitor):
     
     # IncAST-specific nodes.
     
-    def visit_MacroSetUpdate(self, node):
+    def visit_MacroUpdate(self, node):
         # Cost of evaluating each side, plus cost of size of each side.
         leftcost = self.visit(node.target)
         leftsize = self.expr_tosizecost(node.target)

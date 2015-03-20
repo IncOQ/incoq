@@ -51,8 +51,10 @@ class RewriterCase(CentralCase):
             A.symmetric_difference_update(B)
             A.assign_update(B)
             A.clear()
+            A.mapassign_update(B)
+            A.mapclear()
             ''')
-        tree = MacroSetUpdateRewriter.run(tree)
+        tree = MacroUpdateRewriter.run(tree)
         
         exp_tree = L.p('''
             for _upelem in B:
@@ -78,6 +80,15 @@ class RewriterCase(CentralCase):
             while (len(A) > 0):
                 _upelem = next(iter(A))
                 A.remove(_upelem)
+            if (A is not B):
+                while (len(A) > 0):
+                    _upkey = next(iter(A))
+                    A.delkey(_upkey)
+                for (_upkey, _upval) in B.items():
+                    A.assignkey(_upkey, _upval)
+            while (len(A) > 0):
+                _upkey = next(iter(A))
+                A.delkey(_upkey)
             ''')
         
         self.assertEqual(tree, exp_tree)

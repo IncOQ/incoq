@@ -276,6 +276,12 @@ class Set(Type, set):
     def _remove(self, elem):
         super().remove(elem)
     
+    # Macro updates.
+    
+    # update(), intersection_update(), difference_update(),
+    # symmetric_difference_update(), and clear() are all
+    # defined by the built-in set class.
+    
     def assign_update(self, other):
         if self is not other:
             self.clear()
@@ -356,6 +362,8 @@ class RCSet(Type):
         assert self.elems[value] == 1
         del self.elems[value]
     
+    # Note: Not all macro updates are currently provided for RCSet.
+    
     def clear(self):
         self.elems.clear()
     
@@ -379,6 +387,15 @@ class Map(Type, dict):
     def __repr__(self):
         return '{' + ', '.join(display_helper(k) + ': ' + str(v)
                                for k, v in self.items()) + '}'
+    
+    # Macro updates.
+    
+    def mapassign_update(self, other):
+        if self is not other:
+            self.clear()
+            self.update(other)
+    
+    mapclear = dict.clear
     
     _NO_DEFAULT = object()
     def singlelookup(self, key, default=_NO_DEFAULT):

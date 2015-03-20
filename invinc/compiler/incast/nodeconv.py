@@ -143,22 +143,28 @@ class IncLangImporter(MacroProcessor):
         return SetUpdate(target, 'remove', elem)
     
     def handle_ms_update(self, f, target, other):
-        return MacroSetUpdate(target, 'union', other)
+        return MacroUpdate(target, 'union', other)
     
     def handle_ms_intersection_update(self, f, target, other):
-        return MacroSetUpdate(target, 'inter', other)
+        return MacroUpdate(target, 'inter', other)
     
     def handle_ms_difference_update(self, f, target, other):
-        return MacroSetUpdate(target, 'diff', other)
+        return MacroUpdate(target, 'diff', other)
     
     def handle_ms_symmetric_difference_update(self, f, target, other):
-        return MacroSetUpdate(target, 'symdiff', other)
+        return MacroUpdate(target, 'symdiff', other)
     
     def handle_ms_assign_update(self, f, target, other):
-        return MacroSetUpdate(target, 'assign', other)
+        return MacroUpdate(target, 'assign', other)
     
     def handle_ms_clear(self, f, target):
-        return MacroSetUpdate(target, 'clear', None)
+        return MacroUpdate(target, 'clear', None)
+    
+    def handle_ms_mapassign_update(self, f, target, other):
+        return MacroUpdate(target, 'mapassign', other)
+    
+    def handle_ms_mapclear(self, f, target):
+        return MacroUpdate(target, 'mapclear', None)
     
     def handle_ms_incref(self, f, target, elem):
         return RCSetRefUpdate(target, 'incref', elem)
@@ -298,13 +304,15 @@ class IncLangExporter(NodeTransformer):
     visit_SetUpdate = set_helper
     visit_RCSetRefUpdate = set_helper
     
-    def visit_MacroSetUpdate(self, node):
+    def visit_MacroUpdate(self, node):
         op = {'union': 'update',
               'inter': 'intersection_update',
               'diff': 'difference_update',
               'symdiff': 'symmetric_difference_update',
               'assign': 'assign_update',
-              'clear': 'clear'}[node.op]
+              'clear': 'clear',
+              'mapassign': 'mapassign_update',
+              'mapclear': 'mapclear'}[node.op]
         if op == 'clear':
             return self.pc('TARGET.clear()',
                            subst={'TARGET': node.target})

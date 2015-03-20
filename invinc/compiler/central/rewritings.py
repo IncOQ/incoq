@@ -7,9 +7,10 @@ __all__ = [
     'DistalgoImporter',
     'get_distalgo_message_sets',
     'RelationFinder',
-    'MacroSetUpdateRewriter',
+    'MacroUpdateRewriter',
     'SetTypeRewriter',
     'ObjTypeRewriter',
+    'MapOpImporter',
     'UpdateRewriter',
     'MinMaxRewriter',
     'eliminate_deadcode',
@@ -202,13 +203,13 @@ class LegalUpdateValidator(L.NodeVisitor):
             raise self.Invalid
         super().generic_visit(node)
 
-class MacroSetUpdateRewriter(L.NodeTransformer):
+class MacroUpdateRewriter(L.NodeTransformer):
     
-    """Rewrite MacroSetUpdates into normal SetUpdates."""
+    """Rewrite MacroUpdates into normal set and map updates."""
     
     # TODO: These could be refactored as macros in incast perhaps?
     
-    def visit_MacroSetUpdate(self, node):
+    def visit_MacroUpdate(self, node):
         op = node.op
         subst = {'TARGET': node.target,
                  'OTHER': node.other}
@@ -254,6 +255,21 @@ class MacroSetUpdateRewriter(L.NodeTransformer):
                 while len(TARGET) > 0:
                     _upelem = next(iter(TARGET))
                     TARGET.remove(_upelem)
+                ''', subst=subst)
+        elif op == 'mapassign':
+            code = L.pc('''
+                if TARGET is not OTHER:
+                    while len(TARGET) > 0:
+                        _upkey = next(iter(TARGET))
+                        TARGET.delkey(_upkey)
+                    for _upkey, _upval in OTHER.items():
+                        TARGET.assignkey(_upkey, _upval)
+                ''', subst=subst)
+        elif op == 'mapclear':
+            code = L.pc('''
+                while len(TARGET) > 0:
+                    _upkey = next(iter(TARGET))
+                    TARGET.delkey(_upkey)
                 ''', subst=subst)
         else:
             assert()
@@ -371,6 +387,24 @@ class ObjTypeRewriter(L.NodeTransformer):
             new_bases = node.bases + (objbase,)
             node = node._replace(bases=new_bases)
         
+        return node
+
+class MapOpImporter(L.NodeTransformer):
+    
+    """Convert assignment and deletion of map keys to AssignKey
+    and DelKey nodes. Uses of the map "globals()" are ignored.
+    """
+    
+    def visit_Assign(self, node):
+        if L.is_mapassign(node):
+            target, key, value = L.get_mapassign(node)
+            return L.AssignKey(target, key, value)
+        return node
+    
+    def visit_Delete(self, node):
+        if L.is_delmap(node):
+            target, key = L.get_delmap(node)
+            return L.DelKey(target, key)
         return node
 
 class UpdateRewriter(L.NodeTransformer):

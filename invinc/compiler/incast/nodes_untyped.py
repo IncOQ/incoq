@@ -28,7 +28,7 @@ incast_node_names = [
     'Maintenance',
     
     'SetUpdate',
-    'MacroSetUpdate',
+    'MacroUpdate',
     'RCSetRefUpdate',
     'IsEmpty',
     'GetRef',
@@ -117,10 +117,10 @@ class SetUpdate(stmt):
         assert self.is_varupdate()
         return self.target.id, self.op, self.elem
 
-class MacroSetUpdate(stmt):
+class MacroUpdate(stmt):
     _fields = ('target',    # expression
                'op',        # 'union', 'inter', 'diff', 'symdiff',
-                            # 'assign', or 'clear'
+                            # 'assign', 'clear', 'mapassign', or 'mapclear'
                'other')     # expression or None
 
 class RCSetRefUpdate(stmt):

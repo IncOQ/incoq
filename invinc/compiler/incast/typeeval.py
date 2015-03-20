@@ -407,18 +407,32 @@ class TypeAnalyzer(AdvNodeTransformer):
         
         return node._replace(target=target, elem=elem)
     
-    def visit_MacroSetUpdate(self, node):
-        # Cond: target <= set<top>
-        # Cond: other <= set<top> if other is present
-        target = self.visit(node.target)
-        if not target.type.issubtype(SetType(toptype)):
-            raise TypeAnalysisFailure('MacroSetUpdate requires set type',
+    def visit_MacroUpdate(self, node):
+        # For set updates:
+        #   Cond: target <= set<top>
+        #   Cond: other <= set<top> if other is present
+        # For map updates:
+        #   Cond: target <= dict<top, top>
+        #   Cond: other <= dict<top, top> if other is present
+        if node.op in ['union', 'inter', 'diff', 'symdiff',
+                       'assign', 'clear']:
+            t_oper = SetType(toptype)
+            t_oper_name = 'set'
+        elif node.op in ['mapassign', 'mapclear']:
+            t_oper = DictType(toptype, toptype)
+            t_oper_name = 'dict'
+        else:
+            assert()
+        failure = TypeAnalysisFailure('{} update requires {} type'.format(
+                                      node.op, t_oper_name),
                                       node, self.store)
+        target = self.visit(node.target)
+        if not target.type.issubtype(t_oper):
+            raise failure
         if node.other is not None:
             other = self.visit(node.other)
-            if not other.type.issubtype(SetType(toptype)):
-                raise TypeAnalysisFailure('MacroSetUpdate requires '
-                                          'set type', node, self.store)
+            if not other.type.issubtype(t_oper):
+                raise failure
         else:
             other = None
         return node._replace(target=target, other=other)

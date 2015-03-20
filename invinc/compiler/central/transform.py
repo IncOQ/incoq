@@ -35,8 +35,8 @@ from invinc.compiler.cost import analyze_costs, eval_coststr
 
 from .manager import get_clause_factory, make_manager
 from .rewritings import (DistalgoImporter, get_distalgo_message_sets,
-                         MacroSetUpdateRewriter,
-                         SetTypeRewriter, ObjTypeRewriter,
+                         MacroUpdateRewriter,
+                         SetTypeRewriter, ObjTypeRewriter, MapOpImporter,
                          UpdateRewriter, MinMaxRewriter,
                          eliminate_deadcode, PassEliminator,
                          RelationFinder)
@@ -419,8 +419,11 @@ def transform_ast(tree, *, nopts=None, qopts=None):
                                set_literals=True, orig_set_comps=False)
     tree = ObjTypeRewriter.run(tree)
     
+    # Import map key assignment/deletion nodes.
+    tree = MapOpImporter.run(tree)
+    
     # Rewrite macro updates.
-    tree = MacroSetUpdateRewriter.run(tree)
+    tree = MacroUpdateRewriter.run(tree)
     
     input_rels = list(opman.get_opt('input_rels'))
     # Find additional input relations.

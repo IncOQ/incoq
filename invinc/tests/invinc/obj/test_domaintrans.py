@@ -22,8 +22,8 @@ class TestDomaintrans(CentralCase):
             print(o.foo)
             del o.foo
             o.bar = 5
-            m[k] = v
-            del m[k]
+            m.assignkey(k, v)
+            m.delkey(k)
             ''')
         tree = UpdateToPairTransformer.run(tree, True, {'foo'}, True,
                                            ['T'])

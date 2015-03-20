@@ -60,15 +60,6 @@ class UpdateToPairTransformer(L.NodeTransformer):
                             'CONT': cont,
                             'VALUE': value})
         
-        elif self.use_mapset and L.is_mapassign(node):
-            map, key, value = L.get_mapassign(node)
-            return L.pc('''
-                MAPSET.add((MAP, KEY, VALUE))
-                ''', subst={'MAPSET': L.ln(make_maprel()),
-                            'MAP': map,
-                            'KEY': key,
-                            'VALUE': value})
-        
         else:
             return node
     
@@ -84,15 +75,6 @@ class UpdateToPairTransformer(L.NodeTransformer):
                 ''', subst={'FSET': L.ln(make_frel(field)),
                             'CONT': cont,
                             '@FIELD': field})
-        
-        elif self.use_mapset and L.is_delmap(node):
-            map, key = L.get_delmap(node)
-            self.use_mapset = True
-            return L.pc('''
-                MAPSET.remove((MAP, KEY, MAP[KEY]))
-                ''', subst={'MAPSET': L.ln(make_maprel()),
-                            'MAP': map,
-                            'KEY': key})
         
         else:
             return node
@@ -114,6 +96,33 @@ class UpdateToPairTransformer(L.NodeTransformer):
                         '@OP': node.op,
                         'CONT': node.target,
                         'ELEM': node.elem})
+        return code
+    
+    def visit_AssignKey(self, node):
+        node = self.generic_visit(node)
+        
+        if not self.use_mapset:
+            return node
+        
+        code = L.pc('''
+            MAPSET.add((TARGET, KEY, VALUE))
+            ''', subst={'MAPSET': L.ln(make_maprel()),
+                        'TARGET': node.target,
+                        'KEY': node.key,
+                        'VALUE': node.value})
+        return code
+    
+    def visit_DelKey(self, node):
+        node = self.generic_visit(node)
+        
+        if not self.use_mapset:
+            return node
+        
+        code = L.pc('''
+            MAPSET.remove((TARGET, KEY, TARGET[KEY]))
+            ''', subst={'MAPSET': L.ln(make_maprel()),
+                        'TARGET': node.target,
+                        'KEY': node.key})
         return code
 
 
