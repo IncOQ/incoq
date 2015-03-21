@@ -129,7 +129,7 @@ class Manager:
             
             # The following are used for exporting transformation data
             # for later analysis.
-            'funccosts': {},        # dictionary mapping from function name to
+            'costs': {},            # dictionary mapping from function name to
                                     # analyzed cost
             'domain_subst': {},     # domain constraint solutions
             'invariants': {},       # mapping from invariant name to spec obj

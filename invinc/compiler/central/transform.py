@@ -37,6 +37,7 @@ from .manager import get_clause_factory, make_manager
 from .rewritings import (DistalgoImporter, get_distalgo_message_sets,
                          MacroUpdateRewriter,
                          SetTypeRewriter, ObjTypeRewriter, MapOpImporter,
+                         StrictUpdateRewriter,
                          UpdateRewriter, MinMaxRewriter,
                          eliminate_deadcode, PassEliminator,
                          RelationFinder)
@@ -421,6 +422,14 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     
     # Import map key assignment/deletion nodes.
     tree = MapOpImporter.run(tree)
+    
+    # Rewrite for strictness if requested.
+    ns_sets = opman.get_opt('nonstrict_sets')
+    ns_fields = opman.get_opt('nonstrict_fields')
+    ns_maps = opman.get_opt('nonstrict_maps')
+    tree = StrictUpdateRewriter.run(
+            tree, rewrite_sets=ns_sets, rewrite_fields = ns_fields,
+            rewrite_maps = ns_maps)
     
     # Rewrite macro updates.
     tree = MacroUpdateRewriter.run(tree)

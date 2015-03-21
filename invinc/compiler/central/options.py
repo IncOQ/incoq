@@ -141,6 +141,15 @@ class DefaultNormalOptions:
     """If True, rewrite cost terms using type domains. Thus, variable
     names get replaced by their types.
     """
+    
+    nonstrict_sets =        False
+    """If True, allow non-strict set updates in input program by
+    rewriting them to be strict.
+    """
+    nonstrict_fields =      False
+    """As above but for object fields."""
+    nonstrict_maps =        False
+    """As above but for maps."""
 
 
 class DefaultQueryOptions:
