@@ -508,6 +508,46 @@ class RAToken(DistalgoWorkflow):
         xlabel = 'Number of processes'
 
 
+class SKTokenDriver(DistalgoDriver):
+        dafilename = 'sktoken/sktoken.da'
+        argnames = ['n_procs', 'n_rounds']
+
+class SKToken(DistalgoWorkflow):
+    
+    prefix = 'results/sktoken'
+    
+    ExpDriver = SKTokenDriver
+    
+    class ExpDatagen(DistalgoWorkflow.ExpDatagen):
+        
+        progs = [
+            'sktoken_inc_in',
+            'sktoken_inc_dem',
+        ]
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  x,
+                    n_rounds = 10,
+                )
+                for x in range(2, 20 + 1, 2)
+            ]
+    
+    min_repeats = 1
+    max_repeats = 1
+    
+    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
+        
+        name = 'sktoken'
+        
+        ylabel = 'Time (s)'
+        xlabel = 'Number of processes'
+
+
 class TPCommitDriver(DistalgoDriver):
         dafilename = 'tpcommit/tpcommit.da'
         argnames = ['n_procs', 'failrate']

@@ -168,6 +168,9 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
 #add_impls('ratoken', 'experiments/distalgo/ratoken/ratoken_inc', [
 #    DEM_OBJ_NS,
 #])
+#add_impls('sktoken', 'experiments/distalgo/sktoken/sktoken_inc', [
+#    DEM_OBJ_NS,
+#])
 #add_impls('2pcommit', 'experiments/distalgo/tpcommit/tpcommit_inc', [
 #    INC_SUBDEM,
 #])
@@ -312,6 +315,10 @@ class DistalgoSchema(OrigIncFilterSchema):
         return ([name + ' Input', name + ' Unfiltered'],
                 name)
     
+    def _rowgen2(name):
+        return ([name + ' Input', name + ' Filtered (obj)'],
+                name)
+    
     rows = [
         _rowgen('2pcommit'),
         _rowgen('clpaxos'),
@@ -323,7 +330,8 @@ class DistalgoSchema(OrigIncFilterSchema):
         _rowgen('lamutex opt2'),
         _rowgen('lamutex orig'),
         _rowgen('ramutex'),
-        _rowgen('ratoken'),
+        _rowgen2('ratoken'),
+        _rowgen2('sktoken'),
     ]
 
 class LamutexspecCostSchema(CostSchema):
