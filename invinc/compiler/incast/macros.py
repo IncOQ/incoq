@@ -10,7 +10,7 @@ __all__ = [
 
 from .nodes import Str
 from .structconv import parse_structast, astargs
-from .helpers import tuplify, sn
+from .helpers import tuplify, ln, sn
 from .nodeconv import IncLangImporter
 
 
@@ -52,6 +52,27 @@ class IncMacroProcessor(IncLangImporter):
             else:
                 TARGET.decref(ELEM)
             ''', subst={'TARGET': target, 'ELEM': elem})
+    
+    # Obj macros.
+    
+    @astargs
+    def handle_ms_nsassignfield(self, f, target, field:'Name', value):
+        return self.pc('''
+            TARGET.nsdelfield(FIELD)
+            TARGET.ATTR_FIELD = VALUE
+            ''', subst={'TARGET': target,
+                        'FIELD': ln(field),
+                        '@ATTR_FIELD': field,
+                        'VALUE': value})
+    
+    @astargs
+    def handle_ms_nsdelfield(self, f, target, field:'Name'):
+        return self.pc('''
+            if hasattr(TARGET, STR_FIELD):
+                del TARGET.ATTR_FIELD
+            ''', subst={'TARGET': target,
+                        'STR_FIELD': Str(field),
+                        '@ATTR_FIELD': field})
     
     # Map macros.
     

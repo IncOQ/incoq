@@ -69,6 +69,20 @@ class MacroCase(unittest.TestCase):
             S.add((_1, _2, v))
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_fields(self):
+        tree = self.p('''
+            o.nsassignfield(f, v)
+            o.nsdelfield(g)
+            ''')
+        exp_tree = self.p('''
+            if hasattr(o, 'f'):
+                del o.f
+            o.f = v
+            if hasattr(o, 'g'):
+                del o.g
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':
