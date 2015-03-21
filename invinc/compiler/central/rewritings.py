@@ -10,6 +10,7 @@ __all__ = [
     'MacroUpdateRewriter',
     'SetTypeRewriter',
     'ObjTypeRewriter',
+    'StrictUpdateRewriter',
     'MapOpImporter',
     'UpdateRewriter',
     'MinMaxRewriter',
@@ -388,6 +389,75 @@ class ObjTypeRewriter(L.NodeTransformer):
             node = node._replace(bases=new_bases)
         
         return node
+
+
+class StrictUpdateRewriter(L.NodeTransformer):
+    
+    """Rewrite set, field, and/or map updates with if-guards
+    to ensure that they can be considered strict. To be run
+    after macro updates have already been turned into elementary
+    updates.
+    """
+    
+    def __init__(self, *, rewrite_sets=True, rewrite_fields=True,
+                          rewrite_maps=True):
+        super().__init__()
+        self.rewrite_sets = rewrite_sets
+        self.rewrite_fields = rewrite_fields
+        self.rewrite_maps = rewrite_maps
+    
+    # No need to generic_visit() since updates can't contain
+    # other updates.
+    
+    def visit_SetUpdate(self, node):
+        if not self.rewrite_sets:
+            return node
+        nsop = {'add': 'nsadd',
+                'remove': 'nsremove'}[node.op]
+        template = 'TARGET.{}(ELEM)'.format(nsop)
+        return L.pc(template, subst={'TARGET': node.target,
+                                     'ELEM': node.elem})
+    
+    def visit_Assign(self, node):
+        if not self.rewrite_fields:
+            return node
+        if not L.is_attrassign(node):
+            return node
+        cont, field, value = L.get_attrassign(node)
+        return L.pc('''
+            CONT.nsassignfield(FIELD, VALUE)
+            ''', subst={'CONT': cont,
+                        'FIELD': L.ln(field),
+                        'VALUE': value})
+    
+    def visit_Delete(self, node):
+        if not self.rewrite_fields:
+            return node
+        if not L.is_delattr(node):
+            return node
+        cont, field = L.get_delattr(node)
+        return L.pc('''
+            CONT.nsdelfield(FIELD)
+            ''', subst={'CONT': cont,
+                        'FIELD': L.ln(field)})
+    
+    def visit_AssignKey(self, node):
+        if not self.rewrite_maps:
+            return node
+        return L.pc('''
+            TARGET.nsassignkey(KEY, VALUE)
+            ''', subst={'TARGET': node.target,
+                        'KEY': node.key,
+                        'VALUE': node.value})
+    
+    def visit_DelKey(self, node):
+        if not self.rewrite_maps:
+            return node
+        return L.pc('''
+            TARGET.nsdelkey(KEY)
+            ''', subst={'TARGET': node.target,
+                        'KEY': node.key})
+
 
 class MapOpImporter(L.NodeTransformer):
     

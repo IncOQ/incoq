@@ -113,6 +113,34 @@ class RewriterCase(CentralCase):
             ''')
         self.assertEqual(tree, exp_tree)
     
+    def test_strictrewriter(self):
+        tree = L.p('''
+            S.add(1)
+            S.remove(2)
+            o.f = v
+            del o.g
+            m.assignkey(k, v)
+            m.delkey(j)
+            ''')
+        tree = StrictUpdateRewriter.run(tree)
+        exp_tree = L.p('''
+            if (1 not in S):
+                S.add(1)
+            if (2 in S):
+                S.remove(2)
+            if hasattr(o, 'f'):
+                del o.f
+            o.f = v
+            if hasattr(o, 'g'):
+                del o.g
+            if (k in m):
+                m.delkey(k)
+            m.assignkey(k, v)
+            if (j in m):
+                m.delkey(j)
+            ''')
+        self.assertEqual(tree, exp_tree)
+    
     def test_minmax(self):
         tree = L.p('''
             max({1} | {x for x in R} | S)
