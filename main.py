@@ -165,6 +165,9 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
 #add_impls('ramutex', 'experiments/distalgo/ramutex/ramutex_inc', [
 #    INC_SUBDEM,
 #])
+#add_impls('ratoken', 'experiments/distalgo/ratoken/ratoken_inc', [
+#    DEM_OBJ_NS,
+#])
 #add_impls('2pcommit', 'experiments/distalgo/tpcommit/tpcommit_inc', [
 #    INC_SUBDEM,
 #])
@@ -320,6 +323,7 @@ class DistalgoSchema(OrigIncFilterSchema):
         _rowgen('lamutex opt2'),
         _rowgen('lamutex orig'),
         _rowgen('ramutex'),
+        _rowgen('ratoken'),
     ]
 
 class LamutexspecCostSchema(CostSchema):
@@ -359,10 +363,10 @@ distalgo_schema.save_csv(STATS_DIR + 'distalgo_stats.csv')
 lamutexspec_costschema.save_csv(STATS_DIR + 'lamutexspec_cost_stats.csv')
 lamutexorig_costschema.save_csv(STATS_DIR + 'lamutexorig_cost_stats.csv')
 
-#print(oif_schema.to_ascii())
-#print(distalgo_schema.to_ascii())
-print(lamutexspec_costschema.to_ascii())
-print(lamutexorig_costschema.to_ascii())
+print(oif_schema.to_ascii())
+print(distalgo_schema.to_ascii())
+#print(lamutexspec_costschema.to_ascii())
+#print(lamutexorig_costschema.to_ascii())
 
 #session = Session(stats)
 #Session.interact(stats, name='Social Unfiltered')

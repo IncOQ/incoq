@@ -20,6 +20,7 @@ __all__ = [
     'DEM_NO_TAG_CHECK',
     'DEM_OBJ',
     'DEM_SUBDEM',
+    'DEM_OBJ_NS',
 ]
 
 
@@ -187,3 +188,7 @@ class DEM_SUBDEM(DEM):
     output_suffix = 'dem_subdem'
     display_suffix = 'Filtered (alternate subquery demand)'
     extra_nopts = {'subdem_tags': False}
+
+class DEM_OBJ_NS(DEM_OBJ):
+    extra_nopts = {'nonstrict_fields': True,
+                   'nonstrict_maps': True}

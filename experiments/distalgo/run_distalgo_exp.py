@@ -468,6 +468,46 @@ class RAMutex(DistalgoWorkflow):
         xlabel = 'Number of processes'
 
 
+class RATokenDriver(DistalgoDriver):
+        dafilename = 'ratoken/ratoken.da'
+        argnames = ['n_procs', 'n_rounds']
+
+class RAToken(DistalgoWorkflow):
+    
+    prefix = 'results/ratoken'
+    
+    ExpDriver = RATokenDriver
+    
+    class ExpDatagen(DistalgoWorkflow.ExpDatagen):
+        
+        progs = [
+            'ratoken_inc_in',
+            'ratoken_inc_dem',
+        ]
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  x,
+                    n_rounds = 10,
+                )
+                for x in range(2, 20 + 1, 2)
+            ]
+    
+    min_repeats = 1
+    max_repeats = 1
+    
+    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
+        
+        name = 'ratoken'
+        
+        ylabel = 'Time (s)'
+        xlabel = 'Number of processes'
+
+
 class TPCommitDriver(DistalgoDriver):
         dafilename = 'tpcommit/tpcommit.da'
         argnames = ['n_procs', 'failrate']

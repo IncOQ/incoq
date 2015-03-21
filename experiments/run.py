@@ -52,6 +52,7 @@ lamutexprocs = experiments.distalgo.LAMutexProcs()
 lamutexrounds = experiments.distalgo.LAMutexRounds()
 lapaxos = experiments.distalgo.LAPaxos()
 ramutex = experiments.distalgo.RAMutex()
+ratoken = experiments.distalgo.RAToken()
 tpcommit = experiments.distalgo.TPCommit()
 vrpaxos = experiments.distalgo.VRPaxos()
 
@@ -103,6 +104,7 @@ def main():
 #        lamutexrounds,
 #        lapaxos,
 #        ramutex,
+#        ratoken,
 #        tpcommit,
 #        vrpaxos,  # Doesn't work until witnesses are supported
     ]

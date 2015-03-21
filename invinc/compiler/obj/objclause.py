@@ -208,7 +208,7 @@ class MapClause(EnumClause, ABCStruct):
     value = Field(str)
     
     pat_mask = (False, True, True)
-    con_mask = (False, False, True)
+    con_mask = (False, True, True)
     tagsin_mask = (True, False, False)
     tagsout_mask = (False, True, True)
     
