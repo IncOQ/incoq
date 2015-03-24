@@ -95,6 +95,7 @@ class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
 #add_impls('Social', 'experiments/twitter/twitter', [
 #    INC,
 #    DEM,
+#    DEM_SINGLE_TAG,
 #])
 #
 #add_impls('Auth', 'experiments/django/django', [

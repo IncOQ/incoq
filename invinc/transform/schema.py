@@ -53,7 +53,7 @@ class BaseSchema:
         is available, or csv format otherwise.
         """
         if HAVE_TABULATE:
-            return tabulate(self.body, self.header)
+            return tabulate(self.body, self.header, floatfmt='.3f')
         else:
             return self.to_csv()
     

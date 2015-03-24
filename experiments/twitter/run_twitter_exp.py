@@ -833,7 +833,7 @@ class Factor(TwitterWorkflow):
     
     stddev_window = .1
     min_repeats = 10
-    max_repeats = 100
+    max_repeats = 50
      
     class ExpExtractor(TwitterWorkflow.ExpExtractor):
         
@@ -1250,7 +1250,7 @@ class Tag(TwitterWorkflow):
     
     stddev_window = .1
     min_repeats = 10
-    max_repeats = 100
+    max_repeats = 50
     
     class ExpExtractor(Scale.ExpExtractor):
         pass

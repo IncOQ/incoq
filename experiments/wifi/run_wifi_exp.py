@@ -195,8 +195,8 @@ class Wifi(ExpWorkflow):
             ]
     
     stddev_window = .1
-    min_repeats = 20
-    max_repeats = 20
+    min_repeats = 10
+    max_repeats = 50
     
     class ExpExtractor(MetricExtractor, SmallExtractor):
         

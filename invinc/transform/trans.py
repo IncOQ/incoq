@@ -18,6 +18,7 @@ __all__ = [
     'DEM',
     'DEM_NONINLINE',
     'DEM_NO_TAG_CHECK',
+    'DEM_SINGLE_TAG',
     'DEM_OBJ',
     'DEM_SUBDEM',
     'DEM_OBJ_NS',
@@ -178,6 +179,11 @@ class DEM_NO_TAG_CHECK(DEM):
     output_suffix = 'dem_notagcheck'
     display_suffix = 'Filtered (no demand checks)'
     extra_nopts = {'tag_checks': False}
+
+class DEM_SINGLE_TAG(DEM):
+    output_suffix = 'dem_singletag'
+    display_suffix = 'Filtered (single tag)'
+    extra_nopts = {'single_tag': True}
 
 class DEM_OBJ(DEM):
     output_suffix = 'dem'

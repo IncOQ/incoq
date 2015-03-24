@@ -110,7 +110,7 @@ def main():
 #        ratokenrounds
 #        sktoken,
 #        tpcommit,
-#        vrpaxos,  # Doesn't work until witnesses are supported
+#        vrpaxos,
     ]
     
     
