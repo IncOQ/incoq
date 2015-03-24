@@ -81,8 +81,8 @@ class CRBACDriver:
             finished = self.run()
         
         if finished:
-            import runtimelib
-            self.results['size'] = runtimelib.get_total_structure_size(
+            import invinc.runtime
+            self.results['size'] = invinc.runtime.get_total_structure_size(
                                     self.module.__dict__)
             self.results['time_user'] = timer_user.consume()
             self.results['time_cpu'] = timer_cpu.consume()
@@ -152,8 +152,8 @@ class CRBACExtractor(MetricExtractor, SmallExtractor):
     series = [
         ('crbac_orig', 'original',
          'red', '- !s normal'),
-        ('crbac_aux', 'batch w/ maps',
-         'orange', '- !s normal'),
+        ('crbac_inc', 'unfiltered',
+         'blue', '- !o normal'),
         ('crbac_dem', 'filtered',
          'green', '- !^ normal'),
     ]
@@ -211,7 +211,7 @@ class CRBACScale(CRBACWorkflow):
         
         progs = [
             'crbac_orig',
-            'crbac_aux',
+            'crbac_inc',
             'crbac_dem',
         ]
         
@@ -242,5 +242,3 @@ class CRBACScale(CRBACWorkflow):
         xlabel = 'Number of users and constraints'
         
         metric = 'time_cpu'
-        
-        ymax = 4

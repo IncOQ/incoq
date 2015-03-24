@@ -164,22 +164,6 @@ class DEM_CORERBAC_CA(COM):
 #    INC,
 #    DEM,
 #])
-# OLD ONES:
-#add_task(COM('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
-#             {CHECKACCESS_STR: {'impl': 'dem',
-#                                'uset_mode': 'explicit',
-#                                'uset_params': ('session',)},
-##              ASSIGNEDROLES_STR: {'impl': 'dem',
-##                                  'uset_mode': 'explicit',
-##                                  'uset_params': ('user',)},
-##              DELETESESSION_STR: {'impl': 'dem',
-##                                  'uset_mode': 'explicit',
-##                                  'uset_params': ('session',)}
-#             }, 'ca_dem', 'Filtered (CA)'))
-#add_task(INC('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
-#             {}, None, None))
-#add_task(DEM('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
-#             {}, None, None))
 #
 #add_impls('bday', 'experiments/other/bday/bday', [
 #    INC,
@@ -347,7 +331,7 @@ class OIFSchema(OrigIncFilterSchema):
           'CoreRBAC Filtered (CA)'],
          'CoreRBAC (CA only)'),
         _rowgen('CoreRBAC (all)', 'CoreRBAC'),
-#        _rowgen('SSD', 'Constr. RBAC'),
+        _rowgen('SSD', 'Constr. RBAC'),
     ]
     
 #    rows = [
