@@ -89,6 +89,35 @@ class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
             },
     }
 
+CHECKACCESS_STR = '{r for r in ROLES if (session,r) in SR if (operation,object,r) in PR}'
+ASSIGNEDROLES_STR = '{r for r in ROLES if (user,r) in UR}'
+DELETESESSION_STR = '{(session,r) for r in ROLES if (session, r) in SR}'
+class INC_CORERBAC_CA(COM):
+    _inherit_fields = True
+    
+    output_suffix = 'checkaccess_inc'
+    display_suffix = 'Unfiltered (CA)'
+    
+    extra_qopts = {
+        CHECKACCESS_STR:   {'impl': 'inc'},
+        ASSIGNEDROLES_STR: {'impl': 'inc'},
+        DELETESESSION_STR: {'impl': 'inc'},
+        }
+
+class DEM_CORERBAC_CA(COM):
+    _inherit_fields = True
+    
+    output_suffix = 'checkaccess_dem'
+    display_suffix = 'Filtered (CA)'
+    
+    extra_qopts = {
+        CHECKACCESS_STR:   {'impl': 'dem',
+                            'uset_mode': 'explicit',
+                            'uset_params': ('session',)},
+        ASSIGNEDROLES_STR: {'impl': 'inc'},
+        DELETESESSION_STR: {'impl': 'inc'},
+        }
+
 
 # ---- Uncomment to rebuild experiment programs. ---
 
@@ -129,17 +158,13 @@ class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
 #    DEM,
 #])
 #
-#CHECKACCESS_STR = '{r for r in ROLES if (session,r) in SR if (operation,object,r) in PR}'
-#ASSIGNEDROLES_STR = '{r for r in ROLES if (user,r) in UR}'
-#DELETESESSION_STR = '{(session,r) for r in ROLES if (session, r) in SR}'
-#add_task(IN('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC'))
-#add_task(COM('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
-#             {}, 'aux', 'Batch w/ maps'))
-#add_task(COM('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
-#             {CHECKACCESS_STR: {'impl': 'inc'},
-##              ASSIGNEDROLES_STR: {'impl': 'inc'},
-##              DELETESESSION_STR: {'impl': 'inc'}
-#             }, 'ca_inc', 'Unfiltered (CA)'))
+#add_impls('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC', [
+#    INC_CORERBAC_CA,
+#    DEM_CORERBAC_CA,
+#    INC,
+#    DEM,
+#])
+# OLD ONES:
 #add_task(COM('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
 #             {CHECKACCESS_STR: {'impl': 'dem',
 #                                'uset_mode': 'explicit',
@@ -318,9 +343,10 @@ class OIFSchema(OrigIncFilterSchema):
         _rowgen('Wifi', 'Wifi'),
         _rowgen('Auth', 'Auth'),
         _rowgen('Auth (Simp.)', 'Simplified Auth'),
-#        ('Access', 'CoreRBAC Input',
-#         'CoreRBAC Unfiltered (CA)', 'CoreRBAC Filtered (CA)'),
-#        _rowgen('CoreRBAC', 'CoreRBAC'),
+        (['CoreRBAC Input', 'CoreRBAC Unfiltered (CA)',
+          'CoreRBAC Filtered (CA)'],
+         'CoreRBAC (CA only)'),
+        _rowgen('CoreRBAC (all)', 'CoreRBAC'),
 #        _rowgen('SSD', 'Constr. RBAC'),
     ]
     

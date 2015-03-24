@@ -112,6 +112,9 @@ class TaskTemplate:
     
     extra_nopts = {}
     """nopts to use. Inherited from base classes as well."""
+    
+    extra_qopts = {}
+    """qopts to use. Inherited from base classes as well."""
 
 def task_from_template(task, template):
     display_name = task.display_name
@@ -130,9 +133,15 @@ def task_from_template(task, template):
         nopts.update(c.extra_nopts)
     nopts.update(task.nopts)
     
+    qopts = {}
+    for d in [c.extra_qopts for c in reversed(bases)] + [task.qopts]:
+        for q, opts in d.items():
+            qopts.setdefault(q, {}).update(opts)
+    
     return task._replace(display_name=display_name,
                          output_name=output_name,
-                         nopts=nopts)
+                         nopts=nopts,
+                         qopts=qopts)
 
 
 def make_in_task(display_name, base_name):
