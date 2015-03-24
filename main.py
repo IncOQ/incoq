@@ -117,10 +117,10 @@ class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
 #        '3'
 #    ]:
 #    add_impls('JQL {}'.format(level), 'experiments/jql/jql_{}'.format(level), [
-#        AUX,
+##        AUX,
 #        INC,
 #        DEM,
-#        DEM_NO_TAG_CHECK,
+##        DEM_NO_TAG_CHECK,
 #    ])
 #
 #add_impls('Constr. RBAC', 'experiments/rbac/constrainedrbac/crbac', [
@@ -161,35 +161,42 @@ class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
 #
 #add_impls('clpaxos', 'experiments/distalgo/clpaxos/clpaxos_inc', [
 #    INC_SUBDEM,
+#    DEM,
 #])
 #add_impls('crleader', 'experiments/distalgo/crleader/crleader_inc', [
 #    INC_SUBDEM,
+#    DEM,
 #])
 #add_impls('dscrash', 'experiments/distalgo/dscrash/dscrash_inc', [
 #    DEM_OBJ_NS,
 #])
 #add_impls('hsleader', 'experiments/distalgo/hsleader/hsleader_inc', [
 #    INC_SUBDEM,
+#    DEM,
 #])
 #add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
 #    INC_SUBDEM_LAMUTEX,
+#    DEM,
 #])
 #add_task(lamutex_lru)
 #add_impls('lamutex opt1', 'experiments/distalgo/lamutex/lamutex_opt1_inc', [
 #    INC_SUBDEM_LAMUTEX,
+#    DEM,
 #])
 #add_impls('lamutex opt2', 'experiments/distalgo/lamutex/lamutex_opt2_inc', [
 #    INC_SUBDEM_LAMUTEX,
+#    DEM,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
 #    INC_SUBDEM_LAMUTEX_ORIG,
+#    DEM,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,
-#    DEM,
 #])
 #add_impls('ramutex', 'experiments/distalgo/ramutex/ramutex_inc', [
 #    INC_SUBDEM,
+#    DEM,
 #])
 #add_impls('ratoken', 'experiments/distalgo/ratoken/ratoken_inc', [
 #    DEM_OBJ_NS_RATOKEN,
@@ -199,12 +206,9 @@ class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
 #])
 #add_impls('2pcommit', 'experiments/distalgo/tpcommit/tpcommit_inc', [
 #    INC_SUBDEM,
+#    DEM,
 #])
 #add_impls('vrpaxos', 'experiments/distalgo/vrpaxos/vrpaxos_inc', [
-#    DEM_NONINLINE,
-#])
-#add_impls('vrpaxos', 'experiments/distalgo/vrpaxos/orig_majority_top_inc', [
-#    INC_SUBDEM,
 #    DEM,
 #])
 
@@ -329,20 +333,21 @@ class OIFSchema(OrigIncFilterSchema):
 
 class DistalgoSchema(OrigIncFilterSchema):
    
-    cols = [
-        ((0, 'lines'), 'Original LOC', None),
-        ((1, 'orig queries'), 'Queries', None),
-        ((1, 'orig updates'), 'Updates', None),
-        ((1, 'lines'), 'Inc. LOC', None),
-        ((1, 'trans time'), 'Inc. trans. time', '.3f'),
-    ]
+#    cols = [
+#        ((0, 'lines'), 'Original LOC', None),
+#        ((1, 'orig queries'), 'Queries', None),
+#        ((1, 'orig updates'), 'Updates', None),
+#        ((1, 'lines'), 'Inc. LOC', None),
+#        ((1, 'trans time'), 'Inc. trans. time', '.3f'),
+#    ]
     
     def _rowgen(name):
-        return ([name + ' Input', name + ' Unfiltered'],
+        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
                 name)
     
     def _rowgen2(name):
-        return ([name + ' Input', name + ' Filtered (obj)'],
+        return ([name + ' Input', name + ' Unfiltered (obj)',
+                 name + ' Filtered (obj)'],
                 name)
     
     rows = [
@@ -355,6 +360,7 @@ class DistalgoSchema(OrigIncFilterSchema):
         _rowgen('lamutex opt1'),
         _rowgen('lamutex opt2'),
         _rowgen('lamutex orig'),
+#        _rowgen('lapaxos'),
         _rowgen('ramutex'),
         _rowgen2('ratoken'),
         _rowgen2('sktoken'),
