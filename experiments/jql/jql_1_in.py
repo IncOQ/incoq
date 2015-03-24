@@ -1,6 +1,6 @@
 # JQL query, one level.
 
-from runtimelib import *
+from invinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

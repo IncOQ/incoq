@@ -116,7 +116,7 @@ class JQLDatagen(Datagen):
 class JQLDriver:
     
     check_interval = 100
-    timeout = 300
+    timeout = 60
     
     # Operation enum.
     Q = 1
@@ -155,8 +155,8 @@ class JQLDriver:
             finished = self.run()
         
         if finished:
-            import runtimelib
-            self.results['size'] = runtimelib.get_total_structure_size(
+            import invinc.runtime
+            self.results['size'] = invinc.runtime.get_total_structure_size(
                                     self.module.__dict__)
             self.results['time_cpu'] = timer_cpu.consume()
             self.results['time_wall'] = timer_wall.consume()
@@ -590,7 +590,7 @@ class Scale(JQLWorkflow):
     class ExpDatagen(JQLWorkflow.ExpDatagen):
         
         ratio = .5
-        points = list(range(5000, 100000 + 1, 5000))
+        points = list(range(2000, 20000 + 1, 2000))
         nops = 5000
         
         def get_dsparams_list(self):
@@ -620,8 +620,8 @@ class Scale(JQLWorkflow):
         def project_x(self, p):
             return super().project_x(p) / 1e3
         
-        xmin = 5
-        xmax = 105
+        xmin = 1
+        xmax = 21
 
 class Scale1(Scale):
     
@@ -690,8 +690,8 @@ class Scale2(Scale):
         jqlnocache_format = 'poly2'
         
         multipliers = {
-            'jql_2_java_nocache':  1e-2,
-            'jql_2_java_cache':    1e-2,
+            'jql_2_inc':  1e1,
+            'jql_2_dem':  1e1,
         }
         
         @property
@@ -750,8 +750,10 @@ class Scale3(Scale):
         jqlnocache_format = 'normal'
         
         multipliers = {
-            'jql_3_java_nocache':  1e-2,
-            'jql_3_java_cache':    1e-2,
+            'jql_3_inc':  1e1,
+            'jql_3_dem':  1e1,
+#            'jql_3_java_nocache':  1e-2,
+#            'jql_3_java_cache':    1e-2,
         }
         
         @property
