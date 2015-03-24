@@ -1,6 +1,3 @@
-[submodule "frexp"]
-	path = frexp
-	url = https://github.com/brandjon/frexp
 [submodule "distalgo"]
 	path = distalgo
 	url = https://github.com/DistAlgo/distalgo

@@ -612,7 +612,7 @@ class ScaleTime(Scale):
         
         ylabel = 'Running time (in seconds)'
         ymin = 0
-        ymax = 4.5
+        ymax = 3.5
         y_ticklocs = [0, 1, 2, 3, 4]
     
     imagename = 'time'
