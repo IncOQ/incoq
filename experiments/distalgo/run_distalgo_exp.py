@@ -267,7 +267,7 @@ class DSCrash(DistalgoWorkflow):
                     n_procs =  x,
                     maxfail =  2,#int(0.25 * x),
                 )
-                for x in [5, 10, 15, 20, 25]
+                for x in range(5, 25 + 1, 5)
             ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
@@ -472,7 +472,7 @@ class RATokenDriver(DistalgoDriver):
         dafilename = 'ratoken/ratoken.da'
         argnames = ['n_procs', 'n_rounds']
 
-class RAToken(DistalgoWorkflow):
+class RATokenProcs(DistalgoWorkflow):
     
     prefix = 'results/ratoken'
     
@@ -494,11 +494,11 @@ class RAToken(DistalgoWorkflow):
                     n_procs =  x,
                     n_rounds = 10,
                 )
-                for x in range(2, 20 + 1, 2)
+                for x in range(12, 72 + 1, 12)
             ]
     
-    min_repeats = 1
-    max_repeats = 1
+    min_repeats = 3
+    max_repeats = 3
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
@@ -506,6 +506,41 @@ class RAToken(DistalgoWorkflow):
         
         ylabel = 'Time (s)'
         xlabel = 'Number of processes'
+
+class RATokenRounds(DistalgoWorkflow):
+    
+    prefix = 'results/ratoken_rounds'
+    
+    ExpDriver = RATokenDriver
+    
+    class ExpDatagen(DistalgoWorkflow.ExpDatagen):
+        
+        progs = [
+            'ratoken_inc_in',
+            'ratoken_inc_dem',
+        ]
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  20,
+                    n_rounds = x,
+                )
+                for x in range(10, 60 + 1, 10)
+            ]
+    
+    min_repeats = 3
+    max_repeats = 3
+    
+    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
+        
+        name = 'ratoken'
+        
+        ylabel = 'Time (s)'
+        xlabel = 'Number of rounds'
 
 
 class SKTokenDriver(DistalgoDriver):
@@ -534,11 +569,11 @@ class SKToken(DistalgoWorkflow):
                     n_procs =  x,
                     n_rounds = 10,
                 )
-                for x in range(2, 20 + 1, 2)
+                for x in range(5, 40 + 1, 5)
             ]
     
-    min_repeats = 1
-    max_repeats = 1
+    min_repeats = 3
+    max_repeats = 3
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         

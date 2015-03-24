@@ -63,6 +63,32 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
             },
     }
 
+class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
+    _inherit_fields = True
+    
+    msgset1_t = '''set(tuple([top, top, tuple([
+                                enum('msglabel', str),
+                                subtype('clocks', number),
+                                subtype('procs', number)])]))'''
+    msgset2_t = '''set(tuple([top, top, tuple([
+                                enum('msglabel', str),
+                                top])]))'''
+    msgset3_t = '''set(tuple([top, top, tuple([
+                                enum('msglabel', str),
+                                dict(top, top)])]))'''
+    
+    extra_nopts = {
+        'var_types': {
+            '_PReceivedEvent_2': msgset1_t,
+            '_PSentEvent_3': msgset2_t,
+            '_PReceivedEvent_4': msgset3_t,
+            '_PSentEvent_5': msgset3_t,
+            'SELF_ID': "subtype('procs', number)",
+            'P_ps':  "set(subtype('procs', number))",
+            'P_token': "dict(top, top)",
+            },
+    }
+
 
 # ---- Uncomment to rebuild experiment programs. ---
 
@@ -140,7 +166,7 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
 #    INC_SUBDEM,
 #])
 #add_impls('dscrash', 'experiments/distalgo/dscrash/dscrash_inc', [
-#    INC_SUBDEM_OBJ,
+#    DEM_OBJ_NS,
 #])
 #add_impls('hsleader', 'experiments/distalgo/hsleader/hsleader_inc', [
 #    INC_SUBDEM,
@@ -166,7 +192,7 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
 #    INC_SUBDEM,
 #])
 #add_impls('ratoken', 'experiments/distalgo/ratoken/ratoken_inc', [
-#    DEM_OBJ_NS,
+#    DEM_OBJ_NS_RATOKEN,
 #])
 #add_impls('sktoken', 'experiments/distalgo/sktoken/sktoken_inc', [
 #    DEM_OBJ_NS,
@@ -323,7 +349,7 @@ class DistalgoSchema(OrigIncFilterSchema):
         _rowgen('2pcommit'),
         _rowgen('clpaxos'),
         _rowgen('crleader'),
-        _rowgen('dscrash'),
+        _rowgen2('dscrash'),
         _rowgen('hsleader'),
         _rowgen('lamutex'),
         _rowgen('lamutex opt1'),

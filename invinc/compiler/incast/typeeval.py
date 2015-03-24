@@ -192,7 +192,7 @@ class TypeAnalyzer(AdvNodeTransformer):
         # If op is equality/identity or their negations:
         #     No action
         # If op is membership or its negation:
-        #     Cond: right <= set<top>
+        #     Cond: right <= set<top> or right <= dict<top, top>
         def allowed(t):
             return (t.issubtype(booltype) or
                     t.issubtype(numbertype) or
@@ -218,7 +218,8 @@ class TypeAnalyzer(AdvNodeTransformer):
         elif isinstance(op, (In, NotIn)):
             # Same issue as above. We don't compare the types against
             # each other, but at least we can say the RHS must be a set.
-            if not t_right.issubtype(SetType(toptype)):
+            if not (t_right.issubtype(SetType(toptype)) or
+                    t_right.issubtype(DictType(toptype, toptype))):
                 raise TypeAnalysisFailure('Membership comparison requires '
                                           'set on right-hand side',
                                           node, self.store)
