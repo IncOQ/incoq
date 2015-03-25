@@ -813,21 +813,38 @@ class DemandSize(Demand):
 
 class Factor(TwitterWorkflow):
     
-    """Do queries and following updates on a fixed dataset."""
+    """Do queries and following updates on a fixed dataset.
+    
+    Eight variants ({A, B, C, D} x {1, 2}):
+    
+      1A) 20,000 users as in rightmost datapoint of Scale
+      1B) 20,000 users as in rightmost datapoint of Demand
+      1C) 10,000 users as in middle datapoint of Demand
+          except each user follows 2% (200) of all users
+      1D) 2,000 users as in leftmost datapoint of Demand
+          except each user follows 50% (1,000) of all users
+    
+    Note that A-D have the same number of groups and group
+    degree, and B-D have 2 million following pairs.
+    
+    2A through 2D are the same as their counterparts except
+    that we update celebrity following relationships instead
+    of user locations. 
+    """
     
     class ExpDatagen(TwitterWorkflow.ExpDatagen):
         
         progs = [
             'twitter_dem',
             
-            'twitter_dem_aug',
-            'twitter_dem_das',
+#            'twitter_dem_aug',
+#            'twitter_dem_das',
             
-            'twitter_dem_noninline',
+#            'twitter_dem_noninline',
             'twitter_dem_norcelim',
-            'twitter_dem_notypecheck',
-            'twitter_dem_handopt',
-            'twitter_dem_noalias',
+#            'twitter_dem_notypecheck',
+#            'twitter_dem_handopt',
+#            'twitter_dem_noalias',
             'twitter_dem_notypecheck_noalias',
         ]
     
@@ -875,10 +892,10 @@ class Factor1A(Factor):
                     q_p_u =          1,
                     reps =           1,
                     
-                    need_exact =     False,
+                    need_exact =     True,
                     upkind =         'loc',
-                    celebusertag =   True,
-                    groupusertag =   True,
+                    celebusertag =   False,
+                    groupusertag =   False,
                 )
                 for x in [1]
             ]
@@ -933,11 +950,11 @@ class Factor1C(Factor):
                     x =              x,
                     
                     n_users =        10000,
-                    n_groups =       100,
+                    n_groups =       200,
                     pad_celeb =      None,
                     
                     user_deg =       200,
-                    group_deg =      5,
+                    group_deg =      10,
                     
                     n_locs =         20,
                     
@@ -970,11 +987,11 @@ class Factor1D(Factor):
                     x =              x,
                     
                     n_users =        2000,
-                    n_groups =       20,
+                    n_groups =       200,
                     pad_celeb =      None,
                     
                     user_deg =       1000,
-                    group_deg =      1,
+                    group_deg =      10,
                     
                     n_locs =         20,
                     
@@ -1015,15 +1032,15 @@ class Factor2A(Factor):
                     
                     n_locs =         20,
                     
-                    n_q_celebs =     1,
+                    n_q_celebs =     3,
                     n_q_groups =     1,
-                    n_q_pairs =      1,
+                    n_q_pairs =      3,
                     
                     n_u =            200000,
                     q_p_u =          1,
                     reps =           1,
                     
-                    need_exact =     False,
+                    need_exact =     True,
                     upkind =         'celeb',
                     celebusertag =   False,
                     groupusertag =   False,
@@ -1052,9 +1069,9 @@ class Factor2B(Factor):
                     
                     n_locs =         20,
                     
-                    n_q_celebs =     1,
-                    n_q_groups =     200,
-                    n_q_pairs =      200,
+                    n_q_celebs =     20000,
+                    n_q_groups =     1,
+                    n_q_pairs =      20000,
                     
                     n_u =            200000,
                     q_p_u =          1,
@@ -1062,8 +1079,8 @@ class Factor2B(Factor):
                     
                     need_exact =     False,
                     upkind =         'celeb',
-                    celebusertag =   False,
-                    groupusertag =   False,
+                    celebusertag =   True,
+                    groupusertag =   True,
                 )
                 for x in [1]
             ]
@@ -1081,17 +1098,17 @@ class Factor2C(Factor):
                     x =              x,
                     
                     n_users =        10000,
-                    n_groups =       100,
+                    n_groups =       200,
                     pad_celeb =      None,
                     
                     user_deg =       200,
-                    group_deg =      5,
+                    group_deg =      10,
                     
-                    n_locs =         1,
+                    n_locs =         20,
                     
-                    n_q_celebs =     1,
-                    n_q_groups =     100,
-                    n_q_pairs =      100,
+                    n_q_celebs =     10000,
+                    n_q_groups =     1,
+                    n_q_pairs =      10000,
                     
                     n_u =            200000,
                     q_p_u =          1,
@@ -1099,8 +1116,8 @@ class Factor2C(Factor):
                     
                     need_exact =     False,
                     upkind =         'celeb',
-                    celebusertag =   False,
-                    groupusertag =   False,
+                    celebusertag =   True,
+                    groupusertag =   True,
                 )
                 for x in [1]
             ]
@@ -1118,17 +1135,17 @@ class Factor2D(Factor):
                     x =              x,
                     
                     n_users =        2000,
-                    n_groups =       20,
+                    n_groups =       200,
                     pad_celeb =      None,
                     
                     user_deg =       1000,
-                    group_deg =      1,
+                    group_deg =      10,
                     
-                    n_locs =         1,
+                    n_locs =         20,
                     
-                    n_q_celebs =     1,
-                    n_q_groups =     20,
-                    n_q_pairs =      20,
+                    n_q_celebs =     2000,
+                    n_q_groups =     1,
+                    n_q_pairs =      2000,
                     
                     n_u =            200000,
                     q_p_u =          1,
@@ -1136,8 +1153,8 @@ class Factor2D(Factor):
                     
                     need_exact =     False,
                     upkind =         'celeb',
-                    celebusertag =   False,
-                    groupusertag =   False,
+                    celebusertag =   True,
+                    groupusertag =   True,
                 )
                 for x in [1]
             ]
