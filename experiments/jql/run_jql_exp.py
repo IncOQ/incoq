@@ -485,9 +485,10 @@ class JQLWorkflow(ExpWorkflow):
         ]
     
     class ExpExtractor(JQLExtractor):
-        @property
-        def title(self):
-            return 'Query ' + str(self.level)
+        pass
+#        @property
+#        def title(self):
+#            return 'Query ' + str(self.level)
     
     ExpRunner = JQLRunner
     ExpVerifier = JQLVerifier
@@ -522,7 +523,7 @@ class Ratio(JQLWorkflow):
             ]
     
     stddev_window = .1
-    min_repeats = 10
+    min_repeats = 50
     max_repeats = 50
     
     class ExpExtractor(JQLWorkflow.ExpExtractor, MetricExtractor):
@@ -607,7 +608,7 @@ class Scale(JQLWorkflow):
             ]
     
     stddev_window = .1
-    min_repeats = 10
+    min_repeats = 50
     max_repeats = 50
     
     class ExpExtractor(JQLWorkflow.ExpExtractor, MetricExtractor):
@@ -620,8 +621,10 @@ class Scale(JQLWorkflow):
         def project_x(self, p):
             return super().project_x(p) / 1e3
         
+        ymin = 0
         xmin = 1
         xmax = 21
+        x_ticklocs = [0, 4, 8, 12, 16, 20]
 
 class Scale1(Scale):
     
@@ -686,8 +689,8 @@ class Scale2(Scale):
     class ExpExtractor(Scale.ExpExtractor):
         
         level = '2'
-        jqlcache_format = 'poly2'
-        jqlnocache_format = 'poly2'
+        jqlcache_format = 'poly1'
+        jqlnocache_format = 'poly1'
         
         multipliers = {
             'jql_2_inc':  1e1,
@@ -721,6 +724,29 @@ class Scale2(Scale):
         
         max_yitvl = 4
 
+class Scale2Bigger(Scale2):
+    
+    prefix = 'results/jql_scale_2_bigger'
+    
+    class ExpDatagen(Scale2.ExpDatagen):
+        prog_suffixes = [
+            '_inc',
+            '_dem',
+            '_java_nocache',
+            '_java_cache',
+        ]
+        
+        points = [1000] + list(range(10000, 100000 + 1, 10000))
+    
+    stddev_window = .1
+    min_repeats = 10
+    max_repeats = 10
+    
+    class ExpExtractor(Scale2.ExpExtractor):
+        xmin = 0
+        xmax = 105
+        x_ticklocs = [0, 20, 40, 60, 80, 100]
+
 class Scale3(Scale):
     
     """JQL with caching experiences apparent linear growth from
@@ -746,8 +772,8 @@ class Scale3(Scale):
     class ExpExtractor(Scale.ExpExtractor):
         
         level = '3'
-        jqlcache_format = 'normal'
-        jqlnocache_format = 'normal'
+        jqlcache_format = 'poly1'
+        jqlnocache_format = 'poly1'
         
         multipliers = {
             'jql_3_inc':  1e1,
@@ -780,3 +806,26 @@ class Scale3(Scale):
                 return y * self.multipliers[p['prog']]
             else:
                 return y
+
+class Scale3Bigger(Scale3):
+    
+    prefix = 'results/jql_scale_3_bigger'
+    
+    class ExpDatagen(Scale3.ExpDatagen):
+        prog_suffixes = [
+            '_inc',
+            '_dem',
+            '_java_nocache',
+            '_java_cache',
+        ]
+        
+        points = [1000] + list(range(5000, 30000 + 1, 5000))
+    
+    stddev_window = .1
+    min_repeats = 5
+    max_repeats = 5
+    
+    class ExpExtractor(Scale3.ExpExtractor):
+        xmin = 0
+        xmax = 31
+        x_ticklocs = [0, 5, 10, 15, 20, 25, 30]

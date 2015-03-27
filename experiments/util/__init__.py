@@ -54,7 +54,7 @@ class SmallExtractor(Extractor):
     xlabelpad = 2
     
     dpi = 200
-    figsize = (3.5, 2.625)
+    figsize = (3.5, 2.79)
 
 class LargeExtractor(Extractor):
     

@@ -32,7 +32,9 @@ jqlratio2 = jql.Ratio2()
 jqlratio3 = jql.Ratio3()
 jqlscale1 = jql.Scale1()
 jqlscale2 = jql.Scale2()
+jqlscale2bigger = jql.Scale2Bigger()
 jqlscale3 = jql.Scale3()
+jqlscale3bigger = jql.Scale3Bigger()
 
 wifiscale = wifi.Wifi()
 
@@ -86,7 +88,9 @@ def main():
 #        jqlratio3,
 #        jqlscale1,
 #        jqlscale2,
+#        jqlscale2bigger,
 #        jqlscale3,
+#        jqlscale3bigger,
         
 #        coreroles,
 #        coredemand,

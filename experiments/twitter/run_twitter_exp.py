@@ -658,9 +658,9 @@ class ScaleSize(Scale):
         
         series = [
             (('twitter_inc', 'all'), 'incremental',
-             'blue', '- !o poly2'),
+             'blue', '- o poly2'),
             (('twitter_dem', 'all'), 'filtered $\\times$ 100',
-             'green', '- !^ poly1'),
+             'green', '- ^ poly1'),
         ]
         
         demscale = 100
@@ -682,9 +682,9 @@ class ScaleSizePoster(ScaleSize):
         
         series = [
             (('twitter_inc', 'all'), 'incr.',
-             'blue', '- !o poly2'),
+             'blue', '- o poly2'),
             (('twitter_dem', 'all'), 'incr. w/ demand (x 10)',
-             'green', '- !^ poly1'),
+             'green', '- ^ poly1'),
         ]
         
         demscale = 10
@@ -745,14 +745,14 @@ class Demand(TwitterWorkflow):
         
         series = [
             (('twitter_inc', 'all'), 'incremental',
-             'blue', '- !o poly1'),
+             'blue', '- o poly1'),
             (('twitter_dem', 'all'), 'filtered',
-             'green', '- !^ poly1'),
+             'green', '- ^ poly1'),
         ]
         
-        xlabel = 'Number of users in \\texttt{U} (in thousands)'
+#        xlabel = 'Number of users in \\texttt{U} (in thousands)'
         # For Annie's writing, use "demand" instead of U.
-#        xlabel = 'Number of users in \\texttt{demand} (in thousands)'
+        xlabel = 'Number of users in \\texttt{demand} (in thousands)'
         
         def project_x(self, p):
             return super().project_x(p) / 1e3
@@ -767,6 +767,7 @@ class DemandTime(Demand):
                        MetricExtractor):
         
         ymin = 0
+        y_ticklocs = [0, 2, 4, 6, 8]
 
 class DemandTimeOps(DemandTime):
     
@@ -842,10 +843,10 @@ class Factor(TwitterWorkflow):
             
 #            'twitter_dem_noninline',
             'twitter_dem_norcelim',
-#            'twitter_dem_notypecheck',
+            'twitter_dem_notypecheck',
 #            'twitter_dem_handopt',
 #            'twitter_dem_noalias',
-            'twitter_dem_notypecheck_noalias',
+#            'twitter_dem_notypecheck_noalias',
         ]
     
     stddev_window = .1
@@ -1165,27 +1166,27 @@ class FactorTime(Factor):
                        MetricExtractor):
         
         series = [
-            (('twitter_dem', 'all'), 'filtered (normal)',
-             'green', '-- ^ normal'),
+#            (('twitter_dem', 'all'), 'filtered (normal)',
+#             'green', '-- ^ normal'),
             
-            (('twitter_dem_aug', 'all'), 'augmented',
-             'blue', '-- o normal'),
-            (('twitter_dem_das', 'all'), 'das.',
-             'cyan', '-- o normal'),
+#            (('twitter_dem_aug', 'all'), 'augmented',
+#             'blue', '-- o normal'),
+#            (('twitter_dem_das', 'all'), 'das.',
+#             'cyan', '-- o normal'),
             
-            (('twitter_dem_noninline', 'all'), 'non-inlined',
-             'orange', '-- s normal'),
+#            (('twitter_dem_noninline', 'all'), 'non-inlined',
+#             'orange', '-- s normal'),
             (('twitter_dem_norcelim', 'all'), 'no RC elim',
              'red', '-- s normal'),
             (('twitter_dem_notypecheck', 'all'), 'no type checks',
              'yellow', '-- s normal'),
-            (('twitter_dem_handopt', 'all'), 'hand-optimized',
-             'fuchsia', '-- s normal'),
-            (('twitter_dem_noalias', 'all'), 'alias-optimized',
-             'purple', '-- s normal'),
-            (('twitter_dem_notypecheck_noalias', 'all'),
-             'no type checks + alias-opt',
-             'lightpurple', '-- s normal'),
+#            (('twitter_dem_handopt', 'all'), 'hand-optimized',
+#             'fuchsia', '-- s normal'),
+#            (('twitter_dem_noalias', 'all'), 'alias-optimized',
+#             'purple', '-- s normal'),
+#            (('twitter_dem_notypecheck_noalias', 'all'),
+#             'no type checks + alias-opt',
+#             'lightpurple', '-- s normal'),
         ]
         
         metric = 'opstime_cpu'
@@ -1279,15 +1280,15 @@ class TagTime(Tag):
         
         series = [
             (('twitter_dem_singletag', 'all'), 'OSQ strategy',
-             'orange', '-- !^ poly1'),
+             'orange', '-- ^ poly1'),
             (('twitter_dem', 'all'), 'filtered',
-             'green', '- !^ poly1'),
+             'green', '- ^ poly1'),
         ]
         
         metric = 'opstime_cpu'
         
         ylabel = 'Running time (in seconds)'
         ymin = 0
-        max_yitvls = 4
+        y_ticklocs = [0, 1, 2, 3, 4, 5]
     
     imagename = 'time'
