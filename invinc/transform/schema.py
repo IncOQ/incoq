@@ -53,7 +53,7 @@ class BaseSchema:
         is available, or csv format otherwise.
         """
         if HAVE_TABULATE:
-            return tabulate(self.body, self.header, floatfmt='.3f')
+            return tabulate(self.body, self.header, floatfmt='.2f')
         else:
             return self.to_csv()
     
@@ -97,7 +97,7 @@ class StatkeySchema(BaseSchema):
                             col_fmt = ''
                         row.append(format(col_data, col_fmt))
                     else:
-                        row.append('---')
+                        row.append(None)
             else:
                 row_disp = '(!) ' + row_disp
                 row = ['!' for _ in range(len(self.cols))]
@@ -112,7 +112,7 @@ class StandardSchema(StatkeySchema):
     
     cols = [
         ('lines', 'LOC', None),
-        ('trans time', 'Time', '.3f'),
+        ('trans time', 'Time', '.2f'),
         ('orig queries', 'in. queries', None),
         ('orig updates', 'in. updates', None),
         ('incr comps', 'Incr. comps', None),
@@ -138,6 +138,9 @@ class GroupedSchema(StatkeySchema):
     index of the entry we want to examine from the current group.
     """
     
+    equalities = []
+    """List of pairs of merged entries that should be equal."""
+    
     def get_rowdata(self, allstats, key):
         # Merge dictionaries for each entry named by the
         # row into a single dict. The keys get augmented
@@ -147,19 +150,29 @@ class GroupedSchema(StatkeySchema):
             stats = allstats.get(entry, {})
             for attr, value in stats.items():
                 rowdata[(i, attr)] = value
+        for lhs, rhs in self.equalities:
+            if lhs in rowdata and rhs in rowdata:
+                assert rowdata[lhs] == rowdata[rhs]
         return rowdata
 
 
 class OrigIncFilterSchema(GroupedSchema):
     
+    # Pull orig queries/updates from dem in case inc is missing.
     cols = [
         ((0, 'lines'), 'Original LOC', None),
-        ((1, 'orig queries'), 'Queries', None),
-        ((1, 'orig updates'), 'Updates', None),
+        ((2, 'orig queries'), 'Queries', None),
+        ((2, 'orig updates'), 'Updates', None),
         ((1, 'lines'), 'Inc. LOC', None),
-        ((1, 'trans time'), 'Inc. trans. time', '.3f'),
+        ((1, 'trans time'), 'Inc. trans. time', '.2f'),
         ((2, 'lines'), 'Filtered LOC', None),
-        ((2, 'trans time'), 'Filtered trans. time', '.3f'),
+        ((2, 'trans time'), 'Filtered trans. time', '.2f'),
+    ]
+    
+    # Number of queries/updates should agree between inc and dem.
+    equalities = [
+        ((1, 'orig queries'), (2, 'orig queries')),
+        ((1, 'orig updates'), (2, 'orig updates')),
     ]
 
 

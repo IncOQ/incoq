@@ -125,6 +125,8 @@ class DEM_CORERBAC_CA(COM):
 #    INC,
 #    DEM,
 #    DEM_SINGLE_TAG,
+#    DEM_NORCELIM,
+#    DEM_NOTYPECHECK,
 #])
 #
 #add_impls('Auth', 'experiments/django/django', [
@@ -333,14 +335,6 @@ class OIFSchema(OrigIncFilterSchema):
         _rowgen('CoreRBAC (all)', 'CoreRBAC'),
         _rowgen('SSD', 'Constr. RBAC'),
     ]
-    
-#    rows = [
-##        ('Social Input', 'Twitter Orig'),
-##        ('Social Unfiltered', 'Twitter Inc'),
-##        ('Social Filtered', 'Twitter Dem'),
-#        (['Social Input', 'Social Unfiltered', 'Social Filtered'],
-#         'Twitter'),
-#    ]
 
 class DistalgoSchema(OrigIncFilterSchema):
    
@@ -349,7 +343,7 @@ class DistalgoSchema(OrigIncFilterSchema):
 #        ((1, 'orig queries'), 'Queries', None),
 #        ((1, 'orig updates'), 'Updates', None),
 #        ((1, 'lines'), 'Inc. LOC', None),
-#        ((1, 'trans time'), 'Inc. trans. time', '.3f'),
+#        ((1, 'trans time'), 'Inc. trans. time', '.2f'),
 #    ]
     
     def _rowgen(name):
@@ -403,21 +397,62 @@ class LamutexorigCostSchema(CostSchema):
         ('Update__PReceivedEvent_0_0', 'Rec Ack', None),
     ]
 
+class OOPSLA15Schema(OrigIncFilterSchema):
+    
+    # (Not a method.)
+    def _rowgen(dispname, name):
+        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
+                dispname)
+    
+    def _rowgen2(dispname, name):
+        return ([name + ' Input', name + ' Unfiltered (obj)',
+                 name + ' Filtered (obj)'],
+                dispname)
+    
+    rows = [
+        _rowgen('Running', 'Social'),
+        _rowgen('JQLbench1', 'JQL 1'),
+        _rowgen('JQLbench2', 'JQL 2'),
+        _rowgen('JQLbench3', 'JQL 3'),
+        _rowgen('Wifi', 'Wifi'),
+        _rowgen('Auth', 'Auth'),
+        (['CoreRBAC Input', 'CoreRBAC Unfiltered (CA)',
+          'CoreRBAC Filtered (CA)'],
+         'Access'),
+        _rowgen('CoreRBAC', 'CoreRBAC'),
+        _rowgen('SSD', 'Constr. RBAC'),
+        
+        (['lamutex orig Input', 'lamutex orig Unfiltered',
+          'lamutex orig Filtered'],
+         'La mutex'),
+        _rowgen('RA mutex', 'ramutex'),
+        _rowgen2('RA token', 'ratoken'),
+        _rowgen2('SK token', 'sktoken'),
+        _rowgen('CR leader', 'crleader'),
+        _rowgen('HS leader', 'hsleader'),
+        _rowgen('2P commit', '2pcommit'),
+        _rowgen2('DS crash', 'dscrash'),
+        _rowgen('CL Paxos', 'clpaxos'),
+    ]
+
 stats = StatsDB(STATS_FILE)
 oif_schema = OIFSchema(stats.allstats)
 distalgo_schema = DistalgoSchema(stats.allstats)
-lamutexspec_costschema= LamutexspecCostSchema(stats.allstats)
-lamutexorig_costschema= LamutexorigCostSchema(stats.allstats)
+lamutexspec_costschema = LamutexspecCostSchema(stats.allstats)
+lamutexorig_costschema = LamutexorigCostSchema(stats.allstats)
+oopsla15_schema = OOPSLA15Schema(stats.allstats)
 
 oif_schema.save_csv(STATS_DIR + 'oif_stats.csv')
 distalgo_schema.save_csv(STATS_DIR + 'distalgo_stats.csv')
 lamutexspec_costschema.save_csv(STATS_DIR + 'lamutexspec_cost_stats.csv')
 lamutexorig_costschema.save_csv(STATS_DIR + 'lamutexorig_cost_stats.csv')
+oopsla15_schema.save_csv(STATS_DIR + 'oopsla15_stats.csv')
 
-print(oif_schema.to_ascii())
-print(distalgo_schema.to_ascii())
+#print(oif_schema.to_ascii())
+#print(distalgo_schema.to_ascii())
 #print(lamutexspec_costschema.to_ascii())
 #print(lamutexorig_costschema.to_ascii())
+print(oopsla15_schema.to_ascii())
 
 #session = Session(stats)
 #Session.interact(stats, name='Social Unfiltered')

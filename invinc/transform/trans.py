@@ -19,6 +19,8 @@ __all__ = [
     'DEM_NONINLINE',
     'DEM_NO_TAG_CHECK',
     'DEM_SINGLE_TAG',
+    'DEM_NORCELIM',
+    'DEM_NOTYPECHECK',
     'DEM_OBJ',
     'DEM_SUBDEM',
     'DEM_OBJ_NS',
@@ -193,6 +195,16 @@ class DEM_SINGLE_TAG(DEM):
     output_suffix = 'dem_singletag'
     display_suffix = 'Filtered (single tag)'
     extra_nopts = {'single_tag': True}
+
+class DEM_NORCELIM(DEM):
+    output_suffix = 'dem_norcelim'
+    display_suffix = 'Filtered (no rc elim.)'
+    extra_nopts = {'rc_elim': False}
+
+class DEM_NOTYPECHECK(DEM):
+    output_suffix = 'dem_notypecheck'
+    display_suffix = 'Filtered (no type checks)'
+    extra_nopts = {'maint_emit_typechecks': False}
 
 class DEM_OBJ(DEM):
     output_suffix = 'dem'
