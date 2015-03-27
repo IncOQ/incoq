@@ -7,7 +7,7 @@
 # - the query is different, and takes in a user instead of a user id
 # - the users set is deleted, and make_user() modified accordingly
 
-from runtimelib import *
+from invinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

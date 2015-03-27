@@ -1,4 +1,4 @@
-from runtimelib import *
+from invinc.runtime import *
 from osq import query
 
 users = Set()

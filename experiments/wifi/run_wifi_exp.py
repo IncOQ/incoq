@@ -65,8 +65,8 @@ class WifiDriver:
         with timer_user, timer_cpu, timer_wall:
             self.run()
         
-        import runtimelib
-        self.results['size'] = runtimelib.get_total_structure_size(
+        import invinc.runtime
+        self.results['size'] = invinc.runtime.get_total_structure_size(
                                     self.module.__dict__)
         self.results['time_user'] = timer_user.consume()
         self.results['time_cpu'] = timer_cpu.consume()

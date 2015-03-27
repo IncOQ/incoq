@@ -5,7 +5,7 @@
 # U and the inverse of F_id first, since that would get us the
 # few queried users.
 
-from runtimelib import *
+from invinc.runtime import *
 
 OPTIONS(
     obj_domain = True,

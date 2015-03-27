@@ -1,7 +1,7 @@
 # Modified version of django_osq.py with the same
 # changes as were made in django_simp_in.py.
 
-from runtimelib import *
+from invinc.runtime import *
 from osq import query
 
 def make_user(id):
