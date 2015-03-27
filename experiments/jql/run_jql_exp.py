@@ -689,8 +689,8 @@ class Scale2(Scale):
     class ExpExtractor(Scale.ExpExtractor):
         
         level = '2'
-        jqlcache_format = 'poly1'
-        jqlnocache_format = 'poly1'
+        jqlcache_format = 'poly2'
+        jqlnocache_format = 'poly2'
         
         multipliers = {
             'jql_2_inc':  1e1,
@@ -772,8 +772,8 @@ class Scale3(Scale):
     class ExpExtractor(Scale.ExpExtractor):
         
         level = '3'
-        jqlcache_format = 'poly1'
-        jqlnocache_format = 'poly1'
+        jqlcache_format = 'poly2'
+        jqlnocache_format = 'poly2'
         
         multipliers = {
             'jql_3_inc':  1e1,

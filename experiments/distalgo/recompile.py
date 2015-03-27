@@ -11,10 +11,11 @@ import da
 
 
 def get_benchmark_path():
-    """Return the path to the distalgo benchmarks directory."""
+    """Return the path to the distalgo benchmarks directory.
+    Assume current directory is the one containing this file.
+    """
     config = ConfigParser()
-    mydir = dirname(__file__)
-    config.read(join(mydir, '../config.txt'))
+    config.read('../config.txt')
     dapath = config['python']['DISTALGO_PATH']
     return join(dapath, 'benchmarks')
 
@@ -51,6 +52,9 @@ def do_tasks(tasks):
     local directory.
     """
     mydir = dirname(__file__)
+    # Handle case where current dir is the same dir containing
+    # this file.
+    mydir = join('.', mydir)
     os.chdir(mydir)
     benchpath = get_benchmark_path()
     

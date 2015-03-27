@@ -1,3 +1,4 @@
+import os
 import traceback
 
 import experiments.twitter as twitter
@@ -84,10 +85,10 @@ def main():
 #        factor2d,
         
 #        jqlratio1,
-#        jqlratio2,
+#        jqlratio2,        # jql_ratio
 #        jqlratio3,
 #        jqlscale1,
-#        jqlscale2,
+#        jqlscale2,        # jql_asymp
 #        jqlscale2bigger,
 #        jqlscale3,
 #        jqlscale3bigger,
@@ -117,6 +118,9 @@ def main():
 #        vrpaxos,
     ]
     
+    # Change to directory of this file so we can find the
+    # results/ subdirectory.
+    os.chdir(os.path.join('.', os.path.dirname(__file__)))
     
     for w in ws:
         print('\n---- Running {} ----\n'.format(w.__class__.__name__))

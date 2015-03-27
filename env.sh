@@ -15,9 +15,10 @@ OPTIND=1
 OPTARG=
 
 # Courtesy http://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
-DIR=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
+INVINC_DIR=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
+DEPS_DIR=`dirname $INVINC_DIR`/deps
 
-NEWENTRIES="$DIR/invinc:$DIR/simplestruct:$DIR/iast:$DIR/frexp:$DIR/gendb:$DIR/distalgo"
+NEWENTRIES="$INVINC_DIR:$DEPS_DIR/simplestruct:$DEPS_DIR/iast:$DEPS_DIR/frexp:$DEPS_DIR/distalgo:$DEPS_DIR/gendb:$DEPS_DIR/osq"
 
 if [ $WINPATH = "w" ]; then
     NEWENTRIES=`cygpath -wp $NEWENTRIES`
