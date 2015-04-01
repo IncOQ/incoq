@@ -229,6 +229,7 @@ class DEM_CORERBAC_CA(COM):
 
 test_programs = [
 #    'auxmap/basic',
+#    'auxmap/deadcode',
 #    'auxmap/degenerate',
 #    'auxmap/equality',
 #    'auxmap/inline',

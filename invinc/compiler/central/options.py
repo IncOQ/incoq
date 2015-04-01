@@ -115,6 +115,8 @@ class DefaultNormalOptions:
     """If True, eliminate reference counts where possible."""
     deadcode_elim =         True
     """If False, do not run deadcode elimination."""
+    deadcode_keepvars =     []
+    """List of variable names to not eliminate as deadcode."""
     
     clause_priorities =     frozendict()
     """Dictionary mapping from relation_mask identifiers to a numerical

@@ -602,15 +602,19 @@ class PassEliminator(L.NodeTransformer):
     visit_With = body_helper
 
 
-def eliminate_deadcode(tree, *, obj_domain_out, verbose=False):
+def eliminate_deadcode(tree, *, keepvars=None, obj_domain_out, verbose=False):
     """Modify the program to remove sets that are not read from."""
+    if keepvars is None:
+        keepvars = set()
+    keepvars = set(keepvars)
+    
     # Find variables that are only written to, not read from.
-    # Exclude special names.
+    # Exclude special names and keepvars.
     special_vars = set(['__all__'])
     all_vars = L.VarsFinder.run(tree)
     read_vars = L.VarsFinder.run(
             tree, ignore_store=True)
-    write_only_vars = all_vars - read_vars - special_vars
+    write_only_vars = all_vars - read_vars - special_vars - keepvars
     
     if obj_domain_out:
         # Also exclude pairsets since they will be translated into

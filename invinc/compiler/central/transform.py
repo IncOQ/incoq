@@ -526,7 +526,8 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     if opman.get_opt('deadcode_elim'):
         tree = eliminate_deadcode(
                 tree,
-                obj_domain_out = opman.get_opt('obj_domain_out'),
+                keepvars=opman.get_opt('deadcode_keepvars'),
+                obj_domain_out=opman.get_opt('obj_domain_out'),
                 verbose=verbose)
     
     # Go back to the object domain.
