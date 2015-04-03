@@ -479,30 +479,45 @@ class MapOpImporter(L.NodeTransformer):
 
 class UpdateRewriter(L.NodeTransformer):
     
-    """Rewrite set and map updates to ensure that the operand
-    is a legal update value.
+    """Rewrite set and map updates to ensure that the operands
+    are legal update expressions.
     """
     
     def __init__(self, namegen):
         self.namegen = namegen
     
-    def visit_SetUpdate(self, node):
-        assert L.is_name(node.target)
-        if LegalUpdateValidator.run(node.elem):
-            return
-        
-        tempvar = next(self.namegen)
-        return (L.Assign((L.sn(tempvar),), node.elem),
-                node._replace(elem=L.ln(tempvar)))
+    # No need to recurse since we only deal with update statements,
+    # which can't be nested.
     
-    def visit_AssignKey(self, node):
-        assert L.is_name(node.target)
-        key_ok = LegalUpdateValidator.run(node.key)
-        value_ok = LegalUpdateValidator.run(node.value)
-        if key_ok and value_ok:
-            return
+    def visit_SetUpdate(self, node):
+        target_ok = LegalUpdateValidator.run(node.target)
+        elem_ok = LegalUpdateValidator.run(node.elem)
+        if target_ok and elem_ok:
+            return node
         
         code = ()
+        if not target_ok:
+            targetvar = next(self.namegen)
+            code += (L.Assign((L.sn(targetvar),), node.target),)
+            node = node._replace(target=L.ln(targetvar))
+        if not elem_ok:
+            elemvar = next(self.namegen)
+            code += (L.Assign((L.sn(elemvar),), node.elem),)
+            node = node._replace(elem=L.ln(elemvar))
+        return code + (node,)
+    
+    def visit_AssignKey(self, node):
+        target_ok = LegalUpdateValidator.run(node.target)
+        key_ok = LegalUpdateValidator.run(node.key)
+        value_ok = LegalUpdateValidator.run(node.value)
+        if target_ok and key_ok and value_ok:
+            return node
+        
+        code = ()
+        if not target_ok:
+            targetvar = next(self.namegen)
+            code += (L.Assign((L.sn(targetvar),), node.target),)
+            node = node._replace(target=L.ln(targetvar))
         if not key_ok:
             keyvar = next(self.namegen)
             code += (L.Assign((L.sn(keyvar),), node.key),)
@@ -515,13 +530,22 @@ class UpdateRewriter(L.NodeTransformer):
         return code + (node,)
     
     def visit_DelKey(self, node):
-        assert L.is_name(node.target)
-        if LegalUpdateValidator.run(node.key):
-            return
+        target_ok = LegalUpdateValidator.run(node.target)
+        key_ok = LegalUpdateValidator.run(node.key)
+        if target_ok and key_ok:
+            return node
         
-        tempvar = next(self.namegen)
-        return (L.Assign((L.sn(tempvar),), node.key),
-                node._replace(key=L.ln(tempvar)))
+        code = ()
+        if not target_ok:
+            targetvar = next(self.namegen)
+            code += (L.Assign((L.sn(targetvar),), node.target),)
+            node = node._replace(target=L.ln(targetvar))
+        if not key_ok:
+            keyvar = next(self.namegen)
+            code += (L.Assign((L.sn(keyvar),), node.key),)
+            node = node._replace(key=L.ln(keyvar))
+        
+        return code + (node,)
 
 
 class MinMaxRewriter(L.NodeTransformer):
