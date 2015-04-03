@@ -311,9 +311,9 @@ class AggregatePreprocessor(L.NodeTransformer):
         if isinstance(operand, L.Comp):
             return node
         if not is_retrievalchain(operand):
-            raise L.ProgramError('Operand must consist of field and map '
-                                 'retrievals, got ' +
-                                 L.ts(operand))
+            # Bailout, looks like we won't be able to incrementalize
+            # this later anyway.
+            return node
         
         # Replace with {_e for _e in OPERAND}.
         # This case is for both single vars and retrieval chains.

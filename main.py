@@ -296,6 +296,7 @@ test_programs = [
 #    'aggr/minmax',
 #    'aggr/obj',
 #    'aggr/params',
+#    'aggr/rewrite',
 #    'aggr/tuple',
 #    'aggr/uset',
 #    'aggr/lru',
