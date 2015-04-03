@@ -18,6 +18,7 @@ __all__ = [
     'NodeTransformer',
     'AdvNodeTransformer',
     'Templater',
+    'PatternTransformer',
     'MacroProcessor',
     'ContextSetter',
     'astargs',
@@ -34,7 +35,7 @@ from types import SimpleNamespace
 import iast
 from iast import (trim, dump, NodeVisitor, NodeTransformer,
                   AdvNodeVisitor, AdvNodeTransformer,
-                  raw_match, match, MatchFailure)
+                  raw_match, match, MatchFailure, PatternTransformer)
 from iast.python.python34 import (make_pattern, extract_tree,
                                   parse as _parse)
 

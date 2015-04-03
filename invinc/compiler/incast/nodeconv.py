@@ -4,6 +4,7 @@ PyAST equivalent operations.
 
 
 __all__ = [
+    'OptionsRewriter',
     'IncLangImporter',
     'IncLangExporter',
     'comp_to_setcomp',
@@ -16,7 +17,7 @@ from invinc.util.collections import make_frozen, frozendict
 
 from .nodes import *
 from .structconv import (NodeTransformer, parse_structast, MacroProcessor,
-                         astargs, literal_eval)
+                         PatternTransformer, astargs, literal_eval)
 
 
 def frozen_eval(tree):
@@ -63,6 +64,17 @@ def value_to_ast(value):
     else:
         raise TypeError('Can\'t convert value to AST: ' + repr(value))
 
+
+class OptionsRewriter(PatternTransformer):
+    
+    """Rewrite invinc.runtime.OPTIONS and invinc.runtime.QUERYOPTIONS
+    calls to elimiante the invinc.runtime qualifier.
+    """
+    
+    rules = [(parse_structast('invinc.runtime.OPTIONS', mode='expr'),
+              lambda **mapping: parse_structast('OPTIONS', mode='expr')),
+             (parse_structast('invinc.runtime.QUERYOPTIONS', mode='expr'),
+              lambda **mapping: parse_structast('QUERYOPTIONS', mode='expr'))]
 
 class IncLangImporter(MacroProcessor):
     

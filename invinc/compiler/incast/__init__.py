@@ -27,6 +27,7 @@ from .treeconv import *
 
 
 def import_incast(tree):
+    tree = OptionsRewriter.run(tree)
     return IncLangImporter.run(tree)
 
 def export_incast(tree):

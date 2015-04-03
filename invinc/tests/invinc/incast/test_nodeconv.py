@@ -29,6 +29,18 @@ class NodeconvCase(unittest.TestCase):
         exp_tree = self.pe('{1: "a", 2: [{3: False}, ({4}, 5, None)]}')
         self.assertEqual(tree, exp_tree)
     
+    def test_options_rewriter(self):
+        tree = self.p('''
+            invinc.runtime.OPTIONS(a='b')
+            invinc.runtime.QUERYOPTIONS('foo', a='b')
+            ''')
+        tree = OptionsRewriter.run(tree)
+        exp_tree = self.p('''
+            OPTIONS(a='b')
+            QUERYOPTIONS('foo', a='b')
+            ''')
+        self.assertEqual(tree, exp_tree)
+    
     def test_import_SetUpdate(self):
         tree = self.ps('S.add(x)')
         tree = IncLangImporter.run(tree)
