@@ -423,6 +423,9 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     # Import map key assignment/deletion nodes.
     tree = MapOpImporter.run(tree)
     
+    # Rewrite non-trivial update operands.
+    tree = UpdateRewriter.run(tree, manager.namegen)
+    
     # Rewrite for strictness if requested.
     ns_sets = opman.get_opt('nonstrict_sets')
     ns_fields = opman.get_opt('nonstrict_fields')
@@ -472,8 +475,6 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     if objdomain:
         tree = to_pairdomain(tree, manager, input_rels)
     
-    # Rewrite non-trivial update operands.
-    tree = UpdateRewriter.run(tree, manager.namegen)
     # Rewrite min/max of set unions.
     # Note: Since this happens after pair-domain transformation,
     # we may end up not turning some aggregate arguments into

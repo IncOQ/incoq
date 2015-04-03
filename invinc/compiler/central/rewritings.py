@@ -479,7 +479,9 @@ class MapOpImporter(L.NodeTransformer):
 
 class UpdateRewriter(L.NodeTransformer):
     
-    """Rewrite SetUpdates to ensure that the operand is a vartuple."""
+    """Rewrite set and map updates to ensure that the operand
+    is a legal update value.
+    """
     
     def __init__(self, namegen):
         self.namegen = namegen
@@ -492,6 +494,34 @@ class UpdateRewriter(L.NodeTransformer):
         tempvar = next(self.namegen)
         return (L.Assign((L.sn(tempvar),), node.elem),
                 node._replace(elem=L.ln(tempvar)))
+    
+    def visit_AssignKey(self, node):
+        assert L.is_name(node.target)
+        key_ok = LegalUpdateValidator.run(node.key)
+        value_ok = LegalUpdateValidator.run(node.value)
+        if key_ok and value_ok:
+            return
+        
+        code = ()
+        if not key_ok:
+            keyvar = next(self.namegen)
+            code += (L.Assign((L.sn(keyvar),), node.key),)
+            node = node._replace(key=L.ln(keyvar))
+        if not value_ok:
+            valuevar = next(self.namegen)
+            code += (L.Assign((L.sn(valuevar),), node.value),)
+            node = node._replace(value=L.ln(valuevar))
+        
+        return code + (node,)
+    
+    def visit_DelKey(self, node):
+        assert L.is_name(node.target)
+        if LegalUpdateValidator.run(node.key):
+            return
+        
+        tempvar = next(self.namegen)
+        return (L.Assign((L.sn(tempvar),), node.key),
+                node._replace(key=L.ln(tempvar)))
 
 
 class MinMaxRewriter(L.NodeTransformer):

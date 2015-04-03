@@ -100,6 +100,9 @@ class RewriterCase(CentralCase):
             T.add(z)
             T.remove((3 + 5, 4))
             U.add(foo(x))
+            M.assignkey(k, v.g)
+            M.assignkey(o.f, v.g)
+            M.delkey(o.f)
             ''')
         tree = UpdateRewriter.run(tree, self.manager.namegen)
         exp_tree = L.p('''
@@ -110,6 +113,13 @@ class RewriterCase(CentralCase):
             T.remove((3 + 5, 4))
             v2 = foo(x)
             U.add(v2)
+            v3 = v.g
+            M.assignkey(k, v3)
+            v4 = o.f
+            v5 = v.g
+            M.assignkey(v4, v5)
+            v6 = o.f
+            M.delkey(v6)
             ''')
         self.assertEqual(tree, exp_tree)
     
