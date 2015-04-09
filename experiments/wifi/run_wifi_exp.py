@@ -195,15 +195,15 @@ class Wifi(ExpWorkflow):
             ]
     
     stddev_window = .1
-    min_repeats = 10
-    max_repeats = 50
+    min_repeats = 20
+    max_repeats = 20
     
     class ExpExtractor(MetricExtractor, SmallExtractor):
         
         series = [
-            ('wifi_orig', 'original', 'red', '- !s poly2'),
-            ('wifi_osq', 'osq', 'orange', '-- !^ poly1'),
-            ('wifi_dem', 'filtered', 'green', '- !^ poly1'),
+            ('wifi_orig', 'original', 'red', '- s poly2'),
+            ('wifi_osq', 'OSQ', 'orange', '-- ^ poly1'),
+            ('wifi_dem', 'filtered', 'green', '- ^ poly1'),
         ]
         
         ylabel = 'Running time (in seconds)'
@@ -212,4 +212,5 @@ class Wifi(ExpWorkflow):
         metric = 'time_cpu'
         
         xmin = 150
-        ymax = 1
+        xmax = 2600
+        ymax = .7

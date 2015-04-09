@@ -470,13 +470,10 @@ class JQLWorkflow(ExpWorkflow):
     class ExpDatagen(JQLDatagen):
         
         prog_suffixes = [
-            # Note that Inc is identical to Dem without filter checks,
-            # because the tags and filters aren't needed and get
-            # eliminated automatically.
-            #
             # Orig takes forever to run because it's a Cartesian product
-            # followed by join conditions.
-            
+            # followed by join conditions. It can even take a while to
+            # timeout because the timeout test is synchronous with
+            # completing a certain number of operations.
             '_orig',
             '_inc',
             '_dem',
@@ -486,9 +483,11 @@ class JQLWorkflow(ExpWorkflow):
     
     class ExpExtractor(JQLExtractor):
         pass
-#        @property
-#        def title(self):
-#            return 'Query ' + str(self.level)
+        # Comment out below for paper submission figure that
+        # omits the title.
+        @property
+        def title(self):
+            return 'Query ' + str(self.level)
     
     ExpRunner = JQLRunner
     ExpVerifier = JQLVerifier
@@ -537,11 +536,15 @@ class Ratio(JQLWorkflow):
         xmax = 1.05
 
 class Ratio1(Ratio):
+    
     prefix = 'results/jql_ratio_1'
+    
     class ExpDatagen(Ratio.ExpDatagen):
         level = '1'
+    
     class ExpExtractor(Ratio.ExpExtractor):
         level = '1'
+        ymax = .5
 
 class Ratio2(Ratio):
     
@@ -576,11 +579,20 @@ class Ratio2(Ratio):
 
 class Ratio3(Ratio):
     prefix = 'results/jql_ratio_3'
+    
     class ExpDatagen(Ratio.ExpDatagen):
         level = '3'
+        # Don't run orig, takes forever even to timeout.
+        prog_suffixes = [
+            '_inc',
+            '_dem',
+            '_java_nocache',
+            '_java_cache',
+        ]
+    
     class ExpExtractor(Ratio.ExpExtractor):
         level = '3'
-        ymax = 2
+#        ymax = 2
         legend_loc = 'upper center'
 
 
@@ -591,7 +603,7 @@ class Scale(JQLWorkflow):
     class ExpDatagen(JQLWorkflow.ExpDatagen):
         
         ratio = .5
-        points = list(range(2000, 20000 + 1, 2000))
+        points = list(range(1000, 30000 + 1, 1000))
         nops = 5000
         
         def get_dsparams_list(self):
@@ -623,8 +635,10 @@ class Scale(JQLWorkflow):
         
         ymin = 0
         xmin = 1
-        xmax = 21
-        x_ticklocs = [0, 4, 8, 12, 16, 20]
+#        xmax = 21
+        xmax = 31
+#        x_ticklocs = [0, 4, 8, 12, 16, 20]
+        x_ticklocs = [0, 5, 10, 15, 20, 25, 30]
 
 class Scale1(Scale):
     
@@ -639,10 +653,17 @@ class Scale1(Scale):
         orig_format = 'poly1'
         jqlcache_format = 'poly1'
         jqlnocache_format = 'poly1'
+#        orig_format = 'points'
+#        jqlcache_format = 'points'
+#        jqlnocache_format = 'points'
+#        generate_csv = False
         
         multipliers = {
-            'jql_1_orig':          1e-2,
-            'jql_1_java_nocache':  1e-2,
+#            'jql_1_orig': .5,
+            'jql_1_inc':  50,
+            'jql_1_dem':  50,
+#            'jql_1_java_nocache':  1e-2,
+            'jql_1_java_cache':    50,
         }
         
         @property
@@ -689,12 +710,15 @@ class Scale2(Scale):
     class ExpExtractor(Scale.ExpExtractor):
         
         level = '2'
-        jqlcache_format = 'poly2'
-        jqlnocache_format = 'poly2'
+        jqlcache_format = 'poly1'
+        jqlnocache_format = 'poly1'
+#        jqlcache_format = 'points'
+#        jqlnocache_format = 'points'
+#        generate_csv = False
         
         multipliers = {
-            'jql_2_inc':  1e1,
-            'jql_2_dem':  1e1,
+            'jql_2_inc':  50,
+            'jql_2_dem':  50,
         }
         
         @property
@@ -772,12 +796,15 @@ class Scale3(Scale):
     class ExpExtractor(Scale.ExpExtractor):
         
         level = '3'
-        jqlcache_format = 'poly2'
-        jqlnocache_format = 'poly2'
+        jqlcache_format = 'poly1'
+        jqlnocache_format = 'poly1'
+#        jqlcache_format = 'points'
+#        jqlnocache_format = 'points'
+#        generate_csv = False
         
         multipliers = {
-            'jql_3_inc':  1e1,
-            'jql_3_dem':  1e1,
+            'jql_3_inc':  50,
+            'jql_3_dem':  50,
 #            'jql_3_java_nocache':  1e-2,
 #            'jql_3_java_cache':    1e-2,
         }
@@ -806,6 +833,10 @@ class Scale3(Scale):
                 return y * self.multipliers[p['prog']]
             else:
                 return y
+    
+    stddev_window = .1
+    min_repeats = 15
+    max_repeats = 15
 
 class Scale3Bigger(Scale3):
     

@@ -300,7 +300,7 @@ class Scale(DjangoWorkflow):
             ]
     
     stddev_window = .1
-    min_repeats = 10
+    min_repeats = 50
     max_repeats = 50
     
     class ExpExtractor(DjangoWorkflow.ExpExtractor, MetricExtractor):
@@ -308,11 +308,11 @@ class Scale(DjangoWorkflow):
         # Post-processed below.
         _series = [
             ('django_orig', 'original',
-             'red', '- !s poly2'),
-            ('django_osq', 'osq',
-             'orange', '-- !^ poly1'),
+             'red', '- s poly2'),
+            ('django_osq', 'OSQ',
+             'orange', '? _^ poly1'),
             ('django_dem', 'filtered',
-             'green', '- !^ poly1'),
+             'green', '? ^ poly1'),
         ]
         
         @property
@@ -322,7 +322,7 @@ class Scale(DjangoWorkflow):
                            'legend.borderaxespad': .2
                            })
         
-        linestyles = ['-', '--', '-.', ':']
+        linestyles = ['-', '--', ':']
         # Keep this in sync with the attribute of same name
         # in the Datagen.
         n_users_list = [100, 200, 300]
@@ -333,10 +333,14 @@ class Scale(DjangoWorkflow):
             new_series = []
             for sid, name, color, style in self._series:
                 for i, n_users in enumerate(self.n_users_list):
-                    # Replace line style with one associated with
-                    # this number of users.
-                    ls = lss[i % len(lss)]
-                    new_style = ' '.join([ls] + style.split()[1:])
+                    # If line style is '?', replace it with the
+                    # one associated with this number of users.
+                    ls, *rest = style.split()
+                    if ls == '?':
+                        ls = lss[i]
+                        new_style = ' '.join([ls] + rest)
+                    else:
+                        new_style = style
                     new_name = name + ' (' + str(n_users) + ' users)'
                     new_series.append(((sid, n_users), new_name,
                                        color, new_style))
@@ -354,10 +358,10 @@ class Scale(DjangoWorkflow):
                           if p['dsparams']['n_users'] == n_users]
             return datapoints
         
+        xmin = 25
+        xmax = 525
         ymin = 0
-        ymax = 1.6
-        max_xitvls = 5
-        max_yitvls = 4
+        ymax = 1.1
 
 
 class Demand(DjangoWorkflow):
@@ -391,21 +395,21 @@ class Demand(DjangoWorkflow):
             ]
     
     stddev_window = .1
-    min_repeats = 10
+    min_repeats = 50
     max_repeats = 50
     
     class ExpExtractor(DjangoWorkflow.ExpExtractor, MetricExtractor):
         
         series = [
             ('django_inc', 'incremental',
-             'blue', '- !o normal'),
-            ('django_osq', 'osq',
-             'orange', '-- !^ normal'),
+             'blue', '- o normal'),
+            ('django_osq', 'OSQ',
+             'orange', '-- ^ normal'),
             ('django_dem', 'filtered',
-             'green', '- !^ normal'),
+             'green', '- ^ normal'),
             ('django_simp_inc', 'incremental (simplified)',
              'blue', '- _o normal'),
-            ('django_simp_osq', 'osq (simplified)',
+            ('django_simp_osq', 'OSQ (simplified)',
              'orange', '-- _^ normal'),
             ('django_simp_dem', 'filtered (simplified)',
              'green', '- _^ normal'),
@@ -442,6 +446,8 @@ class DemandTimeNorm(Demand):
         def normalize(self, pre_y, base_y):
             return pre_y / base_y
         
-        no_legend = True
+        legend_loc = 'lower right'
         
         ylabel = 'Running time (normalized)'
+        
+        y_ticklocs = [0, .5, 1, 1.5]

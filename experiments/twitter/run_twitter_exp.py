@@ -830,7 +830,8 @@ class Factor(TwitterWorkflow):
     
     2A through 2D are the same as their counterparts except
     that we update celebrity following relationships instead
-    of user locations. 
+    of user locations. The updated celebrity is always a
+    demanded one.
     """
     
     class ExpDatagen(TwitterWorkflow.ExpDatagen):
