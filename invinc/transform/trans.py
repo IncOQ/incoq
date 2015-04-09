@@ -16,7 +16,7 @@ __all__ = [
     'INC_SUBDEM',
     'INC_SUBDEM_OBJ',
     'DEM',
-    'DEM_NONINLINE',
+    'DEM_INLINE',
     'DEM_NO_TAG_CHECK',
     'DEM_SINGLE_TAG',
     'DEM_NORCELIM',
@@ -181,10 +181,10 @@ class DEM(COM):
     display_suffix = 'Filtered'
     extra_nopts = {'default_impl': 'dem'}
 
-class DEM_NONINLINE(DEM):
-    output_suffix = 'dem_noninline'
-    display_suffix = 'Filtered (no inline)'
-    extra_nopts = {'maint_inline': False}
+class DEM_INLINE(DEM):
+    output_suffix = 'dem_inline'
+    display_suffix = 'Filtered (inlined)'
+    extra_nopts = {'maint_inline': True}
 
 class DEM_NO_TAG_CHECK(DEM):
     output_suffix = 'dem_notagcheck'

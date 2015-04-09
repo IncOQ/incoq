@@ -127,6 +127,7 @@ class DEM_CORERBAC_CA(COM):
 #    DEM_SINGLE_TAG,
 #    DEM_NORCELIM,
 #    DEM_NOTYPECHECK,
+#    DEM_INLINE,
 #])
 #
 #add_impls('Auth', 'experiments/django/django', [
@@ -316,26 +317,39 @@ print('Done  ({:.3f} s)'.format(elapsed))
 
 from invinc.transform import StatsDB, Session, StandardSchema
 
-class OIFSchema(OrigIncFilterSchema):
+class RunningExSchema(StatkeySchema):
     
-    # (Not a method.)
-    def _rowgen(dispname, name):
-        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
-                dispname)
+    cols = [
+        ('lines', 'LOC', None),
+        ('trans time', 'Time', '.2f'),
+    ]
     
     rows = [
-        _rowgen('Social', 'Social'),
-        _rowgen('JQLbench1', 'JQL 1'),
-        _rowgen('JQLbench2', 'JQL 2'),
-        _rowgen('JQLbench3', 'JQL 3'),
-        _rowgen('Wifi', 'Wifi'),
-        _rowgen('Auth', 'Auth'),
-        _rowgen('Auth (Simp.)', 'Simplified Auth'),
-        (['CoreRBAC Input', 'CoreRBAC Unfiltered (CA)',
-          'CoreRBAC Filtered (CA)'],
-         'CoreRBAC (CA only)'),
-        _rowgen('CoreRBAC (all)', 'CoreRBAC'),
-        _rowgen('SSD', 'Constr. RBAC'),
+        ('Social Input', 'Running ex Input'),
+        ('Social Unfiltered', 'Running ex Incremental'),
+        ('Social Filtered', 'Running ex Filtered'),
+        ('Social Filtered (no type checks)',
+         'Running ex Filtered (no type checks)'),
+        ('Social Filtered (no rc elim.)',
+         'Running ex Filtered (no rc elim.)'),
+        ('Social Filtered (inlined)',
+         'Running ex Filtered (inlined)'),
+        ('Social Filtered (single tag)', 'Running ex Filtered (osq strat)'),
+    ]
+
+class ComparisonSchema(OrigIncFilterSchema):
+    
+    def _rowgen(name):
+        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
+                name)
+    
+    rows = [
+        _rowgen('Wifi'),
+        _rowgen('Auth'),
+        _rowgen('Simplified Auth'),
+        _rowgen('JQL 1'),
+        _rowgen('JQL 2'),
+        _rowgen('JQL 3'),
     ]
 
 class DistalgoSchema(OrigIncFilterSchema):
@@ -438,23 +452,26 @@ class OOPSLA15Schema(OrigIncFilterSchema):
     ]
 
 stats = StatsDB(STATS_FILE)
-oif_schema = OIFSchema(stats.allstats)
+runningex_schema = RunningExSchema(stats.allstats)
+comparison_schema = ComparisonSchema(stats.allstats)
 distalgo_schema = DistalgoSchema(stats.allstats)
 lamutexspec_costschema = LamutexspecCostSchema(stats.allstats)
 lamutexorig_costschema = LamutexorigCostSchema(stats.allstats)
 oopsla15_schema = OOPSLA15Schema(stats.allstats)
 
-oif_schema.save_csv(STATS_DIR + 'oif_stats.csv')
-distalgo_schema.save_csv(STATS_DIR + 'distalgo_stats.csv')
-lamutexspec_costschema.save_csv(STATS_DIR + 'lamutexspec_cost_stats.csv')
-lamutexorig_costschema.save_csv(STATS_DIR + 'lamutexorig_cost_stats.csv')
-oopsla15_schema.save_csv(STATS_DIR + 'oopsla15_stats.csv')
+runningex_schema.save_csv(STATS_DIR + 'stats-runningex.csv')
+comparison_schema.save_csv(STATS_DIR + 'stats-comparison.csv')
+distalgo_schema.save_csv(STATS_DIR + 'stats-distalgo.csv')
+lamutexspec_costschema.save_csv(STATS_DIR + 'stats-lamutexspec_cost.csv')
+lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
+oopsla15_schema.save_csv(STATS_DIR + 'stats-oopsla15.csv')
 
-#print(oif_schema.to_ascii())
+#print(runningex_schema.to_ascii())
+#print(comparison_schema.to_ascii())
 #print(distalgo_schema.to_ascii())
 #print(lamutexspec_costschema.to_ascii())
 #print(lamutexorig_costschema.to_ascii())
-print(oopsla15_schema.to_ascii())
+#print(oopsla15_schema.to_ascii())
 
 #session = Session(stats)
 #Session.interact(stats, name='Social Unfiltered')
