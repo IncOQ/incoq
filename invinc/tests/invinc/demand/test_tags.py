@@ -37,27 +37,28 @@ class TestTags(unittest.TestCase):
         
         self.sample_exp_structs = [
             Tag(i=0, name='Q_Tx', var='x',
-                lhs=('x', 'y'), rel='R'),
+                lhs=('x', 'y'), rel='R', reorder_i=0),
             Tag(i=0, name='Q_Ty1', var='y',
-                lhs=('x', 'y'), rel='R'),
+                lhs=('x', 'y'), rel='R', reorder_i=0),
             Filter(i=1, name='Q_dR2',
                    lhs=('y', 'z'), rel='R',
-                   preds=('Q_Ty1',)),
+                   preds=('Q_Ty1',), reorder_i=1),
             Tag(i=1, name='Q_Ty2', var='y',
-                lhs=('y', 'z'), rel='Q_dR2'),
+                lhs=('y', 'z'), rel='Q_dR2', reorder_i=1),
             Tag(i=1, name='Q_Tz', var='z',
-                lhs=('y', 'z'), rel='Q_dR2'),
+                lhs=('y', 'z'), rel='Q_dR2', reorder_i=1),
             USet(i=2, name='foo', vars=('z',),
-                 preds=('Q_Tz',), pred_clauses=None),
+                 preds=('Q_Tz',), pred_clauses=None, reorder_i=2),
             Tag(i=2, name='Q_Tw', var='w',
-                lhs=('z', 'w'), rel='T'),
+                lhs=('z', 'w'), rel='T', reorder_i=2),
             Tag(i=3, name='Q_Ta', var='a',
-                lhs=('a',), rel='S'),
+                lhs=('a',), rel='S', reorder_i=3),
         ]
         
         self.subdem_nontag_uset = USet(
                 i=2, name='foo', vars=('z',),
-                preds=None, pred_clauses=self.sample_join.clauses[:2])
+                preds=None, pred_clauses=self.sample_join.clauses[:2],
+                reorder_i=2)
     
     def test_make_structures(self):
         ds = make_structures(self.sample_join.clauses, 'Q',

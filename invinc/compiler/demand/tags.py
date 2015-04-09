@@ -44,6 +44,8 @@ class Tag(Struct):
     """Relation being projected. This is either the original relation
     iterated by the query enumerator, or else a filter over it.
     """
+    reorder_i = TypedField(int)
+    """Relative order for demand graph."""
 
 class Filter(Struct):
     kind = KIND_FILTER
@@ -58,6 +60,8 @@ class Filter(Struct):
     """RHS of the query enumerator, i.e., set being filtered."""
     preds = TypedField(str, seq=True)
     """Names of predecessor tags."""
+    reorder_i = TypedField(int)
+    """Relative order for demand graph."""
 
 class USet(Struct):
     kind = KIND_USET
@@ -72,6 +76,8 @@ class USet(Struct):
     """Names of predecessor tags, or None if using clauses."""
     pred_clauses = Field()
     """Predecessor clauses, or None if using tags."""
+    reorder_i = TypedField(int)
+    """Relative order for demand graph."""
 
 
 class DemStructures(Struct):
@@ -87,17 +93,23 @@ class DemStructures(Struct):
         # Tags must come after the filters at their own enumerator.
         # Relies on stability of list.sort.
         structs = self.filters + self.usets + self.tags
-        structs.sort(key=attrgetter('i'))
+        structs.sort(key=attrgetter('reorder_i'))
         return structs
 
 
-def make_structures_create(clauses):
+def make_structures_create(clauses, *, reorder=None):
     """Return a DemStructures object with partially-constructed
     tag/filter/uset values. They are missing values for the name,
     rel, and preds/pred_clauses fields.
     """
     # Use SimpleNamespace, to allow partially constructed state.
     SN_Tag = SN_Filter = SN_USet = SimpleNamespace
+    
+    # Store relative order for demand graph.
+    if reorder is None:
+        reorder = [i for i in range(len(clauses))]
+    assert (len(reorder) == len(clauses) and
+            set(reorder) == set(range(len(clauses))))
     
     # Initialize structures, leaving some fields blank.
     
@@ -108,7 +120,8 @@ def make_structures_create(clauses):
                    name=None,
                    var=v,
                    lhs=e.enumlhs,
-                   rel=None)
+                   rel=None,
+                   reorder_i=reorder[i])
             for i, e in enumerate(clauses)
             if e.kind is e.KIND_ENUM
             for v in e.enumvars_tagsout]
@@ -120,7 +133,8 @@ def make_structures_create(clauses):
                          name=None,
                          lhs=e.enumlhs,
                          rel=e.enumrel,
-                         preds=None)
+                         preds=None,
+                         reorder_i=reorder[i])
                for i, e in enumerate(clauses)
                if e.kind is e.KIND_ENUM
                if not e.has_demand]
@@ -131,7 +145,8 @@ def make_structures_create(clauses):
                      name=e.demname,
                      vars=e.demparams,
                      preds=None,
-                     pred_clauses=None)
+                     pred_clauses=None,
+                     reorder_i=reorder[i])
              for i, e in enumerate(clauses)
              if e.kind is e.KIND_ENUM
              if e.has_demand]
@@ -176,7 +191,8 @@ def make_structures_preds(clauses, ds, *,
         for v in e.enumvars_tagsin:
             # Use tags introduced to the left of here.
             preds = [t.name for t in ds.tags
-                            if t.var == v if t.i < s.i]
+                            if t.var == v
+                            if t.reorder_i < s.reorder_i]
             # When using singletag, only choose the first
             # (leftmost) tag. The others will be pruned.
             if singletag:
@@ -240,24 +256,26 @@ def make_structures_finish(clauses, ds, *, subdem_tags):
         else:
             t.rel = clauses[t.i].enumrel
 
-def make_structures(clauses, qname, *, singletag, subdem_tags):
+def make_structures(clauses, qname, *, singletag, subdem_tags, reorder=None):
     """Generate tag/filter/uset structures for the given clauses
     and query name. Return the structures in dependency order.
     """
-    ds = make_structures_create(clauses)
+    ds = make_structures_create(clauses, reorder=reorder)
     make_structures_name(qname, ds)
     make_structures_preds(clauses, ds,
-                          singletag=singletag, subdem_tags=subdem_tags)
+                          singletag=singletag,
+                          subdem_tags=subdem_tags)
     make_structures_finish(clauses, ds,
                            subdem_tags=subdem_tags)
     
     # Convert from SimpleNamespace to Struct objects.
     # If we screwed up, here's where we'll get a type error.
-    ds.tags = [Tag(t.i, t.name, t.var, t.lhs, t.rel)
+    ds.tags = [Tag(t.i, t.name, t.var, t.lhs, t.rel, t.reorder_i)
                for t in ds.tags]
-    ds.filters = [Filter(f.i, f.name, f.lhs, f.rel, f.preds)
+    ds.filters = [Filter(f.i, f.name, f.lhs, f.rel, f.preds, f.reorder_i)
                   for f in ds.filters]
-    ds.usets = [USet(u.i, u.name, u.vars, u.preds, u.pred_clauses)
+    ds.usets = [USet(u.i, u.name, u.vars, u.preds,
+                     u.pred_clauses, u.reorder_i)
                 for u in ds.usets]
     
     return ds

@@ -286,6 +286,7 @@ test_programs = [
 #    'deminc/obj',
 #    'deminc/objwild',
 #    'deminc/wildcard',
+#    'deminc/reorder',
 #    'deminc/tup/basic',
 #    'deminc/tup/inc',
 #    'deminc/tup/obj',

@@ -199,6 +199,11 @@ class DefaultQueryOptions:
     if they would normally be required. Requires global option
     rc_elim be set to True.
     """
+    demand_reorder =        None
+    """If not None, list of relative order of clauses for creating
+    tag and filter dependencies (demand graph). This is a hack that
+    doesn't treat the U-set differently from any other clause.
+    """
     
     _deltarel =             None
     """(Internal) If this join is a maintenance join, name of the

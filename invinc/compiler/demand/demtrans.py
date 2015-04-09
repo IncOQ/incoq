@@ -81,6 +81,8 @@ def deminc_relcomp(tree, manager, comp, compname):
     
     subdem_tags = manager.options.get_opt('subdem_tags')
     
+    reorder = manager.options.get_queryopt(comp, 'demand_reorder')
+    
     # Get the CompSpec and inc info of the original comprehension.
     inccomp = make_inccomp(tree, manager, comp, compname,
                            force_uset=force_uset)
@@ -90,7 +92,8 @@ def deminc_relcomp(tree, manager, comp, compname):
     # Make tags/filters/usets structures.
     ds = make_structures(spec.join.clauses, compname,
                          singletag=manager.options.get_opt('single_tag'),
-                         subdem_tags=subdem_tags)
+                         subdem_tags=subdem_tags,
+                         reorder=reorder)
     if verbose:
         print('  Tags/filters/usets: ' + ' ' * 31 +
               ', '.join(s.name for s in ds.structs))
