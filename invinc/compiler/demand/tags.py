@@ -121,7 +121,7 @@ def make_structures_create(clauses, *, reorder=None):
                    var=v,
                    lhs=e.enumlhs,
                    rel=None,
-                   reorder_i=reorder[i])
+                   reorder_i=reorder.index(i))
             for i, e in enumerate(clauses)
             if e.kind is e.KIND_ENUM
             for v in e.enumvars_tagsout]
@@ -134,7 +134,7 @@ def make_structures_create(clauses, *, reorder=None):
                          lhs=e.enumlhs,
                          rel=e.enumrel,
                          preds=None,
-                         reorder_i=reorder[i])
+                         reorder_i=reorder.index(i))
                for i, e in enumerate(clauses)
                if e.kind is e.KIND_ENUM
                if not e.has_demand]
@@ -146,7 +146,7 @@ def make_structures_create(clauses, *, reorder=None):
                      vars=e.demparams,
                      preds=None,
                      pred_clauses=None,
-                     reorder_i=reorder[i])
+                     reorder_i=reorder.index(i))
              for i, e in enumerate(clauses)
              if e.kind is e.KIND_ENUM
              if e.has_demand]
