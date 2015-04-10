@@ -475,6 +475,11 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     if objdomain:
         tree = to_pairdomain(tree, manager, input_rels)
     
+    # In principle we may need to do another UpdateRewriter run
+    # to rewrite F_f.remove(o, o.f) so o.f is saved in a temp
+    # variable. In practice I haven't seen this cause any
+    # problems yet.
+    
     # Rewrite min/max of set unions.
     # Note: Since this happens after pair-domain transformation,
     # we may end up not turning some aggregate arguments into

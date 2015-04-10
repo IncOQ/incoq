@@ -59,6 +59,28 @@ def trel_bindmatch(trel, mask, vars, body, *, typecheck):
                         'BVARS': L.tuplify(bvars),
                         '<c>BODY': body})
         
+        # If any other part of the mask besides the first component
+        # is bound, we need to confirm that it is consistent with
+        # the tuple value of the first component.
+        var_parts = list(enumerate(zip(vars, mask.parts)))
+        conds = [L.pe('TUP[IND] == VAR', subst={'TUP': L.ln(tup),
+                                                'IND': L.Num(i),
+                                                'VAR': L.ln(var)})
+                 for i, (var, part) in var_parts
+                 if i > 0 if part == 'b']
+        if len(conds) == 0:
+            cond = None
+        elif len(conds) == 1:
+            cond = conds[0]
+        else:
+            cond = L.BoolOp(L.And(), conds)
+        if cond is not None:
+            code = L.pc('''
+                if COND:
+                    CODE
+                ''', subst={'COND': cond,
+                            '<c>CODE': code})
+        
         if typecheck:
             code = L.pc('''
                 if isinstance(TUP, tuple) and len(TUP) == ARITY:
@@ -66,6 +88,9 @@ def trel_bindmatch(trel, mask, vars, body, *, typecheck):
                 ''', subst={'TUP': L.ln(tup),
                             'ARITY': L.Num(arity),
                             '<c>CODE': code})
+    
+    # TODO: Case where first component is unbound but all other
+    # components are bound, in which case we can avoid a map lookup.
     
     else:
         code = L.pc('''

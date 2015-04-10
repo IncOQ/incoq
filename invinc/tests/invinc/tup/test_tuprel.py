@@ -24,16 +24,18 @@ class TuprelCase(unittest.TestCase):
                               L.pc('pass'), typecheck=True)
         exp_code = L.pc('''
             if (isinstance(t, tuple) and (len(t) == 2)):
-                for y in setmatch({(t, t[0], t[1])}, 'bbu', (t, x)):
-                    pass
+                if (t[1] == x):
+                    for y in setmatch({(t, t[0], t[1])}, 'bbu', (t, x)):
+                        pass
             ''')
         self.assertEqual(code, exp_code)
         
         code = trel_bindmatch('_TUP2', Mask('bbu'), ['t', 'x', 'y'],
                               L.pc('pass'), typecheck=False)
         exp_code = L.pc('''
-            for y in setmatch({(t, t[0], t[1])}, 'bbu', (t, x)):
-                pass
+            if (t[1] == x):
+                for y in setmatch({(t, t[0], t[1])}, 'bbu', (t, x)):
+                    pass
             ''')
         self.assertEqual(code, exp_code)
         
