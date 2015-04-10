@@ -99,7 +99,9 @@ class INC_CORERBAC_CA(COM):
     display_suffix = 'Unfiltered (CA)'
     
     extra_qopts = {
-        CHECKACCESS_STR:   {'impl': 'inc'},
+        CHECKACCESS_STR:   {'impl': 'inc',
+                            'uset_mode': 'explicit',
+                            'uset_params': ('object',)},
         ASSIGNEDROLES_STR: {'impl': 'inc'},
         DELETESESSION_STR: {'impl': 'inc'},
         }
@@ -113,7 +115,8 @@ class DEM_CORERBAC_CA(COM):
     extra_qopts = {
         CHECKACCESS_STR:   {'impl': 'dem',
                             'uset_mode': 'explicit',
-                            'uset_params': ('session',)},
+                            'uset_params': ('object',),
+                            'demand_reorder': [0, 3, 1, 2]},
         ASSIGNEDROLES_STR: {'impl': 'inc'},
         DELETESESSION_STR: {'impl': 'inc'},
         }
