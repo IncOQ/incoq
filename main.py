@@ -309,6 +309,7 @@ test_programs = [
 #    'aggr/nested/aggrdem',
 #    'aggr/nested/compdem',
 #    'aggr/nested/halfdemand',
+    'aggr/nested/obj',
 ]
 
 for name in test_programs:
