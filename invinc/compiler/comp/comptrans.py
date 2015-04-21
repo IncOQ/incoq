@@ -498,6 +498,8 @@ def make_inccomp(tree, manager, comp, name, *,
     use_uset = len(uset_params) > 0 or force_uset
     
     uset_lru = get(comp, 'uset_lru')
+    if uset_lru is None:
+        uset_lru = manager.options.get_opt('default_uset_lru')
     
     return IncComp(comp, spec, name, use_uset, L.N.uset(name),
                    uset_params, rc, selfjoin_strat, maint_impl,

@@ -365,8 +365,7 @@ class LAMutexOrigWorkflow(DistalgoWorkflow):
         use_progs_ex = True
         progs_ex = [
             ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_in'),
-#            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_inc'),
-            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_inc_lru'),
+            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_inc'),
         ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
@@ -496,7 +495,7 @@ class LAMutexOrigRounds(LAMutexOrigWorkflow):
                     n_procs =  5,
                     n_rounds = x,
                 )
-                for x in range(200, 1200 + 1, 200)
+                for x in range(200, 1200 + 1, 500)
             ]
     
     class ExpExtractor(LAMutexOrigWorkflow.ExpExtractor):

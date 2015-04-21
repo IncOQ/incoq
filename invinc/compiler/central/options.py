@@ -69,6 +69,9 @@ class DefaultNormalOptions:
     'inc', or 'dem'. 
     """
     
+    default_uset_lru =      None
+    """Default to use for query uset_lru."""
+    
     default_uset_force =    False
     """Default uset_force for queries using inc or dem."""
     

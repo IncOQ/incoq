@@ -16,6 +16,7 @@ __all__ = [
     'INC_SUBDEM',
     'INC_SUBDEM_OBJ',
     'DEM',
+    'DEM_LRU',
     'DEM_INLINE',
     'DEM_NO_TAG_CHECK',
     'DEM_SINGLE_TAG',
@@ -180,6 +181,9 @@ class DEM(COM):
     output_suffix = 'dem'
     display_suffix = 'Filtered'
     extra_nopts = {'default_impl': 'dem'}
+
+class DEM_LRU(DEM):
+    extra_nopts = {'default_uset_lru': 1}
 
 class DEM_INLINE(DEM):
     output_suffix = 'dem_inline'

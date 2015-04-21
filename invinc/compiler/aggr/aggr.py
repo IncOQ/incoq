@@ -801,6 +801,8 @@ def inc_aggr(tree, manager, aggr, name,
     spec = AggrSpec.from_node(aggr)
     
     uset_lru = manager.options.get_queryopt(aggr, 'uset_lru')
+    if uset_lru is None:
+        uset_lru = manager.options.get_opt('default_uset_lru')
     demname = name if demand else None
     if not demand:
         half_demand = False

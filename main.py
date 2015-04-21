@@ -41,6 +41,7 @@ class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
             'P_mutex_c':  "subtype('clocks', number)",
             'P_s':  "set(subtype('procs', number))",
             },
+        'default_uset_lru': 1,
     }
 
 class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
@@ -61,20 +62,7 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
                                  subtype('clocks', number),
                                  subtype('procs', number)]))''',
             },
-    }
-
-LAMUTEX_ORIG_Q0 = '''count({(c2, p) for (_ConstantPattern0_, c2, p) in P_q if (_ConstantPattern0_ == 'request') if (not (((c2, p) == (P_mutex_c, SELF_ID)) or ((P_mutex_c, SELF_ID) < (c2, p))))})'''
-LAMUTEX_ORIG_Q1 = '''count({p for p in P_s for (_, _, (_ConstantPattern16_, c2, _FreePattern18_)) in _PReceivedEvent_0 if (_ConstantPattern16_ == 'ack') if (_FreePattern18_ == p) if (c2 > P_mutex_c)})'''
-LAMUTEX_ORIG_Q2 = '''{('request', c, P__P_handler_1_p) for (_ConstantPattern27_, c, _BoundPattern29_) in P_q if (_ConstantPattern27_ == 'request') if (_BoundPattern29_ == P__P_handler_1_p)}'''
-class INC_SUBDEM_LAMUTEX_ORIG_LRU(INC_SUBDEM_LAMUTEX_ORIG):
-    _inherit_fields = True
-    
-    output_suffix = 'inc_lru'
-    display_suffix = 'Unfiltered (LRU)'
-    extra_qopts = {
-        LAMUTEX_ORIG_Q0: {'uset_lru': 1,},
-        LAMUTEX_ORIG_Q1: {'uset_lru': 1,},
-        LAMUTEX_ORIG_Q2: {'uset_lru': 1,},
+        'default_uset_lru': 1,
     }
 
 class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
@@ -204,7 +192,7 @@ class DEM_CORERBAC_CA(COM):
 #])
 #add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
 #    INC_SUBDEM_LAMUTEX,
-#    DEM,
+#    DEM_LRU,
 #])
 #add_impls('lamutex opt1', 'experiments/distalgo/lamutex/lamutex_opt1_inc', [
 #    INC_SUBDEM_LAMUTEX,
@@ -212,12 +200,11 @@ class DEM_CORERBAC_CA(COM):
 #])
 #add_impls('lamutex opt2', 'experiments/distalgo/lamutex/lamutex_opt2_inc', [
 #    INC_SUBDEM_LAMUTEX,
-#    DEM,
+#    DEM_LRU,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
 #    INC_SUBDEM_LAMUTEX_ORIG,
-#    INC_SUBDEM_LAMUTEX_ORIG_LRU,
-#    DEM,
+#    DEM_LRU,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,
@@ -371,14 +358,6 @@ class ComparisonSchema(OrigIncFilterSchema):
 
 class ApplicationsSchema(OrigIncFilterSchema):
    
-#    cols = [
-#        ((0, 'lines'), 'Original LOC', None),
-#        ((1, 'orig queries'), 'Queries', None),
-#        ((1, 'orig updates'), 'Updates', None),
-#        ((1, 'lines'), 'Inc. LOC', None),
-#        ((1, 'trans time'), 'Inc. trans. time', '.2f'),
-#    ]
-    
     def _rowgen(name, dispname=None):
         if dispname is None:
             dispname = name
@@ -400,6 +379,9 @@ class ApplicationsSchema(OrigIncFilterSchema):
           'lamutex orig Filtered'], 'lamutex_orig'),
         (['lamutex Input', 'lamutex Unfiltered', 'lamutex Filtered'],
          'lamutex_spec'),
+        (['lamutex opt2 Input', 'lamutex opt2 Unfiltered',
+          'lamutex opt2 Filtered'],
+         'lamutex_specsimp'),
         _rowgen('2pcommit'),
         _rowgen('clpaxos'),
         _rowgen('crleader'),

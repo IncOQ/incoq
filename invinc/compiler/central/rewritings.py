@@ -4,7 +4,7 @@ optimization, and making other transformations applicable.
 
 
 __all__ = [
-    'DistalgoImporter',
+    'import_distalgo',
     'get_distalgo_message_sets',
     'RelationFinder',
     'MacroUpdateRewriter',
@@ -26,7 +26,7 @@ from invinc.compiler.obj import is_specialrel
 
 class DistalgoImporter(L.MacroProcessor):
     
-    """Perform a few simple preprocessing steps.
+    """Preprocessing for distalgo inc interface programs.
     
         - len() is converted to count()
         - set(<generator expr>) is converted to a SetComp
@@ -55,6 +55,10 @@ class DistalgoImporter(L.MacroProcessor):
                 return None
         else:
             raise L.ProgramError('set() takes at most one arg')
+
+def import_distalgo(tree):
+    tree = DistalgoImporter.run(tree)
+    return tree
 
 
 def get_distalgo_message_sets(tree):

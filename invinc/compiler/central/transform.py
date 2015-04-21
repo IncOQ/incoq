@@ -34,7 +34,7 @@ from invinc.compiler.tup import (
 from invinc.compiler.cost import analyze_costs, eval_coststr
 
 from .manager import get_clause_factory, make_manager
-from .rewritings import (DistalgoImporter, get_distalgo_message_sets,
+from .rewritings import (import_distalgo, get_distalgo_message_sets,
                          MacroUpdateRewriter,
                          SetTypeRewriter, ObjTypeRewriter, MapOpImporter,
                          StrictUpdateRewriter,
@@ -345,7 +345,7 @@ def preprocess_tree(manager, tree, opts):
     
     opman = manager.options
     
-    tree = DistalgoImporter.run(tree)
+    tree = import_distalgo(tree)
     tree = L.import_incast(tree)
     
     # Remove the runtimelib declaration.

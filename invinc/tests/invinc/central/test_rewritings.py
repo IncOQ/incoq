@@ -14,7 +14,7 @@ class RewriterCase(CentralCase):
         tree = L.parse_structast('''
             len(set((a for a in S))) > 0
             ''')
-        tree = DistalgoImporter.run(tree)
+        tree = import_distalgo(tree)
         exp_tree = L.parse_structast('''
             count({a for a in S}) > 0
             ''')

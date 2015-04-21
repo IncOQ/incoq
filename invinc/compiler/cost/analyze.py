@@ -85,6 +85,7 @@ class CostAnalyzer(L.NodeVisitor):
         '__min__', '__max__', 'singlelookup',
         'elements', # Note that this is the cost of invoking the method,
                     # not iterating over its result.
+        'peek', 'ping',
     ]
     
     def __init__(self, args, argmap, costmap, *, warn=False):
@@ -415,11 +416,14 @@ class VarRewriter(CostTransformer):
     
     """Rewrite cost terms by replacing costs based on variable names
     with costs based on their types.
+    
+    If usets_constant is True, also eliminate U-set terms as constant.
     """
     
-    def __init__(self, manager):
+    def __init__(self, manager, *, usets_constant=False):
         super().__init__()
         self.manager = manager
+        self.usets_constant = usets_constant
     
     def process(self, tree):
         res = super().process(tree)
@@ -429,6 +433,10 @@ class VarRewriter(CostTransformer):
     
     def visit_NameCost(self, cost):
         rel = cost.name
+        
+        if self.usets_constant and rel.startswith('_U_'):
+            return UnitCost()
+        
         t = self.manager.vartypes.get(rel, None)
         if not isinstance(t, L.SetType):
             return cost
@@ -440,6 +448,10 @@ class VarRewriter(CostTransformer):
     
     def visit_IndefImgsetCost(self, cost):
         rel = cost.rel
+        
+        if self.usets_constant and rel.startswith('_U_'):
+            return UnitCost()
+        
         t = self.manager.vartypes.get(rel, None)
         if not isinstance(t, L.SetType):
             return cost
@@ -476,12 +488,14 @@ def analyze_costs(manager, tree, *, rewrite_types=False,
     """Analyze function costs. Return a tree modified by adding cost
     annotations and a dictionary of these costs.
     """
+    usets_constant = manager.options.get_opt('default_uset_lru') is not None
     costmap = func_costs(tree, warn=warn)
     
     if rewrite_types:
         for k in costmap:
             c1 = costmap[k]
-            costmap[k] = VarRewriter.run(costmap[k], manager)
+            costmap[k] = VarRewriter.run(costmap[k], manager,
+                                         usets_constant=usets_constant)
             c2 = costmap[k]
             if verbose and c1 != c2:
                 print('{}   --->   {}'.format(c1, c2))
