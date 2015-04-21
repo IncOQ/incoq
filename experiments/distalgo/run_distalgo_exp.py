@@ -97,18 +97,18 @@ class DistalgoWorkflow(ExpWorkflow):
              'red', '- s normal'),
             (('in', 'time_wall'), 'original (wall time)',
              'red', '1-2 _s normal'),
-            (('inc', 'time_cpu'), 'unfiltered (total cpu time)',
+            (('inc', 'time_cpu'), 'incremental (total cpu time)',
              'blue', '- ^ normal'),
-            (('inc', 'time_wall'), 'unfiltered (wall time)',
+            (('inc', 'time_wall'), 'incremental (wall time)',
+             'blue', '1-2 _^ normal'),
+            (('inc_lru', 'time_cpu'), 'incremental (total cpu time)',
+             'blue', '- ^ normal'),
+            (('inc_lru', 'time_wall'), 'incremental (wall time)',
              'blue', '1-2 _^ normal'),
             (('dem', 'time_cpu'), 'filtered (total cpu time)',
              'green', '- ^ normal'),
             (('dem', 'time_wall'), 'filtered (wall time)',
              'green', '1-2 _^ normal'),
-            (('dem_lru', 'time_cpu'), 'filtered, lru (total cpu time)',
-             '#004400', '- ^ normal'),
-            (('dem_lru', 'time_wall'), 'filtered, lru (wall time)',
-             '#004400', '1-2 _^ normal'),
             
             (('dem_subdem', 'time_cpu'), 'filtered, subdem (total cpu time)',
              '#004400', '- ^ normal'),
@@ -198,7 +198,7 @@ class CLPaxos(DistalgoWorkflow):
         name = 'clpaxos'
         noninline = True
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
 
 
@@ -237,7 +237,7 @@ class CRLeader(DistalgoWorkflow):
         
         name = 'crleader'
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
 
 
@@ -274,7 +274,7 @@ class DSCrash(DistalgoWorkflow):
         
         name = 'dscrash'
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
 
 
@@ -313,7 +313,7 @@ class HSLeader(DistalgoWorkflow):
         
         name = 'hsleader'
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
 
 
@@ -321,7 +321,7 @@ class LAMutexDriver(DistalgoDriver):
     dafilename = 'lamutex/lamutex.da'
     argnames = ['n_procs', 'n_rounds']
 
-class LAMutexWorkflow(DistalgoWorkflow):
+class LAMutexSpecWorkflow(DistalgoWorkflow):
     
     ExpDriver = LAMutexDriver
     
@@ -331,25 +331,53 @@ class LAMutexWorkflow(DistalgoWorkflow):
         progs_ex = [
             ('lamutex/lamutex.da', 'lamutex_inc_in'),
             ('lamutex/lamutex.da', 'lamutex_inc_inc'),
-            
-#            ('lamutex/lamutex_opt1.da', 'lamutex_opt1_inc_in'),
-#            ('lamutex/lamutex_opt1.da', 'lamutex_opt1_inc_inc'),
-            
-#            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_in'),
-#            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_inc'),
-            
-#            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_in'),
-#            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_inc'),
         ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         name = 'lamutex'
+        show_wall = True
 
-class LAMutexProcs(LAMutexWorkflow):
+class LAMutexSpecOptWorkflow(DistalgoWorkflow):
     
-    prefix = 'results/lamutexprocs'
+    ExpDriver = LAMutexDriver
     
-    class ExpDatagen(LAMutexWorkflow.ExpDatagen):
+    class ExpDatagen(DistalgoWorkflow.ExpDatagen):
+        
+        use_progs_ex = True
+        progs_ex = [
+#            ('lamutex/lamutex_opt1.da', 'lamutex_opt1_inc_in'),
+#            ('lamutex/lamutex_opt1.da', 'lamutex_opt1_inc_inc'),
+            
+            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_in'),
+            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_inc'),
+        ]
+    
+    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
+        name = 'lamutex_opt2'
+        show_wall = True
+
+class LAMutexOrigWorkflow(DistalgoWorkflow):
+    
+    ExpDriver = LAMutexDriver
+    
+    class ExpDatagen(DistalgoWorkflow.ExpDatagen):
+        
+        use_progs_ex = True
+        progs_ex = [
+            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_in'),
+#            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_inc'),
+            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_inc_lru'),
+        ]
+    
+    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
+        name = 'lamutex_orig'
+        show_wall = True
+
+class LAMutexSpecProcs(LAMutexSpecWorkflow):
+    
+    prefix = 'results/lamutexspec_procs'
+    
+    class ExpDatagen(LAMutexSpecWorkflow.ExpDatagen):
         
         def get_dsparams_list(self):
             return [
@@ -363,15 +391,15 @@ class LAMutexProcs(LAMutexWorkflow):
                 for x in range(2, 20 + 1, 2)
             ]
     
-    class ExpExtractor(LAMutexWorkflow.ExpExtractor):
-        ylabel = 'Time (s)'
+    class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'    
 
-class LAMutexRounds(LAMutexWorkflow):
+class LAMutexSpecRounds(LAMutexSpecWorkflow):
     
-    prefix = 'results/lamutexrounds'
+    prefix = 'results/lamutexspec_rounds'
     
-    class ExpDatagen(LAMutexWorkflow.ExpDatagen):
+    class ExpDatagen(LAMutexSpecWorkflow.ExpDatagen):
         def get_dsparams_list(self):
             return [
                 dict(
@@ -384,8 +412,95 @@ class LAMutexRounds(LAMutexWorkflow):
                 for x in range(2, 20 + 1, 2)
             ]
     
-    class ExpExtractor(LAMutexWorkflow.ExpExtractor):
-        ylabel = 'Time (s)'
+    class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
+        ylabel = 'Running time (in seconds)'
+        xlabel = 'Number of rounds'
+
+class LAMutexSpecOptProcs(LAMutexSpecOptWorkflow):
+    
+    prefix = 'results/lamutexspecopt_procs'
+    
+    class ExpDatagen(LAMutexSpecOptWorkflow.ExpDatagen):
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  x,
+                    n_rounds = 10,
+                )
+                for x in range(2, 20 + 1, 2)
+            ]
+    
+    class ExpExtractor(LAMutexSpecOptWorkflow.ExpExtractor):
+        ylabel = 'Running time (in seconds)'
+        xlabel = 'Number of processes'
+
+class LAMutexSpecOptRounds(LAMutexSpecOptWorkflow):
+    
+    prefix = 'results/lamutexspecopt_rounds'
+    
+    class ExpDatagen(LAMutexSpecOptWorkflow.ExpDatagen):
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  10,
+                    n_rounds = x,
+                )
+                for x in range(2, 20 + 1, 2)
+            ]
+    
+    class ExpExtractor(LAMutexSpecOptWorkflow.ExpExtractor):
+        ylabel = 'Running time (in seconds)'
+        xlabel = 'Number of rounds'
+
+class LAMutexOrigProcs(LAMutexOrigWorkflow):
+    
+    prefix = 'results/lamutexorig_procs'
+    
+    class ExpDatagen(LAMutexOrigWorkflow.ExpDatagen):
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  x,
+                    n_rounds = 50,
+                )
+                for x in range(10, 50 + 1, 10)
+            ]
+    
+    class ExpExtractor(LAMutexOrigWorkflow.ExpExtractor):
+        ylabel = 'Running time (in seconds)'
+        xlabel = 'Number of processes'    
+
+class LAMutexOrigRounds(LAMutexOrigWorkflow):
+    
+    prefix = 'results/lamutexorig_rounds'
+    
+    class ExpDatagen(LAMutexOrigWorkflow.ExpDatagen):
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  5,
+                    n_rounds = x,
+                )
+                for x in range(200, 1200 + 1, 200)
+            ]
+    
+    class ExpExtractor(LAMutexOrigWorkflow.ExpExtractor):
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of rounds'
 
 
@@ -424,7 +539,7 @@ class LAPaxos(DistalgoWorkflow):
         name = 'lapaxos'
         noninline = True
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
 
 
@@ -464,7 +579,7 @@ class RAMutex(DistalgoWorkflow):
         
         name = 'ramutex'
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
 
 
@@ -504,7 +619,7 @@ class RATokenProcs(DistalgoWorkflow):
         
         name = 'ratoken'
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
 
 class RATokenRounds(DistalgoWorkflow):
@@ -539,7 +654,7 @@ class RATokenRounds(DistalgoWorkflow):
         
         name = 'ratoken'
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of rounds'
 
 
@@ -579,7 +694,7 @@ class SKToken(DistalgoWorkflow):
         
         name = 'sktoken'
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
 
 
@@ -619,7 +734,7 @@ class TPCommit(DistalgoWorkflow):
         
         name = 'tpcommit'
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of proposers'
 
 
@@ -653,5 +768,5 @@ class VRPaxos(DistalgoWorkflow):
         
         name = 'vrpaxos'
         
-        ylabel = 'Time (s)'
+        ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'

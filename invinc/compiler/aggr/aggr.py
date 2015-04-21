@@ -219,13 +219,13 @@ class AggrCodegen(metaclass=ABCMeta):
     # The maintenance code templates are parameterized by code for
     # initializing and updating the result state. The code is provided
     # in subclasses.
-    
+    #
     # When both the aggregate and operand use demand, the order of
     # events for adding to U is to first bring the aggregate invariant
     # up-to-date with the current contents of the operand (in case the
     # operand is already demanded), and then to propagate demand to
     # the operand. For removing from U it's the opposite order.
-    
+    #
     # Terminology: A "state" is the information used to incrementally
     # track a single aggregate result for a single set. For simple
     # aggregates this is just the result itself. A "mapval" is

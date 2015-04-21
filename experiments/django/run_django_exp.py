@@ -404,9 +404,9 @@ class Demand(DjangoWorkflow):
             ('django_inc', 'incremental',
              'blue', '- o normal'),
             ('django_osq', 'OSQ',
-             'orange', '-- ^ normal'),
+             'orange', '-- ^ poly1'),
             ('django_dem', 'filtered',
-             'green', '- ^ normal'),
+             'green', '- ^ poly1'),
             ('django_simp_inc', 'incremental (simplified)',
              'blue', '- _o normal'),
             ('django_simp_osq', 'OSQ (simplified)',
@@ -416,6 +416,8 @@ class Demand(DjangoWorkflow):
         ]
         
         xlabel = 'Number of demanded users'
+        xmin = -10
+        xmax = 310
         
         metric = 'time_cpu'
 

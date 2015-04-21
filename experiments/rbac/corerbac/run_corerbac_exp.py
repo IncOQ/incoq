@@ -370,6 +370,8 @@ class CoreRBACWorkflow(ExpWorkflow):
     ExpExtractor = CoreRBACExtractor
     ExpDriver = CoreRBACDriver
     ExpVerifyDriver = CoreRBACVerifyDriver
+    
+    require_ac = False ###
 
 
 class CoreRoles(CoreRBACWorkflow):
@@ -410,13 +412,12 @@ class CoreRoles(CoreRBACWorkflow):
                     qs_pat =         1,
                     q_pat =          1000,
                 )
-#                for x in range(10, 101, 10)
-                for x in range(20, 101, 20)
+                for x in range(10, 101, 10)
             ]
     
     stddev_window = .1
-    min_repeats = 1#10
-    max_repeats = 1#50
+    min_repeats = 10
+    max_repeats = 50
     
     class ExpExtractor(CoreRBACWorkflow.ExpExtractor, ScaledExtractor):
         
@@ -493,12 +494,12 @@ class CoreDemand(CoreRBACWorkflow):
                     qs_pat =         1,
                     q_pat =          1000,
                 )
-                for x in [1] + list(range(100, 1000 + 1, 50))
+                for x in [1] + list(range(50, 1000 + 1, 50))
             ]
     
     stddev_window = .1
-    min_repeats = 5#10
-    max_repeats = 5#50
+    min_repeats = 10
+    max_repeats = 50
     
     class ExpExtractor(CoreRBACWorkflow.ExpExtractor):
         
@@ -513,7 +514,7 @@ class CoreDemand(CoreRBACWorkflow):
         
         title = None
         ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of queried sessions'
+        xlabel = 'Number of queried objects'
         metric = 'time_cpu'
         
         ymin = 0
@@ -533,7 +534,7 @@ class CoreDemandNorm(CoreDemand):
              'blue', '- o normal'),
             (('coreRBAC_checkaccess_dem', 'all'),
              'filtered',
-             'green', '- ^ normal'),
+             'green', '- ^ poly1'),
         ]
         
         base_sid_map = {
@@ -543,8 +544,6 @@ class CoreDemandNorm(CoreDemand):
         
         def normalize(self, pre_y, base_y):
             return pre_y / base_y
-        
-        legend_loc = 'lower right'
         
         ylabel = 'Running time (normalized)'
         ymax = None

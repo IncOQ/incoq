@@ -63,6 +63,20 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
             },
     }
 
+LAMUTEX_ORIG_Q0 = '''count({(c2, p) for (_ConstantPattern0_, c2, p) in P_q if (_ConstantPattern0_ == 'request') if (not (((c2, p) == (P_mutex_c, SELF_ID)) or ((P_mutex_c, SELF_ID) < (c2, p))))})'''
+LAMUTEX_ORIG_Q1 = '''count({p for p in P_s for (_, _, (_ConstantPattern16_, c2, _FreePattern18_)) in _PReceivedEvent_0 if (_ConstantPattern16_ == 'ack') if (_FreePattern18_ == p) if (c2 > P_mutex_c)})'''
+LAMUTEX_ORIG_Q2 = '''{('request', c, P__P_handler_1_p) for (_ConstantPattern27_, c, _BoundPattern29_) in P_q if (_ConstantPattern27_ == 'request') if (_BoundPattern29_ == P__P_handler_1_p)}'''
+class INC_SUBDEM_LAMUTEX_ORIG_LRU(INC_SUBDEM_LAMUTEX_ORIG):
+    _inherit_fields = True
+    
+    output_suffix = 'inc_lru'
+    display_suffix = 'Unfiltered (LRU)'
+    extra_qopts = {
+        LAMUTEX_ORIG_Q0: {'uset_lru': 1,},
+        LAMUTEX_ORIG_Q1: {'uset_lru': 1,},
+        LAMUTEX_ORIG_Q2: {'uset_lru': 1,},
+    }
+
 class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
     _inherit_fields = True
     
@@ -99,9 +113,7 @@ class INC_CORERBAC_CA(COM):
     display_suffix = 'Unfiltered (CA)'
     
     extra_qopts = {
-        CHECKACCESS_STR:   {'impl': 'inc',
-                            'uset_mode': 'explicit',
-                            'uset_params': ('object',)},
+        CHECKACCESS_STR:   {'impl': 'inc'},
         ASSIGNEDROLES_STR: {'impl': 'inc'},
         DELETESESSION_STR: {'impl': 'inc'},
         }
@@ -194,7 +206,6 @@ class DEM_CORERBAC_CA(COM):
 #    INC_SUBDEM_LAMUTEX,
 #    DEM,
 #])
-#add_task(lamutex_lru)
 #add_impls('lamutex opt1', 'experiments/distalgo/lamutex/lamutex_opt1_inc', [
 #    INC_SUBDEM_LAMUTEX,
 #    DEM,
@@ -205,6 +216,7 @@ class DEM_CORERBAC_CA(COM):
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
 #    INC_SUBDEM_LAMUTEX_ORIG,
+#    INC_SUBDEM_LAMUTEX_ORIG_LRU,
 #    DEM,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
@@ -309,7 +321,7 @@ test_programs = [
 #    'aggr/nested/aggrdem',
 #    'aggr/nested/compdem',
 #    'aggr/nested/halfdemand',
-    'aggr/nested/obj',
+#    'aggr/nested/obj',
 ]
 
 for name in test_programs:
@@ -357,7 +369,7 @@ class ComparisonSchema(OrigIncFilterSchema):
         _rowgen('JQL 3'),
     ]
 
-class DistalgoSchema(OrigIncFilterSchema):
+class ApplicationsSchema(OrigIncFilterSchema):
    
 #    cols = [
 #        ((0, 'lines'), 'Original LOC', None),
@@ -366,6 +378,40 @@ class DistalgoSchema(OrigIncFilterSchema):
 #        ((1, 'lines'), 'Inc. LOC', None),
 #        ((1, 'trans time'), 'Inc. trans. time', '.2f'),
 #    ]
+    
+    def _rowgen(name, dispname=None):
+        if dispname is None:
+            dispname = name
+        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
+                dispname)
+    
+    def _rowgen2(name):
+        return ([name + ' Input', name + ' Unfiltered (obj)',
+                 name + ' Filtered (obj)'],
+                name)
+    
+    rows = [
+        (['CoreRBAC Input', 'CoreRBAC Unfiltered (CA)',
+          'CoreRBAC Filtered (CA)'],
+         'CheckAccess'),
+        _rowgen('CoreRBAC'),
+        _rowgen('Constr. RBAC', 'SSD'),
+        (['lamutex orig Input', 'lamutex orig Unfiltered',
+          'lamutex orig Filtered'], 'lamutex_orig'),
+        (['lamutex Input', 'lamutex Unfiltered', 'lamutex Filtered'],
+         'lamutex_spec'),
+        _rowgen('2pcommit'),
+        _rowgen('clpaxos'),
+        _rowgen('crleader'),
+        _rowgen2('dscrash'),
+        _rowgen('hsleader'),
+#        _rowgen('lapaxos'),
+        _rowgen('ramutex'),
+        _rowgen2('ratoken'),
+        _rowgen2('sktoken'),
+    ]
+
+class DistalgoSchema(OrigIncFilterSchema):
     
     def _rowgen(name):
         return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
@@ -392,17 +438,33 @@ class DistalgoSchema(OrigIncFilterSchema):
         _rowgen2('sktoken'),
     ]
 
+class RunningExCostSchema(CostSchema):
+    rows = [
+        ('Social Unfiltered', 'incremental'),
+        ('Social Filtered', 'filtered'),
+    ]
+    cols = [
+        ('make_user', 'make_user', None),
+        ('make_group', 'make_group', None),
+        ('follow', 'follow', None),
+        ('unfollow', 'unfollow', None),
+        ('join_group', 'join_group', None),
+        ('leave_group', 'leave_group', None),
+        ('change_loc', 'change_loc', None),
+        ('do_query', 'do_query', None),
+    ]
+
 class LamutexspecCostSchema(CostSchema):
     rows = [
         ('lamutex Unfiltered', 'lamutex'),
-        ('lamutex opt1 Unfiltered', 'lamutex opt1'),
-        ('lamutex opt2 Unfiltered', 'lamutex opt2'),
+#        ('lamutex opt1 Unfiltered', 'lamutex opt1'),
+        ('lamutex opt2 Unfiltered', 'lamutex optimized'),
     ]
     cols = [
         ('Query_0', 'Query', None),
-        ('Update__PReceivedEvent_0_0', 'Rec Request', None),
-        ('Update__PReceivedEvent_1_0', 'Rec Release', None),
-        ('Update__PReceivedEvent_2_0', 'Rec Ack', None),
+        ('Update__PReceivedEvent_0', 'Rec Request', None),
+        ('Update__PReceivedEvent_1', 'Rec Release', None),
+        ('Update__PReceivedEvent_2', 'Rec Ack', None),
     ]
 class LamutexorigCostSchema(CostSchema):
     rows = [
@@ -411,11 +473,12 @@ class LamutexorigCostSchema(CostSchema):
     cols = [
         ('Query_0', 'Query 1', None),
         ('Query_1', 'Query 2', None),
-        ('Update_P_q_2', 'Update q (send request)', None),
-        ('Update_P_q_3', 'Update q (send release)', None),
-        ('Update_P_q_4', 'Update q (rec request / send ack)', None),
-        ('Update_P_q_5', 'Update q (rec release)', None),
-        ('Update__PReceivedEvent_0_0', 'Rec Ack', None),
+        ('Query_2', 'Query 3', None),
+        ('Update_P_q3', 'Update request queue', None),
+        ('Update_P_q4', 'Update request queue', None),
+        ('Update_P_q5', 'Update request queue', None),
+        ('Update_P_q6', 'Update request queue', None),
+        ('Update__PReceivedEvent_0', 'Rec Ack', None),
     ]
 
 class OOPSLA15Schema(OrigIncFilterSchema):
@@ -459,24 +522,31 @@ class OOPSLA15Schema(OrigIncFilterSchema):
 stats = StatsDB(STATS_FILE)
 runningex_schema = RunningExSchema(stats.allstats)
 comparison_schema = ComparisonSchema(stats.allstats)
+applications_schema = ApplicationsSchema(stats.allstats)
 distalgo_schema = DistalgoSchema(stats.allstats)
+runningex_costschema = RunningExCostSchema(stats.allstats)
 lamutexspec_costschema = LamutexspecCostSchema(stats.allstats)
 lamutexorig_costschema = LamutexorigCostSchema(stats.allstats)
 oopsla15_schema = OOPSLA15Schema(stats.allstats)
 
 runningex_schema.save_csv(STATS_DIR + 'stats-runningex.csv')
 comparison_schema.save_csv(STATS_DIR + 'stats-comparison.csv')
+applications_schema.save_csv(STATS_DIR + 'stats-applications.csv')
 distalgo_schema.save_csv(STATS_DIR + 'stats-distalgo.csv')
+oopsla15_schema.save_csv(STATS_DIR + 'stats-oopsla15.csv')
+runningex_costschema.save_csv(STATS_DIR + 'stats-runninex_cost.csv')
 lamutexspec_costschema.save_csv(STATS_DIR + 'stats-lamutexspec_cost.csv')
 lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
-oopsla15_schema.save_csv(STATS_DIR + 'stats-oopsla15.csv')
 
 #print(runningex_schema.to_ascii())
 #print(comparison_schema.to_ascii())
+#print(applications_schema.to_ascii())
 #print(distalgo_schema.to_ascii())
-#print(lamutexspec_costschema.to_ascii())
-#print(lamutexorig_costschema.to_ascii())
 #print(oopsla15_schema.to_ascii())
+
+#print(runningex_costschema.to_ascii())
+print(lamutexspec_costschema.to_ascii())
+print(lamutexorig_costschema.to_ascii())
 
 #session = Session(stats)
 #Session.interact(stats, name='Social Unfiltered')

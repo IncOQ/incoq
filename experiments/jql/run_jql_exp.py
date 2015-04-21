@@ -592,7 +592,7 @@ class Ratio3(Ratio):
     
     class ExpExtractor(Ratio.ExpExtractor):
         level = '3'
-#        ymax = 2
+        ymax = 2
         legend_loc = 'upper center'
 
 

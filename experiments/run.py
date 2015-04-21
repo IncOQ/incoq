@@ -45,14 +45,19 @@ djangodemandnorm = django.DemandTimeNorm()
 
 coreroles = corerbac.CoreRoles()
 coredemand = corerbac.CoreDemand()
+coredemandnorm = corerbac.CoreDemandNorm()
 crbacscale = crbac.CRBACScale()
 
 clpaxos = experiments.distalgo.CLPaxos()
 crleader = experiments.distalgo.CRLeader()
 dscrash = experiments.distalgo.DSCrash()
 hsleader = experiments.distalgo.HSLeader()
-lamutexprocs = experiments.distalgo.LAMutexProcs()
-lamutexrounds = experiments.distalgo.LAMutexRounds()
+lamutexspecprocs = experiments.distalgo.LAMutexSpecProcs()
+lamutexspecrounds = experiments.distalgo.LAMutexSpecRounds()
+lamutexspecoptprocs = experiments.distalgo.LAMutexSpecOptProcs()
+lamutexspecoptrounds = experiments.distalgo.LAMutexSpecOptRounds()
+lamutexorigprocs = experiments.distalgo.LAMutexOrigProcs()
+lamutexorigrounds = experiments.distalgo.LAMutexOrigRounds()
 lapaxos = experiments.distalgo.LAPaxos()
 ramutex = experiments.distalgo.RAMutex()
 ratokenprocs = experiments.distalgo.RATokenProcs()
@@ -95,6 +100,7 @@ def main():
         
 #        coreroles,
 #        coredemand,
+#        coredemandnorm,
         
 #        crbacscale,
         
@@ -107,8 +113,12 @@ def main():
 #        crleader,
 #        dscrash,
 #        hsleader,
-#        lamutexprocs,
-#        lamutexrounds,
+#        lamutexspecprocs,
+#        lamutexspecrounds,
+#        lamutexspecoptprocs,
+#        lamutexspecoptrounds,
+#        lamutexorigprocs,
+        lamutexorigrounds,
 #        lapaxos,
 #        ramutex,
 #        ratokenprocs,
@@ -125,8 +135,8 @@ def main():
     for w in ws:
         print('\n---- Running {} ----\n'.format(w.__class__.__name__))
         try:
-#            w.generate()
-#            w.benchmark()
+            w.generate()
+            w.benchmark()
             
 #            w.verify()
             

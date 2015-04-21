@@ -4,7 +4,7 @@
 *_dem.py
 *_dem_needed.py
 *_dem_notagcheck.py
-*_dem_noninline.py
+*_dem_inline.py
 
 # Installation-dependent.
 config.txt
