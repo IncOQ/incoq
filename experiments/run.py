@@ -102,7 +102,7 @@ def main():
 #        coredemand,
 #        coredemandnorm,
         
-#        crbacscale,
+        crbacscale,
         
 #        wifiscale,
 #        djangoscale,
@@ -118,7 +118,7 @@ def main():
 #        lamutexspecoptprocs,
 #        lamutexspecoptrounds,
 #        lamutexorigprocs,
-        lamutexorigrounds,
+#        lamutexorigrounds,
 #        lapaxos,
 #        ramutex,
 #        ratokenprocs,

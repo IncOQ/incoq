@@ -160,6 +160,7 @@ class DEM_CORERBAC_CA(COM):
 #    ])
 #
 #add_impls('Constr. RBAC', 'experiments/rbac/constrainedrbac/crbac', [
+#    AUX,
 #    INC,
 #    DEM,
 #])
@@ -208,6 +209,7 @@ class DEM_CORERBAC_CA(COM):
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,
+#    DEM,
 #])
 #add_impls('ramutex', 'experiments/distalgo/ramutex/ramutex_inc', [
 #    INC_SUBDEM,
@@ -390,7 +392,7 @@ class ApplicationsSchema(OrigIncFilterSchema):
 #        _rowgen('lapaxos'),
         _rowgen('ramutex'),
         _rowgen2('ratoken'),
-        _rowgen2('sktoken'),
+#        _rowgen2('sktoken'),
     ]
 
 class DistalgoSchema(OrigIncFilterSchema):
@@ -417,7 +419,7 @@ class DistalgoSchema(OrigIncFilterSchema):
 #        _rowgen('lapaxos'),
         _rowgen('ramutex'),
         _rowgen2('ratoken'),
-        _rowgen2('sktoken'),
+#        _rowgen2('sktoken'),
     ]
 
 class RunningExCostSchema(CostSchema):
@@ -493,7 +495,7 @@ class OOPSLA15Schema(OrigIncFilterSchema):
          'La mutex'),
         _rowgen('RA mutex', 'ramutex'),
         _rowgen2('RA token', 'ratoken'),
-        _rowgen2('SK token', 'sktoken'),
+#        _rowgen2('SK token', 'sktoken'),
         _rowgen('CR leader', 'crleader'),
         _rowgen('HS leader', 'hsleader'),
         _rowgen('2P commit', '2pcommit'),
@@ -527,8 +529,8 @@ lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
 #print(oopsla15_schema.to_ascii())
 
 #print(runningex_costschema.to_ascii())
-print(lamutexspec_costschema.to_ascii())
-print(lamutexorig_costschema.to_ascii())
+#print(lamutexspec_costschema.to_ascii())
+#print(lamutexorig_costschema.to_ascii())
 
 #session = Session(stats)
 #Session.interact(stats, name='Social Unfiltered')

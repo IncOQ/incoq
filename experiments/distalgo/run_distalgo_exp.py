@@ -78,8 +78,8 @@ class DistalgoWorkflow(ExpWorkflow):
             ]
     
     stddev_window = .1
-    min_repeats = 1#10
-    max_repeats = 1#50
+    min_repeats = 1
+    max_repeats = 1
     
     class ExpExtractor(SmallExtractor, Extractor):
         
@@ -190,7 +190,7 @@ class CLPaxos(DistalgoWorkflow):
                     n_rounds = 1,
                     timeout =  3,
                 )
-                for x in [3, 4, 5]#[3, 5, 7, 10]
+                for x in [3]#[3, 5, 7, 10]
             ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
@@ -230,8 +230,8 @@ class CRLeader(DistalgoWorkflow):
                 for x in range(10, 80 + 1, 10)
             ]
     
-    min_repeats = 5
-    max_repeats = 5
+#    min_repeats = 5
+#    max_repeats = 5
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
@@ -291,7 +291,8 @@ class HSLeader(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-#            'hsleader_inc_in',
+            'hsleader_inc_in',
+            'hsleader_inc_inc',
             'hsleader_inc_dem',
         ]
         
@@ -306,8 +307,8 @@ class HSLeader(DistalgoWorkflow):
                 for x in range(10, 60 + 1, 10)
             ]
     
-    min_repeats = 5
-    max_repeats = 5
+#    min_repeats = 5
+#    max_repeats = 5
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
@@ -336,6 +337,9 @@ class LAMutexSpecWorkflow(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         name = 'lamutex'
         show_wall = True
+    
+    min_repeats = 5
+    max_repeats = 5
 
 class LAMutexSpecOptWorkflow(DistalgoWorkflow):
     
@@ -355,6 +359,9 @@ class LAMutexSpecOptWorkflow(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         name = 'lamutex_opt2'
         show_wall = True
+    
+    min_repeats = 5
+    max_repeats = 5
 
 class LAMutexOrigWorkflow(DistalgoWorkflow):
     
@@ -371,6 +378,9 @@ class LAMutexOrigWorkflow(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         name = 'lamutex_orig'
         show_wall = True
+    
+    min_repeats = 5
+    max_repeats = 5
 
 class LAMutexSpecProcs(LAMutexSpecWorkflow):
     
@@ -387,12 +397,14 @@ class LAMutexSpecProcs(LAMutexSpecWorkflow):
                     n_procs =  x,
                     n_rounds = 10,
                 )
-                for x in range(2, 20 + 1, 2)
+                for x in range(3, 30 + 1, 3)
             ]
     
     class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of processes'    
+        xlabel = 'Number of processes'  
+        xmin = 1
+        xmax = 31
 
 class LAMutexSpecRounds(LAMutexSpecWorkflow):
     
@@ -408,12 +420,14 @@ class LAMutexSpecRounds(LAMutexSpecWorkflow):
                     n_procs =  10,
                     n_rounds = x,
                 )
-                for x in range(2, 20 + 1, 2)
+                for x in range(3, 30 + 1, 3)
             ]
     
     class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of rounds'
+        xmin = 1
+        xmax = 31
 
 class LAMutexSpecOptProcs(LAMutexSpecOptWorkflow):
     
@@ -430,12 +444,14 @@ class LAMutexSpecOptProcs(LAMutexSpecOptWorkflow):
                     n_procs =  x,
                     n_rounds = 10,
                 )
-                for x in range(2, 20 + 1, 2)
+                for x in range(3, 30 + 1, 3)
             ]
     
     class ExpExtractor(LAMutexSpecOptWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
+        xmin = 1
+        xmax = 31
 
 class LAMutexSpecOptRounds(LAMutexSpecOptWorkflow):
     
@@ -451,12 +467,14 @@ class LAMutexSpecOptRounds(LAMutexSpecOptWorkflow):
                     n_procs =  10,
                     n_rounds = x,
                 )
-                for x in range(2, 20 + 1, 2)
+                for x in range(3, 30 + 1, 3)
             ]
     
     class ExpExtractor(LAMutexSpecOptWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of rounds'
+        xmin = 1
+        xmax = 31
 
 class LAMutexOrigProcs(LAMutexOrigWorkflow):
     
@@ -471,14 +489,16 @@ class LAMutexOrigProcs(LAMutexOrigWorkflow):
                     x =        x,
                     
                     n_procs =  x,
-                    n_rounds = 50,
+                    n_rounds = 5,
                 )
-                for x in range(10, 50 + 1, 10)
+                for x in range(5, 50 + 1, 5)
             ]
     
     class ExpExtractor(LAMutexOrigWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of processes'    
+        xlabel = 'Number of processes'
+        xmin = 5
+        xmax = 55
 
 class LAMutexOrigRounds(LAMutexOrigWorkflow):
     
@@ -495,12 +515,14 @@ class LAMutexOrigRounds(LAMutexOrigWorkflow):
                     n_procs =  5,
                     n_rounds = x,
                 )
-                for x in range(200, 1200 + 1, 500)
+                for x in range(100, 1000 + 1, 100)
             ]
     
     class ExpExtractor(LAMutexOrigWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of rounds'
+        xmin = 50
+        xmax = 1050
 
 
 class LAPaxosDriver(DistalgoDriver):
@@ -517,7 +539,8 @@ class LAPaxos(DistalgoWorkflow):
         
         progs = [
             'lapaxos_inc_in',
-            'lapaxos_inc_dem',
+#            'lapaxos_inc_inc',
+#            'lapaxos_inc_dem',
         ]
         
         def get_dsparams_list(self):
@@ -530,7 +553,7 @@ class LAPaxos(DistalgoWorkflow):
                     n_acc =    x * 3,
                     n_rounds = 3,
                 )
-                for x in [1, 3, 6, 9, 12]
+                for x in [1]#[1, 3, 6, 9, 12]
             ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
@@ -556,6 +579,7 @@ class RAMutex(DistalgoWorkflow):
         
         progs = [
             'ramutex_inc_in',
+            'ramutex_inc_inc',
             'ramutex_inc_dem',
         ]
         
@@ -571,8 +595,8 @@ class RAMutex(DistalgoWorkflow):
                 for x in range(2, 20 + 1, 2)
             ]
     
-    min_repeats = 5
-    max_repeats = 5
+#    min_repeats = 5
+#    max_repeats = 5
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
@@ -608,11 +632,11 @@ class RATokenProcs(DistalgoWorkflow):
                     n_procs =  x,
                     n_rounds = 10,
                 )
-                for x in range(12, 72 + 1, 12)
+                for x in range(10, 70 + 1, 10)
             ]
     
-    min_repeats = 3
-    max_repeats = 3
+#    min_repeats = 3
+#    max_repeats = 3
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
@@ -630,7 +654,7 @@ class RATokenRounds(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-            'ratoken_inc_in',
+#            'ratoken_inc_in',
             'ratoken_inc_dem',
         ]
         
@@ -643,11 +667,11 @@ class RATokenRounds(DistalgoWorkflow):
                     n_procs =  20,
                     n_rounds = x,
                 )
-                for x in range(10, 60 + 1, 10)
+                for x in range(10, 100 + 1, 10)
             ]
     
-    min_repeats = 3
-    max_repeats = 3
+#    min_repeats = 3
+#    max_repeats = 3
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
@@ -710,7 +734,8 @@ class TPCommit(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-#            'tpcommit_inc_in',
+            'tpcommit_inc_in',
+            'tpcommit_inc_inc',
 #            'tpcommit_inc_dem',
         ]
         
@@ -723,11 +748,11 @@ class TPCommit(DistalgoWorkflow):
                     n_procs =  x,
                     failrate = 10,
                 )
-                for x in range(5, 60 + 1, 5)
+                for x in range(10, 60 + 1, 10)
             ]
     
-    min_repeats = 20
-    max_repeats = 20
+    min_repeats = 5
+    max_repeats = 5
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         

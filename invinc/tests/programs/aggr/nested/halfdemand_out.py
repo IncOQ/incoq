@@ -2,13 +2,6 @@ from invinc.runtime import *
 # Aggr1 := sum(R, None)
 # Comp1 := {x : x in S, _av1 in {Aggr1.smlookup('u', (), None)}, (x > _av1[0])}
 # Aggr1_delta := {() : _ in S}
-_m_A_u = Map()
-def _maint__m_A_u_remove(_e):
-    v17_1 = _e
-    _m_A_u[()].remove(v17_1)
-    if (len(_m_A_u[()]) == 0):
-        del _m_A_u[()]
-
 _m_Aggr1_u = Map()
 def _maint__m_Aggr1_u_add(_e):
     v14_1 = _e
@@ -148,12 +141,16 @@ def undemand_Aggr1():
     'sum(R, None)'
     if (_U_Aggr1.getref(()) == 1):
         # Begin maint Aggr1 before "_U_Aggr1.remove(())"
-        v4_val = _m_A_u.singlelookup(())
+        v4_val = _m_Aggr1_u.singlelookup(())
         if (v4_val[1] == 0):
-            v4_elem = _m_A_u.singlelookup(())
-            # Begin maint _m_A_u before "A.remove(v4_elem)"
-            _maint__m_A_u_remove(v4_elem)
-            # End maint _m_A_u before "A.remove(v4_elem)"
+            v4_elem = _m_Aggr1_u.singlelookup(())
+            # Begin maint Comp1 before "Aggr1.remove(v4_elem)"
+            _maint_Comp1_Aggr1_remove(v4_elem)
+            # End maint Comp1 before "Aggr1.remove(v4_elem)"
+            # Begin maint _m_Aggr1_u before "Aggr1.remove(v4_elem)"
+            _maint__m_Aggr1_u_remove(v4_elem)
+            # End maint _m_Aggr1_u before "Aggr1.remove(v4_elem)"
+            Aggr1.remove(v4_elem)
         # End maint Aggr1 before "_U_Aggr1.remove(())"
         _U_Aggr1.remove(())
     else:

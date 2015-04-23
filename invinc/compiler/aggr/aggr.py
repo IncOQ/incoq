@@ -314,6 +314,7 @@ class AggrCodegen(metaclass=ABCMeta):
                     A.smdelkey(MASK, KEY, PREFIX)
                 ''', subst={'S_MV': L.sn(mv_var),
                             'COUNT': self.mapval_proj_count(L.ln(mv_var)),
+                            'A': incaggr.name,
                             'MASK': incaggr.aggrmask.make_node(),
                             'KEY': L.tuplify(incaggr.params),
                             'PREFIX': L.Str(prefix)})
