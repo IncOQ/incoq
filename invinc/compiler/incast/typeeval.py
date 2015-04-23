@@ -11,7 +11,8 @@ __all__ = [
 from invinc.util.seq import pairs
 
 from .nodes import (Load, Store, Not, Eq, NotEq, Lt, LtE, Gt, GtE,
-                    Is, IsNot, In, NotIn, Enumerator, expr, Name)
+                    Is, IsNot, In, NotIn, Enumerator, expr, Name,
+                    BitOr, BitXor, BitAnd)
 from .structconv import AdvNodeTransformer
 from .error import ProgramError
 from .util import VarsFinder
@@ -105,15 +106,22 @@ class TypeAnalyzer(AdvNodeTransformer):
         return node._replace(values=values, type=booltype)
     
     def visit_BinOp(self, node):
-        # Result: number
-        # Cond: left <= number, right <= number
+        # If op is BitOr | BitXor | BitAnd:
+        #     Result: join(left, right)
+        # Otherwise:
+        #     Result: number
+        #     Cond: left <= number, right <= number
         left = self.visit(node.left)
         right = self.visit(node.right)
-        if not (left.type.issubtype(numbertype) and
-                right.type.issubtype(numbertype)):
-            raise TypeAnalysisFailure('BinOp has non-number arg',
-                                      node, self.store)
-        return node._replace(left=left, right=right, type=numbertype)
+        if isinstance(node.op, (BitOr, BitXor, BitAnd)):
+            resulttype = left.type.join(right.type)
+            return node._replace(left=left, right=right, type=resulttype)
+        else:
+            if not (left.type.issubtype(numbertype) and
+                    right.type.issubtype(numbertype)):
+                raise TypeAnalysisFailure('BinOp has non-number arg',
+                                          node, self.store)
+            return node._replace(left=left, right=right, type=numbertype)
     
     def visit_UnaryOp(self, node):
         # If op is "not":
