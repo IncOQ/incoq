@@ -176,7 +176,7 @@ class CLPaxos(DistalgoWorkflow):
         progs = [
             'clpaxos_inc_in',
             'clpaxos_inc_inc',
-            'clpaxos_inc_dem',
+#            'clpaxos_inc_dem',
         ]
         
         def get_dsparams_list(self):
@@ -185,18 +185,19 @@ class CLPaxos(DistalgoWorkflow):
                     dsid =     str(x),
                     x =        x,
                     
-                    n_prop =   x * 4,
+                    n_prop =   x * 3,
                     n_acc =    x * 1,
                     n_rounds = 1,
                     timeout =  3,
                 )
-                for x in [3]#[3, 5, 7, 10]
+                for x in range(1, 6 + 1, 1)
             ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
         name = 'clpaxos'
         noninline = True
+        show_wall = True
         
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
@@ -237,6 +238,8 @@ class CRLeader(DistalgoWorkflow):
         
         name = 'crleader'
         
+        show_wall = True
+        
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
 
@@ -267,7 +270,7 @@ class DSCrash(DistalgoWorkflow):
                     n_procs =  x,
                     maxfail =  2,#int(0.25 * x),
                 )
-                for x in range(5, 25 + 1, 5)
+                for x in range(5, 100 + 1, 5)
             ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
@@ -293,7 +296,7 @@ class HSLeader(DistalgoWorkflow):
         progs = [
             'hsleader_inc_in',
             'hsleader_inc_inc',
-            'hsleader_inc_dem',
+#            'hsleader_inc_dem',
         ]
         
         def get_dsparams_list(self):
@@ -304,7 +307,7 @@ class HSLeader(DistalgoWorkflow):
                     
                     n_procs =  x,
                 )
-                for x in range(10, 60 + 1, 10)
+                for x in range(10, 100 + 1, 10)
             ]
     
 #    min_repeats = 5

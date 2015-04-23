@@ -220,8 +220,8 @@ class CRBACScale(CRBACWorkflow):
             ]
     
     stddev_window = .1
-    min_repeats = 1#10
-    max_repeats = 1#50
+    min_repeats = 10
+    max_repeats = 50
     
     class ExpExtractor(MetricExtractor, SmallExtractor):
         

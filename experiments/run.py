@@ -102,7 +102,7 @@ def main():
 #        coredemand,
 #        coredemandnorm,
         
-        crbacscale,
+#        crbacscale,
         
 #        wifiscale,
 #        djangoscale,
@@ -135,8 +135,8 @@ def main():
     for w in ws:
         print('\n---- Running {} ----\n'.format(w.__class__.__name__))
         try:
-            w.generate()
-            w.benchmark()
+#            w.generate()
+#            w.benchmark()
             
 #            w.verify()
             
