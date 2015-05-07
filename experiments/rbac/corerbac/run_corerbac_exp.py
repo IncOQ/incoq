@@ -7,7 +7,8 @@ import importlib
 from copy import deepcopy
 from random import sample, randrange
 
-from frexp import ExpWorkflow, Datagen, MetricExtractor, ScaledExtractor
+from frexp import (ExpWorkflow, Datagen, MetricExtractor, ScaledExtractor,
+                   NormalizedExtractor)
 
 from experiments.util import SmallExtractor, LargeExtractor, canonize
 
@@ -22,10 +23,12 @@ class CoreRBACDatagen(Datagen):
     Parameters:
         n_users -- number of users
         n_roles -- number of roles
-        n_oo -- number of operations and objects
+        n_ops -- number of operations
+        n_objs -- number of objects
         rpu -- roles per user
         ppr -- permissions per role
         rps -- active roles per session
+        q_objs -- number of queryable objects
         n_pat -- number of patterns
         s_pat -- number of sessions created per pattern
         qs_pat -- number of queried sessions per pattern
@@ -35,17 +38,19 @@ class CoreRBACDatagen(Datagen):
     def generate(self, P):
         n_users = P['n_users']
         n_roles = P['n_roles']
-        n_oo = P['n_oo']
+        n_ops = P['n_ops']
+        n_objs = P['n_objs']
         rpu = P['rpu']
         ppr = P['ppr']
         rps = P['rps']
+        q_objs = P['q_objs']
         n_pat = P['n_pat']
         s_pat = P['s_pat']
         qs_pat = P['qs_pat']
         q_pat = P['q_pat']
         
-        perms = [(i, j) for i in range(n_oo)
-                        for j in range(n_oo)]
+        perms = [(i, j) for i in range(n_ops)
+                        for j in range(n_objs)]
         
         UR = {i: sample(range(n_roles), rpu)
               for i in range(n_users)}
@@ -64,7 +69,7 @@ class CoreRBACDatagen(Datagen):
                 ars = sample(UR[u], rps)
                 SES.append((u, s, ars))
             
-            CA = [(randrange(qs_pat), randrange(n_oo), randrange(n_oo))
+            CA = [(randrange(qs_pat), randrange(n_ops), randrange(q_objs))
                   for _ in range(q_pat)]    
             
             OPS.append((SES, CA))
@@ -121,8 +126,8 @@ class CoreRBACDriver:
         with timer_user, timer_cpu, timer_wall:
             self.run()
         
-        import runtimelib
-        self.results['size'] = runtimelib.get_total_structure_size(
+        import incoq.runtime
+        self.results['size'] = incoq.runtime.get_total_structure_size(
                                     self.module.__dict__)
         self.results['time_user'] = timer_user.consume()
         self.results['time_cpu'] = timer_cpu.consume()
@@ -167,8 +172,9 @@ class CoreRBACDriver:
             m.AddUser(u(i))
         for i in range(P['n_roles']):
             m.AddRole(r(i))
-        for i in range(P['n_oo']):
+        for i in range(P['n_ops']):
             m.AddOperation(op(i))
+        for i in range(P['n_objs']):
             m.AddObject(obj(i))
         for i, rs in ds['UR'].items():
             for j in rs:
@@ -188,21 +194,30 @@ class CoreRBACDriver:
                 N_CA = [(s(i), op(j), obj(k))
                         for i, j, k in CA]
             self.OPS.append((N_SES, N_CA))
+        
+        # Do initial demand for all combinations of queried
+        # sessions and objects. Since CheckAccess has membership
+        # preconditions, we need to actually create these sessions
+        # first, and we'll destroy them before actually starting
+        # the test proper.
+        qs_pat = self.dataset['dsparams']['qs_pat']
+        q_objs = self.dataset['dsparams']['q_objs']
+        queried_sessions = ['s' + str(i) for i in range(qs_pat)]
+        queried_objects = ['obj' + str(i) for i in range(q_objs)]
+        for s in queried_sessions:
+            m.CreateSession('u0', s, set())
+            for obj in queried_objects:
+                m.CheckAccess(s, 'op0', obj)
+            m.DeleteSession('u0', s)
     
     def run(self):
         CreateSession = self.module.CreateSession
         DeleteSession = self.module.DeleteSession
-        CheckAccess = self.module.CheckAccess
         CheckAccess_nodemand = self.module.CheckAccess_nodemand
-        qs_pat = self.dataset['dsparams']['qs_pat']
-        queried_sessions = ['s' + str(i) for i in range(qs_pat)]
         
         for SES, CA in self.OPS:
             for u, s, ars in SES:
                 CreateSession(u, s, ars)
-            # Do initial demanding query of queried sessions.
-            for s in queried_sessions:
-                CheckAccess(s, 'op0', 'obj0')
             for s, op, obj in CA:
                 CheckAccess_nodemand(s, op, obj)
             for u, s, _ars in SES:
@@ -277,8 +292,9 @@ class CoreRBACVerifyDriver:
             m.AddUser(u(i))
         for i in range(P['n_roles']):
             m.AddRole(r(i))
-        for i in range(P['n_oo']):
+        for i in range(P['n_ops']):
             m.AddOperation(op(i))
+        for i in range(P['n_objs']):
             m.AddObject(obj(i))
         for i, rs in ds['UR'].items():
             for j in rs:
@@ -354,6 +370,8 @@ class CoreRBACWorkflow(ExpWorkflow):
     ExpExtractor = CoreRBACExtractor
     ExpDriver = CoreRBACDriver
     ExpVerifyDriver = CoreRBACVerifyDriver
+    
+    require_ac = False ###
 
 
 class CoreRoles(CoreRBACWorkflow):
@@ -381,12 +399,14 @@ class CoreRoles(CoreRBACWorkflow):
                     
                     n_users =        10,
                     n_roles =        x,
-                    n_oo =           20,
+                    n_ops =          20,
+                    n_objs =         20,
                     
                     rpu =            10,
                     ppr =            10,
                     rps =            10,
                     
+                    q_objs =         20,
                     n_pat =          1000,
                     s_pat =          1,
                     qs_pat =         1,
@@ -461,42 +481,69 @@ class CoreDemand(CoreRBACWorkflow):
                     
                     n_users =        10,
                     n_roles =        100,
-                    n_oo =           20,
+                    n_ops =          20,
+                    n_objs =         1000,
                     
                     rpu =            10,
-                    ppr =            10,
+                    ppr =            100,
                     rps =            10,
                     
+                    q_objs =         x,
                     n_pat =          1000,
-                    s_pat =          100,
-                    qs_pat =         x,
+                    s_pat =          1,
+                    qs_pat =         1,
                     q_pat =          1000,
                 )
-                for x in [1] + list(range(20, 100 + 1, 20))
+                for x in [1] + list(range(50, 1000 + 1, 50))
             ]
     
     stddev_window = .1
     min_repeats = 10
     max_repeats = 50
     
-    class ExpExtractor(CoreRBACWorkflow.ExpExtractor, ScaledExtractor):
+    class ExpExtractor(CoreRBACWorkflow.ExpExtractor):
         
         series = [
             (('coreRBAC_checkaccess_inc', 'all'),
              'incremental',
-             'blue', '- !o poly1'),
+             'blue', '- o poly1'),
             (('coreRBAC_checkaccess_dem', 'all'),
              'filtered',
-             'green', '- !^ poly1'),
+             'green', '- ^ poly1'),
         ]
-        
-        multipliers = {('coreRBAC_in', 'queries'): .2}
         
         title = None
         ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of queried sessions'
+        xlabel = 'Number of queried objects'
         metric = 'time_cpu'
         
-        xmin = -5
-        xmax = 105
         ymin = 0
+        xmin = -50
+        xmax = 1050
+        ymax = 5
+
+class CoreDemandNorm(CoreDemand):
+    
+    prefix = 'results/corerbac_demand'
+    
+    class ExpExtractor(NormalizedExtractor, CoreDemand.ExpExtractor):
+        
+        series = [
+            (('coreRBAC_checkaccess_inc', 'all'),
+             'incremental',
+             'blue', '- o normal'),
+            (('coreRBAC_checkaccess_dem', 'all'),
+             'filtered',
+             'green', '- ^ poly1'),
+        ]
+        
+        base_sid_map = {
+            ('coreRBAC_checkaccess_dem', 'all'):
+                ('coreRBAC_checkaccess_inc', 'all'),
+        }
+        
+        def normalize(self, pre_y, base_y):
+            return pre_y / base_y
+        
+        ylabel = 'Running time (normalized)'
+        ymax = None

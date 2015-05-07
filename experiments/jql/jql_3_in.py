@@ -1,6 +1,6 @@
 # JQL query, three levels.
 
-from runtimelib import *
+from incoq.runtime import *
 
 OPTIONS(
     obj_domain = True,

@@ -19,7 +19,7 @@
 #   checking and adding to the demand set -- only for use when the
 #   parameters are already known to be demanded
 
-from runtimelib import *
+from incoq.runtime import *
 
 OBJS = set()  
 OPS = set()   # an operation-object pair is called a permission

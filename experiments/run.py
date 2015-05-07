@@ -1,3 +1,4 @@
+import os
 import traceback
 
 import experiments.twitter as twitter
@@ -32,7 +33,9 @@ jqlratio2 = jql.Ratio2()
 jqlratio3 = jql.Ratio3()
 jqlscale1 = jql.Scale1()
 jqlscale2 = jql.Scale2()
+jqlscale2bigger = jql.Scale2Bigger()
 jqlscale3 = jql.Scale3()
+jqlscale3bigger = jql.Scale3Bigger()
 
 wifiscale = wifi.Wifi()
 
@@ -42,16 +45,24 @@ djangodemandnorm = django.DemandTimeNorm()
 
 coreroles = corerbac.CoreRoles()
 coredemand = corerbac.CoreDemand()
+coredemandnorm = corerbac.CoreDemandNorm()
 crbacscale = crbac.CRBACScale()
 
 clpaxos = experiments.distalgo.CLPaxos()
 crleader = experiments.distalgo.CRLeader()
 dscrash = experiments.distalgo.DSCrash()
 hsleader = experiments.distalgo.HSLeader()
-lamutexprocs = experiments.distalgo.LAMutexProcs()
-lamutexrounds = experiments.distalgo.LAMutexRounds()
+lamutexspecprocs = experiments.distalgo.LAMutexSpecProcs()
+lamutexspecrounds = experiments.distalgo.LAMutexSpecRounds()
+lamutexspecoptprocs = experiments.distalgo.LAMutexSpecOptProcs()
+lamutexspecoptrounds = experiments.distalgo.LAMutexSpecOptRounds()
+lamutexorigprocs = experiments.distalgo.LAMutexOrigProcs()
+lamutexorigrounds = experiments.distalgo.LAMutexOrigRounds()
 lapaxos = experiments.distalgo.LAPaxos()
 ramutex = experiments.distalgo.RAMutex()
+ratokenprocs = experiments.distalgo.RATokenProcs()
+ratokenrounds = experiments.distalgo.RATokenRounds()
+sktoken = experiments.distalgo.SKToken()
 tpcommit = experiments.distalgo.TPCommit()
 vrpaxos = experiments.distalgo.VRPaxos()
 
@@ -79,14 +90,17 @@ def main():
 #        factor2d,
         
 #        jqlratio1,
-#        jqlratio2,
+#        jqlratio2,        # jql_ratio
 #        jqlratio3,
 #        jqlscale1,
-#        jqlscale2,
+#        jqlscale2,        # jql_asymp
+#        jqlscale2bigger,
 #        jqlscale3,
+#        jqlscale3bigger,
         
 #        coreroles,
 #        coredemand,
+#        coredemandnorm,
         
 #        crbacscale,
         
@@ -99,14 +113,24 @@ def main():
 #        crleader,
 #        dscrash,
 #        hsleader,
-#        lamutexprocs,
-#        lamutexrounds,
+#        lamutexspecprocs,
+#        lamutexspecrounds,
+#        lamutexspecoptprocs,
+#        lamutexspecoptrounds,
+#        lamutexorigprocs,
+#        lamutexorigrounds,
 #        lapaxos,
 #        ramutex,
+#        ratokenprocs,
+#        ratokenrounds
+#        sktoken,
 #        tpcommit,
-#        vrpaxos,  # Doesn't work until witnesses are supported
+#        vrpaxos,
     ]
     
+    # Change to directory of this file so we can find the
+    # results/ subdirectory.
+    os.chdir(os.path.join('.', os.path.dirname(__file__)))
     
     for w in ws:
         print('\n---- Running {} ----\n'.format(w.__class__.__name__))

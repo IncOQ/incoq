@@ -3,7 +3,7 @@
 # is actually incorrect. In this example, this manifests as a
 # reference count error. 
 
-from runtimelib import *
+from incoq.runtime import *
 from osq import query
 
 def make_user(email, loc):

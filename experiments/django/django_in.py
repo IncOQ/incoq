@@ -5,7 +5,7 @@
 # U and the inverse of F_id first, since that would get us the
 # few queried users.
 
-from runtimelib import *
+from incoq.runtime import *
 
 OPTIONS(
     obj_domain = True,
@@ -14,10 +14,11 @@ OPTIONS(
 QUERYOPTIONS(
     '''{p.name for u in users for g in u.groups for p in g.perms
                if u.id == uid if g.active}''',
-    uset_mode = 'explicit',
-    # In the OSQ paper, only unconstrained parameters get
-    # tracked in the demand set.
-    uset_params = ['users'],
+    # The parameters are users and uid. In the OSQ paper,
+    # only users is tracked in the U-set because uid is a
+    # constrained parameter. Here, since we don't reassign
+    # to users, we view it as a relation. Consequently there
+    # is no need for a distinct U-set at all.
 )
 
 users = Set()

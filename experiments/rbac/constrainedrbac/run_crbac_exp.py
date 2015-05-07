@@ -48,7 +48,7 @@ class CRBACDatagen(Datagen):
 class CRBACDriver:
     
     check_interval = 10
-    timeout = 10
+    timeout = 60
     
     def __init__(self, pipe_filename):
         import gc
@@ -81,8 +81,8 @@ class CRBACDriver:
             finished = self.run()
         
         if finished:
-            import runtimelib
-            self.results['size'] = runtimelib.get_total_structure_size(
+            import incoq.runtime
+            self.results['size'] = incoq.runtime.get_total_structure_size(
                                     self.module.__dict__)
             self.results['time_user'] = timer_user.consume()
             self.results['time_cpu'] = timer_cpu.consume()
@@ -147,17 +147,6 @@ class CRBACDriver:
         return True
 
 
-class CRBACExtractor(MetricExtractor, SmallExtractor):
-    
-    series = [
-        ('crbac_orig', 'original',
-         'red', '- !s normal'),
-        ('crbac_aux', 'batch w/ maps',
-         'orange', '- !s normal'),
-        ('crbac_dem', 'filtered',
-         'green', '- !^ normal'),
-    ]
-
 class CRBACRunner(Runner):
     
     def run_all_tests(self, tparams_list):
@@ -185,7 +174,6 @@ class CRBACRunner(Runner):
 class CRBACWorkflow(ExpWorkflow):
     
     ExpDatagen = CRBACDatagen
-    ExpExtractor = CRBACExtractor
     ExpDriver = CRBACDriver
     ExpRunner = CRBACRunner
 #    verifier
@@ -212,6 +200,7 @@ class CRBACScale(CRBACWorkflow):
         progs = [
             'crbac_orig',
             'crbac_aux',
+#            'crbac_inc',
             'crbac_dem',
         ]
         
@@ -227,14 +216,25 @@ class CRBACScale(CRBACWorkflow):
                     sC =   5,
                     limit = 3,
                 )
-                for x in range(5, 100 + 1, 5)
+                for x in list(range(2, 20, 2)) + list(range(20, 100 + 1, 5))
             ]
     
     stddev_window = .1
     min_repeats = 10
     max_repeats = 50
     
-    class ExpExtractor(CRBACWorkflow.ExpExtractor):
+    class ExpExtractor(MetricExtractor, SmallExtractor):
+        
+        series = [
+            ('crbac_orig', 'original',
+             'red', '- s poly5'),
+            ('crbac_aux', 'auxiliary maps',
+             'orange', '-- s poly3'),
+            ('crbac_inc', 'unfiltered',
+             'blue', '- o poly2'),
+            ('crbac_dem', 'filtered',
+             'green', '- ^ poly2'),
+        ]
         
         legend_loc = 'upper center'
         
@@ -243,4 +243,5 @@ class CRBACScale(CRBACWorkflow):
         
         metric = 'time_cpu'
         
-        ymax = 4
+        ymin = 0
+        ymax = 10

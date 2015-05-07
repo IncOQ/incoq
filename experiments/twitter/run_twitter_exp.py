@@ -240,8 +240,8 @@ class TwitterDriver:
         with timer_user, timer_cpu, timer_wall:
             self.run_ops()
         
-        import runtimelib
-        self.results['size'] = runtimelib.get_total_structure_size(
+        import incoq.runtime
+        self.results['size'] = incoq.runtime.get_total_structure_size(
                                     self.module.__dict__)
         self.results['opstime_user'] = timer_user.consume()
         self.results['opstime_cpu'] = timer_cpu.consume()
@@ -554,7 +554,7 @@ class Scale(TwitterWorkflow):
     
     stddev_window = .1
     min_repeats = 10
-    max_repeats = 100
+    max_repeats = 50
     
     class ExpExtractor(TwitterWorkflow.ExpExtractor):
         
@@ -612,7 +612,7 @@ class ScaleTime(Scale):
         
         ylabel = 'Running time (in seconds)'
         ymin = 0
-        ymax = 4.5
+        ymax = 3.5
         y_ticklocs = [0, 1, 2, 3, 4]
     
     imagename = 'time'
@@ -658,9 +658,9 @@ class ScaleSize(Scale):
         
         series = [
             (('twitter_inc', 'all'), 'incremental',
-             'blue', '- !o poly2'),
+             'blue', '- o poly2'),
             (('twitter_dem', 'all'), 'filtered $\\times$ 100',
-             'green', '- !^ poly1'),
+             'green', '- ^ poly1'),
         ]
         
         demscale = 100
@@ -682,9 +682,9 @@ class ScaleSizePoster(ScaleSize):
         
         series = [
             (('twitter_inc', 'all'), 'incr.',
-             'blue', '- !o poly2'),
+             'blue', '- o poly2'),
             (('twitter_dem', 'all'), 'incr. w/ demand (x 10)',
-             'green', '- !^ poly1'),
+             'green', '- ^ poly1'),
         ]
         
         demscale = 10
@@ -739,20 +739,20 @@ class Demand(TwitterWorkflow):
     
     stddev_window = .1
     min_repeats = 10
-    max_repeats = 100
+    max_repeats = 50
     
     class ExpExtractor(TwitterWorkflow.ExpExtractor):
         
         series = [
             (('twitter_inc', 'all'), 'incremental',
-             'blue', '- !o poly1'),
+             'blue', '- o poly1'),
             (('twitter_dem', 'all'), 'filtered',
-             'green', '- !^ poly1'),
+             'green', '- ^ poly1'),
         ]
         
-        xlabel = 'Number of users in \\texttt{U} (in thousands)'
+#        xlabel = 'Number of users in \\texttt{U} (in thousands)'
         # For Annie's writing, use "demand" instead of U.
-#        xlabel = 'Number of users in \\texttt{demand} (in thousands)'
+        xlabel = 'Number of users in \\texttt{demand} (in thousands)'
         
         def project_x(self, p):
             return super().project_x(p) / 1e3
@@ -767,6 +767,7 @@ class DemandTime(Demand):
                        MetricExtractor):
         
         ymin = 0
+        y_ticklocs = [0, 2, 4, 6, 8]
 
 class DemandTimeOps(DemandTime):
     
@@ -813,27 +814,45 @@ class DemandSize(Demand):
 
 class Factor(TwitterWorkflow):
     
-    """Do queries and following updates on a fixed dataset."""
+    """Do queries and following updates on a fixed dataset.
+    
+    Eight variants ({A, B, C, D} x {1, 2}):
+    
+      1A) 20,000 users as in rightmost datapoint of Scale
+      1B) 20,000 users as in rightmost datapoint of Demand
+      1C) 10,000 users as in middle datapoint of Demand
+          except each user follows 2% (200) of all users
+      1D) 2,000 users as in leftmost datapoint of Demand
+          except each user follows 50% (1,000) of all users
+    
+    Note that A-D have the same number of groups and group
+    degree, and B-D have 2 million following pairs.
+    
+    2A through 2D are the same as their counterparts except
+    that we update celebrity following relationships instead
+    of user locations. The updated celebrity is always a
+    demanded one.
+    """
     
     class ExpDatagen(TwitterWorkflow.ExpDatagen):
         
         progs = [
             'twitter_dem',
             
-            'twitter_dem_aug',
-            'twitter_dem_das',
+#            'twitter_dem_aug',
+#            'twitter_dem_das',
             
-            'twitter_dem_noninline',
+#            'twitter_dem_noninline',
             'twitter_dem_norcelim',
             'twitter_dem_notypecheck',
-            'twitter_dem_handopt',
-            'twitter_dem_noalias',
-            'twitter_dem_notypecheck_noalias',
+#            'twitter_dem_handopt',
+#            'twitter_dem_noalias',
+#            'twitter_dem_notypecheck_noalias',
         ]
     
     stddev_window = .1
     min_repeats = 10
-    max_repeats = 100
+    max_repeats = 50
      
     class ExpExtractor(TwitterWorkflow.ExpExtractor):
         
@@ -875,10 +894,10 @@ class Factor1A(Factor):
                     q_p_u =          1,
                     reps =           1,
                     
-                    need_exact =     False,
+                    need_exact =     True,
                     upkind =         'loc',
-                    celebusertag =   True,
-                    groupusertag =   True,
+                    celebusertag =   False,
+                    groupusertag =   False,
                 )
                 for x in [1]
             ]
@@ -933,11 +952,11 @@ class Factor1C(Factor):
                     x =              x,
                     
                     n_users =        10000,
-                    n_groups =       100,
+                    n_groups =       200,
                     pad_celeb =      None,
                     
                     user_deg =       200,
-                    group_deg =      5,
+                    group_deg =      10,
                     
                     n_locs =         20,
                     
@@ -970,11 +989,11 @@ class Factor1D(Factor):
                     x =              x,
                     
                     n_users =        2000,
-                    n_groups =       20,
+                    n_groups =       200,
                     pad_celeb =      None,
                     
                     user_deg =       1000,
-                    group_deg =      1,
+                    group_deg =      10,
                     
                     n_locs =         20,
                     
@@ -1015,15 +1034,15 @@ class Factor2A(Factor):
                     
                     n_locs =         20,
                     
-                    n_q_celebs =     1,
+                    n_q_celebs =     3,
                     n_q_groups =     1,
-                    n_q_pairs =      1,
+                    n_q_pairs =      3,
                     
                     n_u =            200000,
                     q_p_u =          1,
                     reps =           1,
                     
-                    need_exact =     False,
+                    need_exact =     True,
                     upkind =         'celeb',
                     celebusertag =   False,
                     groupusertag =   False,
@@ -1052,9 +1071,9 @@ class Factor2B(Factor):
                     
                     n_locs =         20,
                     
-                    n_q_celebs =     1,
-                    n_q_groups =     200,
-                    n_q_pairs =      200,
+                    n_q_celebs =     20000,
+                    n_q_groups =     1,
+                    n_q_pairs =      20000,
                     
                     n_u =            200000,
                     q_p_u =          1,
@@ -1062,8 +1081,8 @@ class Factor2B(Factor):
                     
                     need_exact =     False,
                     upkind =         'celeb',
-                    celebusertag =   False,
-                    groupusertag =   False,
+                    celebusertag =   True,
+                    groupusertag =   True,
                 )
                 for x in [1]
             ]
@@ -1081,17 +1100,17 @@ class Factor2C(Factor):
                     x =              x,
                     
                     n_users =        10000,
-                    n_groups =       100,
+                    n_groups =       200,
                     pad_celeb =      None,
                     
                     user_deg =       200,
-                    group_deg =      5,
+                    group_deg =      10,
                     
-                    n_locs =         1,
+                    n_locs =         20,
                     
-                    n_q_celebs =     1,
-                    n_q_groups =     100,
-                    n_q_pairs =      100,
+                    n_q_celebs =     10000,
+                    n_q_groups =     1,
+                    n_q_pairs =      10000,
                     
                     n_u =            200000,
                     q_p_u =          1,
@@ -1099,8 +1118,8 @@ class Factor2C(Factor):
                     
                     need_exact =     False,
                     upkind =         'celeb',
-                    celebusertag =   False,
-                    groupusertag =   False,
+                    celebusertag =   True,
+                    groupusertag =   True,
                 )
                 for x in [1]
             ]
@@ -1118,17 +1137,17 @@ class Factor2D(Factor):
                     x =              x,
                     
                     n_users =        2000,
-                    n_groups =       20,
+                    n_groups =       200,
                     pad_celeb =      None,
                     
                     user_deg =       1000,
-                    group_deg =      1,
+                    group_deg =      10,
                     
-                    n_locs =         1,
+                    n_locs =         20,
                     
-                    n_q_celebs =     1,
-                    n_q_groups =     20,
-                    n_q_pairs =      20,
+                    n_q_celebs =     2000,
+                    n_q_groups =     1,
+                    n_q_pairs =      2000,
                     
                     n_u =            200000,
                     q_p_u =          1,
@@ -1136,8 +1155,8 @@ class Factor2D(Factor):
                     
                     need_exact =     False,
                     upkind =         'celeb',
-                    celebusertag =   False,
-                    groupusertag =   False,
+                    celebusertag =   True,
+                    groupusertag =   True,
                 )
                 for x in [1]
             ]
@@ -1148,27 +1167,27 @@ class FactorTime(Factor):
                        MetricExtractor):
         
         series = [
-            (('twitter_dem', 'all'), 'filtered (normal)',
-             'green', '-- ^ normal'),
+#            (('twitter_dem', 'all'), 'filtered (normal)',
+#             'green', '-- ^ normal'),
             
-            (('twitter_dem_aug', 'all'), 'augmented',
-             'blue', '-- o normal'),
-            (('twitter_dem_das', 'all'), 'das.',
-             'cyan', '-- o normal'),
+#            (('twitter_dem_aug', 'all'), 'augmented',
+#             'blue', '-- o normal'),
+#            (('twitter_dem_das', 'all'), 'das.',
+#             'cyan', '-- o normal'),
             
-            (('twitter_dem_noninline', 'all'), 'non-inlined',
-             'orange', '-- s normal'),
+#            (('twitter_dem_noninline', 'all'), 'non-inlined',
+#             'orange', '-- s normal'),
             (('twitter_dem_norcelim', 'all'), 'no RC elim',
              'red', '-- s normal'),
             (('twitter_dem_notypecheck', 'all'), 'no type checks',
              'yellow', '-- s normal'),
-            (('twitter_dem_handopt', 'all'), 'hand-optimized',
-             'fuchsia', '-- s normal'),
-            (('twitter_dem_noalias', 'all'), 'alias-optimized',
-             'purple', '-- s normal'),
-            (('twitter_dem_notypecheck_noalias', 'all'),
-             'no type checks + alias-opt',
-             'lightpurple', '-- s normal'),
+#            (('twitter_dem_handopt', 'all'), 'hand-optimized',
+#             'fuchsia', '-- s normal'),
+#            (('twitter_dem_noalias', 'all'), 'alias-optimized',
+#             'purple', '-- s normal'),
+#            (('twitter_dem_notypecheck_noalias', 'all'),
+#             'no type checks + alias-opt',
+#             'lightpurple', '-- s normal'),
         ]
         
         metric = 'opstime_cpu'
@@ -1250,7 +1269,7 @@ class Tag(TwitterWorkflow):
     
     stddev_window = .1
     min_repeats = 10
-    max_repeats = 100
+    max_repeats = 50
     
     class ExpExtractor(Scale.ExpExtractor):
         pass
@@ -1262,15 +1281,15 @@ class TagTime(Tag):
         
         series = [
             (('twitter_dem_singletag', 'all'), 'OSQ strategy',
-             'orange', '-- !^ poly1'),
+             'orange', '-- ^ poly1'),
             (('twitter_dem', 'all'), 'filtered',
-             'green', '- !^ poly1'),
+             'green', '- ^ poly1'),
         ]
         
         metric = 'opstime_cpu'
         
         ylabel = 'Running time (in seconds)'
         ymin = 0
-        max_yitvls = 4
+        y_ticklocs = [0, 1, 2, 3, 4, 5]
     
     imagename = 'time'

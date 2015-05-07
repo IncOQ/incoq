@@ -1,139 +1,11 @@
 """Invoke the transformation system."""
 
 
-import os
-from time import clock
-
-from simplestruct import Field
-
-from transform import Task, do_tasks
+from incoq.transform import *
 
 
-class TestProgramTask(Task):
-    
-    prog = Field(str)
-    """Test program path, relative to the oinc/oinc/testprograms
-    directory, excluding the "_in.py" suffix.
-    """
-    
-    def __init__(self, prog):
-        path = os.path.join('oinc/oinc/testprograms', prog)
-        self.input_name = path + '_in.py'
-        self.output_name = path + '_out.py'
-        self.nopts = {'verbose': True, 'eol': 'lf'}
-        self.qopts = {}
-        self.display_name = prog
-
-
-class TaskTemplate(Task):
-    
-    display_name = Field(str)
-    base_name = Field(str)
-    """Base name to use, relative to src/, excluding suffix like
-    _in.py, _dem.py, etc.
-    """
-    qopts = Field()
-    
-    out_suffix_override = Field()
-    display_suffix_override = Field()
-    """If given, override the class default."""
-    
-    out_suffix = None
-    """Suffix appended to output filename, excluding .py."""
-    
-    display_suffix = None
-    """Suffix appended to display name."""
-    
-    extra_nopts = {}
-    """nopts to use. Note that entries in this dictionary are inherited
-    and merged with entries in subclasses.
-    """
-    
-    def __init__(self, display_name, base_name, qopts,
-                 out_suffix_override, display_suffix_override):
-        if out_suffix_override is not None:
-            self.out_suffix = out_suffix_override
-        if display_suffix_override is not None:
-            self.display_suffix = display_suffix_override
-        
-        self.input_name = base_name + '_in.py'
-        self.output_name = '{}_{}.py'.format(base_name, self.out_suffix)
-        
-        bases = [c for c in type(self).__mro__
-                   if issubclass(c, TaskTemplate)]
-        self.nopts = {}
-        for c in reversed(bases):
-            self.nopts.update(c.extra_nopts)
-        
-        self.display_name = display_name + ' ' + self.display_suffix
-
-class IN(Task):
-    
-    display_name = Field(str)
-    base_name = Field(str)
-    
-    def __init__(self, display_name, base_name):
-        self.display_name = display_name + ' Input'
-        self.input_name = base_name + '_in.py'
-        self.output_name = None
-
-class COM(TaskTemplate):
-    _inherit_fields = True
-    extra_nopts = {'verbose': True,
-                   'maint_inline': True,
-                   'analyze_costs': True,
-                   'selfjoin_strat': 'sub',
-                   'default_aggr_halfdemand': True}
-
-class AUX(COM):
-    _inherit_fields = True
-    out_suffix = 'aux'
-    display_suffix = 'Batch w/ maps'
-    extra_nopts = {'default_impl': 'auxonly'}
-
-class INC(COM):
-    _inherit_fields = True
-    out_suffix = 'inc'
-    display_suffix = 'Unfiltered'
-    extra_nopts = {'default_impl': 'inc'}
-
-class INC_SUBDEM(INC):
-    _inherit_fields = True
-    extra_nopts = {'subdem_tags': False}
-
-class INC_SUBDEM_OBJ(INC_SUBDEM):
-    _inherit_fields = True
-    extra_nopts = {'obj_domain': True}
-
-class DEM(COM):
-    _inherit_fields = True
-    out_suffix = 'dem'
-    display_suffix = 'Filtered'
-    extra_nopts = {'default_impl': 'dem'}
-
-class DEM_NONINLINE(DEM):
-    _inherit_fields = True
-    out_suffix = 'dem_noninline'
-    display_suffix = 'Filtered (no inline)'
-    extra_nopts = {'maint_inline': False}
-
-class DEM_NO_TAG_CHECK(DEM):
-    _inherit_fields = True
-    out_suffix = 'dem_notagcheck'
-    display_suffix = 'Filtered (no demand checks)'
-    extra_nopts = {'tag_checks': False}
-
-class DEM_OBJ(DEM):
-    _inherit_fields = True
-    out_suffix = 'dem'
-    display_suffix = 'Filtered (obj)'
-    extra_nopts = {'obj_domain': True}
-
-class DEM_SUBDEM(DEM):
-    _inherit_fields = True
-    out_suffix = 'dem_subdem'
-    display_suffix = 'Filtered (alternate subquery demand)'
-    extra_nopts = {'subdem_tags': False}
+STATS_DIR = 'stats/'
+STATS_FILE = STATS_DIR + 'transstats.pickle'
 
 
 all_tasks = []
@@ -142,30 +14,112 @@ def add_task(task):
     all_tasks.append(task)
 
 def add_impls(display_name, base_name, templates):
-    add_task(IN(display_name, base_name))
+    add_task(make_in_task(display_name, base_name))
     for template in templates:
-        add_task(template(display_name, base_name, {}, None, None))
+        in_name = base_name + '_in.py'
+        out_name = base_name + '.py'
+        task = Task(display_name, in_name, out_name, {}, {})
+        add_task(task_from_template(task, template))
 
 
 # ---- Program-specific tasks ----
 
-lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
-    {
-     '''count({(c2, p) for (_, _, (_ConstantPattern11_, c2, p)) in
-        _PReceivedEvent_0 if (_ConstantPattern11_ == 'request')
-        if (not ((count({(c3, p) for (_, _, (_ConstantPattern25_, c3,
-        _FreePattern27_)) in _PReceivedEvent_1 if (_ConstantPattern25_
-        == 'release') if (_FreePattern27_ == p) if (c3 > c2)}) > 0) or
-        ((P_mutex_c, SELF_ID) < (c2, p))))})
-     ''':
-        {'uset_lru': 1},
-     
-     '''count({p for p in P_s for (_, _, (_ConstantPattern40_, c2,
-        _FreePattern42_)) in _PReceivedEvent_2 if (_ConstantPattern40_
-        == 'ack') if (_FreePattern42_ == p) if (c2 > P_mutex_c)})
-     ''':
-        {'uset_lru': 1},
-    }, 'dem_lru', '(LRU)')
+class INC_SUBDEM_LAMUTEX(INC_SUBDEM):
+    _inherit_fields = True
+    
+    msgset_t = '''set(tuple([top, top, tuple([
+                               enum('msglabel', str),
+                               subtype('clocks', number),
+                               subtype('procs', number)])]))'''
+    
+    extra_nopts = {
+        'var_types': {
+            '_PReceivedEvent_0': msgset_t,
+            '_PReceivedEvent_1': msgset_t,
+            '_PReceivedEvent_2': msgset_t,
+            'SELF_ID': "subtype('procs', number)",
+            'P_mutex_c':  "subtype('clocks', number)",
+            'P_s':  "set(subtype('procs', number))",
+            },
+        'default_uset_lru': 1,
+    }
+
+class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
+    _inherit_fields = True
+    
+    msgset_t = '''set(tuple([top, top, tuple([
+                               enum('msglabel', str),
+                               subtype('clocks', number),
+                               subtype('procs', number)])]))'''
+    
+    extra_nopts = {
+        'var_types': {
+            '_PReceivedEvent_0': msgset_t,
+            'SELF_ID': "subtype('procs', number)",
+            'P_mutex_c':  "subtype('clocks', number)",
+            'P_s':  "set(subtype('procs', number))",
+            'P_q': '''set(tuple([enum('msglabel', str),
+                                 subtype('clocks', number),
+                                 subtype('procs', number)]))''',
+            },
+        'default_uset_lru': 1,
+    }
+
+class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
+    _inherit_fields = True
+    
+    msgset1_t = '''set(tuple([top, top, tuple([
+                                enum('msglabel', str),
+                                subtype('clocks', number),
+                                subtype('procs', number)])]))'''
+    msgset2_t = '''set(tuple([top, top, tuple([
+                                enum('msglabel', str),
+                                top])]))'''
+    msgset3_t = '''set(tuple([top, top, tuple([
+                                enum('msglabel', str),
+                                dict(top, top)])]))'''
+    
+    extra_nopts = {
+        'var_types': {
+            '_PReceivedEvent_2': msgset1_t,
+            '_PSentEvent_3': msgset2_t,
+            '_PReceivedEvent_4': msgset3_t,
+            '_PSentEvent_5': msgset3_t,
+            'SELF_ID': "subtype('procs', number)",
+            'P_ps':  "set(subtype('procs', number))",
+            'P_token': "dict(top, top)",
+            },
+    }
+
+CHECKACCESS_STR = '{r for r in ROLES if (session,r) in SR if (operation,object,r) in PR}'
+ASSIGNEDROLES_STR = '{r for r in ROLES if (user,r) in UR}'
+DELETESESSION_STR = '{(session,r) for r in ROLES if (session, r) in SR}'
+class INC_CORERBAC_CA(COM):
+    _inherit_fields = True
+    
+    output_suffix = 'checkaccess_inc'
+    display_suffix = 'Unfiltered (CA)'
+    
+    extra_qopts = {
+        CHECKACCESS_STR:   {'impl': 'inc'},
+        ASSIGNEDROLES_STR: {'impl': 'inc'},
+        DELETESESSION_STR: {'impl': 'inc'},
+        }
+
+class DEM_CORERBAC_CA(COM):
+    _inherit_fields = True
+    
+    output_suffix = 'checkaccess_dem'
+    display_suffix = 'Filtered (CA)'
+    
+    extra_qopts = {
+        CHECKACCESS_STR:   {'impl': 'dem',
+                            'uset_mode': 'explicit',
+                            'uset_params': ('object',),
+                            'demand_reorder': [0, 3, 1, 2]},
+        ASSIGNEDROLES_STR: {'impl': 'inc'},
+        DELETESESSION_STR: {'impl': 'inc'},
+        }
 
 
 # ---- Uncomment to rebuild experiment programs. ---
@@ -173,6 +127,10 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 #add_impls('Social', 'experiments/twitter/twitter', [
 #    INC,
 #    DEM,
+#    DEM_SINGLE_TAG,
+#    DEM_NORCELIM,
+#    DEM_NOTYPECHECK,
+#    DEM_INLINE,
 #])
 #
 #add_impls('Auth', 'experiments/django/django', [
@@ -195,43 +153,28 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 #        '3'
 #    ]:
 #    add_impls('JQL {}'.format(level), 'experiments/jql/jql_{}'.format(level), [
-#        AUX,
+##        AUX,
 #        INC,
 #        DEM,
-#        DEM_NO_TAG_CHECK,
+##        DEM_NO_TAG_CHECK,
 #    ])
 #
 #add_impls('Constr. RBAC', 'experiments/rbac/constrainedrbac/crbac', [
+#    AUX,
 #    INC,
 #    DEM,
 #])
 #
-#CHECKACCESS_STR = '{r for r in ROLES if (session,r) in SR if (operation,object,r) in PR}'
-#ASSIGNEDROLES_STR = '{r for r in ROLES if (user,r) in UR}'
-#DELETESESSION_STR = '{(session,r) for r in ROLES if (session, r) in SR}'
-#add_task(IN('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC'))
-#add_task(COM('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
-#             {}, 'aux', 'Batch w/ maps'))
-#add_task(COM('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
-#             {CHECKACCESS_STR: {'impl': 'inc'},
-##              ASSIGNEDROLES_STR: {'impl': 'inc'},
-##              DELETESESSION_STR: {'impl': 'inc'}
-#             }, 'ca_inc', 'Unfiltered (CA)'))
-#add_task(COM('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
-#             {CHECKACCESS_STR: {'impl': 'dem',
-#                                'uset_mode': 'explicit',
-#                                'uset_params': ('session',)},
-##              ASSIGNEDROLES_STR: {'impl': 'dem',
-##                                  'uset_mode': 'explicit',
-##                                  'uset_params': ('user',)},
-##              DELETESESSION_STR: {'impl': 'dem',
-##                                  'uset_mode': 'explicit',
-##                                  'uset_params': ('session',)}
-#             }, 'ca_dem', 'Filtered (CA)'))
-#add_task(INC('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
-#             {}, None, None))
-#add_task(DEM('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC',
-#             {}, None, None))
+#add_impls('CoreRBAC', 'experiments/rbac/corerbac/coreRBAC', [
+#    INC_CORERBAC_CA,
+#    DEM_CORERBAC_CA,
+#    INC,
+#    DEM,
+#])
+#
+#add_impls('bday', 'experiments/other/bday/bday', [
+#    INC,
+#])
 #
 #add_impls('clpaxos', 'experiments/distalgo/clpaxos/clpaxos_inc', [
 #    INC_SUBDEM,
@@ -242,27 +185,27 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 #    DEM,
 #])
 #add_impls('dscrash', 'experiments/distalgo/dscrash/dscrash_inc', [
-#    INC_SUBDEM_OBJ,
-#    DEM_OBJ,
+#    DEM_OBJ_NS,
 #])
 #add_impls('hsleader', 'experiments/distalgo/hsleader/hsleader_inc', [
 #    INC_SUBDEM,
 #    DEM,
 #])
 #add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
-#    INC_SUBDEM,
-#    DEM,
-#    DEM_SUBDEM,
+#    INC_SUBDEM_LAMUTEX,
+#    DEM_LRU,
 #])
-#add_task(lamutex_lru)
-#add_impls('lamutex opt', 'experiments/distalgo/lamutex/lamutex_opt_inc', [
+#add_impls('lamutex opt1', 'experiments/distalgo/lamutex/lamutex_opt1_inc', [
+#    INC_SUBDEM_LAMUTEX,
 #    DEM,
 #])
 #add_impls('lamutex opt2', 'experiments/distalgo/lamutex/lamutex_opt2_inc', [
-#    DEM,
+#    INC_SUBDEM_LAMUTEX,
+#    DEM_LRU,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
-#    DEM,
+#    INC_SUBDEM_LAMUTEX_ORIG,
+#    DEM_LRU,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,
@@ -272,15 +215,17 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 #    INC_SUBDEM,
 #    DEM,
 #])
+#add_impls('ratoken', 'experiments/distalgo/ratoken/ratoken_inc', [
+#    DEM_OBJ_NS_RATOKEN,
+#])
+#add_impls('sktoken', 'experiments/distalgo/sktoken/sktoken_inc', [
+#    DEM_OBJ_NS,
+#])
 #add_impls('2pcommit', 'experiments/distalgo/tpcommit/tpcommit_inc', [
 #    INC_SUBDEM,
 #    DEM,
 #])
 #add_impls('vrpaxos', 'experiments/distalgo/vrpaxos/vrpaxos_inc', [
-#    DEM_NONINLINE,
-#])
-#add_impls('vrpaxos', 'experiments/distalgo/vrpaxos/orig_majority_top_inc', [
-#    INC_SUBDEM,
 #    DEM,
 #])
 
@@ -289,6 +234,7 @@ lamutex_lru = DEM('lamutex', 'experiments/distalgo/lamutex/lamutex_inc',
 
 test_programs = [
 #    'auxmap/basic',
+#    'auxmap/deadcode',
 #    'auxmap/degenerate',
 #    'auxmap/equality',
 #    'auxmap/inline',
@@ -303,7 +249,7 @@ test_programs = [
 #    'comp/inline',
 #    'comp/nonpattern',
 #    'comp/parameter',
-##    'comp/inconlyonce',
+#    'comp/inconlyonce',
 #    'comp/pattern',
 #    'comp/patternmaint',
 #    'comp/setmatchcomp',
@@ -319,7 +265,6 @@ test_programs = [
 #    'comp/nested/outline',
 #    'comp/nested/param',
 #    'comp/tup/flatten',
-#    'comp/instr',
 #    'comp/macroupdate',
 #    'comp/unhandled',
 #    'comp/types',
@@ -332,6 +277,8 @@ test_programs = [
 #    'objcomp/pairmode',
 #    'objcomp/notc',
 #    'objcomp/map',
+#    'objcomp/inputrel',
+#    'objcomp/autoflatten',
 #    
 #    'deminc/aug1',
 #    'deminc/aug2',
@@ -343,6 +290,7 @@ test_programs = [
 #    'deminc/obj',
 #    'deminc/objwild',
 #    'deminc/wildcard',
+#    'deminc/reorder',
 #    'deminc/tup/basic',
 #    'deminc/tup/inc',
 #    'deminc/tup/obj',
@@ -354,6 +302,7 @@ test_programs = [
 #    'aggr/minmax',
 #    'aggr/obj',
 #    'aggr/params',
+#    'aggr/rewrite',
 #    'aggr/tuple',
 #    'aggr/uset',
 #    'aggr/lru',
@@ -361,14 +310,230 @@ test_programs = [
 #    'aggr/nested/aggrdem',
 #    'aggr/nested/compdem',
 #    'aggr/nested/halfdemand',
+#    'aggr/nested/obj',
 ]
 
 for name in test_programs:
-    add_task(TestProgramTask(name))
+    add_task(make_testprogram_task(name))
 
 
-t1 = clock()
-do_tasks(all_tasks)
-t2 = clock()
+elapsed = do_tasks(all_tasks, STATS_FILE)
 
-print('Done  ({:.3f} s)'.format(t2 - t1))
+print('Done  ({:.3f} s)'.format(elapsed))
+
+from incoq.transform import StatsDB, Session, StandardSchema
+
+class RunningExSchema(StatkeySchema):
+    
+    cols = [
+        ('lines', 'LOC', None),
+        ('trans time', 'Time', '.2f'),
+    ]
+    
+    rows = [
+        ('Social Input', 'Running ex Input'),
+        ('Social Unfiltered', 'Running ex Incremental'),
+        ('Social Filtered', 'Running ex Filtered'),
+        ('Social Filtered (no type checks)',
+         'Running ex Filtered (no type checks)'),
+        ('Social Filtered (no rc elim.)',
+         'Running ex Filtered (no rc elim.)'),
+        ('Social Filtered (inlined)',
+         'Running ex Filtered (inlined)'),
+        ('Social Filtered (single tag)', 'Running ex Filtered (osq strat)'),
+    ]
+
+class ComparisonSchema(OrigIncFilterSchema):
+    
+    def _rowgen(name):
+        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
+                name)
+    
+    rows = [
+        _rowgen('Wifi'),
+        _rowgen('Auth'),
+        _rowgen('Simplified Auth'),
+        _rowgen('JQL 1'),
+        _rowgen('JQL 2'),
+        _rowgen('JQL 3'),
+    ]
+
+class ApplicationsSchema(OrigIncFilterSchema):
+   
+    def _rowgen(name, dispname=None):
+        if dispname is None:
+            dispname = name
+        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
+                dispname)
+    
+    def _rowgen2(name):
+        return ([name + ' Input', name + ' Unfiltered (obj)',
+                 name + ' Filtered (obj)'],
+                name)
+    
+    rows = [
+        (['CoreRBAC Input', 'CoreRBAC Unfiltered (CA)',
+          'CoreRBAC Filtered (CA)'],
+         'CheckAccess'),
+        _rowgen('CoreRBAC'),
+        _rowgen('Constr. RBAC', 'SSD'),
+        (['lamutex orig Input', 'lamutex orig Unfiltered',
+          'lamutex orig Filtered'], 'lamutex_orig'),
+        (['lamutex Input', 'lamutex Unfiltered', 'lamutex Filtered'],
+         'lamutex_spec'),
+        (['lamutex opt2 Input', 'lamutex opt2 Unfiltered',
+          'lamutex opt2 Filtered'],
+         'lamutex_specsimp'),
+        _rowgen('2pcommit'),
+        _rowgen('clpaxos'),
+        _rowgen('crleader'),
+        _rowgen2('dscrash'),
+        _rowgen('hsleader'),
+#        _rowgen('lapaxos'),
+        _rowgen('ramutex'),
+        _rowgen2('ratoken'),
+#        _rowgen2('sktoken'),
+    ]
+
+class DistalgoSchema(OrigIncFilterSchema):
+    
+    def _rowgen(name):
+        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
+                name)
+    
+    def _rowgen2(name):
+        return ([name + ' Input', name + ' Unfiltered (obj)',
+                 name + ' Filtered (obj)'],
+                name)
+    
+    rows = [
+        _rowgen('2pcommit'),
+        _rowgen('clpaxos'),
+        _rowgen('crleader'),
+        _rowgen2('dscrash'),
+        _rowgen('hsleader'),
+        _rowgen('lamutex'),
+        _rowgen('lamutex opt1'),
+        _rowgen('lamutex opt2'),
+        _rowgen('lamutex orig'),
+#        _rowgen('lapaxos'),
+        _rowgen('ramutex'),
+        _rowgen2('ratoken'),
+#        _rowgen2('sktoken'),
+    ]
+
+class RunningExCostSchema(CostSchema):
+    rows = [
+        ('Social Unfiltered', 'incremental'),
+        ('Social Filtered', 'filtered'),
+    ]
+    cols = [
+        ('make_user', 'make_user', None),
+        ('make_group', 'make_group', None),
+        ('follow', 'follow', None),
+        ('unfollow', 'unfollow', None),
+        ('join_group', 'join_group', None),
+        ('leave_group', 'leave_group', None),
+        ('change_loc', 'change_loc', None),
+        ('do_query', 'do_query', None),
+    ]
+
+class LamutexspecCostSchema(CostSchema):
+    rows = [
+        ('lamutex Unfiltered', 'lamutex'),
+#        ('lamutex opt1 Unfiltered', 'lamutex opt1'),
+        ('lamutex opt2 Unfiltered', 'lamutex optimized'),
+    ]
+    cols = [
+        ('Query_0', 'Query', None),
+        ('Update__PReceivedEvent_0', 'Rec Request', None),
+        ('Update__PReceivedEvent_1', 'Rec Release', None),
+        ('Update__PReceivedEvent_2', 'Rec Ack', None),
+    ]
+class LamutexorigCostSchema(CostSchema):
+    rows = [
+        ('lamutex orig Unfiltered', 'lamutex orig'),
+    ]
+    cols = [
+        ('Query_0', 'Query 1', None),
+        ('Query_1', 'Query 2', None),
+        ('Query_2', 'Query 3', None),
+        ('Update_P_q3', 'Update request queue', None),
+        ('Update_P_q4', 'Update request queue', None),
+        ('Update_P_q5', 'Update request queue', None),
+        ('Update_P_q6', 'Update request queue', None),
+        ('Update__PReceivedEvent_0', 'Rec Ack', None),
+    ]
+
+class OOPSLA15Schema(OrigIncFilterSchema):
+    
+    # (Not a method.)
+    def _rowgen(dispname, name):
+        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
+                dispname)
+    
+    def _rowgen2(dispname, name):
+        return ([name + ' Input', name + ' Unfiltered (obj)',
+                 name + ' Filtered (obj)'],
+                dispname)
+    
+    rows = [
+        _rowgen('Running', 'Social'),
+        _rowgen('JQLbench1', 'JQL 1'),
+        _rowgen('JQLbench2', 'JQL 2'),
+        _rowgen('JQLbench3', 'JQL 3'),
+        _rowgen('Wifi', 'Wifi'),
+        _rowgen('Auth', 'Auth'),
+        (['CoreRBAC Input', 'CoreRBAC Unfiltered (CA)',
+          'CoreRBAC Filtered (CA)'],
+         'Access'),
+        _rowgen('CoreRBAC', 'CoreRBAC'),
+        _rowgen('SSD', 'Constr. RBAC'),
+        
+        (['lamutex orig Input', 'lamutex orig Unfiltered',
+          'lamutex orig Filtered'],
+         'La mutex'),
+        _rowgen('RA mutex', 'ramutex'),
+        _rowgen2('RA token', 'ratoken'),
+#        _rowgen2('SK token', 'sktoken'),
+        _rowgen('CR leader', 'crleader'),
+        _rowgen('HS leader', 'hsleader'),
+        _rowgen('2P commit', '2pcommit'),
+        _rowgen2('DS crash', 'dscrash'),
+        _rowgen('CL Paxos', 'clpaxos'),
+    ]
+
+stats = StatsDB(STATS_FILE)
+runningex_schema = RunningExSchema(stats.allstats)
+comparison_schema = ComparisonSchema(stats.allstats)
+applications_schema = ApplicationsSchema(stats.allstats)
+distalgo_schema = DistalgoSchema(stats.allstats)
+runningex_costschema = RunningExCostSchema(stats.allstats)
+lamutexspec_costschema = LamutexspecCostSchema(stats.allstats)
+lamutexorig_costschema = LamutexorigCostSchema(stats.allstats)
+oopsla15_schema = OOPSLA15Schema(stats.allstats)
+
+runningex_schema.save_csv(STATS_DIR + 'stats-runningex.csv')
+comparison_schema.save_csv(STATS_DIR + 'stats-comparison.csv')
+applications_schema.save_csv(STATS_DIR + 'stats-applications.csv')
+distalgo_schema.save_csv(STATS_DIR + 'stats-distalgo.csv')
+oopsla15_schema.save_csv(STATS_DIR + 'stats-oopsla15.csv')
+runningex_costschema.save_csv(STATS_DIR + 'stats-runninex_cost.csv')
+lamutexspec_costschema.save_csv(STATS_DIR + 'stats-lamutexspec_cost.csv')
+lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
+
+#print(runningex_schema.to_ascii())
+#print(comparison_schema.to_ascii())
+#print(applications_schema.to_ascii())
+#print(distalgo_schema.to_ascii())
+#print(oopsla15_schema.to_ascii())
+
+#print(runningex_costschema.to_ascii())
+#print(lamutexspec_costschema.to_ascii())
+#print(lamutexorig_costschema.to_ascii())
+
+#session = Session(stats)
+#Session.interact(stats, name='Social Unfiltered')
+#session = Session(stats, name='lamutex Unfiltered')
+#session.cmd_showcosts()
+#session.interact()

@@ -65,8 +65,8 @@ class WifiDriver:
         with timer_user, timer_cpu, timer_wall:
             self.run()
         
-        import runtimelib
-        self.results['size'] = runtimelib.get_total_structure_size(
+        import incoq.runtime
+        self.results['size'] = incoq.runtime.get_total_structure_size(
                                     self.module.__dict__)
         self.results['time_user'] = timer_user.consume()
         self.results['time_cpu'] = timer_cpu.consume()
@@ -201,9 +201,9 @@ class Wifi(ExpWorkflow):
     class ExpExtractor(MetricExtractor, SmallExtractor):
         
         series = [
-            ('wifi_orig', 'original', 'red', '- !s poly2'),
-            ('wifi_osq', 'osq', 'orange', '-- !^ poly1'),
-            ('wifi_dem', 'filtered', 'green', '- !^ poly1'),
+            ('wifi_orig', 'original', 'red', '- s poly2'),
+            ('wifi_osq', 'OSQ', 'orange', '-- ^ poly1'),
+            ('wifi_dem', 'filtered', 'green', '- ^ poly1'),
         ]
         
         ylabel = 'Running time (in seconds)'
@@ -212,4 +212,5 @@ class Wifi(ExpWorkflow):
         metric = 'time_cpu'
         
         xmin = 150
-        ymax = 1
+        xmax = 2600
+        ymax = .7
