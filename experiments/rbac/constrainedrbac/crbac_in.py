@@ -1,7 +1,7 @@
 # Query that finds violations of ANSI RBAC's Static Separation of
 # Duties condition.
 
-from invinc.runtime import *
+from incoq.runtime import *
 
 USERS = Set()
 UR = Set()

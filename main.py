@@ -1,7 +1,7 @@
 """Invoke the transformation system."""
 
 
-from invinc.transform import *
+from incoq.transform import *
 
 
 STATS_DIR = 'stats/'
@@ -321,7 +321,7 @@ elapsed = do_tasks(all_tasks, STATS_FILE)
 
 print('Done  ({:.3f} s)'.format(elapsed))
 
-from invinc.transform import StatsDB, Session, StandardSchema
+from incoq.transform import StatsDB, Session, StandardSchema
 
 class RunningExSchema(StatkeySchema):
     

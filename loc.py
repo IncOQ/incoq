@@ -4,7 +4,7 @@ from os import chdir
 from os.path import dirname
 from pathlib import PurePath
 
-from invinc.util.linecount import get_counts_for_dir
+from incoq.util.linecount import get_counts_for_dir
 
 
 def show(dir, dirs_only=False):
@@ -29,5 +29,5 @@ def show(dir, dirs_only=False):
 
 if __name__ == '__main__':
     chdir(dirname(__file__))
-    show('invinc', dirs_only=True)
+    show('incoq', dirs_only=True)
 #    show('experiments', dirs_only=True)

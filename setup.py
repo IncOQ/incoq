@@ -1,9 +1,9 @@
 from setuptools import setup
 
 setup(
-    name =          'InvInc',
+    name =          'IncOQ',
     version =       '0.2.0-dev',
-    url =           'https://github.com/brandjon/invinc/invinc',
+    url =           'https://github.com/IncOQ/incoq',
     
     author =        'Jon Brandvein',
     author_email =  'jon.brandvein@gmail.com',
@@ -18,9 +18,9 @@ setup(
         'Topic :: Software Development :: Compilers',
     ],
     
-    packages =      ['invinc'],
+    packages =      ['incoq'],
     
-    test_suite =    'invinc.tests',
+    test_suite =    'incoq.tests',
     
     install_requires = [
         'simplestruct >=0.2.1',

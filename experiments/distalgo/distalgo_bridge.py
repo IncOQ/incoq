@@ -35,11 +35,11 @@ def get_config():
     ns = SimpleNamespace()
     
     ns.python34 = pyconf['python34']
-    ns.invinc_root = pyconf['INVINC_ROOT']
+    ns.incoq_root = pyconf['INCOQ_ROOT']
     ns.distalgo_path = pyconf['DISTALGO_PATH']
     
-    da_exp_dir = os.path.join(ns.invinc_root, 'experiments/distalgo')
-    ns.pythonpath = (ns.invinc_root + ';' + ns.distalgo_path + ';' +
+    da_exp_dir = os.path.join(ns.incoq_root, 'experiments/distalgo')
+    ns.pythonpath = (ns.incoq_root + ';' + ns.distalgo_path + ';' +
                      da_exp_dir)
     
     return ns

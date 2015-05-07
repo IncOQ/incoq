@@ -240,8 +240,8 @@ class TwitterDriver:
         with timer_user, timer_cpu, timer_wall:
             self.run_ops()
         
-        import invinc.runtime
-        self.results['size'] = invinc.runtime.get_total_structure_size(
+        import incoq.runtime
+        self.results['size'] = incoq.runtime.get_total_structure_size(
                                     self.module.__dict__)
         self.results['opstime_user'] = timer_user.consume()
         self.results['opstime_cpu'] = timer_cpu.consume()

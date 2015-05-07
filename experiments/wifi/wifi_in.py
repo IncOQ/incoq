@@ -2,7 +2,7 @@
 #
 #   wifi -> {ap.ssid : ap in wifi.scan, ap.strength > wifi.threshold}
 
-from invinc.runtime import *
+from incoq.runtime import *
 
 OPTIONS(
     obj_domain = True,
