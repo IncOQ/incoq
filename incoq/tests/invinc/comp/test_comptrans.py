@@ -501,6 +501,18 @@ class TestComp(CentralCase):
         ]
         
         self.assertEqual(res, exp_res)
+    
+    def test_split_eqwild_clauses(self):
+        comp = L.pe('''
+            COMP({x for x in S for (x, x, _) in E}, [], {})
+            ''')
+        comp = split_eqwild_clauses(self.manager, comp)
+        exp_comp = L.pe('''
+            COMP({x for x in S for x in
+                COMP({v1_x for (v1_x, v1_x, v1_w1) in E}, [], {})},
+            [], {})
+            ''')
+        self.assertEqual(comp, exp_comp)
 
 
 if __name__ == '__main__':

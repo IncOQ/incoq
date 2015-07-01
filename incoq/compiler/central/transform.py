@@ -23,7 +23,7 @@ from incoq.compiler.set import inc_all_relmatch
 from incoq.compiler.comp import (
         patternize_comp, depatternize_all, inc_relcomp, 
         impl_auxonly_relcomp, comp_inc_needs_dem,
-        comp_isvalid)
+        comp_isvalid, split_eqwild_clauses)
 from incoq.compiler.aggr import (
         inc_aggr, flatten_smlookups, aggr_needs_batch, aggr_needs_dem,
         aggr_canuse_halfdemand)

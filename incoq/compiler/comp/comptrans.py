@@ -15,7 +15,10 @@ __all__ = [
     'depatternize_all',
     'comp_inc_needs_dem',
     'comp_isvalid',
+    'split_eqwild_clauses',
 ]
+
+import itertools
 
 import incoq.compiler.incast as L
 from incoq.compiler.set import Mask
@@ -640,3 +643,38 @@ def comp_isvalid(manager, comp):
     except TypeError:
         return False
     return True
+
+
+def split_eqwild_clauses(manager, comp):
+    """Return a new comprehension that does not use equalities
+    or wildcards. Form it by rewriting clauses that have these
+    features into clauses over new one-clause subcomprehensions.
+    """
+    spec = CompSpec.from_comp(comp, manager.factory)
+    new_clasts = []
+    for cl in spec.join.clauses:
+        if cl.has_wildcards or cl.has_equalities:
+            # Come up with new variable names for the new sub-
+            # comprehension, including for its wildcard components.
+            prefix = manager.namegen.next_prefix()
+            nums = (str(i) for i in itertools.count(1))
+            new_vars = [prefix + v for v in cl.enumvars]
+            new_lhs = tuple((prefix + 'w' + next(nums)
+                             if v == '_' else prefix + v)
+                            for v in cl.enumlhs)
+            
+            # Generate the AST for the new subcomprehension.
+            clast = cl.to_AST()
+            subcomp_clast = clast._replace(target=L.tuplify(
+                                           new_lhs, lval=True))
+            subcomp_resexp = L.tuplify(new_vars)
+            subcomp = L.Comp(subcomp_resexp, (subcomp_clast,), (), {})
+            
+            # Generate new clause for outer comprehension.
+            new_clast = clast._replace(target=L.tuplify(
+                                       cl.enumvars, lval=True),
+                                       iter=subcomp)
+            new_clasts.append(new_clast)
+        else:
+            new_clasts.append(cl.to_AST())
+    return comp._replace(clauses=tuple(new_clasts))

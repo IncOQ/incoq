@@ -145,6 +145,14 @@ class Clause(metaclass=ABCMeta):
         """
         return any(v == '_' for v in self.enumlhs)
     
+    @property
+    def has_equalities(self):
+        """For an enumerator, True iff the same variable appears
+        more than once on the LHS. For a condition, False.
+        """
+        nonwild = [v for v in self.enumlhs if v != '_']
+        return len(nonwild) != len(set(nonwild))
+    
     # The following attributes are enumlhs masks -- tuples of bools
     # whose positions correspond to entries in enumlhs. For conditions
     # these are just the empty tuple, since enumlhs is the empty
@@ -447,6 +455,8 @@ class EnumClause(Clause, ABCStruct):
     def rate(self, bindenv):
         mask = Mask.from_vars(self.lhs, bindenv)
         if mask.is_allbound:
+            # Shouldn't this case also fire when the only
+            # unbounds are wildcards?
             return Rate.CONSTANT_MEMBERSHIP
         elif mask.is_allunbound:
             return Rate.NOTPREFERRED
