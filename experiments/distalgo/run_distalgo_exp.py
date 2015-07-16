@@ -43,8 +43,8 @@ class DistalgoDriver:
                      prog, args)
         
         self.results = {}
-        self.results['time_cpu'] = res['Total process time']
-        self.results['time_wall'] = res['Wall time']
+        self.results['time_cpu'] = res['All']['Total_process_time']
+        self.results['time_wall'] = res['Wallclock_time']
         self.results['stdmetric'] = self.results['time_cpu']
         
         with open(pipe_filename, 'wb') as pf:

@@ -49,7 +49,7 @@ def parse_output(s):
     """Parse a string of standard output text for the "OUTPUT: <JSON>"
     line and return the parsed JSON object.
     """
-    m = re.search(r'^OUTPUT: (.*)', s, re.MULTILINE)
+    m = re.search(r'^###OUTPUT: (.*)', s, re.MULTILINE)
     if m is None:
         return None
     return json.loads(m.group(1))
