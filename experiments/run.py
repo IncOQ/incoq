@@ -59,6 +59,7 @@ lamutexspecoptrounds = experiments.distalgo.LAMutexSpecOptRounds()
 lamutexorigprocs = experiments.distalgo.LAMutexOrigProcs()
 lamutexorigrounds = experiments.distalgo.LAMutexOrigRounds()
 lapaxos = experiments.distalgo.LAPaxos()
+lapaxosexclude = experiments.distalgo.LAPaxosExclude()
 ramutex = experiments.distalgo.RAMutex()
 ratokenprocs = experiments.distalgo.RATokenProcs()
 ratokenrounds = experiments.distalgo.RATokenRounds()
@@ -120,6 +121,7 @@ def main():
 #        lamutexorigprocs,
 #        lamutexorigrounds,
 #        lapaxos,
+#        lapaxosexclude,
 #        ramutex,
 #        ratokenprocs,
 #        ratokenrounds

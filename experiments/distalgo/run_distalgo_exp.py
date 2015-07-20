@@ -25,6 +25,8 @@ class DistalgoDriver:
     
     argnames = None
     
+    rugroup_id = 'All'
+    
     def __init__(self, pipe_filename):
         with open(pipe_filename, 'rb') as pf:
             dataset, prog, other_tparams = pickle.load(pf)
@@ -43,7 +45,7 @@ class DistalgoDriver:
                      prog, args)
         
         self.results = {}
-        self.results['time_cpu'] = res['All']['Total_process_time']
+        self.results['time_cpu'] = res[self.rugroup_id]['Total_process_time']
         self.results['time_wall'] = res['Wallclock_time']
         self.results['stdmetric'] = self.results['time_cpu']
         
@@ -162,8 +164,8 @@ class DistalgoWorkflow(ExpWorkflow):
 
 
 class CLPaxosDriver(DistalgoDriver):
-        dafilename = 'clpaxos/clpaxos.da'
-        argnames = ['n_prop', 'n_acc', 'n_rounds', 'timeout']
+    dafilename = 'clpaxos/clpaxos.da'
+    argnames = ['n_prop', 'n_acc', 'n_rounds', 'timeout']
 
 class CLPaxos(DistalgoWorkflow):
     
@@ -204,8 +206,8 @@ class CLPaxos(DistalgoWorkflow):
 
 
 class CRLeaderDriver(DistalgoDriver):
-        dafilename = 'crleader/crleader.da'
-        argnames = ['n_procs']
+    dafilename = 'crleader/crleader.da'
+    argnames = ['n_procs']
 
 class CRLeader(DistalgoWorkflow):
     
@@ -245,8 +247,8 @@ class CRLeader(DistalgoWorkflow):
 
 
 class DSCrashDriver(DistalgoDriver):
-        dafilename = 'dscrash/dscrash.da'
-        argnames = ['n_procs', 'maxfail']
+    dafilename = 'dscrash/dscrash.da'
+    argnames = ['n_procs', 'maxfail']
 
 class DSCrash(DistalgoWorkflow):
     
@@ -282,8 +284,8 @@ class DSCrash(DistalgoWorkflow):
 
 
 class HSLeaderDriver(DistalgoDriver):
-        dafilename = 'hsleader/hsleader.da'
-        argnames = ['n_procs']
+    dafilename = 'hsleader/hsleader.da'
+    argnames = ['n_procs']
 
 class HSLeader(DistalgoWorkflow):
     
@@ -529,8 +531,8 @@ class LAMutexOrigRounds(LAMutexOrigWorkflow):
 
 
 class LAPaxosDriver(DistalgoDriver):
-        dafilename = 'lapaxos/lapaxos.da'
-        argnames = ['n_prop', 'n_acc', 'n_rounds']
+    dafilename = 'lapaxos/lapaxos.da'
+    argnames = ['n_prop', 'n_acc', 'timeout']
 
 class LAPaxos(DistalgoWorkflow):
     
@@ -542,8 +544,7 @@ class LAPaxos(DistalgoWorkflow):
         
         progs = [
             'lapaxos_inc_in',
-#            'lapaxos_inc_inc',
-#            'lapaxos_inc_dem',
+            'lapaxos_inc_inc',
         ]
         
         def get_dsparams_list(self):
@@ -552,11 +553,11 @@ class LAPaxos(DistalgoWorkflow):
                     dsid =     str(x),
                     x =        x,
                     
-                    n_prop =   x,
-                    n_acc =    x * 3,
-                    n_rounds = 3,
+                    n_prop =   x * 3,
+                    n_acc =    x * 1,
+                    timeout =  3,
                 )
-                for x in [1]#[1, 3, 6, 9, 12]
+                for x in range(4, 20 + 1, 4)
             ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
@@ -564,13 +565,27 @@ class LAPaxos(DistalgoWorkflow):
         name = 'lapaxos'
         noninline = True
         
+#        show_cpu = False
+#        show_wall = True
+        
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
+    
+    min_repeats = 10
+    max_repeats = 10
+
+
+class LAPaxosExcludeDriver(LAPaxosDriver):
+    rugroup_id = 'bo_measured'
+
+class LAPaxosExclude(LAPaxos):
+    prefix = 'results/lapaxos_exclude'
+    ExpDriver = LAPaxosExcludeDriver
 
 
 class RAMutexDriver(DistalgoDriver):
-        dafilename = 'ramutex/ramutex.da'
-        argnames = ['n_procs', 'n_rounds']
+    dafilename = 'ramutex/ramutex.da'
+    argnames = ['n_procs', 'n_rounds']
 
 class RAMutex(DistalgoWorkflow):
     
@@ -610,8 +625,8 @@ class RAMutex(DistalgoWorkflow):
 
 
 class RATokenDriver(DistalgoDriver):
-        dafilename = 'ratoken/ratoken.da'
-        argnames = ['n_procs', 'n_rounds']
+    dafilename = 'ratoken/ratoken.da'
+    argnames = ['n_procs', 'n_rounds']
 
 class RATokenProcs(DistalgoWorkflow):
     
@@ -657,7 +672,7 @@ class RATokenRounds(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-#            'ratoken_inc_in',
+            'ratoken_inc_in',
             'ratoken_inc_dem',
         ]
         
@@ -685,8 +700,8 @@ class RATokenRounds(DistalgoWorkflow):
 
 
 class SKTokenDriver(DistalgoDriver):
-        dafilename = 'sktoken/sktoken.da'
-        argnames = ['n_procs', 'n_rounds']
+    dafilename = 'sktoken/sktoken.da'
+    argnames = ['n_procs', 'n_rounds']
 
 class SKToken(DistalgoWorkflow):
     
@@ -713,9 +728,6 @@ class SKToken(DistalgoWorkflow):
                 for x in range(5, 40 + 1, 5)
             ]
     
-    min_repeats = 3
-    max_repeats = 3
-    
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
         name = 'sktoken'
@@ -725,8 +737,8 @@ class SKToken(DistalgoWorkflow):
 
 
 class TPCommitDriver(DistalgoDriver):
-        dafilename = 'tpcommit/tpcommit.da'
-        argnames = ['n_procs', 'failrate']
+    dafilename = 'tpcommit/tpcommit.da'
+    argnames = ['n_procs', 'failrate']
 
 class TPCommit(DistalgoWorkflow):
     
@@ -766,8 +778,8 @@ class TPCommit(DistalgoWorkflow):
 
 
 class VRPaxosDriver(DistalgoDriver):
-        dafilename = 'vrpaxos/vrpaxos.da'
-        argnames = []
+    dafilename = 'vrpaxos/vrpaxos.da'
+    argnames = []
 
 class VRPaxos(DistalgoWorkflow):
     
