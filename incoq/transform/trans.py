@@ -21,7 +21,9 @@ __all__ = [
     'DEM_NO_TAG_CHECK',
     'DEM_SINGLE_TAG',
     'DEM_NORCELIM',
+    'DEM_INLINE_NORCELIM',
     'DEM_NOTYPECHECK',
+    'DEM_INLINE_NOTYPECHECK',
     'DEM_OBJ',
     'DEM_SUBDEM',
     'DEM_OBJ_NS',
@@ -205,10 +207,22 @@ class DEM_NORCELIM(DEM):
     display_suffix = 'Filtered (no rc elim.)'
     extra_nopts = {'rc_elim': False}
 
+class DEM_INLINE_NORCELIM(DEM):
+    output_suffix = 'dem_inline_norcelim'
+    display_suffix = 'Filtered (inline; no rc elim.)'
+    extra_nopts = {'maint_inline': True,
+                   'rc_elim': False}
+
 class DEM_NOTYPECHECK(DEM):
     output_suffix = 'dem_notypecheck'
     display_suffix = 'Filtered (no type checks)'
     extra_nopts = {'maint_emit_typechecks': False}
+
+class DEM_INLINE_NOTYPECHECK(DEM):
+    output_suffix = 'dem_inline_notypecheck'
+    display_suffix = 'Filtered (inline; no type checks)'
+    extra_nopts = {'maint_inline': True,
+                   'maint_emit_typechecks': False}
 
 class DEM_OBJ(DEM):
     output_suffix = 'dem'

@@ -26,6 +26,9 @@ factor2b = twitter.Factor2BTimeNorm()
 factor2c = twitter.Factor2CTimeNorm()
 factor2d = twitter.Factor2DTimeNorm()
 
+densityfactor = twitter.DensityFactor()
+densityfactornorm = twitter.DensityFactorNorm()
+
 tag = twitter.TagTime()
 
 jqlratio1 = jql.Ratio1()
@@ -89,6 +92,9 @@ def main():
 #        factor2b,
 #        factor2c,
 #        factor2d,
+        
+#        densityfactor,
+#        densityfactornorm,
         
 #        jqlratio1,
 #        jqlratio2,        # jql_ratio

@@ -63,6 +63,7 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
                                  subtype('procs', number)]))''',
             },
         'default_uset_lru': 1,
+#        'maint_inline': True,
     }
 
 class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
@@ -124,14 +125,28 @@ class DEM_CORERBAC_CA(COM):
 
 # ---- Uncomment to rebuild experiment programs. ---
 
-#add_impls('Social', 'experiments/twitter/twitter', [
+#add_impls('Eqwild Test 1', 'experiments/other/eqwild/eqwild1', [
+#    INC,
+#    DEM,
+#])
+#add_impls('Eqwild Test 2', 'experiments/other/eqwild/eqwild2', [
+#    DEM,
+#])
+#add_impls('Friendless Test 1', 'experiments/other/eqwild/friendless1', [
+#    DEM,
+#])
+#add_impls('Friendless Test 2', 'experiments/other/eqwild/friendless2', [
+#    DEM,
+#])
+
+add_impls('Social', 'experiments/twitter/twitter', [
 #    INC,
 #    DEM,
 #    DEM_SINGLE_TAG,
-#    DEM_NORCELIM,
-#    DEM_NOTYPECHECK,
 #    DEM_INLINE,
-#])
+#    DEM_INLINE_NORCELIM,
+#    DEM_INLINE_NOTYPECHECK,
+])
 #
 #add_impls('Auth', 'experiments/django/django', [
 #    INC,
@@ -259,6 +274,7 @@ test_programs = [
 #    'comp/uset/uset_explicit',
 #    'comp/uset/auto',
 #    'comp/uset/nodemand',
+#    'comp/uset/eager_param',
 #    'comp/uset/lru',
 #    'comp/nested/basic',
 #    'comp/nested/obj',

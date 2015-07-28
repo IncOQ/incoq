@@ -3,7 +3,7 @@ twitter_dem_das.py
 twitter_dem_disjoint.py
 twitter_dem_handopt.py
 twitter_dem_noalias.py
-twitter_dem_norcelim.py
-twitter_dem_notypecheck.py
+twitter_dem_inline_norcelim.py
+twitter_dem_inline_notypecheck.py
 twitter_dem_notypecheck_noalias.py
 twitter_dem_singletag.py

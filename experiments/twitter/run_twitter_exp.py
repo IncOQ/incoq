@@ -1225,6 +1225,90 @@ class Factor2DTimeNorm(Factor2D, FactorTimeNorm):
     pass
 
 
+class DensityFactor(TwitterWorkflow):
+    
+    """Vary the number of users and the user degree
+    inversely, keeping the number of follower pairs
+    constant. Rightmost datapoint is as for the Demand
+    benchmark.
+    """
+    
+    prefix = 'results/twitter_density'
+    
+    class ExpDatagen(TwitterWorkflow.ExpDatagen):
+        
+        progs = [
+            'twitter_dem_inline',
+            'twitter_dem',
+            'twitter_dem_inline_norcelim',
+            'twitter_dem_inline_notypecheck',
+        ]
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =           str(x),
+                    x =              x,
+                    
+                    n_users =        x,
+                    n_groups =       200,
+                    pad_celeb =      None,
+                    
+                    user_deg =       100 * (20000 // x),
+                    group_deg =      10,
+                    
+                    n_locs =         20,
+                    
+                    n_q_celebs =     x,
+                    n_q_groups =     1,
+                    n_q_pairs =      x,
+                    
+                    n_u =            200000,
+                    q_p_u =          1,
+                    reps =           1,
+                    
+                    need_exact =     False,
+                    upkind =         'loc',
+                    celebusertag =   True,
+                    groupusertag =   True,
+                )
+                for x in range(2000, 20000 + 1, 2000)
+            ]
+    
+    stddev_window = .1
+    min_repeats = 1#10
+    max_repeats = 1#50
+     
+    class ExpExtractor(TwitterWorkflow.ExpExtractor, MetricExtractor):
+        
+        series = [
+            (('twitter_dem_inline', 'all'), 'inlined',
+             'cyan', '-- ^ normal'),
+            (('twitter_dem', 'all'), 'non-inlined',
+             'green', '-- ^ normal'),
+            (('twitter_dem_inline_norcelim', 'all'), 'no RC elim',
+             'red', '-- ^ normal'),
+            (('twitter_dem_inline_notypecheck', 'all'), 'no type checks',
+             'yellow', '-- ^ normal'),
+        ]
+        
+        metric = 'opstime_cpu'
+        
+        ylabel = 'Running time (in seconds)'
+        ymin = 0
+        xlabel = 'x'
+
+class DensityFactorNorm(DensityFactor):
+    
+    class ExpExtractor(NormalizedExtractor,
+                       DensityFactor.ExpExtractor):
+        
+        base_sid = ('twitter_dem_inline', 'all')
+        
+        def normalize(self, pre_y, base_y):
+            return pre_y / base_y
+
+
 class Tag(TwitterWorkflow):
     
     prefix = 'results/twitter_tag'
