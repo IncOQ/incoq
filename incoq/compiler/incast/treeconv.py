@@ -47,7 +47,11 @@ def remove_runtimelib(tree):
 
 
 def normalize_qopt(qstr):
-    return IncMacroProcessor.run(parse_structast(qstr, mode='expr'))
+    from incoq.compiler.central.transform import import_distalgo
+    query = parse_structast(qstr, mode='expr')
+    query = import_distalgo(query)
+    query = IncMacroProcessor.run(query)
+    return query
 
 class OptionsParser(NodeTransformer):
     
