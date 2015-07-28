@@ -55,7 +55,7 @@ class DemCountParamDemCase(unittest.TestCase):
     def setUp(self):
         self.aggr = L.pe('count(DEMQUERY(R, [p1], setmatch(R, "bbu", (p1, p2))))')
         self.spec = AggrSpec.from_node(self.aggr)
-        self.incaggr = IncAggr(self.aggr, self.spec, 'A', 'A', None, False)
+        self.incaggr = IncAggr(self.aggr, self.spec, 'A', 'A', None, False, [])
         self.cg = get_cg_class(self.spec.aggrop)(self.incaggr)
     
     def test_addu(self):
@@ -110,7 +110,7 @@ class DemMinParamNoDemCase(unittest.TestCase):
     def setUp(self):
         self.aggr = L.pe('min(setmatch(R, "bbu", (p1, p2)))')
         self.spec = AggrSpec.from_node(self.aggr)
-        self.incaggr = IncAggr(self.aggr, self.spec, 'A', 'A', None, False)
+        self.incaggr = IncAggr(self.aggr, self.spec, 'A', 'A', None, False, [])
         self.cg = get_cg_class(self.spec.aggrop)(self.incaggr)
     
     def test_addu(self):
@@ -160,7 +160,7 @@ class DemSumNoParamCase(unittest.TestCase):
     def setUp(self):
         self.aggr = L.pe('sum(R)')
         self.spec = AggrSpec.from_node(self.aggr)
-        self.incaggr = IncAggr(self.aggr, self.spec, 'A', 'A', None, False)
+        self.incaggr = IncAggr(self.aggr, self.spec, 'A', 'A', None, False, [])
         self.cg = get_cg_class(self.spec.aggrop)(self.incaggr)
     
     def test_addu(self):
@@ -206,7 +206,7 @@ class NoDemCountParamNoDemCase(unittest.TestCase):
     def setUp(self):
         self.aggr = L.pe('count(setmatch(R, "bbu", (p1, p2)))')
         self.spec = AggrSpec.from_node(self.aggr)
-        self.incaggr = IncAggr(self.aggr, self.spec, 'A', None, None, False)
+        self.incaggr = IncAggr(self.aggr, self.spec, 'A', None, None, False, [])
         self.cg = get_cg_class(self.spec.aggrop)(self.incaggr)
     
     def test_oper_maint_add(self):
@@ -241,7 +241,7 @@ class HalfDemSumParamNoDemCase(unittest.TestCase):
     def setUp(self):
         self.aggr = L.pe('sum(setmatch(R, "bbu", (p1, p2)))')
         self.spec = AggrSpec.from_node(self.aggr)
-        self.incaggr = IncAggr(self.aggr, self.spec, 'A', 'A', None, True)
+        self.incaggr = IncAggr(self.aggr, self.spec, 'A', 'A', None, True, [])
         self.cg = get_cg_class(self.spec.aggrop)(self.incaggr)
     
     def test_addu(self):

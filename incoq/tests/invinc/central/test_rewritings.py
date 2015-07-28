@@ -189,6 +189,21 @@ class RewriterCase(CentralCase):
             ''')
         
         self.assertEqual(tree, exp_tree)
+    
+    def test_eagerdemandrewriter(self):
+        tree = L.p('''
+            x = 1
+            y = 2
+            ''')
+        tree = EagerDemandRewriter.run(tree, 'y', 'Q', ['x', 'y'])
+        
+        exp_tree = L.p('''
+            x = 1
+            y = 2
+            query_Q(x, y)
+            ''')
+        
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':

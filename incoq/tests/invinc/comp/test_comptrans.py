@@ -19,7 +19,7 @@ class TestComp(CentralCase):
                                     'for (y, z) in T}, [], {})')
         spec = CompSpec.from_comp(comp, self.manager.factory)
         inccomp = IncComp(comp, spec, 'Q', False, None, None,
-                          'no', 'das', 'auxonly', [], None)
+                          'no', 'das', 'auxonly', [], None, [])
         inccomp.change_tracker = True
         tree = L.p('''
             S.add(e)

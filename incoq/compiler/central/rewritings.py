@@ -16,6 +16,7 @@ __all__ = [
     'MinMaxRewriter',
     'eliminate_deadcode',
     'PassEliminator',
+    'EagerDemandRewriter',
 ]
 
 
@@ -692,3 +693,30 @@ def eliminate_deadcode(tree, *, keepvars=None, obj_domain_out, verbose=False):
             print('No dead vars eliminated')
     
     return tree
+
+
+class EagerDemandRewriter(L.NodeTransformer):
+    
+    """For a given parameter variable and U-set, rewrite all assignments
+    to the variable so that the new combination of parameter values is
+    immediately demanded.
+    """
+    
+    def __init__(self, param, queryname, uset_params):
+        super().__init__()
+        self.param = param
+        self.queryname = queryname
+        self.uset_params = uset_params
+    
+    def visit_Assign(self, node):
+        if not L.is_varassign(node):
+            return node
+        var, value = L.get_varassign(node)
+        if var != self.param:
+            return node
+        
+        func = L.N.queryfunc(self.queryname)
+        querystmt = L.Expr(L.Call(L.ln(func),
+                                  tuple(L.ln(v) for v in self.uset_params),
+                                  (), None, None))
+        return [node, querystmt]

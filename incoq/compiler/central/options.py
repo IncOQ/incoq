@@ -174,6 +174,10 @@ class DefaultQueryOptions:
     If None, use default.
     """
     uset_lru =              None
+    eager_demand_params =   ()
+    """List of parameters that, when assigned to, trigger demanding
+    the current combination of parameter values (subject to uset_lru).
+    """
     impl =                  None
     """Implementation mode for a query.
         None:        use global options to decide

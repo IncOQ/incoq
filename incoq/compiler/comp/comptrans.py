@@ -55,7 +55,8 @@ class IncComp:
     """A comprehension along with incrementalization info."""
     
     def __init__(self, comp, spec, name, use_uset, uset_name, uset_params,
-                 rc, selfjoin, maint_impl, outsideinvs, uset_lru):
+                 rc, selfjoin, maint_impl, outsideinvs, uset_lru,
+                 eager_demand_params):
         self.comp = comp
         self.spec = spec 
         self.name = name
@@ -67,6 +68,7 @@ class IncComp:
         self.maint_impl = maint_impl
         self.outsideinvs = outsideinvs
         self.uset_lru = uset_lru
+        self.eager_demand_params = eager_demand_params
         
         self.change_tracker = False
         
@@ -476,6 +478,7 @@ def make_inccomp(tree, manager, comp, name, *,
     uset_mode = get(comp, 'uset_mode')
     explicit = get(comp, 'uset_params')
     maint_impl = get(comp, 'maint_impl')
+    eager_demand_params = get(comp, 'eager_demand_params')
     
     no_rc = get(comp, 'no_rc')
     rc_elim = manager.options.get_opt('rc_elim')
@@ -506,7 +509,7 @@ def make_inccomp(tree, manager, comp, name, *,
     
     return IncComp(comp, spec, name, use_uset, L.N.uset(name),
                    uset_params, rc, selfjoin_strat, maint_impl,
-                   outsideinvs, uset_lru)
+                   outsideinvs, uset_lru, eager_demand_params)
 
 def inc_relcomp_helper(tree, manager, inccomp):
     """Incrementalize a comprehension based on an IncComp structure.
@@ -566,6 +569,13 @@ def inc_relcomp_helper(tree, manager, inccomp):
     # If this was an original query, register it with the manager.
     if 'in_original' in inccomp.comp.options:
         manager.original_queryinvs.add(inccomp.name)
+    
+    # Add calls to the query function around uset param updates,
+    # if requested.
+    from incoq.compiler.central.rewritings import EagerDemandRewriter
+    for param in inccomp.eager_demand_params:
+        tree = EagerDemandRewriter.run(tree, param, inccomp.name,
+                                       inccomp.uset_params)
     
     return tree, comps
 

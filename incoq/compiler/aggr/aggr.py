@@ -175,6 +175,8 @@ class IncAggr(Struct):
     """If using demand and this is True, use the "half-demand"
     strategy.
     """
+    eager_demand_params = TypedField(str, seq=True)
+    """Value of same option in aggregate query."""
     
     @property
     def has_demand(self):
@@ -188,7 +190,8 @@ class IncAggr(Struct):
         # so counts aren't needed.
         return not (self.has_demand and not self.half_demand)
     
-    def __init__(self, aggr, spec, name, demname, uset_lru, half_demand):
+    def __init__(self, aggr, spec, name, demname, uset_lru, half_demand,
+                 eager_demand_params):
         self.params = params = tuple(spec.params)
         """Aggregate parameters (same as operand parameters).
         Also same as aggregate demand parameters.
@@ -206,6 +209,9 @@ class IncAggr(Struct):
         
         assert not (half_demand and not self.has_demand), \
             'Can\'t use half-demand strategy when not using demand at all'
+        
+        assert not (len(eager_demand_params) > 0 and not self.has_demand), \
+            'Can\'t use eager parameters when not using demand at all'
 
 
 class AggrCodegen(metaclass=ABCMeta):
@@ -807,13 +813,23 @@ def inc_aggr(tree, manager, aggr, name,
     demname = name if demand else None
     if not demand:
         half_demand = False
-    incaggr = IncAggr(aggr, spec, name, demname, uset_lru, half_demand)
+    eager_demand_params = manager.options.get_queryopt(
+                                            aggr, 'eager_demand_params')
+    incaggr = IncAggr(aggr, spec, name, demname, uset_lru, half_demand,
+                      eager_demand_params)
     
     tree = AggrReplacer.run(tree, manager, incaggr)
     tree = AggrMaintainer.run(tree, manager, incaggr)
     
     if 'in_original' in aggr.options:
         manager.original_queryinvs.add(name)
+    
+    # Add calls to the query function around uset param updates,
+    # if requested.
+    from incoq.compiler.central.rewritings import EagerDemandRewriter
+    for param in incaggr.eager_demand_params:
+        tree = EagerDemandRewriter.run(tree, param, incaggr.name,
+                                       spec.params)
     
     return tree
 
