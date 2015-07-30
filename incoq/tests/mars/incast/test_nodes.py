@@ -1,0 +1,25 @@
+"""Unit tests for nodes.py."""
+
+
+import unittest
+
+import incoq.mars.incast.nodes as L
+
+
+class NodesCase(unittest.TestCase):
+    
+    def test(self):
+        node = L.Name('foo', L.Read())
+        s = L.dump(node)
+        exp_s = L.trim('''
+            Name(id = 'foo',
+                 ctx = Read())
+            ''')
+        self.assertEqual(s, exp_s)
+        
+        with self.assertRaises(TypeError):
+            L.Name(123, L.Read())
+
+
+if __name__ == '__main__':
+    unittest.main()

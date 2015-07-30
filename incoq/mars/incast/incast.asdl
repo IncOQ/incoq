@@ -1,0 +1,50 @@
+module IncAST
+{
+    mod = Module(fun* decls)
+    
+    fun = (identifier name, identifier* args, stmt* body)
+    
+    stmt = Comment(string text)
+         
+         | Return(expr? value)
+         
+         | Assign(identifier* vars, expr value)
+         
+         | For(identifier* vars, expr iter, stmt* body)
+         | While(expr test, stmt* body)
+         | If(expr test, stmt* body, stmt* orelse)
+         
+         | Pass | Break | Continue
+         
+         | Expr(expr value)
+    
+    expr = UnaryOp(unaryop op, expr operand)
+         | BoolOp(boolop op, expr* values)
+         | BinOp(expr left, operator op, expr right)
+         | Compare(expr left, cmpop op, expr right)
+         | IfExp(expr test, expr body, expr orelse)
+         
+         | Comp(expr resexp, clause* clauses)
+         
+         | Call(identifier func, expr* args)
+         
+         | Num(object n)
+         | Str(string s)
+         | Name(identifier id, expr_context ctx)
+         | NameConstant(singleton value)
+         | Tuple(expr* elts, expr_context ctx)
+    
+    clause = Member(identifier* vars, identifier rel)
+           | Cond(expr cond)
+    
+    expr_context = Read | Write
+    
+    boolop = And | Or 
+    
+    operator = Add | Sub | Mult | Div | Mod | Pow | LShift 
+             | RShift | BitOr | BitXor | BitAnd | FloorDiv
+    
+    unaryop = Invert | Not | UAdd | USub
+    
+    cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
+}
