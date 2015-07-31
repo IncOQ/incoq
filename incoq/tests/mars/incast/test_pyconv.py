@@ -1,5 +1,9 @@
 """Unit tests for pyconv.py."""
 
+# We have a simple suite for the node importer, just to verify
+# that some importing is actually being done, and a more complex
+# round-tripper whose test cases are source-level.
+
 
 import unittest
 
@@ -9,31 +13,14 @@ from incoq.mars.incast.pyconv import *
 from incoq.mars.incast.pyconv import IncLangNodeImporter
 
 
-class IncLangNodeParser(P.Parser):
-    
-    @classmethod
-    def parse(cls, *args, **kargs):
-        tree = super().parse(*args, **kargs)
-        tree = IncLangNodeImporter.run(tree)
-        return tree
-
-
-# We have a simple suite for the node importer, just to verify
-# that some importing is actually being done, and a more complex
-# round-tripper whose test cases are source-level.
-
-
 class NodeImporterCase(unittest.TestCase):
     
-    p = P.Parser
-    i = IncLangNodeParser
-    
     def test_name_and_context(self):
-        tree = self.i.pe('a')
+        run = IncLangNodeImporter.run
+        
+        tree = run(P.Name('a', P.Load()))
         exp_tree = L.Name('a', L.Read())
         self.assertEqual(tree, exp_tree)
-        
-        run = IncLangNodeImporter.run
         
         tree = run(P.Name('a', P.Store()))
         exp_tree = L.Name('a', L.Write())
@@ -44,11 +31,15 @@ class NodeImporterCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
     
     def test_trivial_nodes(self):
-        node = self.i.ps('pass')
-        exp_node = L.Pass()
-        self.assertEqual(node, exp_node)
+        run = IncLangNodeImporter.run
         
-        tree = self.i.pe('a + b')
+        tree = run(P.Pass())
+        exp_tree = L.Pass()
+        self.assertEqual(tree, exp_tree)
+        
+        tree = run(P.BinOp(P.Name('a', P.Load()),
+                           P.Add(),
+                           P.Name('b', P.Load())))
         exp_tree = L.BinOp(L.Name('a', L.Read()),
                            L.Add(),
                            L.Name('b', L.Read()))
@@ -58,19 +49,19 @@ class NodeImporterCase(unittest.TestCase):
 class RoundTripCase(unittest.TestCase):
     
     def setUp(self):
-        class trip(P.Parser):
+        class trip(P.ExtractMixin):
+            """Parse source as Python code, round-trip it through
+            importing and exporting, then compare that it matches
+            the tree parsed from exp_source.
+            """
             @classmethod
-            def p(cls, source, exp_source=None, *, mode=None):
-                """Parse source as Python code, round-trip it through
-                importing and exporting, then compare that it matches
-                the tree parsed from exp_source.
-                """
+            def action(cls, source, exp_source=None, *, mode=None):
                 if exp_source is None:
                     exp_source = source
-                tree = super().p(source, mode=mode)
+                tree = P.Parser.action(source, mode=mode)
                 tree = import_incast(tree)
                 tree = export_incast(tree)
-                exp_tree = super().p(exp_source, mode=mode)
+                exp_tree = P.Parser.action(exp_source, mode=mode)
                 self.assertEqual(tree, exp_tree)
         
         self.trip = trip

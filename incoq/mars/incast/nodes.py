@@ -16,7 +16,7 @@ from os.path import join, dirname
 
 from iast import parse_asdl, nodes_from_asdl
 
-from . import iast_exports
+from . import iast_common
 
 
 # Read and generate nodes from incast.asdl.
@@ -34,6 +34,6 @@ for name, node in incast_nodes.items():
     globals()[name] = node
 
 # Flood the module namespace with iAST exports.
-for k, v in iast_exports.__dict__.items():
+for k, v in iast_common.__dict__.items():
     __all__.append(k)
     globals()[k] = v

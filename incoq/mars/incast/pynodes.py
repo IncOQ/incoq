@@ -28,7 +28,8 @@ from iast.python.python34 import (parse as _parse, extract_tree,
                                   MacroProcessor, ContextSetter,
                                   py_nodes as python_nodes)
 
-from . import iast_exports
+from . import iast_common
+from .iast_common import ExtractMixin
 from .unparse import Unparser
 
 
@@ -38,18 +39,18 @@ for name, node in python_nodes.items():
     globals()[name] = node
 
 # Flood the module namespace with iAST exports.
-for k, v in iast_exports.__dict__.items():
+for k, v in iast_common.__dict__.items():
     __all__.append(k)
     globals()[k] = v
 
 
-class Parser:
+class Parser(ExtractMixin):
     
     """Namespace for parsing functions."""
     
     @classmethod
-    def parse(cls, source, *, mode=None, #subst=None,
-              patterns=False):
+    def action(cls, source, *, mode=None, #subst=None,
+               patterns=False):
         """Version of iast.python.python34.parse() that also runs
         extract_tree(), subst(), and can be used on patterns.
         """
@@ -57,35 +58,14 @@ class Parser:
         tree = extract_tree(tree, mode)
         if patterns:
             tree = make_pattern(tree)
+        # TODO: Re-enable subst
 #        if subst is not None:
 #            tree = Templater.run(tree, subst)
         return tree
     
-    # Aliases and shorthands.
-    
     @classmethod
-    def p(cls, *args, **kargs):
-        return cls.parse(*args, **kargs)
-    
-    @classmethod
-    def pc(cls, *args, **kargs):
-        return cls.p(*args, mode='code', **kargs)
-    
-    @classmethod
-    def ps(cls, *args, **kargs):
-        return cls.p(*args, mode='stmt', **kargs)
-    
-    @classmethod
-    def pe(cls, *args, **kargs):
-        return cls.p(*args, mode='expr', **kargs)
-    
-    @classmethod
-    def unparse(cls, tree):
+    def unaction(cls, tree):
         """Convert to source code string."""
         # The unparser package requires native Python nodes.
         tree = structToPy(tree)
         return Unparser.to_source(tree)
-    
-    @classmethod
-    def ts(cls, *args, **kargs):
-        return cls.unparse(*args, **kargs)

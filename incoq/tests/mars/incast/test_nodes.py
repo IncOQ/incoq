@@ -10,12 +10,12 @@ class NodesCase(unittest.TestCase):
     
     def test(self):
         node = L.Name('foo', L.Read())
-        s = L.dump(node)
-        exp_s = L.trim('''
+        source = L.dump(node)
+        exp_source = L.trim('''
             Name(id = 'foo',
                  ctx = Read())
             ''')
-        self.assertEqual(s, exp_s)
+        self.assertEqual(source, exp_source)
         
         with self.assertRaises(TypeError):
             L.Name(123, L.Read())

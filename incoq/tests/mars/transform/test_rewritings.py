@@ -10,32 +10,29 @@ from incoq.mars.transform.rewritings import *
 class ImportPreprocessorCase(unittest.TestCase):
     
     def setUp(self):
-        class trip:
+        class check(P.ExtractMixin):
+            """Check that the input code matches the expected
+            output code.
+            """
             @classmethod
-            def p(cls, source, exp_source=None, *, mode=None):
+            def action(cls, source, exp_source=None, *, mode=None):
                 if exp_source is None:
                     exp_source = source
-                tree = P.Parser.p(source, mode=mode)
+                tree = P.Parser.action(source, mode=mode)
                 tree = ImportPreprocessor.run(tree)
-                exp_tree = P.Parser.p(exp_source, mode=mode)
+                exp_tree = P.Parser.action(exp_source, mode=mode)
                 self.assertEqual(tree, exp_tree)
-            @classmethod
-            def pc(cls, *args, **kargs):
-                return cls.p(*args, mode='code', **kargs)
-            @classmethod
-            def pe(cls, *args, **kargs):
-                return cls.p(*args, mode='expr', **kargs)
         
-        self.trip = trip
+        self.check = check
     
     def test_assignment(self):
-        self.trip.pc('a = b')
-        self.trip.pc('a, b = c')
-        self.trip.pc('a = b = c', 'b = c; a = b')
+        self.check.pc('a = b')
+        self.check.pc('a, b = c')
+        self.check.pc('a = b = c', 'b = c; a = b')
     
     def test_comparisons(self):
-        self.trip.pe('a < b')
-        self.trip.pe('a < b < c', 'a < b and b < c')
+        self.check.pe('a < b')
+        self.check.pe('a < b < c', 'a < b and b < c')
 
 
 if __name__ == '__main__':
