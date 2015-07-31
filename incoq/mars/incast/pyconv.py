@@ -8,8 +8,6 @@ __all__ = [
 ]
 
 
-from incoq.util.seq import pairs
-
 from . import nodes as L
 from . import pynodes as P
 
@@ -47,44 +45,6 @@ class NodeMapper(L.NodeVisitor):
         children = tuple(self.visit(getattr(node, field))
                          for field in node._fields)
         return cls(*children)
-
-
-class ImportPreprocessor(L.NodeTransformer):
-    
-    """Preprocessor for Python code that eliminates some features
-    that can't be directly expressed in IncAST.
-    """
-    
-    def visit_Assign(self, node):
-        node = self.generic_visit(node)
-        
-        # Translate multiple assignments as a single statement
-        # (e.g. "a = b = c") into sequential single assignments.
-        if len(node.targets) > 1:
-            stmts = []
-            values = list(node.targets) + [node.value]
-            for lhs, rhs in reversed(list(pairs(values))):
-                rhs_load = P.ContextSetter.run(rhs, P.Load)
-                stmts.append(P.Assign([lhs], rhs_load))
-            node = stmts
-        
-        return node
-    
-    def visit_Compare(self, node):
-        node = self.generic_visit(node)
-        
-        # Translate multiple comparisons into conjunctions of
-        # each individual comparison.
-        assert len(node.ops) == len(node.comparators) > 0
-        if len(node.ops) > 1:
-            conds = []
-            values = [node.left] + list(node.comparators)
-            for i in range(len(values) - 1):
-                conds.append(P.Compare(values[i], [node.ops[i]],
-                                       [values[i + 1]]))
-            node = P.BoolOp(P.And(), conds)
-        
-        return node
 
 
 class IncLangNodeImporter(L.AdvNodeVisitor, NodeMapper):
@@ -222,7 +182,6 @@ for name in trivial_nodes:
 
 def import_incast(tree):
     """Convert a Python tree to an IncAST tree."""
-    tree = ImportPreprocessor.run(tree)
     tree = IncLangNodeImporter.run(tree)
     return tree
 

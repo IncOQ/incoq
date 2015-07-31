@@ -94,18 +94,9 @@ class RoundTripCase(unittest.TestCase):
                         pass
                 ''')
     
-    def test_assignment(self):
-        self.trip.pc('a = b')
-        self.trip.pc('a, b = c')
-        self.trip.pc('a = b = c', 'b = c; a = b')
-    
     def test_loops(self):
         self.trip.ps('for x in S: continue')
         self.trip.ps('while True: break')
-    
-    def test_comparisons(self):
-        self.trip.pe('a < b')
-        self.trip.pe('a < b < c', 'a < b and b < c')
     
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')
