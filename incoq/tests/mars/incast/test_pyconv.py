@@ -72,6 +72,7 @@ class RoundTripCase(unittest.TestCase):
     def test_trivial(self):
         self.trip.pe('a + b')
         self.trip.pe('a and b')
+        self.trip.pe('o.f.g')
     
     def test_functions(self):
         self.trip.ps('''

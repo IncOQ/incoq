@@ -32,6 +32,7 @@ module IncAST
          
          | Name(identifier id, expr_context ctx)
          | Tuple(expr* elts, expr_context ctx)
+         | Attribute(expr value, identifier attr, expr_context ctx)
          
          | Comp(expr resexp, clause* clauses)
     

@@ -19,7 +19,7 @@ trivial_nodes = [
     'Return', 'If', 'Expr', 'Pass', 'Break', 'Continue',
     
     'UnaryOp', 'BoolOp', 'BinOp', 'IfExp',
-    'Num', 'Str', 'NameConstant', 'Name', 'Tuple',
+    'Num', 'Str', 'NameConstant', 'Name', 'Tuple', 'Attribute',
     
     'And', 'Or',
     'Add', 'Sub', 'Mult', 'Div', 'Mod', 'Pow', 'LShift',
@@ -290,7 +290,6 @@ class IncLangNodeExporter(NodeMapper):
         # We don't know whether this is Store or Del context,
         # so just set it to Load so it's explicitly invalid.
         return P.Load()
-
 
 for name in trivial_nodes:
     setattr(IncLangNodeExporter, 'visit_' + name,
