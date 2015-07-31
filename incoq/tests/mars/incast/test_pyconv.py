@@ -111,5 +111,19 @@ class RoundTripCase(unittest.TestCase):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')
 
 
+class ParserCase(unittest.TestCase):
+    
+    def test_parse(self):
+        tree = Parser.pe('a')
+        exp_tree = L.Name('a', L.Read())
+        self.assertEqual(tree, exp_tree)
+    
+    def test_unparse(self):
+        tree = Parser.pe('a + b')
+        source = Parser.ts(tree)
+        exp_source = '(a + b)'
+        self.assertEqual(source, exp_source)
+
+
 if __name__ == '__main__':
     unittest.main()

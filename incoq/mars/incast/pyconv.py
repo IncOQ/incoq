@@ -4,6 +4,7 @@
 __all__ = [
     'import_incast',
     'export_incast',
+    'Parser',
 ]
 
 
@@ -341,3 +342,21 @@ def export_incast(tree):
     """
     tree = IncLangNodeExporter.run(tree)
     return tree
+
+
+class Parser(P.Parser):
+    
+    """Parser for IncAST based on the one for Python and the
+    import/export functions.
+    """
+    
+    @classmethod
+    def parse(cls, *args, **kargs):
+        tree = super().parse(*args, **kargs)
+        tree = import_incast(tree)
+        return tree
+    
+    @classmethod
+    def unparse(cls, tree):
+        tree = export_incast(tree)
+        return super().unparse(tree)

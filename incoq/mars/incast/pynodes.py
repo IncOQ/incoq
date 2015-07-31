@@ -25,6 +25,8 @@ from iast.python.python34 import (parse as _parse, extract_tree,
                                   MacroProcessor, ContextSetter,
                                   py_nodes as python_nodes)
 
+from .unparse import Unparser
+
 
 # Flood the module namespace with python nodes.
 for name, node in python_nodes.items():
@@ -67,3 +69,14 @@ class Parser:
     @classmethod
     def pe(cls, *args, **kargs):
         return cls.p(*args, mode='expr', **kargs)
+    
+    @classmethod
+    def unparse(cls, tree):
+        """Convert to source code string."""
+        # The unparser package requires native Python nodes.
+        tree = structToPy(tree)
+        return Unparser.to_source(tree)
+    
+    @classmethod
+    def ts(cls, *args, **kargs):
+        return cls.unparse(*args, **kargs)
