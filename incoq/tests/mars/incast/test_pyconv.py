@@ -1,9 +1,5 @@
 """Unit tests for pyconv.py."""
 
-# We have a simple suite for the node importer, just to verify
-# that some importing is actually being done, and a more complex
-# round-tripper whose test cases are source-level.
-
 
 import unittest
 
@@ -14,6 +10,10 @@ from incoq.mars.incast.pyconv import IncLangNodeImporter
 
 
 class NodeImporterCase(unittest.TestCase):
+    
+    # This is just a simple test suite to verify that some
+    # importing is actually being done. More rigorous tests
+    # that are source-level are done below in the round-tripper.
     
     def test_name_and_context(self):
         run = IncLangNodeImporter.run
@@ -85,6 +85,8 @@ class RoundTripCase(unittest.TestCase):
                     def g():
                         pass
                 ''')
+        with self.assertRaises(TypeError):
+            self.trip.ps('f.g(x)')
     
     def test_loops(self):
         self.trip.ps('for x in S: continue')
@@ -101,10 +103,33 @@ class ParserCase(unittest.TestCase):
         exp_tree = L.Name('a', L.Read())
         self.assertEqual(tree, exp_tree)
     
-    def test_unparse(self):
+    def test_unparse_basic(self):
         tree = Parser.pe('a + b')
         source = Parser.ts(tree)
         exp_source = '(a + b)'
+        self.assertEqual(source, exp_source)
+    
+    def test_unparse_extras(self):
+        # Also check cases of unparsing IncAST nodes that normally
+        # don't appear (at least not by themselves) in complete
+        # programs.
+        pe = Parser.pe
+        ts = Parser.ts
+        
+        source = ts(L.GeneralCall(pe('a + b'), [pe('c')]))
+        exp_source = '(a + b)(c)'
+        self.assertEqual(source, exp_source)
+        
+        source = ts(L.Member(['x', 'y'], 'R'))
+        exp_source = ' for (x, y) in R'
+        self.assertEqual(source, exp_source)
+        
+        source = ts(L.Cond(pe('True')))
+        exp_source = 'True'
+        self.assertEqual(source, exp_source)
+        
+        source = ts(L.Read())
+        exp_source = '<Unknown node "Load">'
         self.assertEqual(source, exp_source)
 
 

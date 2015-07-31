@@ -24,6 +24,7 @@ module IncAST
          | Compare(expr left, cmpop op, expr right)
          | IfExp(expr test, expr body, expr orelse)
          
+         | GeneralCall(expr func, expr* args)
          | Call(identifier func, expr* args)
          
          | Num(object n)

@@ -163,10 +163,8 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
                 node.starargs is node.kwargs is None):
             raise TypeError('IncAST does not allow keyword args, '
                             '*args, or **kwargs')
-        if not isinstance(node.func, P.Name):
-            raise TypeError('IncAST function calls must be directly '
-                            'by function name')
-        return L.Call(node.func.id, self.visit(node.args))
+        return L.GeneralCall(self.visit(node.func),
+                             self.visit(node.args))
     
     def visit_Load(self, node):
         return L.Read()
@@ -182,9 +180,25 @@ for name in trivial_nodes:
             IncLangNodeImporter.trivial_handler)
 
 
+class CallSimplifier(L.NodeTransformer):
+    
+    """Replace GeneralCall nodes with Call nodes.
+    Raise an exception if this isn't possible.
+    """
+    
+    def visit_GeneralCall(self, node):
+        node = self.generic_visit(node)
+        
+        if not isinstance(node.func, L.Name):
+            raise TypeError('IncAST function calls must be directly '
+                            'by function name')
+        return L.Call(node.func.id, node.args)
+
+
 def import_incast(tree):
     """Convert a Python tree to an IncAST tree."""
     tree = IncLangNodeImporter.run(tree)
+    tree = CallSimplifier.run(tree)
     return tree
 
 
@@ -193,6 +207,10 @@ class IncLangNodeExporter(NodeMapper):
     """Construct a parallel tree of Python nodes given a tree of
     IncAST nodes.
     """
+    
+    # Not all IncAST nodes should appear in complete programs.
+    # But we still need to be able to convert every node into
+    # Python, in order to unparse them (e.g. for debugging).
     
     target_lang = P
     
@@ -249,6 +267,11 @@ class IncLangNodeExporter(NodeMapper):
                          [self.visit(node.op)],
                          [self.visit(node.right)])
     
+    def visit_GeneralCall(self, node):
+        return P.Call(self.visit(node.func),
+                      self.visit(node.args),
+                      [], None, None)
+    
     def visit_Call(self, node):
         return P.Call(self.name_handler(node.func),
                       self.visit(node.args),
@@ -274,7 +297,7 @@ class IncLangNodeExporter(NodeMapper):
         return P.SetComp(self.visit(node.resexp), generators)
     
     # Member and Cond are handled by the case for Comp, but these
-    # cases are still needed if we want to convert clauses in isolation.
+    # cases are still needed to convert clauses in isolation.
     
     def visit_Member(self, node):
         target = self.vars_handler(node.vars)
