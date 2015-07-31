@@ -2,14 +2,95 @@
 
 
 __all__ = [
+    'MacroExpander',
     'import_incast',
     'export_incast',
     'Parser',
 ]
 
 
+from functools import partial
+
 from . import nodes as L
 from . import pynodes as P
+
+
+class MacroExpander(L.PatternTransformer):
+    
+    """Transformer for expanding function/method call macros.
+    Analogous to iast.python.python34.MacroProcessor.
+    
+    A call macro is a GeneralCall node that has one of the following
+    forms:
+    
+        <func>(<args>)           (function macro)
+        <recv>.<func>(<args>)    (method macro)
+    
+    where <func> is a Name node or identifier respectively, <recv>
+    is an expression AST, and <args> is a list of argument expression
+    ASTs. Each of these forms can be either an expression macro or a
+    statement macro.
+    
+    A subclass of MacroExpander defines handler methods with the
+    name format and signature
+    
+        handle_<form>_<func>(self, func, *args)
+    
+    <form> is one of the strings 'fe', 'fs', 'me', or 'ms' indicating
+    whether the handler is for a function or method macro and for an
+    expression or statement macro. <func> is the macro's name, i.e.
+    the identifier that will be used to find occurrences of the macro.
+    
+    The handler is called with <func> as its first argument (so the
+    same handler can service multiple macros). The remaining arguments
+    are the ASTs corresponding to <recv> (for method macros only) and
+    each argument in <args>. The handler returns the expression or
+    statement AST to substitute for the occurrence of the macro.
+    
+    Nested macros are processed in a bottom-up order.
+    """
+    
+    func_expr_pattern = L.GeneralCall(L.Name(L.PatVar('_func'), L.Read()),
+                                      L.PatVar('_args'))
+    
+    meth_expr_pattern = L.GeneralCall(L.Attribute(L.PatVar('_recv'),
+                                                  L.PatVar('_func'),
+                                                  L.Read()),
+                                      L.PatVar('_args'))
+    
+    func_stmt_pattern = L.Expr(func_expr_pattern)
+    
+    meth_stmt_pattern = L.Expr(meth_expr_pattern)
+    
+    def dispatch(self, prefix, *, _recv=None,
+                 _func, _args):
+        """Dispatcher to a macro handler. prefix is one of the
+        macro type strings ('fe', etc.). _recv is the AST of the
+        receiver object in the case of method macros. _func is
+        a string and _args is a sequence of ASTs.
+        """
+        handler = getattr(self, prefix + _func, None)
+        # No change if pattern does not correspond to any macro.
+        if handler is None:
+            return
+        
+        if _recv is not None:
+            _args = (_recv,) + _args
+        
+        return handler(_func, *_args)
+    
+    def __init__(self):
+        super().__init__()
+        self.rules = [
+            (self.func_expr_pattern,
+             partial(self.dispatch, prefix='handle_fe_')),
+            (self.func_stmt_pattern,
+             partial(self.dispatch, prefix='handle_fs_')),
+            (self.meth_expr_pattern,
+             partial(self.dispatch, prefix='handle_me_')),
+            (self.meth_stmt_pattern,
+             partial(self.dispatch, prefix='handle_ms_')),
+        ]
 
 
 # Trivial nodes are nodes that exist in both languages and whose

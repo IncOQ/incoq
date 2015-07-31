@@ -9,6 +9,23 @@ from incoq.mars.incast.pyconv import *
 from incoq.mars.incast.pyconv import IncLangNodeImporter
 
 
+class MacroExpanderCase(unittest.TestCase):
+    
+    def test_expansion(self):
+        class A(MacroExpander):
+            def handle_ms_add(self_, func, a, b):
+                self.assertEqual(func, 'add')
+                assert isinstance(a, L.Num)
+                assert isinstance(b, L.Num)
+                return L.Num(a.n + b.n)
+        
+        tree = P.Parser.ps('(2).add(3)')
+        tree = IncLangNodeImporter.run(tree)
+        tree = A.run(tree)
+        exp_tree = L.Num(5)
+        self.assertEqual(tree, exp_tree)
+
+
 class NodeImporterCase(unittest.TestCase):
     
     # This is just a simple test suite to verify that some
