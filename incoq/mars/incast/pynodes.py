@@ -9,9 +9,12 @@ __all__ = [
     # Programmatically include Python nodes.
     # ...
     
+    # Programmatically re-export iAST features.
+    # ...
+    
     'Parser',
     
-    # Exports from iast.
+    # Additional Python-specific exports from iAST.
     'pyToStruct',
     'structToPy',
     'MacroProcessor',
@@ -25,6 +28,7 @@ from iast.python.python34 import (parse as _parse, extract_tree,
                                   MacroProcessor, ContextSetter,
                                   py_nodes as python_nodes)
 
+from . import iast_exports
 from .unparse import Unparser
 
 
@@ -32,6 +36,11 @@ from .unparse import Unparser
 for name, node in python_nodes.items():
     __all__.append(name)
     globals()[name] = node
+
+# Flood the module namespace with iAST exports.
+for k, v in iast_exports.__dict__.items():
+    __all__.append(k)
+    globals()[k] = v
 
 
 class Parser:

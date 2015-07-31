@@ -29,6 +29,7 @@ trivial_nodes = [
 ]
 
 
+# Note L.NodeVisitor == P.NodeVisitor.
 class NodeMapper(L.NodeVisitor):
     
     """Mixin for conversion of trivial nodes."""
@@ -47,7 +48,7 @@ class NodeMapper(L.NodeVisitor):
         return cls(*children)
 
 
-class IncLangNodeImporter(L.AdvNodeVisitor, NodeMapper):
+class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     
     """Construct a parallel tree of IncAST nodes given a tree of Python
     nodes. Fail if there are constructs that have no equivalent IncAST
@@ -56,8 +57,9 @@ class IncLangNodeImporter(L.AdvNodeVisitor, NodeMapper):
     
     target_lang = L
     
-    # Override from NodeMapper to accomodate AdvNodeVisitor's need to
-    # track the _index argument for the visit stack.
+    # AdvNodeVisitor refines NodeVisitor, which NodeMapper extends.
+    # We need to override seq_visit to accommodate AdvNodeVisitor's
+    # need to track the _index argument for the visit stack.
     def seq_visit(self, seq):
         return tuple(self.visit(item, _index=i)
                      for i, item in enumerate(seq))

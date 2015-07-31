@@ -7,10 +7,10 @@ __all__ = [
 
 
 from incoq.util.seq import pairs
-from incoq.mars.incast import L, P
+from incoq.mars.incast import P
 
 
-class ImportPreprocessor(L.NodeTransformer):
+class ImportPreprocessor(P.NodeTransformer):
     
     """Preprocessor for Python code that eliminates some features
     that can't be directly expressed in IncAST.
