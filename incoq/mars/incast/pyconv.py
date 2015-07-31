@@ -18,7 +18,7 @@ from . import pynodes as P
 trivial_nodes = [
     'Return', 'If', 'Expr', 'Pass', 'Break', 'Continue',
     
-    'BoolOp', 'BinOp', 'UnaryOp', 'IfExp',
+    'UnaryOp', 'BoolOp', 'BinOp', 'IfExp',
     'Num', 'Str', 'NameConstant', 'Name', 'Tuple',
     
     'And', 'Or',
@@ -231,10 +231,6 @@ class IncLangNodeExporter(NodeMapper):
 #    def visit_Comment(self, node):
 #        pass
     
-    def visit_Assign(self, node):
-        target = self.vars_handler(node.vars)
-        return P.Assign([target], self.visit(node.value))
-    
     def visit_For(self, node):
         target = self.vars_handler(node.vars)
         return P.For(target, self.visit(node.iter),
@@ -244,10 +240,19 @@ class IncLangNodeExporter(NodeMapper):
         return P.While(self.visit(node.test),
                        self.visit(node.body), [])
     
+    def visit_Assign(self, node):
+        target = self.vars_handler(node.vars)
+        return P.Assign([target], self.visit(node.value))
+    
     def visit_Compare(self, node):
         return P.Compare(self.visit(node.left),
                          [self.visit(node.op)],
                          [self.visit(node.right)])
+    
+    def visit_Call(self, node):
+        return P.Call(self.name_handler(node.func),
+                      self.visit(node.args),
+                      [], None, None)
     
     def visit_Comp(self, node):
         assert (len(node.clauses) > 0 and
@@ -267,11 +272,6 @@ class IncLangNodeExporter(NodeMapper):
             else:
                 assert()
         return P.SetComp(self.visit(node.resexp), generators)
-    
-    def visit_Call(self, node):
-        return P.Call(self.name_handler(node.func),
-                      self.visit(node.args),
-                      [], None, None)
     
     # Member and Cond are handled by the case for Comp, but these
     # cases are still needed if we want to convert clauses in isolation.

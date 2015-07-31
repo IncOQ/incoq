@@ -8,8 +8,6 @@ module IncAST
          
          | Return(expr? value)
          
-         | Assign(identifier* vars, expr value)
-         
          | For(identifier* vars, expr iter, stmt* body)
          | While(expr test, stmt* body)
          | If(expr test, stmt* body, stmt* orelse)
@@ -17,6 +15,8 @@ module IncAST
          | Pass | Break | Continue
          
          | Expr(expr value)
+         
+         | Assign(identifier* vars, expr value)
     
     expr = UnaryOp(unaryop op, expr operand)
          | BoolOp(boolop op, expr* values)
@@ -24,15 +24,16 @@ module IncAST
          | Compare(expr left, cmpop op, expr right)
          | IfExp(expr test, expr body, expr orelse)
          
-         | Comp(expr resexp, clause* clauses)
-         
          | Call(identifier func, expr* args)
          
          | Num(object n)
          | Str(string s)
-         | Name(identifier id, expr_context ctx)
          | NameConstant(singleton value)
+         
+         | Name(identifier id, expr_context ctx)
          | Tuple(expr* elts, expr_context ctx)
+         
+         | Comp(expr resexp, clause* clauses)
     
     clause = Member(identifier* vars, identifier rel)
            | Cond(expr cond)
