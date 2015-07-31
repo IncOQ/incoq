@@ -8,7 +8,8 @@ import incoq.mars.incast.nodes as L
 
 class NodesCase(unittest.TestCase):
     
-    def test(self):
+    def test_basic(self):
+        # Check basic node construction.
         node = L.Name('foo', L.Read())
         source = L.dump(node)
         exp_source = L.trim('''

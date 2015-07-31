@@ -46,7 +46,7 @@ for k, v in iast_common.__dict__.items():
 
 class Parser(ExtractMixin):
     
-    """Namespace for parsing functions."""
+    """Struct Python parser/unparser."""
     
     @classmethod
     def action(cls, source, *, mode=None, #subst=None,

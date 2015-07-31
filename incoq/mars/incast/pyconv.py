@@ -50,8 +50,8 @@ class NodeMapper(L.NodeVisitor):
 
 class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     
-    """Construct a parallel tree of IncAST nodes given a tree of Python
-    nodes. Fail if there are constructs that have no equivalent IncAST
+    """Constructs a parallel tree of IncAST nodes given a tree of Python
+    nodes. Fails if there are constructs that have no equivalent IncAST
     representation.
     """
     
@@ -182,8 +182,8 @@ for name in trivial_nodes:
 
 class CallSimplifier(L.NodeTransformer):
     
-    """Replace GeneralCall nodes with Call nodes.
-    Raise an exception if this isn't possible.
+    """Replaces GeneralCall nodes with Call nodes. Fails if this
+    isn't possible.
     """
     
     def visit_GeneralCall(self, node):
@@ -204,7 +204,7 @@ def import_incast(tree):
 
 class IncLangNodeExporter(NodeMapper):
     
-    """Construct a parallel tree of Python nodes given a tree of
+    """Constructs a parallel tree of Python nodes given a tree of
     IncAST nodes.
     """
     
