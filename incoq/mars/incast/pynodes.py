@@ -38,10 +38,9 @@ for name, node in python_nodes.items():
     __all__.append(name)
     globals()[name] = node
 
-# Flood the module namespace with iAST exports.
-for k, v in iast_common.__dict__.items():
+for k in iast_common.__all__:
     __all__.append(k)
-    globals()[k] = v
+    globals()[k] = getattr(iast_common, k)
 
 
 class Parser(ExtractMixin):
