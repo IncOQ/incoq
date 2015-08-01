@@ -48,7 +48,7 @@ class Parser(ExtractMixin):
     """Struct Python parser/unparser."""
     
     @classmethod
-    def action(cls, source, *, mode=None, #subst=None,
+    def action(cls, source, *, mode=None, subst=None,
                patterns=False):
         """Version of iast.python.python34.parse() that also runs
         extract_tree(), subst(), and can be used on patterns.
@@ -57,14 +57,16 @@ class Parser(ExtractMixin):
         tree = extract_tree(tree, mode)
         if patterns:
             tree = make_pattern(tree)
-        # TODO: Re-enable subst
-#        if subst is not None:
-#            tree = Templater.run(tree, subst)
+        if subst is not None:
+            tree = Templater.run(tree, subst)
         return tree
     
     @classmethod
     def unaction(cls, tree):
         """Convert to source code string."""
         # The unparser package requires native Python nodes.
-        tree = structToPy(tree)
+        if isinstance(tree, tuple):
+            tree = tuple(structToPy(item) for item in tree)
+        else:
+            tree = structToPy(tree)
         return Unparser.to_source(tree)

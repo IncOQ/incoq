@@ -10,8 +10,9 @@ import incoq.mars.incast.pynodes as P
 class PynodesCase(unittest.TestCase):
     
     def test_parse(self):
-        tree = P.Parser.ps('a = _b', patterns=True)
-        exp_tree = P.Assign(targets = (P.Name(id = 'a',
+        tree = P.Parser.ps('a = _b', patterns=True,
+                           subst={'a': P.Name('c', P.Store())})
+        exp_tree = P.Assign(targets = (P.Name(id = 'c',
                                               ctx = P.Store()),),
                             value = L.PatVar(id = '_b'))
         self.assertEqual(tree, exp_tree)

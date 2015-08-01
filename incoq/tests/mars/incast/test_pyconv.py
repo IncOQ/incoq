@@ -9,6 +9,68 @@ from incoq.mars.incast.pyconv import *
 from incoq.mars.incast.pyconv import IncLangNodeImporter
 
 
+class TemplaterCase(unittest.TestCase):
+    
+    def test_name(self):
+        tree = Parser.pc('''
+            a = a + b
+            ''')
+        tree = Templater.run(tree, subst={'a': L.Name('c', L.Read())})
+        exp_tree = Parser.pc('''
+            a = c + b
+            ''')
+        self.assertEqual(tree, exp_tree)
+    
+    def test_ident(self):
+        tree = Parser.pc('''
+            def a(a):
+                for a, b in a:
+                    a, b = a
+                    a.add(a)
+                    a.reladd(a)
+                    a(a.a)
+                    {a for a in a if a}
+            ''')
+        tree = Templater.run(tree, subst={'a': 'c'})
+        exp_tree = Parser.pc('''
+            def c(c):
+                for c, b in c:
+                    c, b = c
+                    c.add(c)
+                    c.reladd(c)
+                    c(c.c)
+                    {c for c in c if c}
+            ''')
+        self.assertEqual(tree, exp_tree)
+    
+    def test_code(self):
+        tree = Parser.pc('''
+            a
+            C
+            ''')
+        tree = Templater.run(tree, subst={'<c>C':
+                                          L.Expr(L.Name('b', L.Read()))})
+        exp_tree = Parser.pc('''
+            a
+            b
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.pc('''
+            a
+            C
+            ''')
+        tree = Templater.run(tree, subst={'<c>C':
+                                          (L.Expr(L.Name('b', L.Read())),
+                                           L.Expr(L.Name('c', L.Read())))})
+        exp_tree = Parser.pc('''
+            a
+            b
+            c
+            ''')
+        self.assertEqual(tree, exp_tree)
+
+
 class MacroExpanderCase(unittest.TestCase):
     
     def test_expansion(self):
@@ -137,6 +199,13 @@ class ParserCase(unittest.TestCase):
     def test_parse(self):
         tree = Parser.pe('a')
         exp_tree = L.Name('a', L.Read())
+        self.assertEqual(tree, exp_tree)
+    
+    def test_subst(self):
+        tree = Parser.pe('a + b', subst={'a': L.Name('c', L.Read())})
+        exp_tree = L.BinOp(L.Name('c', L.Read()),
+                           L.Add(),
+                           L.Name('b', L.Read()))
         self.assertEqual(tree, exp_tree)
     
     def test_unparse_basic(self):
