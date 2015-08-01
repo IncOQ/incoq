@@ -92,18 +92,31 @@ class RoundTripCase(unittest.TestCase):
         self.trip.pe('o.f.g')
     
     def test_functions(self):
+        # Basic definition and call.
         self.trip.ps('''
             def f(a, b):
                 print(a, b)
             ''')
+        
+        # Disallow inner functions.
         with self.assertRaises(TypeError):
             self.trip.ps('''
                 def f():
                     def g():
                         pass
                 ''')
+        
+        # Disallow general calls.
         with self.assertRaises(TypeError):
             self.trip.ps('f.g(x)')
+        
+        # Modules must consist of functions.
+        self.trip.p('''
+            def f():
+                pass
+            ''')
+        with self.assertRaises(TypeError):
+            self.trip.p('x = 1')
     
     def test_loops(self):
         self.trip.ps('for x in S: continue')

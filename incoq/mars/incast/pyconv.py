@@ -181,8 +181,8 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         return L.Module(self.visit(node.body))
     
     def visit_FunctionDef(self, node):
-        if (len(self._visit_stack) > 1 and
-            not isinstance(self._visit_stack[-2], P.Module)):
+        if (len(self._visit_stack) >= 3 and
+            not isinstance(self._visit_stack[-3], P.Module)):
             raise TypeError('IncAST does not allow non-top-level functions')
         
         a = node.args
