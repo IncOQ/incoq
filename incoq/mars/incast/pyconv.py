@@ -397,10 +397,9 @@ class CallSimplifier(L.NodeTransformer):
     def visit_GeneralCall(self, node):
         node = self.generic_visit(node)
         
-        if not isinstance(node.func, L.Name):
-            raise TypeError('IncAST function calls must be directly '
-                            'by function name')
-        return L.Call(node.func.id, node.args)
+        if isinstance(node.func, L.Name):
+            node = L.Call(node.func.id, node.args)
+        return node
 
 
 def import_incast(tree):

@@ -88,35 +88,31 @@ class MacroExpanderCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
 
 
-class NodeImporterCase(unittest.TestCase):
+class ImportCase(unittest.TestCase):
     
     # This is just a simple test suite to verify that some
     # importing is actually being done. More rigorous tests
     # that are source-level are done below in the round-tripper.
     
     def test_name_and_context(self):
-        run = IncLangNodeImporter.run
-        
-        tree = run(P.Name('a', P.Load()))
+        tree = import_incast(P.Name('a', P.Load()))
         exp_tree = L.Name('a', L.Read())
         self.assertEqual(tree, exp_tree)
         
-        tree = run(P.Name('a', P.Store()))
+        tree = import_incast(P.Name('a', P.Store()))
         exp_tree = L.Name('a', L.Write())
         self.assertEqual(tree, exp_tree)
         
-        tree = run(P.Name('a', P.Del()))
+        tree = import_incast(P.Name('a', P.Del()))
         exp_tree = L.Name('a', L.Write())
         self.assertEqual(tree, exp_tree)
     
     def test_trivial_nodes(self):
-        run = IncLangNodeImporter.run
-        
-        tree = run(P.Pass())
+        tree = import_incast(P.Pass())
         exp_tree = L.Pass()
         self.assertEqual(tree, exp_tree)
         
-        tree = run(P.BinOp(P.Name('a', P.Load()),
+        tree = import_incast(P.BinOp(P.Name('a', P.Load()),
                            P.Add(),
                            P.Name('b', P.Load())))
         exp_tree = L.BinOp(L.Name('a', L.Read()),
@@ -167,10 +163,6 @@ class RoundTripCase(unittest.TestCase):
                     def g():
                         pass
                 ''')
-        
-        # Disallow general calls.
-        with self.assertRaises(TypeError):
-            self.trip.ps('f.g(x)')
         
         # Modules must consist of functions.
         self.trip.p('''

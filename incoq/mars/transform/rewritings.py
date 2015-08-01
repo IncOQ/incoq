@@ -3,11 +3,13 @@
 
 __all__ = [
     'ImportPreprocessor',
+    'AttributeDisallower',
+    'GeneralCallDisallower',
 ]
 
 
 from incoq.util.seq import pairs
-from incoq.mars.incast import P
+from incoq.mars.incast import L, P
 
 
 class ImportPreprocessor(P.NodeTransformer):
@@ -46,3 +48,20 @@ class ImportPreprocessor(P.NodeTransformer):
             node = P.BoolOp(P.And(), conds)
         
         return node
+
+
+class AttributeDisallower(L.NodeVisitor):
+    
+    """Fail if there are any Attribute nodes in the tree."""
+    
+    def visit_Attribute(self, node):
+        raise TypeError('IncAST does not allow attributes')
+
+
+class GeneralCallDisallower(L.NodeVisitor):
+    
+    """Fail if there are any GeneralCall nodes in the tree."""
+    
+    def visit_GeneralCall(self, node):
+        raise TypeError('IncAST function calls must be directly '
+                        'by function name')
