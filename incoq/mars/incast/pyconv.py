@@ -223,7 +223,7 @@ class NodeMapper(L.NodeVisitor):
         # Map to each element.
         return tuple(self.visit(item) for item in seq)
     
-    def trivial_handler(self, node):
+    def trivial_helper(self, node):
         cls = getattr(self.target_lang, type(node).__name__)
         assert cls._fields == node._fields
         children = tuple(self.visit(getattr(node, field))
@@ -360,7 +360,7 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
 
 for name in trivial_nodes:
     setattr(IncLangNodeImporter, 'visit_' + name,
-            IncLangNodeImporter.trivial_handler)
+            IncLangNodeImporter.trivial_helper)
 
 
 class IncLangSpecialImporter(MacroExpander):
@@ -446,11 +446,11 @@ class IncLangNodeExporter(NodeMapper):
         raise ValueError('Invalid node to export from IncAST: ' +
                          node.__class__.__name__)
     
-    def name_handler(self, name):
+    def name_helper(self, name):
         """Turn an identifier string into a Name in Load context."""
         return P.Name(name, P.Load())
     
-    def vars_handler(self, vars):
+    def vars_helper(self, vars):
         """Turn a list of variables into a Name node or a Tuple
         of Name nodes, all in Store context.
         """
@@ -478,7 +478,7 @@ class IncLangNodeExporter(NodeMapper):
 #        pass
     
     def visit_For(self, node):
-        target = self.vars_handler(node.vars)
+        target = self.vars_helper(node.vars)
         return P.For(target, self.visit(node.iter),
                      self.visit(node.body), [])
     
@@ -487,7 +487,7 @@ class IncLangNodeExporter(NodeMapper):
                        self.visit(node.body), [])
     
     def visit_Assign(self, node):
-        target = self.vars_handler(node.vars)
+        target = self.vars_helper(node.vars)
         return P.Assign([target], self.visit(node.value))
     
     def visit_Compare(self, node):
@@ -501,7 +501,7 @@ class IncLangNodeExporter(NodeMapper):
                       [], None, None)
     
     def visit_Call(self, node):
-        return P.Call(self.name_handler(node.func),
+        return P.Call(self.name_helper(node.func),
                       self.visit(node.args),
                       [], None, None)
     
@@ -511,9 +511,9 @@ class IncLangNodeExporter(NodeMapper):
         generators = []
         for clause in node.clauses:
             if isinstance(clause, L.Member):
-                target = self.vars_handler(clause.vars)
+                target = self.vars_helper(clause.vars)
                 gen = P.comprehension(target,
-                                      self.name_handler(clause.rel), [])
+                                      self.name_helper(clause.rel), [])
                 generators.append(gen)
             elif isinstance(clause, L.Cond):
                 last = generators[-1]
@@ -528,8 +528,8 @@ class IncLangNodeExporter(NodeMapper):
     # cases are still needed to convert clauses in isolation.
     
     def visit_Member(self, node):
-        target = self.vars_handler(node.vars)
-        return P.comprehension(target, self.name_handler(node.rel), [])
+        target = self.vars_helper(node.vars)
+        return P.comprehension(target, self.name_helper(node.rel), [])
     
     def visit_Cond(self, node):
         return self.visit(node.cond)
@@ -548,15 +548,15 @@ class IncLangNodeExporter(NodeMapper):
     # when they appear as part of an actual operation, is handled
     # by the logic for the operation.
     
-    def op_handler(self, node):
+    def op_helper(self, node):
         return P.Str('<' + node.__class__.__name__ + '>')
     
-    visit_SetAdd = op_handler
-    visit_SetRemove = op_handler
+    visit_SetAdd = op_helper
+    visit_SetRemove = op_helper
 
 for name in trivial_nodes:
     setattr(IncLangNodeExporter, 'visit_' + name,
-            IncLangNodeExporter.trivial_handler)
+            IncLangNodeExporter.trivial_helper)
 
 
 def export_incast(tree):
