@@ -1,13 +1,21 @@
 module IncAST
 {
+    -- Unlike Python, IncAST only allows functions at the top level.
+    -- Entry-point actions can be point in a main() function.
     mod = Module(fun* decls)
     
+    -- Function definition omits fancy Python features like
+    -- decorators, annotations, and special kinds of arguments.
     fun = (identifier name, identifier* args, stmt* body)
     
     stmt = Comment(string text)
+           -- Python strips comments during lexing.
+           -- We keep it in the AST.
          
          | Return(expr? value)
          
+           -- Loops have no else clause.
+           -- For loop targets are only variables or tuples of variables.
          | For(identifier* vars, expr iter, stmt* body)
          | While(expr test, stmt* body)
          | If(expr test, stmt* body, stmt* orelse)
@@ -16,14 +24,19 @@ module IncAST
          
          | Expr(expr value)
          
+           -- Assign targets are variables or tuples of variables.
+           -- Assignment to multiple targets (a = b = c) aren't allowed.
          | Assign(identifier* vars, expr value)
     
     expr = UnaryOp(unaryop op, expr operand)
          | BoolOp(boolop op, expr* values)
          | BinOp(expr left, operator op, expr right)
+           -- Compare is simplified to a binary operation.
          | Compare(expr left, cmpop op, expr right)
          | IfExp(expr test, expr body, expr orelse)
          
+           -- Fancy argument passing isn't supported.
+           -- Call is a restricted form of GeneralCall.
          | GeneralCall(expr func, expr* args)
          | Call(identifier func, expr* args)
          
@@ -35,11 +48,17 @@ module IncAST
          | Tuple(expr* elts, expr_context ctx)
          | Attribute(expr value, identifier attr, expr_context ctx)
          
+           -- Query expression.
+           -- Comprehension clauses are flattened compared to Python's
+           -- format, where conditions are nested underneath memberships.
          | Comp(expr resexp, clause* clauses)
     
     clause = Member(identifier* vars, identifier rel)
            | Cond(expr cond)
     
+    -- Simplified version of Python's contexts.
+    -- We only need to know reads/writes to get used variables,
+    -- e.g. for dead code elimination.
     expr_context = Read | Write
     
     boolop = And | Or 
