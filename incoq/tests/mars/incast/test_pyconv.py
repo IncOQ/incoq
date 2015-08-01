@@ -91,8 +91,10 @@ class MacroExpanderCase(unittest.TestCase):
 class ImportCase(unittest.TestCase):
     
     # This is just a simple test suite to verify that some
-    # importing is actually being done. More rigorous tests
-    # that are source-level are done below in the round-tripper.
+    # importing is actually being done. These tests do not
+    # require that the IncAST parser works. More rigorous,
+    # source-level tests are done below that test both
+    # importing and round-tripping.
     
     def test_name_and_context(self):
         tree = import_incast(P.Name('a', P.Load()))
@@ -119,71 +121,6 @@ class ImportCase(unittest.TestCase):
                            L.Add(),
                            L.Name('b', L.Read()))
         self.assertEqual(tree, exp_tree)
-
-
-class RoundTripCase(unittest.TestCase):
-    
-    def setUp(self):
-        class trip(P.ExtractMixin):
-            """Parse source as Python code, round-trip it through
-            importing and exporting, then compare that it matches
-            the tree parsed from exp_source.
-            """
-            @classmethod
-            def action(cls, source, exp_source=None, *, mode=None):
-                if exp_source is None:
-                    exp_source = source
-                tree = P.Parser.action(source, mode=mode)
-                tree = import_incast(tree)
-                tree = export_incast(tree)
-                exp_tree = P.Parser.action(exp_source, mode=mode)
-                self.assertEqual(tree, exp_tree)
-        
-        self.trip = trip
-    
-    def test_name_and_context(self):
-        self.trip.pe('a')
-    
-    def test_trivial(self):
-        self.trip.pe('a + b')
-        self.trip.pe('a and b')
-        self.trip.pe('o.f.g')
-    
-    def test_functions(self):
-        # Basic definition and call.
-        self.trip.ps('''
-            def f(a, b):
-                print(a, b)
-            ''')
-        
-        # Disallow inner functions.
-        with self.assertRaises(TypeError):
-            self.trip.ps('''
-                def f():
-                    def g():
-                        pass
-                ''')
-        
-        # Modules must consist of functions.
-        self.trip.p('''
-            def f():
-                pass
-            ''')
-        with self.assertRaises(TypeError):
-            self.trip.p('x = 1')
-    
-    def test_loops(self):
-        self.trip.ps('for x in S: continue')
-        self.trip.ps('while True: break')
-    
-    def test_setupdates(self):
-        self.trip.ps('S.add(x)')
-        self.trip.ps('S.reladd(x)')
-        with self.assertRaises(TypeError):
-            self.trip.ps('(a + b).reladd(x)')
-    
-    def test_comp(self):
-        self.trip.pe('{f(x) for (x, y) in S if y in T}')
 
 
 class ParserCase(unittest.TestCase):
@@ -233,6 +170,100 @@ class ParserCase(unittest.TestCase):
         source = ts(L.SetAdd())
         exp_source = "'<SetAdd>'"
         self.assertEqual(source, exp_source)
+
+
+class ParseImportCase(unittest.TestCase):
+    
+    def test_functions(self):
+        tree = Parser.p('''
+            def f():
+                pass
+            ''')
+        exp_tree = L.Module([L.fun('f', [], [L.Pass()])])
+        self.assertEqual(tree, exp_tree)
+        
+        # Disallow inner functions.
+        with self.assertRaises(TypeError):
+            Parser.ps('''
+                def f():
+                    def g():
+                        pass
+                ''')
+        
+        # Modules must consist of functions.
+        with self.assertRaises(TypeError):
+            Parser.p('x = 1')
+    
+    def test_setupdates(self):
+        tree = Parser.ps('S.add(x)')
+        exp_tree = L.SetUpdate(L.Name('S', L.Read()),
+                               L.SetAdd(),
+                               L.Name('x', L.Read()))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.ps('S.reladd(x)')
+        exp_tree = L.RelUpdate('S', L.SetAdd(), L.Name('x', L.Read()))
+        self.assertEqual(tree, exp_tree)
+        
+        with self.assertRaises(TypeError):
+            Parser.ps('(a + b).reladd(x)')
+    
+    def test_calls(self):
+        tree = Parser.pe('f(a)')
+        exp_tree = L.Call('f', [L.Name('a', L.Read())])
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.pe('o.f(a)')
+        exp_tree = L.GeneralCall(L.Attribute(L.Name('o', L.Read()),
+                                             'f', L.Read()),
+                                 [L.Name('a', L.Read())])
+        self.assertEqual(tree, exp_tree)
+
+
+class RoundTripCase(unittest.TestCase):
+    
+    def setUp(self):
+        class trip(P.ExtractMixin):
+            """Parse source as Python code, round-trip it through
+            importing and exporting, then compare that it matches
+            the tree parsed from exp_source.
+            """
+            @classmethod
+            def action(cls, source, exp_source=None, *, mode=None):
+                if exp_source is None:
+                    exp_source = source
+                tree = P.Parser.action(source, mode=mode)
+                tree = import_incast(tree)
+                tree = export_incast(tree)
+                exp_tree = P.Parser.action(exp_source, mode=mode)
+                self.assertEqual(tree, exp_tree)
+        
+        self.trip = trip
+    
+    def test_name_and_context(self):
+        self.trip.pe('a')
+    
+    def test_trivial(self):
+        self.trip.pe('a + b')
+        self.trip.pe('a and b')
+        self.trip.pe('o.f.g')
+    
+    def test_functions(self):
+        self.trip.ps('''
+            def f(a, b):
+                print(a, b)
+            ''')
+    
+    def test_loops(self):
+        self.trip.ps('for x in S: continue')
+        self.trip.ps('while True: break')
+    
+    def test_setupdates(self):
+        self.trip.ps('S.add(x)')
+        self.trip.ps('S.reladd(x)')
+    
+    def test_comp(self):
+        self.trip.pe('{f(x) for (x, y) in S if y in T}')
 
 
 if __name__ == '__main__':
