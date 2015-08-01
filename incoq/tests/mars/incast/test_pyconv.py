@@ -109,6 +109,12 @@ class RoundTripCase(unittest.TestCase):
         self.trip.ps('for x in S: continue')
         self.trip.ps('while True: break')
     
+    def test_setupdates(self):
+        self.trip.ps('S.add(x)')
+        self.trip.ps('S.reladd(x)')
+        with self.assertRaises(TypeError):
+            self.trip.ps('(a + b).reladd(x)')
+    
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')
 
@@ -130,6 +136,7 @@ class ParserCase(unittest.TestCase):
         # Also check cases of unparsing IncAST nodes that normally
         # don't appear (at least not by themselves) in complete
         # programs.
+        ps = Parser.ps
         pe = Parser.pe
         ts = Parser.ts
         
@@ -147,6 +154,10 @@ class ParserCase(unittest.TestCase):
         
         source = ts(L.Read())
         exp_source = '<Unknown node "Load">'
+        self.assertEqual(source, exp_source)
+        
+        source = ts(L.SetAdd())
+        exp_source = "'<SetAdd>'"
         self.assertEqual(source, exp_source)
 
 

@@ -261,6 +261,31 @@ for name in trivial_nodes:
             IncLangNodeImporter.trivial_handler)
 
 
+class IncLangSpecialImporter(MacroExpander):
+    
+    """Expand macros, e.g. for nodes unique to IncAST or for
+    multi-statement operations.
+    """
+    
+    def handle_ms_add(self, _func, s, v):
+        return L.SetUpdate(s, L.SetAdd(), v)
+    
+    def handle_ms_remove(self, _func, s, v):
+        return L.SetUpdate(s, L.SetRemove(), v)
+    
+    def handle_ms_reladd(self, _func, s, v):
+        if not isinstance(s, L.Name):
+            raise TypeError('Cannot apply reladd operation to '
+                            '{} node'.format(s.__class__.__name__))
+        return L.RelUpdate(s.id, L.SetAdd(), v)
+    
+    def handle_ms_relremove(self, _func, s, v):
+        if not isinstance(s, L.Name):
+            raise TypeError('Cannot apply relremove operation to '
+                            '{} node'.format(s.__class__.__name__))
+        return L.RelUpdate(s.id, L.SetRemove(), v)
+
+
 class CallSimplifier(L.NodeTransformer):
     
     """Replaces GeneralCall nodes with Call nodes. Fails if this
@@ -279,8 +304,29 @@ class CallSimplifier(L.NodeTransformer):
 def import_incast(tree):
     """Convert a Python tree to an IncAST tree."""
     tree = IncLangNodeImporter.run(tree)
+    tree = IncLangSpecialImporter.run(tree)
     tree = CallSimplifier.run(tree)
     return tree
+
+
+class IncLangSpecialExporter(L.NodeTransformer):
+    
+    def visit_SetUpdate(self, node):
+        node = self.generic_visit(node)
+        
+        op = {L.SetAdd: 'add',
+              L.SetRemove: 'remove'}[node.op.__class__]
+        return L.Expr(L.GeneralCall(L.Attribute(node.target, op, L.Read()),
+                                    [node.value]))
+    
+    def visit_RelUpdate(self, node):
+        node = self.generic_visit(node)
+        
+        op = {L.SetAdd: 'reladd',
+              L.SetRemove: 'relremove'}[node.op.__class__]
+        return L.Expr(L.GeneralCall(L.Attribute(L.Name(node.rel, L.Read()),
+                                                op, L.Read()),
+                                    [node.value]))
 
 
 class IncLangNodeExporter(NodeMapper):
@@ -394,6 +440,18 @@ class IncLangNodeExporter(NodeMapper):
         # We don't know whether this is Store or Del context,
         # so just set it to Load so it's explicitly invalid.
         return P.Load()
+    
+    # Convert op nodes that have no corresponding Python node
+    # into their string representations. This enables them to
+    # be unparsed when they appear in isolation. The other case,
+    # when they appear as part of an actual operation, is handled
+    # by the logic for the operation.
+    
+    def op_handler(self, node):
+        return P.Str('<' + node.__class__.__name__ + '>')
+    
+    visit_SetAdd = op_handler
+    visit_SetRemove = op_handler
 
 for name in trivial_nodes:
     setattr(IncLangNodeExporter, 'visit_' + name,
@@ -404,6 +462,7 @@ def export_incast(tree):
     """Convert an IncAST tree to a Python tree. Expression contexts
     are all set to Load.
     """
+    tree = IncLangSpecialExporter.run(tree)
     tree = IncLangNodeExporter.run(tree)
     return tree
 

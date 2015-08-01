@@ -27,6 +27,10 @@ module IncAST
            -- Assign targets are variables or tuples of variables.
            -- Assignment to multiple targets (a = b = c) aren't allowed.
          | Assign(identifier* vars, expr value)
+         
+           -- Updates besides assignment.
+         | SetUpdate(expr target, setupop op, expr value)
+         | RelUpdate(identifier rel, setupop op, expr value)
     
     expr = UnaryOp(unaryop op, expr operand)
          | BoolOp(boolop op, expr* values)
@@ -69,4 +73,7 @@ module IncAST
     unaryop = Invert | Not | UAdd | USub
     
     cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
+    
+    -- New operations.
+    setupop = SetAdd | SetRemove
 }
