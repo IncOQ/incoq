@@ -3,10 +3,11 @@
 
 __all__ = [
     'flood_namespace',
+    'new_namespace',
 ]
 
 
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 
 
 def flood_namespace(target, *sources):
@@ -41,3 +42,10 @@ def flood_namespace(target, *sources):
         target.update(ns)
         if '__all__' in target:
             target['__all__'].extend(keys)
+
+
+def new_namespace(*sources):
+    """As above but make a new target namespace, using SimpleNamespace."""
+    ns = {}
+    flood_namespace(ns, *sources)
+    return SimpleNamespace(**ns)
