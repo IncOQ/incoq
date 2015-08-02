@@ -16,6 +16,8 @@ from os.path import join, dirname
 
 from iast import parse_asdl, nodes_from_asdl
 
+from incoq.util.misc import flood_namespace
+
 from . import iast_common
 
 
@@ -28,12 +30,6 @@ incast_nodes = nodes_from_asdl(incast_asdl,
                                module=__name__,
                                typed=True)
 
-# Flood the module namespace with node definitions.
-for name, node in incast_nodes.items():
-    __all__.append(name)
-    globals()[name] = node
-
-# Flood the module namespace with iAST exports.
-for k in iast_common.__all__:
-    __all__.append(k)
-    globals()[k] = getattr(iast_common, k)
+# Flood the module namespace with node definitions and iAST exports.
+flood_namespace(globals(), incast_nodes)
+flood_namespace(globals(), iast_common)

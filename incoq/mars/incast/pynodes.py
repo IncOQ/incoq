@@ -28,19 +28,16 @@ from iast.python.python34 import (parse as _parse, extract_tree,
                                   MacroProcessor, ContextSetter,
                                   py_nodes as python_nodes)
 
+from incoq.util.misc import flood_namespace
+
 from . import iast_common
 from .iast_common import ExtractMixin
 from .unparse import Unparser
 
 
-# Flood the module namespace with python nodes.
-for name, node in python_nodes.items():
-    __all__.append(name)
-    globals()[name] = node
-
-for k in iast_common.__all__:
-    __all__.append(k)
-    globals()[k] = getattr(iast_common, k)
+# Flood the module namespace with Python nodes and iAST exports.
+flood_namespace(globals(), python_nodes)
+flood_namespace(globals(), iast_common)
 
 
 class Parser(ExtractMixin):
