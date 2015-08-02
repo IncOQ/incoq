@@ -1,5 +1,9 @@
 """Unit tests for tools.py."""
 
+# Note that since the IncAST parser depends on the MacroExpander,
+# if the MacroExpander breaks a bunch of unrelated tests will also
+# break.
+
 
 import unittest
 
@@ -12,13 +16,14 @@ from incoq.mars.incast.pyconv import Parser, IncLangNodeImporter
 class TemplaterCase(unittest.TestCase):
     
     def test_name(self):
-        tree = Parser.pc('''
-            a = a + b
-            ''')
+        # This test eschews the parser in case the parser breaks.
+        # a = a + b
+        tree = L.Assign(['a'], L.BinOp(L.Name('a', L.Read()),
+                                       L.Add(), L.Name('b', L.Read())))
         tree = Templater.run(tree, subst={'a': L.Name('c', L.Read())})
-        exp_tree = Parser.pc('''
-            a = c + b
-            ''')
+        # a = c + b
+        exp_tree = L.Assign(['a'], L.BinOp(L.Name('c', L.Read()),
+                                           L.Add(), L.Name('b', L.Read())))
         self.assertEqual(tree, exp_tree)
     
     def test_ident(self):
@@ -44,44 +49,33 @@ class TemplaterCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
     
     def test_code(self):
-        tree = Parser.pc('''
-            a
-            C
-            ''')
+        tree = Parser.pc('a; C')
         tree = Templater.run(tree, subst={'<c>C':
                                           L.Expr(L.Name('b', L.Read()))})
-        exp_tree = Parser.pc('''
-            a
-            b
-            ''')
+        exp_tree = Parser.pc('a; b')
         self.assertEqual(tree, exp_tree)
         
-        tree = Parser.pc('''
-            a
-            C
-            ''')
+        tree = Parser.pc('a; C')
         tree = Templater.run(tree, subst={'<c>C':
                                           (L.Expr(L.Name('b', L.Read())),
                                            L.Expr(L.Name('c', L.Read())))})
-        exp_tree = Parser.pc('''
-            a
-            b
-            c
-            ''')
+        exp_tree = Parser.pc('a; b; c')
         self.assertEqual(tree, exp_tree)
 
 
 class MacroExpanderCase(unittest.TestCase):
     
     def test_expansion(self):
+        # This test uses IncLangNodeImporter while bypassing
+        # the overall IncAST parser.
         class A(MacroExpander):
-            def handle_ms_add(self_, func, a, b):
-                self.assertEqual(func, 'add')
+            def handle_ms_plus(self_, func, a, b):
+                self.assertEqual(func, 'plus')
                 assert isinstance(a, L.Num)
                 assert isinstance(b, L.Num)
                 return L.Num(a.n + b.n)
         
-        tree = P.Parser.ps('(2).add(3)')
+        tree = P.Parser.ps('(2).plus(3)')
         tree = IncLangNodeImporter.run(tree)
         tree = A.run(tree)
         exp_tree = L.Num(5)
