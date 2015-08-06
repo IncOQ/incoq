@@ -305,7 +305,7 @@ def is_injective(tree):
     i.e., to evaluate to distinct results for distinct values of its
     variables.
     """
-    # Currently we just consider names and tuples to be injective.
+    # Names and tuples are injective, as are constants.
     class InjTester(NodeVisitor):
         
         def process(self, tree):
@@ -314,7 +314,10 @@ def is_injective(tree):
             return self.answer
         
         def generic_visit(self, node):
-            if not isinstance(node, (Name, Tuple, Load, Store, Del)):
+            allowed = (Name, Tuple,
+                       Num, Str, NameConstant,
+                       Load, Store, Del)
+            if not isinstance(node, allowed):
                 self.answer = False
             super().generic_visit(node)
     

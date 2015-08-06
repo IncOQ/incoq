@@ -138,15 +138,18 @@ class DEM_CORERBAC_CA(COM):
 #add_impls('Friendless Test 2', 'experiments/other/eqwild/friendless2', [
 #    DEM,
 #])
+#add_impls('bo opt', 'experiments/other/bo_opt/bo_opt', [
+#    INC,
+#])
 
-add_impls('Social', 'experiments/twitter/twitter', [
+#add_impls('Social', 'experiments/twitter/twitter', [
 #    INC,
 #    DEM,
 #    DEM_SINGLE_TAG,
 #    DEM_INLINE,
 #    DEM_INLINE_NORCELIM,
 #    DEM_INLINE_NOTYPECHECK,
-])
+#])
 #
 #add_impls('Auth', 'experiments/django/django', [
 #    INC,

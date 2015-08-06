@@ -44,17 +44,12 @@ def _maint__m__M_bw_add(_e):
     else:
         _m__M_bw[v7_1].incref(())
 
-Comp6 = RCSet()
 def _maint_Comp6__M_add(_e):
     # Iterate {v5_s : (v5_s, _) in deltamatch(_M, 'bw', _e, 1)}
     for v5_s in setmatch(({_e} if ((_m__M_bw[_e[0]] if (_e[0] in _m__M_bw) else RCSet()).getref(()) == 1) else {}), 'uw', ()):
-        if ((v5_s, None) not in Comp6):
-            Comp6.add((v5_s, None))
-            # Begin maint _m_Comp6_out after "Comp6.add((v5_s, None))"
-            _maint__m_Comp6_out_add((v5_s, None))
-            # End maint _m_Comp6_out after "Comp6.add((v5_s, None))"
-        else:
-            Comp6.incref((v5_s, None))
+        # Begin maint _m_Comp6_out after "Comp6.add((v5_s, None))"
+        _maint__m_Comp6_out_add((v5_s, None))
+        # End maint _m_Comp6_out after "Comp6.add((v5_s, None))"
 
 Comp1 = RCSet()
 def _maint_Comp1__M_add(_e):
