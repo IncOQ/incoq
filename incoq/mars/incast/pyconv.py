@@ -186,23 +186,43 @@ class IncLangSpecialImporter(L.MacroExpander):
     multi-statement operations.
     """
     
-    def handle_ms_add(self, _func, s, v):
-        return L.SetUpdate(s, L.SetAdd(), v)
+    def handle_ms_add(self, _func, set_, elem):
+        return L.SetUpdate(set_, L.SetAdd(), elem)
     
-    def handle_ms_remove(self, _func, s, v):
-        return L.SetUpdate(s, L.SetRemove(), v)
+    def handle_ms_remove(self, _func, set_, elem):
+        return L.SetUpdate(set_, L.SetRemove(), elem)
     
-    def handle_ms_reladd(self, _func, s, v):
-        if not isinstance(s, L.Name):
+    def handle_ms_reladd(self, _func, rel, elem):
+        if not isinstance(rel, L.Name):
             raise TypeError('Cannot apply reladd operation to '
-                            '{} node'.format(s.__class__.__name__))
-        return L.RelUpdate(s.id, L.SetAdd(), v)
+                            '{} node'.format(rel.__class__.__name__))
+        return L.RelUpdate(rel.id, L.SetAdd(), elem)
     
-    def handle_ms_relremove(self, _func, s, v):
-        if not isinstance(s, L.Name):
+    def handle_ms_relremove(self, _func, rel, elem):
+        if not isinstance(rel, L.Name):
             raise TypeError('Cannot apply relremove operation to '
-                            '{} node'.format(s.__class__.__name__))
-        return L.RelUpdate(s.id, L.SetRemove(), v)
+                            '{} node'.format(rel.__class__.__name__))
+        return L.RelUpdate(rel.id, L.SetRemove(), elem)
+    
+    def handle_me_imgset(self, _func, rel, maskstr, bounds):
+        if not isinstance(rel, L.Name):
+            raise TypeError('Cannot apply imgset operation to '
+                            '{} node'.format(rel.__class__.__name__))
+        rel = rel.id
+        if not isinstance(maskstr, L.Str):
+            raise TypeError('imgset operation requires string literal '
+                            'for mask')
+        maskstr = maskstr.s
+        try:
+            mask = L.mask(maskstr)
+        except ValueError:
+            raise TypeError('invalid mask string for imgset operation')
+        if not (isinstance(bounds, L.Tuple) and
+                all(isinstance(item, L.Name) for item in bounds.elts)):
+            raise TypeError('imgset operation requires tuple of bound '
+                            'variable identifiers')
+        bounds = [item.id for item in bounds.elts]
+        return L.Imgset(rel, mask, bounds)
 
 
 class CallSimplifier(L.NodeTransformer):
@@ -244,6 +264,14 @@ class IncLangSpecialExporter(L.NodeTransformer):
               L.SetRemove: 'relremove'}[node.op.__class__]
         return L.Expr(L.GeneralCall(L.Attribute(L.Name(node.rel), op),
                                     [node.value]))
+    
+    def visit_Imgset(self, node):
+        node = self.generic_visit(node)
+        
+        maskstr = L.Str(node.mask.m)
+        idents = L.Tuple([L.Name(item) for item in node.bounds])
+        return L.GeneralCall(L.Attribute(L.Name(node.rel), 'imgset'),
+                             [maskstr, idents])
 
 
 class IncLangNodeExporter(NodeMapper):
@@ -359,6 +387,11 @@ class IncLangNodeExporter(NodeMapper):
     
     def visit_Cond(self, node):
         return self.visit(node.cond)
+    
+    # Mask is handled by nodes that use it.
+    
+    def visit_mask(self, node):
+        return P.Str('<Mask: {}>'.format(node.m))
     
     # Convert op nodes that have no corresponding Python node
     # into their string representations. This enables them to

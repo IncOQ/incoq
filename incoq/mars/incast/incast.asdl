@@ -52,6 +52,9 @@ module IncAST
          | Tuple(expr* elts)
          | Attribute(expr value, identifier attr)
          
+           -- Utility expressions.
+         | Imgset(identifier rel, mask mask, identifier* bounds)
+         
            -- Query expression.
            -- Comprehension clauses are flattened compared to Python's
            -- format, where conditions are nested underneath memberships.
@@ -59,6 +62,8 @@ module IncAST
     
     clause = Member(identifier* vars, identifier rel)
            | Cond(expr cond)
+    
+    mask = (string m)
     
     boolop = And | Or 
     

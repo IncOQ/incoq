@@ -94,6 +94,10 @@ class ParserCase(unittest.TestCase):
         source = ts(L.SetAdd())
         exp_source = "'<SetAdd>'"
         self.assertEqual(source, exp_source)
+        
+        source = ts(L.mask('bu'))
+        exp_source = "'<Mask: bu>'"
+        self.assertEqual(source, exp_source)
 
 
 class ParseImportCase(unittest.TestCase):
@@ -139,6 +143,11 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.GeneralCall(L.Attribute(L.Name('o'), 'f'),
                                  [L.Name('a')])
         self.assertEqual(tree, exp_tree)
+    
+    def test_imgset(self):
+        tree = Parser.pe("R.imgset('bu', (x,))")
+        exp_tree = L.Imgset('R', L.mask('bu'), ['x'])
+        self.assertEqual(tree, exp_tree)
 
 
 class RoundTripCase(unittest.TestCase):
@@ -183,6 +192,9 @@ class RoundTripCase(unittest.TestCase):
     def test_setupdates(self):
         self.trip.ps('S.add(x)')
         self.trip.ps('S.reladd(x)')
+    
+    def test_imgset(self):
+        self.trip.ps("R.imgset('bu', (x,))")
     
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')
