@@ -48,9 +48,9 @@ module IncAST
          | Str(string s)
          | NameConstant(singleton value)
          
-         | Name(identifier id, expr_context ctx)
-         | Tuple(expr* elts, expr_context ctx)
-         | Attribute(expr value, identifier attr, expr_context ctx)
+         | Name(identifier id)
+         | Tuple(expr* elts)
+         | Attribute(expr value, identifier attr)
          
            -- Query expression.
            -- Comprehension clauses are flattened compared to Python's
@@ -59,11 +59,6 @@ module IncAST
     
     clause = Member(identifier* vars, identifier rel)
            | Cond(expr cond)
-    
-    -- Simplified version of Python's contexts.
-    -- We only need to know reads/writes to get used variables,
-    -- e.g. for dead code elimination.
-    expr_context = Read | Write
     
     boolop = And | Or 
     

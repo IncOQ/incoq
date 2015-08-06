@@ -21,13 +21,12 @@ class Templater(L.NodeTransformer):
     The following kinds of entries are recognized:
     
         IDENT -> EXPR
-          Replace Name nodes having Read context and IDENT as their
-          id, with an arbitrary expression AST.
+          Replace Name nodes having IDENT as their id with an
+          arbitrary expression AST.
         
         IDENT1 -> IDENT2
           Replace all occurrences of IDENT1 with IDENT2. This includes
-          Name occurrences in Write context, as well as non-Name
-          occurrences such as attribute identifiers, function
+          non-Name occurrences such as attribute identifiers, function
           identifiers, and relation operations.
         
         <c>IDENT -> CODE
@@ -92,8 +91,7 @@ class Templater(L.NodeTransformer):
     
     def visit_Name(self, node):
         # Name rule.
-        if (isinstance(node.ctx, L.Read) and
-            node.id in self.name_subst):
+        if node.id in self.name_subst:
             node = self.name_subst[node.id]
         # Identifier rule.
         elif node.id in self.ident_subst:
@@ -105,7 +103,6 @@ class Templater(L.NodeTransformer):
         # identifier rules ("Foo"), so check this case before
         # we recurse.
         if (isinstance(node.value, L.Name) and
-            isinstance(node.value.ctx, L.Read) and
             node.value.id in self.code_subst):
             node = self.code_subst[node.value.id]
         else:
@@ -148,12 +145,11 @@ class MacroExpander(L.PatternTransformer):
     Nested macros are processed in a bottom-up order.
     """
     
-    func_expr_pattern = L.GeneralCall(L.Name(L.PatVar('_func'), L.Read()),
+    func_expr_pattern = L.GeneralCall(L.Name(L.PatVar('_func')),
                                       L.PatVar('_args'))
     
     meth_expr_pattern = L.GeneralCall(L.Attribute(L.PatVar('_recv'),
-                                                  L.PatVar('_func'),
-                                                  L.Read()),
+                                                  L.PatVar('_func')),
                                       L.PatVar('_args'))
     
     func_stmt_pattern = L.Expr(func_expr_pattern)

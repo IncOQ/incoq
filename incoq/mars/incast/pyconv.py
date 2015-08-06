@@ -24,7 +24,7 @@ trivial_nodes = [
     'Return', 'If', 'Expr', 'Pass', 'Break', 'Continue',
     
     'UnaryOp', 'BoolOp', 'BinOp', 'IfExp',
-    'Num', 'Str', 'NameConstant', 'Name', 'Tuple', 'Attribute',
+    'Num', 'Str', 'NameConstant',
     
     'And', 'Or',
     'Add', 'Sub', 'Mult', 'Div', 'Mod', 'Pow', 'LShift',
@@ -74,24 +74,18 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
                          node.__class__.__name__)
     
     def match_vars(self, node):
-        """Turn a variable or tuple of variables, all of which
-        are in Store context, into a list of identifiers.
+        """Turn a variable or tuple of variables into a list of
+        identifiers.
         """
         if isinstance(node, P.Name):
             names = [node]
         elif isinstance(node, P.Tuple):
-            if not isinstance(node.ctx, P.Store):
-                raise TypeError('Vars list not in Store context')
             if not all(isinstance(item, P.Name) for item in node.elts):
                 raise TypeError('Vars list contains non-variables')
             names = node.elts
         else:
             raise TypeError('Invalid node where vars list expected: ' +
                             node.__class__.__name__)
-        
-        if not all(isinstance(name.ctx, P.Store) for name in names):
-                raise TypeError('Vars list contains variable not '
-                                'in Store context')
         
         return [name.id for name in names]
     
@@ -171,14 +165,15 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         return L.GeneralCall(self.visit(node.func),
                              self.visit(node.args))
     
-    def visit_Load(self, node):
-        return L.Read()
+    def visit_Attribute(self, node):
+        return L.Attribute(self.visit(node.value),
+                           node.attr)
     
-    def visit_Store(self, node):
-        return L.Write()
+    def visit_Name(self, node):
+        return L.Name(node.id)
     
-    def visit_Del(self, node):
-        return L.Write()
+    def visit_Tuple(self, node):
+        return L.Tuple(self.visit(node.elts))
 
 for name in trivial_nodes:
     setattr(IncLangNodeImporter, 'visit_' + name,
@@ -239,7 +234,7 @@ class IncLangSpecialExporter(L.NodeTransformer):
         
         op = {L.SetAdd: 'add',
               L.SetRemove: 'remove'}[node.op.__class__]
-        return L.Expr(L.GeneralCall(L.Attribute(node.target, op, L.Read()),
+        return L.Expr(L.GeneralCall(L.Attribute(node.target, op),
                                     [node.value]))
     
     def visit_RelUpdate(self, node):
@@ -247,8 +242,7 @@ class IncLangSpecialExporter(L.NodeTransformer):
         
         op = {L.SetAdd: 'reladd',
               L.SetRemove: 'relremove'}[node.op.__class__]
-        return L.Expr(L.GeneralCall(L.Attribute(L.Name(node.rel, L.Read()),
-                                                op, L.Read()),
+        return L.Expr(L.GeneralCall(L.Attribute(L.Name(node.rel), op),
                                     [node.value]))
 
 
@@ -274,14 +268,14 @@ class IncLangNodeExporter(NodeMapper):
     
     def vars_helper(self, vars):
         """Turn a list of variables into a Name node or a Tuple
-        of Name nodes, all in Store context.
+        of Name nodes, all in Load context.
         """
         assert len(vars) > 0
         if len(vars) == 1:
-            node = P.Name(vars[0], P.Store())
+            node = P.Name(vars[0], P.Load())
         else:
-            node = P.Tuple([P.Name(var, P.Store()) for var in vars],
-                           P.Store())
+            node = P.Tuple([P.Name(var, P.Load()) for var in vars],
+                           P.Load())
         return node
     
     # Visitors for trivial nodes are auto-generated below
@@ -327,6 +321,16 @@ class IncLangNodeExporter(NodeMapper):
                       self.visit(node.args),
                       [], None, None)
     
+    def visit_Name(self, node):
+        return self.name_helper(node.id)
+    
+    def visit_Tuple(self, node):
+        return P.Tuple(self.visit(node.elts), P.Load())
+    
+    def visit_Attribute(self, node):
+        return P.Attribute(self.visit(node.value),
+                           node.attr, P.Load())
+    
     def visit_Comp(self, node):
         assert (len(node.clauses) > 0 and
                 isinstance(node.clauses[0], L.Member))
@@ -356,14 +360,6 @@ class IncLangNodeExporter(NodeMapper):
     def visit_Cond(self, node):
         return self.visit(node.cond)
     
-    def visit_Read(self, node):
-        return P.Load()
-    
-    def visit_Write(self, node):
-        # We don't know whether this is Store or Del context,
-        # so just set it to Load so it's explicitly invalid.
-        return P.Load()
-    
     # Convert op nodes that have no corresponding Python node
     # into their string representations. This enables them to
     # be unparsed when they appear in isolation. The other case,
@@ -382,9 +378,8 @@ for name in trivial_nodes:
 
 
 def export_incast(tree):
-    """Convert an IncAST tree to a Python tree. Expression contexts
-    are all set to Load.
-    """
+    """Convert an IncAST tree to a Python tree. All expression
+    nodes are given Load context."""
     tree = IncLangSpecialExporter.run(tree)
     tree = IncLangNodeExporter.run(tree)
     return tree

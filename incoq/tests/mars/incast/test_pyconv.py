@@ -13,6 +13,17 @@ from incoq.mars.incast.pyconv import *
 L = new_namespace(_nodes, _tools)
 
 
+class ContextLoadSetter(P.NodeTransformer):
+    
+    """Set all expression contexts to Load."""
+    
+    def load_helper(self, node):
+        return P.Load()
+    
+    visit_Store = load_helper
+    visit_Del = load_helper
+
+
 class ImportCase(unittest.TestCase):
     
     # This is just a simple test suite to verify that some
@@ -21,17 +32,13 @@ class ImportCase(unittest.TestCase):
     # source-level tests are done below that test both
     # importing and round-tripping.
     
-    def test_name_and_context(self):
+    def test_name(self):
         tree = import_incast(P.Name('a', P.Load()))
-        exp_tree = L.Name('a', L.Read())
+        exp_tree = L.Name('a')
         self.assertEqual(tree, exp_tree)
         
         tree = import_incast(P.Name('a', P.Store()))
-        exp_tree = L.Name('a', L.Write())
-        self.assertEqual(tree, exp_tree)
-        
-        tree = import_incast(P.Name('a', P.Del()))
-        exp_tree = L.Name('a', L.Write())
+        exp_tree = L.Name('a')
         self.assertEqual(tree, exp_tree)
     
     def test_trivial_nodes(self):
@@ -40,11 +47,9 @@ class ImportCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         
         tree = import_incast(P.BinOp(P.Name('a', P.Load()),
-                           P.Add(),
-                           P.Name('b', P.Load())))
-        exp_tree = L.BinOp(L.Name('a', L.Read()),
-                           L.Add(),
-                           L.Name('b', L.Read()))
+                                     P.Add(),
+                                     P.Name('b', P.Load())))
+        exp_tree = L.BinOp(L.Name('a'), L.Add(), L.Name('b'))
         self.assertEqual(tree, exp_tree)
 
 
@@ -52,14 +57,12 @@ class ParserCase(unittest.TestCase):
     
     def test_parse(self):
         tree = Parser.pe('a')
-        exp_tree = L.Name('a', L.Read())
+        exp_tree = L.Name('a')
         self.assertEqual(tree, exp_tree)
     
     def test_subst(self):
-        tree = Parser.pe('a + b', subst={'a': L.Name('c', L.Read())})
-        exp_tree = L.BinOp(L.Name('c', L.Read()),
-                           L.Add(),
-                           L.Name('b', L.Read()))
+        tree = Parser.pe('a + b', subst={'a': L.Name('c')})
+        exp_tree = L.BinOp(L.Name('c'), L.Add(), L.Name('b'))
         self.assertEqual(tree, exp_tree)
     
     def test_unparse_basic(self):
@@ -86,10 +89,6 @@ class ParserCase(unittest.TestCase):
         
         source = ts(L.Cond(pe('True')))
         exp_source = 'True'
-        self.assertEqual(source, exp_source)
-        
-        source = ts(L.Read())
-        exp_source = '<Unknown node "Load">'
         self.assertEqual(source, exp_source)
         
         source = ts(L.SetAdd())
@@ -121,13 +120,11 @@ class ParseImportCase(unittest.TestCase):
     
     def test_setupdates(self):
         tree = Parser.ps('S.add(x)')
-        exp_tree = L.SetUpdate(L.Name('S', L.Read()),
-                               L.SetAdd(),
-                               L.Name('x', L.Read()))
+        exp_tree = L.SetUpdate(L.Name('S'), L.SetAdd(), L.Name('x'))
         self.assertEqual(tree, exp_tree)
         
         tree = Parser.ps('S.reladd(x)')
-        exp_tree = L.RelUpdate('S', L.SetAdd(), L.Name('x', L.Read()))
+        exp_tree = L.RelUpdate('S', L.SetAdd(), L.Name('x'))
         self.assertEqual(tree, exp_tree)
         
         with self.assertRaises(TypeError):
@@ -135,13 +132,12 @@ class ParseImportCase(unittest.TestCase):
     
     def test_calls(self):
         tree = Parser.pe('f(a)')
-        exp_tree = L.Call('f', [L.Name('a', L.Read())])
+        exp_tree = L.Call('f', [L.Name('a')])
         self.assertEqual(tree, exp_tree)
         
         tree = Parser.pe('o.f(a)')
-        exp_tree = L.GeneralCall(L.Attribute(L.Name('o', L.Read()),
-                                             'f', L.Read()),
-                                 [L.Name('a', L.Read())])
+        exp_tree = L.GeneralCall(L.Attribute(L.Name('o'), 'f'),
+                                 [L.Name('a')])
         self.assertEqual(tree, exp_tree)
 
 
@@ -161,6 +157,7 @@ class RoundTripCase(unittest.TestCase):
                 tree = import_incast(tree)
                 tree = export_incast(tree)
                 exp_tree = P.Parser.action(exp_source, mode=mode)
+                exp_tree = ContextLoadSetter.run(exp_tree)
                 self.assertEqual(tree, exp_tree)
         
         self.trip = trip

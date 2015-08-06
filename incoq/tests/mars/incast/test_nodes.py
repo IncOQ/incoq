@@ -10,16 +10,13 @@ class NodesCase(unittest.TestCase):
     
     def test_basic(self):
         # Check basic node construction.
-        node = L.Name('foo', L.Read())
+        node = L.Name('foo')
         source = L.dump(node)
-        exp_source = L.trim('''
-            Name(id = 'foo',
-                 ctx = Read())
-            ''')
+        exp_source = "Name(id = 'foo')"
         self.assertEqual(source, exp_source)
         
         with self.assertRaises(TypeError):
-            L.Name(123, L.Read())
+            L.Name(123)
 
 
 if __name__ == '__main__':
