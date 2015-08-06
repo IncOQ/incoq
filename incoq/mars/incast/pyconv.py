@@ -186,6 +186,11 @@ class IncLangSpecialImporter(L.MacroExpander):
     multi-statement operations.
     """
     
+    def handle_fs_COMMENT(self, _func, text):
+        if not isinstance(text, L.Str):
+            raise TypeError('Comment argument must be string literal')
+        return L.Comment(text.s)
+    
     def handle_ms_add(self, _func, set_, elem):
         return L.SetUpdate(set_, L.SetAdd(), elem)
     
@@ -318,8 +323,10 @@ class IncLangNodeExporter(NodeMapper):
         return P.FunctionDef(node.name, args, self.visit(node.body),
                              [], None)
     
-#    def visit_Comment(self, node):
-#        pass
+    def visit_Comment(self, node):
+        return P.Expr(P.Call(self.name_helper('COMMENT'),
+                             [P.Str(node.text)],
+                             [], None, None))
     
     def visit_For(self, node):
         target = self.vars_helper(node.vars)

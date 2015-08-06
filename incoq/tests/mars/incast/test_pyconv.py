@@ -98,6 +98,10 @@ class ParserCase(unittest.TestCase):
         source = ts(L.mask('bu'))
         exp_source = "'<Mask: bu>'"
         self.assertEqual(source, exp_source)
+        
+        source = ts(L.Comment('Text'))
+        exp_source = '# Text'
+        self.assertEqual(source, exp_source)
 
 
 class ParseImportCase(unittest.TestCase):
@@ -121,6 +125,11 @@ class ParseImportCase(unittest.TestCase):
         # Modules must consist of functions.
         with self.assertRaises(TypeError):
             Parser.p('x = 1')
+    
+    def test_comment(self):
+        tree = Parser.ps("COMMENT('Text')")
+        exp_tree = L.Comment('Text')
+        self.assertEqual(tree, exp_tree)
     
     def test_setupdates(self):
         tree = Parser.ps('S.add(x)')
