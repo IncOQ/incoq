@@ -30,6 +30,13 @@ incast_nodes = nodes_from_asdl(incast_asdl,
                                module=__name__,
                                typed=True)
 
+# Patch the auto-generated node classes.
+def mask_init(self, m):
+    if not all(c == 'b' or c == 'u' for c in m):
+        raise ValueError('Bad mask string: ' + repr(m))
+    self.m = m
+incast_nodes['mask'].__init__ = mask_init
+
 # Flood the module namespace with node definitions and iAST exports.
 flood_namespace(globals(), incast_nodes)
 flood_namespace(globals(), iast_common)

@@ -13,6 +13,22 @@ from incoq.mars.incast import pynodes as P
 from incoq.mars.incast.pyconv import Parser, IncLangNodeImporter
 
 
+class MaskCase(unittest.TestCase):
+    
+    def test_from_bounds(self):
+        mask = mask_from_bounds(['x', 'y', 'z'], ['x', 'z'])
+        exp_mask = L.mask('bub')
+        self.assertEqual(mask, exp_mask)
+    
+    def test_split(self):
+        mask = L.mask('bub')
+        bounds, unbounds = split_by_mask(mask, ['x', 'y', 'z'])
+        exp_bounds = ['x', 'z']
+        exp_unbounds = ['y']
+        self.assertEqual(bounds, exp_bounds)
+        self.assertEqual(unbounds, exp_unbounds)
+
+
 class TemplaterCase(unittest.TestCase):
     
     def test_name(self):

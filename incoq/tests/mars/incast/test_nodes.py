@@ -17,6 +17,11 @@ class NodesCase(unittest.TestCase):
         
         with self.assertRaises(TypeError):
             L.Name(123)
+    
+    def test_patchwork(self):
+        L.mask('bu')
+        with self.assertRaises(ValueError):
+            L.mask('abc')
 
 
 if __name__ == '__main__':
