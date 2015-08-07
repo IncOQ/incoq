@@ -228,6 +228,7 @@ class Type:
     # Ensure identity semantics.
     __hash__ = object.__hash__
     __eq__ = object.__eq__
+    __ne__ = object.__ne__
     
     def get_structure_size(self):
         raise NotImplementedError
