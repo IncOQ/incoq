@@ -12,11 +12,6 @@ class BuiltinsCase(unittest.TestCase):
     def test_noops(self):
         OPTIONS(1, 2, a=3)
     
-    def test_incoqtype(self):
-        value = IncOQType()
-        with self.assertRaises(NotImplementedError):
-            pickle.dumps(value)
-    
     def test_set_identity(self):
         s1 = Set()
         s2 = Set()
@@ -91,6 +86,64 @@ class BuiltinsCase(unittest.TestCase):
         s = Set({()})
         img = s.imgset('', ())
         exp_img = {()}
+        self.assertCountEqual(img, exp_img)
+    
+    def test_rcset_repr(self):
+        r = repr(RCSet())
+        exp_r = 'RCSet({})'
+        self.assertEqual(r, exp_r)
+        
+        r = repr(RCSet({5}))
+        exp_r = 'RCSet({5: 1})'
+        self.assertEqual(r, exp_r)
+        
+        s = str(RCSet({5, 6}))
+        exp_s = '{5, 6}'
+        self.assertEqual(s, exp_s)
+    
+    def test_rcset_updates(self):
+        s = RCSet({'a': 1, 'b': 2})
+        
+        # incref, decref, getref.
+        s.incref('a')
+        s.decref('b')
+        self.assertCountEqual(dict(s), {'a': 2, 'b': 1})
+        self.assertEqual(s.getref('a'), 2)
+        
+        # add, remove.
+        s.add('c')
+        self.assertCountEqual(dict(s), {'a': 2, 'b': 1, 'c': 1})
+        s.remove('c')
+        self.assertCountEqual(dict(s), {'a': 2, 'b': 1})
+        
+        # clear, update.
+        s.clear()
+        self.assertCountEqual(dict(s), {})
+        s.add('a')
+        s.update({'a': 2})
+        self.assertCountEqual(dict(s), {'a': 3})
+        
+        # Strictness.
+        with self.assertRaises(AssertionError):
+            s.add('a')
+        with self.assertRaises(AssertionError):
+            s.remove('b')
+        # Remove at refcount 1 only.
+        with self.assertRaises(AssertionError):
+            s.remove('a')
+    
+    def test_rcset_pickle(self):
+        s1 = RCSet({1, 2, 3})
+        b = pickle.dumps(s1)
+        s2 = pickle.loads(b)
+        self.assertEqual(dict(s1), dict(s2))
+    
+    def test_rcset_imgset(self):
+        # Throw in some reference counts for the heck of it.
+        # No effect on result.
+        s = RCSet({(1, 2): 3, (1, 3): 2, (2, 3) : 2, (2, 4) :1})
+        img = s.imgset('bu', (1,))
+        exp_img = {(2,), (3,)}
         self.assertCountEqual(img, exp_img)
 
 
