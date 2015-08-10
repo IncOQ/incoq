@@ -2,9 +2,11 @@
 
 
 __all__ = [
-    'ImportPreprocessor',
+    'ExpressionPreprocessor',
+    'RuntimeImportPreprocessor',
     'AttributeDisallower',
     'GeneralCallDisallower',
+    'RuntimeImportPostprocessor',
 ]
 
 
@@ -12,7 +14,7 @@ from incoq.util.seq import pairs
 from incoq.mars.incast import L, P
 
 
-class ImportPreprocessor(P.NodeTransformer):
+class ExpressionPreprocessor(P.NodeTransformer):
     
     """Preprocessor for Python code that eliminates some features
     that can't be directly expressed in IncAST.
@@ -50,6 +52,63 @@ class ImportPreprocessor(P.NodeTransformer):
         return node
 
 
+class RuntimeImportPreprocessor(P.NodeTransformer):
+    
+    """Eliminate the runtime import statement and turn qualified
+    names from the runtime into unqualified names, e.g.,
+    
+        incoq.mars.runtime.Set -> Set
+    
+    The recognized import forms are:
+    
+        import incoq.mars.runtime
+        import incoq.mars.runtime as <alias>
+        from incoq.mars.runtime import *
+    
+    If <alias> is used, the alias prefix is removed from qualified
+    names.
+    """
+    
+    def __init__(self):
+        super().__init__()
+        self.aliases = set()
+    
+    def visit_Import(self, node):
+        pat = P.Import([P.alias('incoq.mars.runtime', P.PatVar('_ALIAS'))])
+        match = P.match(pat, node)
+        if match is None:
+            return node
+        
+        if match['_ALIAS'] is not None:
+            self.aliases.add(match['_ALIAS'])
+        return []
+    
+    def visit_ImportFrom(self, node):
+        pat = P.Parser.ps('from incoq.mars.runtime import *')
+        if node != pat:
+            return node
+        
+        return []
+    
+    def visit_Attribute(self, node):
+        node = self.generic_visit(node)
+        
+        quals = []
+        quals.append(P.Parser.pe('incoq.mars.runtime'))
+        for alias in self.aliases:
+            quals.append(P.Name(alias, P.Load()))
+        
+        for qual in quals:
+            pat = P.Attribute(qual, P.PatVar('_ATTR'), P.Load())
+            match = P.match(pat, node)
+            if match is not None:
+                break
+        else:
+            return node
+        
+        return P.Name(match['_ATTR'], P.Load())
+
+
 class AttributeDisallower(L.NodeVisitor):
     
     """Fail if there are any Attribute nodes in the tree."""
@@ -65,3 +124,12 @@ class GeneralCallDisallower(L.NodeVisitor):
     def visit_GeneralCall(self, node):
         raise TypeError('IncAST function calls must be directly '
                         'by function name')
+
+
+class RuntimeImportPostprocessor(P.NodeTransformer):
+    
+    """Add a line to import the runtime library."""
+    
+    def visit_Module(self, node):
+        import_stmt = P.Parser.ps('from incoq.mars.runtime import *')
+        return node._replace(body=(import_stmt,) + node.body)

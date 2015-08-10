@@ -7,7 +7,7 @@ from incoq.mars.incast import L, P
 from incoq.mars.transform.rewritings import *
 
 
-class ImportPreprocessorCase(unittest.TestCase):
+class ExpressionPreprocessorCase(unittest.TestCase):
     
     def setUp(self):
         class check(P.ExtractMixin):
@@ -19,7 +19,7 @@ class ImportPreprocessorCase(unittest.TestCase):
                 if exp_source is None:
                     exp_source = source
                 tree = P.Parser.action(source, mode=mode)
-                tree = ImportPreprocessor.run(tree)
+                tree = ExpressionPreprocessor.run(tree)
                 exp_tree = P.Parser.action(exp_source, mode=mode)
                 self.assertEqual(tree, exp_tree)
         
@@ -33,6 +33,44 @@ class ImportPreprocessorCase(unittest.TestCase):
     def test_comparisons(self):
         self.check.pe('a < b')
         self.check.pe('a < b < c', 'a < b and b < c')
+
+
+class RuntimeImportCase(unittest.TestCase):
+    
+    def test_preprocess(self):
+        tree = P.Parser.p('''
+            import incoq.mars.runtime
+            import incoq.mars.runtime as foo
+            import incoq.mars.runtime as bar
+            from incoq.mars.runtime import *
+            import baz
+            from baz import *
+            Q = incoq.mars.runtime.Set()
+            R = foo.Set()
+            S = bar.Set()
+            T = Set()
+            ''')
+        tree = RuntimeImportPreprocessor.run(tree)
+        exp_tree = P.Parser.p('''
+            import baz
+            from baz import *
+            Q = Set()
+            R = Set()
+            S = Set()
+            T = Set()
+            ''')
+        self.assertEqual(tree, exp_tree)
+    
+    def test_postprocess(self):
+        tree = P.Parser.p('''
+            R = Set()
+            ''')
+        tree = RuntimeImportPostprocessor.run(tree)
+        exp_tree = P.Parser.p('''
+            from incoq.mars.runtime import *
+            R = Set()
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 class RewritingsCase(unittest.TestCase):

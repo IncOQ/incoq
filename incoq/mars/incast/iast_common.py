@@ -11,6 +11,7 @@ __all__ = [
     'AdvNodeTransformer',
     'PatVar',
     'PatternTransformer',
+    'match',
     
     'ExtractMixin',
 ]
@@ -18,7 +19,7 @@ __all__ = [
 
 from iast import (trim, dump, NodeVisitor, AdvNodeVisitor,
                   NodeTransformer, AdvNodeTransformer,
-                  PatVar, PatternTransformer)
+                  PatVar, PatternTransformer, match)
 
 
 class ExtractMixin:

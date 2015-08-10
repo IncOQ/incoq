@@ -10,8 +10,9 @@ __all__ = [
 
 from incoq.mars.incast import L, P
 
-from .rewritings import (ImportPreprocessor, AttributeDisallower,
-                         GeneralCallDisallower)
+from .rewritings import (ExpressionPreprocessor, RuntimeImportPreprocessor,
+                         AttributeDisallower, GeneralCallDisallower,
+                         RuntimeImportPostprocessor)
 
 
 def transform_ast(input_ast):
@@ -20,7 +21,10 @@ def transform_ast(input_ast):
     
     # Do some Python rewritings in order to admit some syntactic
     # features that would otherwise be excluded by IncAST.
-    tree = ImportPreprocessor.run(tree)
+    tree = ExpressionPreprocessor.run(tree)
+    # Get rid of import statement and qualifiers for the runtime
+    # library.
+    tree = RuntimeImportPreprocessor.run(tree)
     # Import into IncAST.
     tree = L.import_incast(tree)
     # Check to make sure certain general-case IncAST nodes
@@ -30,6 +34,8 @@ def transform_ast(input_ast):
     
     # Export back to Python.
     tree = L.export_incast(tree)
+    # Add the runtime import statement.
+    tree = RuntimeImportPostprocessor.run(tree)
     
     return tree
 
