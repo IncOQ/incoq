@@ -73,6 +73,47 @@ class RuntimeImportCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
 
 
+class VardeclCase(unittest.TestCase):
+    
+    def test_preprocess(self):
+        tree = P.Parser.p('''
+            R = Set()
+            R = Set()
+            S = Set()
+            x = 1
+            def main():
+                T = Set()
+            ''')
+        tree, rels = preprocess_vardecls(tree)
+        exp_tree = P.Parser.p('''
+            x = 1
+            def main():
+                T = Set()
+            ''')
+        exp_rels = ['R', 'S']
+        self.assertEqual(tree, exp_tree)
+        self.assertSequenceEqual(rels, exp_rels)
+    
+    def test_postprocess(self):
+        tree = P.Parser.p('''
+            def main():
+                print(S, T)
+            ''')
+        tree = postprocess_vardecls(tree, ['S', 'T'])
+        exp_tree = P.Parser.p('''
+            S = Set()
+            T = Set()
+            def main():
+                print(S, T)
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        tree = P.Parser.p('pass')
+        tree = postprocess_vardecls(tree, [])
+        exp_tree = P.Parser.p('pass')
+        self.assertEqual(tree, exp_tree)
+
+
 class RewritingsCase(unittest.TestCase):
     
     def test_disallow_attr(self):

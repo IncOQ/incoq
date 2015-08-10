@@ -4,13 +4,16 @@
 __all__ = [
     'ExpressionPreprocessor',
     'RuntimeImportPreprocessor',
+    'preprocess_vardecls',
     'AttributeDisallower',
     'GeneralCallDisallower',
+    'postprocess_vardecls',
     'RuntimeImportPostprocessor',
 ]
 
 
 from incoq.util.seq import pairs
+from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L, P
 
 
@@ -109,6 +112,33 @@ class RuntimeImportPreprocessor(P.NodeTransformer):
         return P.Name(match['_ATTR'], P.Load())
 
 
+def preprocess_vardecls(tree):
+    """Eliminate global variable declarations of the form
+    
+        R = Set()
+    
+    and return a list of relations declared in this manner.
+    """
+    assert isinstance(tree, P.Module)
+    pat = P.Assign([P.Name(P.PatVar('_REL'), P.Wildcard())],
+                   P.Parser.pe('Set()'))
+    
+    rels = OrderedSet()
+    body = []
+    changed = False
+    for stmt in tree.body:
+        match = P.match(pat, stmt)
+        if match is not None:
+            rels.add(match['_REL'])
+            changed = True
+        else:
+            body.append(stmt)
+    
+    if changed:
+        tree = tree._replace(body=body)
+    return tree, rels
+
+
 class AttributeDisallower(L.NodeVisitor):
     
     """Fail if there are any Attribute nodes in the tree."""
@@ -124,6 +154,17 @@ class GeneralCallDisallower(L.NodeVisitor):
     def visit_GeneralCall(self, node):
         raise TypeError('IncAST function calls must be directly '
                         'by function name')
+
+
+def postprocess_vardecls(tree, rels):
+    """Prepend global variable declarations for the given relation
+    names.
+    """
+    assert isinstance(tree, P.Module)
+    header = tuple(P.Parser.ps('_REL = Set()', subst={'_REL': rel})
+                   for rel in rels)
+    tree = tree._replace(body=header + tree.body)
+    return tree
 
 
 class RuntimeImportPostprocessor(P.NodeTransformer):
