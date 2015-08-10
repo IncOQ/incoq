@@ -90,3 +90,26 @@ class Set(IncOQType, set):
         if self is not other:
             self.clear()
             self.update(other)
+    
+    def imgset(self, mask, bounds):
+        """Given a mask and values for the bound components, return
+        a set of tuples of values for the unbound components.
+        
+        This is implemented as a straightforward linear-time iteration
+        over the contents of the set.
+        """
+        # Check arity.
+        k = len(mask)
+        assert all(isinstance(item, tuple) and len(item) == k
+                   for item in self)
+        # Check number of bound components.
+        bounds = list(bounds)
+        assert len([c for c in mask if c == 'b']) == len(bounds)
+        
+        result = Set()
+        for item in self:
+            bs = [part for c, part in zip(mask, item) if c == 'b']
+            us = [part for c, part in zip(mask, item) if c == 'u']
+            if bs == bounds:
+                result.add(tuple(us))
+        return result

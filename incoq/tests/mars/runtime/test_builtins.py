@@ -76,6 +76,22 @@ class BuiltinsCase(unittest.TestCase):
         b = pickle.dumps(s1)
         s2 = pickle.loads(b)
         self.assertEqual(set(s1), set(s2))
+    
+    def test_set_imgset(self):
+        s = Set({(1, 2), (1, 3), (2, 3), (2, 4)})
+        img = s.imgset('bu', (1,))
+        exp_img = {(2,), (3,)}
+        self.assertCountEqual(img, exp_img)
+        
+        # Degenerate cases.
+        s = Set({})
+        img = s.imgset('', ())
+        exp_img = {}
+        self.assertCountEqual(img, exp_img)
+        s = Set({()})
+        img = s.imgset('', ())
+        exp_img = {()}
+        self.assertCountEqual(img, exp_img)
 
 
 if __name__ == '__main__':
