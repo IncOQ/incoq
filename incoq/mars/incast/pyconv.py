@@ -2,6 +2,7 @@
 
 
 __all__ = [
+    'IncASTConversionError',
     'import_incast',
     'export_incast',
     'Parser',
@@ -15,6 +16,12 @@ from . import tools as _tools
 from . import pynodes as P
 
 L = new_namespace(_nodes, _tools)
+
+
+class IncASTConversionError(Exception):
+    pass
+# Alias.
+ASTErr = IncASTConversionError
 
 
 # Trivial nodes are nodes that exist in both languages and whose
@@ -70,8 +77,8 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
                      for i, item in enumerate(seq))
     
     def generic_visit(self, node):
-        raise ValueError('Invalid node for IncAST: ' +
-                         node.__class__.__name__)
+        raise ASTErr('Invalid node for IncAST: ' +
+                     node.__class__.__name__)
     
     def match_vars(self, node):
         """Turn a variable or tuple of variables into a list of
@@ -81,11 +88,11 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
             names = [node]
         elif isinstance(node, P.Tuple):
             if not all(isinstance(item, P.Name) for item in node.elts):
-                raise TypeError('Vars list contains non-variables')
+                raise ASTErr('Vars list contains non-variables')
             names = node.elts
         else:
-            raise TypeError('Invalid node where vars list expected: ' +
-                            node.__class__.__name__)
+            raise ASTErr('Invalid node where vars list expected: ' +
+                         node.__class__.__name__)
         
         return [name.id for name in names]
     
@@ -94,34 +101,34 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     
     def visit_Module(self, node):
         if not all(isinstance(stmt, P.FunctionDef) for stmt in node.body):
-            raise TypeError('IncAST only allows function definitions at '
-                            'the top level')
+            raise ASTErr('IncAST only allows function definitions at '
+                         'the top level')
         return L.Module(self.visit(node.body))
     
     def visit_FunctionDef(self, node):
         if (len(self._visit_stack) >= 3 and
             not isinstance(self._visit_stack[-3], P.Module)):
-            raise TypeError('IncAST does not allow non-top-level functions')
+            raise ASTErr('IncAST does not allow non-top-level functions')
         
         a = node.args
         if not (a.vararg is a.kwarg is None and
                 a.kwonlyargs == a.kw_defaults == a.defaults and
                 all(a2.annotation is None for a2 in a.args)):
-            raise TypeError('IncAST does not allow functions with '
-                            'default args, keyword-only args, '
-                            '*args, or **kwargs')
+            raise ASTErr('IncAST does not allow functions with '
+                         'default args, keyword-only args, '
+                         '*args, or **kwargs')
         args = [a2.arg for a2 in a.args]
         return L.fun(node.name, args, self.visit(node.body))
     
     def visit_Assign(self, node):
         if len(node.targets) != 1:
-            raise TypeError('IncAST does not allow multiple assignment')
+            raise ASTErr('IncAST does not allow multiple assignment')
         vars = self.match_vars(node.targets[0])
         return L.Assign(vars, self.visit(node.value))
     
     def visit_For(self, node):
         if len(node.orelse) > 0:
-            raise TypeError('IncAST does not allow else clauses in loops')
+            raise ASTErr('IncAST does not allow else clauses in loops')
         vars = self.match_vars(node.target)
         return L.For(vars,
                      self.visit(node.iter),
@@ -129,7 +136,7 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     
     def visit_While(self, node):
         if len(node.orelse) > 0:
-            raise TypeError('IncAST does not allow else clauses in loops')
+            raise ASTErr('IncAST does not allow else clauses in loops')
         return L.While(self.visit(node.test),
                        self.visit(node.body))
     
@@ -139,9 +146,9 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
             vars = self.match_vars(gen.target)
             iter = self.visit(gen.iter)
             if not isinstance(iter, L.Name):
-                raise TypeError('IncAST membership clauses must have '
-                                'variables on right-hand side; got ' +
-                                iter.__class__.__name__)
+                raise ASTErr('IncAST membership clauses must have '
+                             'variables on right-hand side; got ' +
+                             iter.__class__.__name__)
             rel = iter.id
             member = L.Member(vars, rel)
             conds = [L.Cond(self.visit(if_)) for if_ in gen.ifs]
@@ -152,7 +159,7 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_Compare(self, node):
         # Comparisons must involve exactly two terms and one operator.
         if not (len(node.ops) == len(node.comparators) == 1):
-            raise TypeError('IncAST does not allow multiple comparisons')
+            raise ASTErr('IncAST does not allow multiple comparisons')
         return L.Compare(self.visit(node.left),
                          self.visit(node.ops[0]),
                          self.visit(node.comparators[0]))
@@ -160,8 +167,8 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_Call(self, node):
         if not (len(node.keywords) == 0 and
                 node.starargs is node.kwargs is None):
-            raise TypeError('IncAST does not allow keyword args, '
-                            '*args, or **kwargs')
+            raise ASTErr('IncAST does not allow keyword args, '
+                         '*args, or **kwargs')
         return L.GeneralCall(self.visit(node.func),
                              self.visit(node.args))
     
@@ -188,7 +195,7 @@ class IncLangSpecialImporter(L.MacroExpander):
     
     def handle_fs_COMMENT(self, _func, text):
         if not isinstance(text, L.Str):
-            raise TypeError('Comment argument must be string literal')
+            raise ASTErr('Comment argument must be string literal')
         return L.Comment(text.s)
     
     def handle_ms_add(self, _func, set_, elem):
@@ -199,33 +206,33 @@ class IncLangSpecialImporter(L.MacroExpander):
     
     def handle_ms_reladd(self, _func, rel, elem):
         if not isinstance(rel, L.Name):
-            raise TypeError('Cannot apply reladd operation to '
-                            '{} node'.format(rel.__class__.__name__))
+            raise ASTErr('Cannot apply reladd operation to '
+                         '{} node'.format(rel.__class__.__name__))
         return L.RelUpdate(rel.id, L.SetAdd(), elem)
     
     def handle_ms_relremove(self, _func, rel, elem):
         if not isinstance(rel, L.Name):
-            raise TypeError('Cannot apply relremove operation to '
-                            '{} node'.format(rel.__class__.__name__))
+            raise ASTErr('Cannot apply relremove operation to '
+                         '{} node'.format(rel.__class__.__name__))
         return L.RelUpdate(rel.id, L.SetRemove(), elem)
     
     def handle_me_imgset(self, _func, rel, maskstr, bounds):
         if not isinstance(rel, L.Name):
-            raise TypeError('Cannot apply imgset operation to '
-                            '{} node'.format(rel.__class__.__name__))
+            raise ASTErr('Cannot apply imgset operation to '
+                         '{} node'.format(rel.__class__.__name__))
         rel = rel.id
         if not isinstance(maskstr, L.Str):
-            raise TypeError('imgset operation requires string literal '
-                            'for mask')
+            raise ASTErr('imgset operation requires string literal '
+                         'for mask')
         maskstr = maskstr.s
         try:
             mask = L.mask(maskstr)
         except ValueError:
-            raise TypeError('invalid mask string for imgset operation')
+            raise ASTErr('invalid mask string for imgset operation')
         if not (isinstance(bounds, L.Tuple) and
                 all(isinstance(item, L.Name) for item in bounds.elts)):
-            raise TypeError('imgset operation requires tuple of bound '
-                            'variable identifiers')
+            raise ASTErr('imgset operation requires tuple of bound '
+                         'variable identifiers')
         bounds = [item.id for item in bounds.elts]
         return L.Imgset(rel, mask, bounds)
 
@@ -292,8 +299,8 @@ class IncLangNodeExporter(NodeMapper):
     target_lang = P
     
     def generic_visit(self, node):
-        raise ValueError('Invalid node to export from IncAST: ' +
-                         node.__class__.__name__)
+        raise ASTErr('Invalid node to export from IncAST: ' +
+                     node.__class__.__name__)
     
     def name_helper(self, name):
         """Turn an identifier string into a Name in Load context."""

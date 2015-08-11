@@ -115,15 +115,15 @@ class ParseImportCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         
         # Disallow inner functions.
-        with self.assertRaises(TypeError):
-            Parser.ps('''
+        with self.assertRaises(IncASTConversionError):
+            Parser.p('''
                 def f():
                     def g():
                         pass
                 ''')
         
         # Modules must consist of functions.
-        with self.assertRaises(TypeError):
+        with self.assertRaises(IncASTConversionError):
             Parser.p('x = 1')
     
     def test_comment(self):
@@ -140,7 +140,7 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.RelUpdate('S', L.SetAdd(), L.Name('x'))
         self.assertEqual(tree, exp_tree)
         
-        with self.assertRaises(TypeError):
+        with self.assertRaises(IncASTConversionError):
             Parser.ps('(a + b).reladd(x)')
     
     def test_calls(self):
