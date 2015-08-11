@@ -24,13 +24,17 @@ module IncAST
          
          | Expr(expr value)
          
+           -- Updates.
+         
            -- Assign targets are variables or tuples of variables.
            -- Assignment to multiple targets (a = b = c) aren't allowed.
          | Assign(identifier* vars, expr value)
          
-           -- Updates besides assignment.
          | SetUpdate(expr target, setupop op, expr value)
          | RelUpdate(identifier rel, setupop op, expr value)
+         
+         | MapAssign(identifier map, expr key, expr value)
+         | MapDelete(identifier map, expr key)
     
     expr = UnaryOp(unaryop op, expr operand)
          | BoolOp(boolop op, expr* values)
@@ -51,6 +55,7 @@ module IncAST
          | Name(identifier id)
          | Tuple(expr* elts)
          | Attribute(expr value, identifier attr)
+         | MapLookup(expr value, expr key)
          
            -- Utility expressions.
          | Imgset(identifier rel, mask mask, identifier* bounds)

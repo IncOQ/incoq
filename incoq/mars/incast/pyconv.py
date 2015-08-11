@@ -96,6 +96,21 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         
         return [name.id for name in names]
     
+    def match_maplookup(self, node):
+        """Turn a lookup expression M[k] into a pair of identifier M
+        and expression k.
+        """
+        if not isinstance(node, P.Subscript):
+            raise ASTErr('Invalid node where map lookup expected: ' +
+                         node.__class__.__name__)
+        if not isinstance(node.value, P.Name):
+            raise ASTErr('Invalid node where map identifier expected: ' +
+                         node.__class__.__name__)
+        if not isinstance(node.slice, P.Index):
+            raise ASTErr('Invalid node where map lookup index expected: ' +
+                         node.__class__.__name__)
+        return node.value.id, node.slice.value
+    
     # Visitors for trivial nodes are auto-generated below
     # the class definition.
     
@@ -120,11 +135,27 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         args = [a2.arg for a2 in a.args]
         return L.fun(node.name, args, self.visit(node.body))
     
+    def visit_Delete(self, node):
+        if len(node.targets) != 1:
+            raise ASTErr('IncAST does not allow multiple deletion')
+        map, key = self.match_maplookup(node.targets[0])
+        return L.MapDelete(map, self.visit(key))
+    
     def visit_Assign(self, node):
         if len(node.targets) != 1:
             raise ASTErr('IncAST does not allow multiple assignment')
-        vars = self.match_vars(node.targets[0])
-        return L.Assign(vars, self.visit(node.value))
+        try:
+            vars = self.match_vars(node.targets[0])
+            result = L.Assign(vars, self.visit(node.value))
+        except ASTErr:
+            try:
+                map, key = self.match_maplookup(node.targets[0])
+                result = L.MapAssign(map, self.visit(key),
+                                     self.visit(node.value))
+            except ASTErr:
+                raise ASTErr('IncAST assignment does not fit '
+                             'allowed forms') from None
+        return result
     
     def visit_For(self, node):
         if len(node.orelse) > 0:
@@ -175,6 +206,12 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_Attribute(self, node):
         return L.Attribute(self.visit(node.value),
                            node.attr)
+    
+    def visit_Subscript(self, node):
+        if not isinstance(node.slice, P.Index):
+            raise ASTErr('IncAST does not allow complex map indexing')
+        return L.MapLookup(self.visit(node.value),
+                           self.visit(node.slice.value))
     
     def visit_Name(self, node):
         return L.Name(node.id)
@@ -348,6 +385,18 @@ class IncLangNodeExporter(NodeMapper):
         target = self.vars_helper(node.vars)
         return P.Assign([target], self.visit(node.value))
     
+    def visit_MapAssign(self, node):
+        map = P.Name(node.map, P.Load())
+        key = self.visit(node.key)
+        value = self.visit(node.value)
+        return P.Assign([P.Subscript(map, P.Index(key), P.Load())],
+                        value)
+    
+    def visit_MapDelete(self, node):
+        map = P.Name(node.map, P.Load())
+        key = self.visit(node.key)
+        return P.Delete([P.Subscript(map, P.Index(key), P.Load())])
+    
     def visit_Compare(self, node):
         return P.Compare(self.visit(node.left),
                          [self.visit(node.op)],
@@ -372,6 +421,11 @@ class IncLangNodeExporter(NodeMapper):
     def visit_Attribute(self, node):
         return P.Attribute(self.visit(node.value),
                            node.attr, P.Load())
+    
+    def visit_MapLookup(self, node):
+        return P.Subscript(self.visit(node.value),
+                           P.Index(self.visit(node.key)),
+                           P.Load())
     
     def visit_Comp(self, node):
         assert (len(node.clauses) > 0 and

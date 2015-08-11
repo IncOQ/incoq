@@ -202,8 +202,15 @@ class RoundTripCase(unittest.TestCase):
         self.trip.ps('S.add(x)')
         self.trip.ps('S.reladd(x)')
     
+    def test_mapupdates(self):
+        self.trip.ps('M[k] = v')
+        self.trip.ps('del M[k]')
+    
+    def test_maplookup(self):
+        self.trip.pe('M[k]')
+    
     def test_imgset(self):
-        self.trip.ps("R.imgset('bu', (x,))")
+        self.trip.pe("R.imgset('bu', (x,))")
     
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')
