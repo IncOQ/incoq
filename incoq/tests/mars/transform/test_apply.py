@@ -24,6 +24,9 @@ class ApplyCase(unittest.TestCase):
                 b = c
                 a = b
             
+            if (__name__ == '__main__'):
+                main()
+            
             ''')
         self.assertEqual(source, exp_source)
 
