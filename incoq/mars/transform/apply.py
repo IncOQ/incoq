@@ -12,45 +12,25 @@ from incoq.mars.incast import L, P
 from incoq.mars.symtab import SymbolTable
 from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer
 
-from .rewritings import (ExpressionPreprocessor, RuntimeImportPreprocessor,
-                         MainCallRemover, preprocess_vardecls,
-                         SetUpdateImporter,
-                         AttributeDisallower, GeneralCallDisallower,
-                         RelUpdateExporter,
-                         postprocess_vardecls, MainCallAdder,
-                         RuntimeImportPostprocessor, PassPostprocessor)
+from .py_rewritings import py_preprocess, py_postprocess
+from .rewritings import (SetUpdateImporter, RelUpdateExporter,
+                         AttributeDisallower, GeneralCallDisallower)
 
 
 def preprocess_tree(tree, symtab):
     """Return a preprocessed tree. Store relation declarations
     in the symbol table.
     """
-    # Admit some constructs as syntactic sugar that would otherwise
-    # be excluded from IncAST.
-    tree = ExpressionPreprocessor.run(tree)
-    
-    # Get rid of import statement and qualifiers for the runtime
-    # library.
-    tree = RuntimeImportPreprocessor.run(tree)
-    
-    # Get rid of main boilerplate.
-    tree = MainCallRemover.run(tree)
-    
-    # Get relation declarations.
-    tree, rels = preprocess_vardecls(tree)
-    symtab.rels.update(rels)
-    
+    # Preprocess the tree in Python some before importing.
+    tree = py_preprocess(tree, symtab)
     # Import into IncAST.
     tree = L.import_incast(tree)
-    
     # Recognize relation updates.
     tree = SetUpdateImporter.run(tree, symtab.rels)
-    
     # Check to make sure certain general-case IncAST nodes
     # aren't used.
     AttributeDisallower.run(tree)
     GeneralCallDisallower.run(tree)
-    
     return tree
 
 
@@ -58,22 +38,10 @@ def postprocess_tree(tree, symtab):
     """Return a post-processed tree."""
     # Turn relation updates back into set updates.
     tree = RelUpdateExporter.run(tree)
-    
     # Export back to Python.
     tree = L.export_incast(tree)
-    
-    # Add in declarations for relations.
-    tree = postprocess_vardecls(tree, symtab.rels, symtab.maps)
-    
-    # Add in main boilerplate, if main() is defined.
-    tree = MainCallAdder.run(tree)
-    
-    # Add the runtime import statement.
-    tree = RuntimeImportPostprocessor.run(tree)
-    
-    # Correct any missing Pass statements.
-    tree = PassPostprocessor.run(tree)
-    
+    # Postprocess the tree in Python some.
+    tree = py_postprocess(tree, symtab)
     return tree
 
 
