@@ -7,6 +7,7 @@ __all__ = [
     'IncOQType',
     'Set',
     'RCSet',
+    'Map',
 ]
 
 
@@ -156,3 +157,12 @@ class RCSet(IncOQType, Counter, ImgSetMixin):
         self[item] -= 1
     
     # elements(), update(), and clear() are provided by Counter.
+
+
+class Map(IncOQType, dict):
+    
+    """Like dict, but with identity semantics."""
+    
+    def _fmt_helper(self, fmt):
+        return ('{' + ', '.join('{}: {}'.format(fmt(key), fmt(value))
+                                for key, value in self.items()) + '}')

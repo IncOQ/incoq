@@ -145,6 +145,25 @@ class BuiltinsCase(unittest.TestCase):
         img = s.imgset('bu', (1,))
         exp_img = {(2,), (3,)}
         self.assertCountEqual(img, exp_img)
+    
+    def test_map_repr(self):
+        r = repr(Map())
+        exp_r = 'Map({})'
+        self.assertEqual(r, exp_r)
+        
+        r = repr(Map({'a': 1}))
+        exp_r = "Map({'a': 1})"
+        self.assertEqual(r, exp_r)
+        
+        s = str(Map({'a': 1}))
+        exp_s = '{a: 1}'
+        self.assertEqual(s, exp_s)
+    
+    def test_map_pickle(self):
+        m1 = Map({'a': 1, 'b': 2})
+        b = pickle.dumps(m1)
+        m2 = pickle.loads(b)
+        self.assertEqual(dict(m1), dict(m2))
 
 
 if __name__ == '__main__':
