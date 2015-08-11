@@ -55,7 +55,7 @@ module IncAST
          | Name(identifier id)
          | Tuple(expr* elts)
          | Attribute(expr value, identifier attr)
-         | MapLookup(expr value, expr key)
+         | MapLookup(expr value, expr key, expr? default)
          
            -- Utility expressions.
          | Imgset(identifier rel, mask mask, identifier* bounds)

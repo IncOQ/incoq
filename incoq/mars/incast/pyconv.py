@@ -211,7 +211,8 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         if not isinstance(node.slice, P.Index):
             raise ASTErr('IncAST does not allow complex map indexing')
         return L.MapLookup(self.visit(node.value),
-                           self.visit(node.slice.value))
+                           self.visit(node.slice.value),
+                           None)
     
     def visit_Name(self, node):
         return L.Name(node.id)
@@ -252,6 +253,9 @@ class IncLangSpecialImporter(L.MacroExpander):
             raise ASTErr('Cannot apply relremove operation to '
                          '{} node'.format(rel.__class__.__name__))
         return L.RelUpdate(rel.id, L.SetRemove(), elem)
+    
+    def handle_me_get(self, _func, map, key, default):
+        return L.MapLookup(map, key, default)
     
     def handle_me_imgset(self, _func, rel, maskstr, bounds):
         if not isinstance(rel, L.Name):
@@ -423,9 +427,16 @@ class IncLangNodeExporter(NodeMapper):
                            node.attr, P.Load())
     
     def visit_MapLookup(self, node):
-        return P.Subscript(self.visit(node.value),
-                           P.Index(self.visit(node.key)),
-                           P.Load())
+        if node.default is None:
+            return P.Subscript(self.visit(node.value),
+                               P.Index(self.visit(node.key)),
+                               P.Load())
+        else:
+            return P.Call(P.Attribute(self.visit(node.value),
+                                      'get', P.Load()),
+                          [self.visit(node.key),
+                           self.visit(node.default)],
+                          [], None, None)
     
     def visit_Comp(self, node):
         assert (len(node.clauses) > 0 and
