@@ -82,6 +82,32 @@ class TestTypeChecking(unittest.TestCase, TypeCase):
         with self.assertRaises(AssertionError):
             with self.assertTypeError(int):
                 checktype(object, str)
+    
+    def test_typechecked(self):
+        @typechecked
+        def foo(a:int, *, b=None, c:bool) -> bool:
+            if a > 0:
+                return True
+            else:
+                return 'a'
+        
+        foo(5, c=True)
+        with self.assertRaises(TypeError):
+            foo('a', c=True)
+        with self.assertRaises(TypeError):
+            foo(5, c=6)
+        with self.assertRaises(TypeError):
+            foo(0, c=True)
+        
+        # Check for bad type annotations.
+        with self.assertRaises(TypeError):
+            @typechecked
+            def foo(a:5):
+                pass
+        with self.assertRaises(TypeError):
+            @typechecked
+            def foo(a) -> 5:
+                pass
 
 
 if __name__ == '__main__':

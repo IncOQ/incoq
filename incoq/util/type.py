@@ -23,7 +23,13 @@ __all__ = [
     'checksubclass_seq',
     
     'TypeCase',
+    
+    'typechecked',
 ]
+
+
+from functools import wraps
+from inspect import signature, Parameter, Signature
 
 
 def strval(val):
@@ -109,3 +115,46 @@ class TypeCase:
         exp_msg = '.*'.join(exp_words)
         
         return self.assertRaisesRegex(TypeError, exp_msg)
+
+
+def typechecked(func):
+    sig = signature(func)
+    
+    for param_name, param in sig.parameters.items():
+        ann = param.annotation
+        if ann == Parameter.empty:
+            continue
+        if not isinstance(ann, type):
+            raise TypeError('Bad annotation for parameter "{}": {}'.format(
+                            param_name, ann))
+    ann = sig.return_annotation
+    if ann != Signature.empty:
+        if not isinstance(ann, type):
+            raise TypeError('Bad annotation for return: {}'.format(
+                            ann))
+    
+    @wraps(func)
+    def wrapper(*args, **kargs):
+        boundargs = sig.bind(*args, **kargs)
+        for param, value in boundargs.arguments.items():
+            ann = sig.parameters[param].annotation
+            if ann != Parameter.empty:
+                if not isinstance(value, ann):
+                    raise TypeError('Value for parameter "{}" does not match '
+                                    'type annotation: expected {}, '
+                                    'got {}'.format(
+                                    param, ann.__name__,
+                                    value.__class__.__name__))
+        
+        result = func(*args, **kargs)
+        
+        ann = sig.return_annotation
+        if ann != Signature.empty:
+            if not isinstance(result, ann):
+                raise TypeError('Return value does not match type '
+                                'annotation: expected {}, got {}'.format(
+                                ann.__name__, result.__class__.__name__))
+        
+        return result
+    
+    return wrapper
