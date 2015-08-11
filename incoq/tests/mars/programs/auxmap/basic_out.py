@@ -17,6 +17,10 @@ def main():
     for (x, y) in [(1, 2), (1, 3), (2, 3), (2, 4)]:
         S.add((x, y))
         _maint_S_bu_for_S_add((x, y))
+    x = 1
+    print(sorted(S_bu.get((x,), set())))
+    _maint_S_bu_for_S_remove((1, 3))
+    S.remove((1, 3))
     print(sorted(S_bu.get((x,), set())))
 
 if (__name__ == '__main__'):
