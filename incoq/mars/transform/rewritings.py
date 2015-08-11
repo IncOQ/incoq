@@ -157,13 +157,16 @@ class GeneralCallDisallower(L.NodeVisitor):
                         'by function name')
 
 
-def postprocess_vardecls(tree, rels):
+def postprocess_vardecls(tree, rels, maps):
     """Prepend global variable declarations for the given relation
     names.
     """
     assert isinstance(tree, P.Module)
-    header = tuple(P.Parser.ps('_REL = Set()', subst={'_REL': rel})
-                   for rel in rels)
+    header = ()
+    header += tuple(P.Parser.ps('_REL = Set()', subst={'_REL': rel})
+                    for rel in rels)
+    header += tuple(P.Parser.ps('_MAP = Map()', subst={'_MAP': map})
+                    for map in maps)
     tree = tree._replace(body=header + tree.body)
     return tree
 

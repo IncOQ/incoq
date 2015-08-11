@@ -10,6 +10,7 @@ __all__ = [
 
 from incoq.mars.incast import L, P
 from incoq.mars.symtab import SymbolTable
+from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer
 
 from .rewritings import (ExpressionPreprocessor, RuntimeImportPreprocessor,
                          preprocess_vardecls,
@@ -51,7 +52,7 @@ def postprocess_tree(tree, symtab):
     tree = L.export_incast(tree)
     
     # Add in declarations for relations.
-    tree = postprocess_vardecls(tree, symtab.rels)
+    tree = postprocess_vardecls(tree, symtab.rels, symtab.maps)
     
     # Add the runtime import statement.
     tree = RuntimeImportPostprocessor.run(tree)
@@ -62,12 +63,22 @@ def postprocess_tree(tree, symtab):
     return tree
 
 
+def transform_auxmaps(tree, symtab):
+    auxmaps = AuxmapFinder.run(tree)
+    symtab.maps.update(auxmap.map for auxmap in auxmaps)
+    tree = AuxmapTransformer.run(tree, auxmaps)
+    return tree
+
+
 def transform_ast(input_ast):
     """Take in a Python AST and return the transformed AST."""
     tree = input_ast
     
     symtab = SymbolTable()
     tree = preprocess_tree(tree, symtab)
+    
+    # Incrementalize image-set lookups with auxiliary maps.
+    tree = transform_auxmaps(tree, symtab)
     
     tree = postprocess_tree(tree, symtab)
     

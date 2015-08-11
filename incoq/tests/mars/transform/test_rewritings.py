@@ -99,17 +99,18 @@ class VardeclCase(unittest.TestCase):
             def main():
                 print(S, T)
             ''')
-        tree = postprocess_vardecls(tree, ['S', 'T'])
+        tree = postprocess_vardecls(tree, ['S', 'T'], ['S_bu'])
         exp_tree = P.Parser.p('''
             S = Set()
             T = Set()
+            S_bu = Map()
             def main():
                 print(S, T)
             ''')
         self.assertEqual(tree, exp_tree)
         
         tree = P.Parser.p('pass')
-        tree = postprocess_vardecls(tree, [])
+        tree = postprocess_vardecls(tree, [], [])
         exp_tree = P.Parser.p('pass')
         self.assertEqual(tree, exp_tree)
 

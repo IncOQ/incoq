@@ -3,6 +3,8 @@
 
 __all__ = [
     'AuxmapInvariant',
+    'AuxmapFinder',
+    'AuxmapTransformer',
 ]
 
 

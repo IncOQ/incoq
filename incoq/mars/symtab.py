@@ -35,3 +35,5 @@ class SymbolTable:
     def __init__(self):
         self.rels = OrderedSet()
         """Names of relations in declaration order."""
+        self.maps = OrderedSet()
+        """Names of maps in declaration order."""
