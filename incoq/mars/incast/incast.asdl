@@ -53,6 +53,7 @@ module IncAST
          | NameConstant(singleton value)
          
          | Name(identifier id)
+         | List(expr* elts)
          | Tuple(expr* elts)
          | Attribute(expr value, identifier attr)
          | MapLookup(expr value, expr key, expr? default)

@@ -211,6 +211,9 @@ class RoundTripCase(unittest.TestCase):
         self.trip.ps('M[k] = v')
         self.trip.ps('del M[k]')
     
+    def test_lists(self):
+        self.trip.pe('[1, 2]')
+    
     def test_maplookup(self):
         self.trip.pe('M[k]')
         self.trip.pe('M.get(k, d)')
