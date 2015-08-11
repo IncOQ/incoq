@@ -4,10 +4,14 @@
 __all__ = [
     'ExpressionPreprocessor',
     'RuntimeImportPreprocessor',
+    'MainCallRemover',
     'preprocess_vardecls',
+    'SetUpdateImporter',
     'AttributeDisallower',
     'GeneralCallDisallower',
+    'RelUpdateExporter',
     'postprocess_vardecls',
+    'MainCallAdder',
     'RuntimeImportPostprocessor',
     'PassPostprocessor',
 ]
@@ -16,6 +20,12 @@ __all__ = [
 from incoq.util.seq import pairs
 from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L, P
+
+
+main_boilerplate_stmt = P.Parser.ps('''
+    if __name__ == '__main__':
+        main()
+    ''')
 
 
 class ExpressionPreprocessor(P.NodeTransformer):
@@ -113,6 +123,25 @@ class RuntimeImportPreprocessor(P.NodeTransformer):
         return P.Name(match['_ATTR'], P.Load())
 
 
+class MainCallRemover(P.NodeTransformer):
+    
+    """Remove the specific code for calling main() when the
+    program is executed directly.
+    """
+    
+    def visit_Module(self, node):
+        changed = False
+        new_body = []
+        for stmt in node.body:
+            if stmt == main_boilerplate_stmt:
+                changed = True
+            else:
+                new_body.append(stmt)
+        if changed:
+            node = node._replace(body=new_body)
+        return node
+
+
 def preprocess_vardecls(tree):
     """Eliminate global variable declarations of the form
     
@@ -140,6 +169,23 @@ def preprocess_vardecls(tree):
     return tree, rels
 
 
+class SetUpdateImporter(L.NodeTransformer):
+    
+    """Replace SetUpdate nodes on known relations variables with
+    RelUpdate nodes.
+    """
+    
+    def __init__(self, rels):
+        super().__init__()
+        self.rels = rels
+    
+    def visit_SetUpdate(self, node):
+        if (isinstance(node.target, L.Name) and
+            node.target.id in self.rels):
+            return L.RelUpdate(node.target.id, node.op, node.value)
+        return node
+
+
 class AttributeDisallower(L.NodeVisitor):
     
     """Fail if there are any Attribute nodes in the tree."""
@@ -157,6 +203,12 @@ class GeneralCallDisallower(L.NodeVisitor):
                         'by function name')
 
 
+class RelUpdateExporter(L.NodeTransformer):
+    
+    def visit_RelUpdate(self, node):
+        return L.SetUpdate(L.Name(node.rel), node.op, node.value)
+
+
 def postprocess_vardecls(tree, rels, maps):
     """Prepend global variable declarations for the given relation
     names.
@@ -169,6 +221,27 @@ def postprocess_vardecls(tree, rels, maps):
                     for map in maps)
     tree = tree._replace(body=header + tree.body)
     return tree
+
+
+class MainCallAdder(P.NodeTransformer):
+    
+    """Add boilerplate to call main(), if this function is present."""
+    
+    def process(self, tree):
+        self.has_main = False
+        tree = super().process(tree)
+        return tree
+    
+    def visit_Module(self, node):
+        node = self.generic_visit(node)
+        
+        if self.has_main:
+            node = node._replace(body=node.body + (main_boilerplate_stmt,))
+        return node
+    
+    def visit_FunctionDef(self, node):
+        if node.name == 'main':
+            self.has_main = True
 
 
 class RuntimeImportPostprocessor(P.NodeTransformer):

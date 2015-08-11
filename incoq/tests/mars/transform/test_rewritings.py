@@ -73,6 +73,48 @@ class RuntimeImportCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
 
 
+class MainCallCase(unittest.TestCase):
+    
+    def test_preprocess(self):
+        tree = P.Parser.p('''
+            x = 1
+            if __name__ == '__main__':
+                main()
+            y = 2
+            ''')
+        tree = MainCallRemover.run(tree)
+        exp_tree = P.Parser.p('''
+            x = 1
+            y = 2
+            ''')
+        self.assertEqual(tree, exp_tree)
+    
+    def test_postprocess(self):
+        tree = P.Parser.p('''
+            x = 1
+            def main():
+                pass
+            ''')
+        tree = MainCallAdder.run(tree)
+        exp_tree = P.Parser.p('''
+            x = 1
+            def main():
+                pass
+            if __name__ == '__main__':
+                main()
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        tree = P.Parser.p('''
+            x = 1
+            ''')
+        tree = MainCallAdder.run(tree)
+        exp_tree = P.Parser.p('''
+            x = 1
+            ''')
+        self.assertEqual(tree, exp_tree)
+
+
 class VardeclCase(unittest.TestCase):
     
     def test_preprocess(self):
@@ -113,6 +155,28 @@ class VardeclCase(unittest.TestCase):
         tree = postprocess_vardecls(tree, [], [])
         exp_tree = P.Parser.p('pass')
         self.assertEqual(tree, exp_tree)
+
+
+class RelUpdateCase(unittest.TestCase):
+    
+    def test_preprocess(self):
+        orig_tree = L.Parser.p('''
+            def main():
+                S.add(1)
+                T.add(2)
+                (a + b).add(3)
+            ''')
+        tree = SetUpdateImporter.run(orig_tree, ['S'])
+        exp_tree = L.Parser.p('''
+            def main():
+                S.reladd(1)
+                T.add(2)
+                (a + b).add(3)
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        tree = RelUpdateExporter.run(tree)
+        self.assertEqual(tree, orig_tree)
 
 
 class RewritingsCase(unittest.TestCase):
