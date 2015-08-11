@@ -47,7 +47,10 @@ class TemplaterCase(unittest.TestCase):
                     a, b = a
                     a.add(a)
                     a.reladd(a)
+                    a[a] = a
+                    del a[a]
                     a(a.a)
+                    a.imgset('bu', (a,))
                     {a for a in a if a}
             ''')
         tree = Templater.run(tree, subst={'a': 'c'})
@@ -57,7 +60,10 @@ class TemplaterCase(unittest.TestCase):
                     c, b = c
                     c.add(c)
                     c.reladd(c)
+                    c[c] = c
+                    del c[c]
                     c(c.c)
+                    c.imgset('bu', (c,))
                     {c for c in c if c}
             ''')
         self.assertEqual(tree, exp_tree)
