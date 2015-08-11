@@ -9,6 +9,7 @@ __all__ = [
     'GeneralCallDisallower',
     'postprocess_vardecls',
     'RuntimeImportPostprocessor',
+    'PassPostprocessor',
 ]
 
 
@@ -174,3 +175,24 @@ class RuntimeImportPostprocessor(P.NodeTransformer):
     def visit_Module(self, node):
         import_stmt = P.Parser.ps('from incoq.mars.runtime import *')
         return node._replace(body=(import_stmt,) + node.body)
+
+
+class PassPostprocessor(P.NodeTransformer):
+    
+    """Add a Pass statement to any empty suite."""
+    
+    # Just handle FunctionDef, For, While, and If. Don't worry about
+    # other nodes. Don't touch the orelse field since it's allowed
+    # to be empty (indicating no orelse logic).
+    
+    def suite_helper(self, node):
+        node = self.generic_visit(node)
+        
+        if len(node.body) == 0:
+            node = node._replace(body=[P.Pass()])
+        return node
+    
+    visit_FunctionDef = suite_helper
+    visit_For = suite_helper
+    visit_While = suite_helper
+    visit_If = suite_helper

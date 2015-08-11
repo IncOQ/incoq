@@ -128,5 +128,32 @@ class RewritingsCase(unittest.TestCase):
             GeneralCallDisallower.run(L.Parser.pc('o.f(a)'))
 
 
+class PassPostprocessorCase(unittest.TestCase):
+    
+    def test_pass(self):
+        # Make a tree by parsing syntactically valid code, then
+        # scrubbing out all the occurrences of Pass. The processor
+        # should add them back.
+        class PassScrubber(P.NodeTransformer):
+            def visit_Pass(self, node):
+                return []
+        
+        orig_tree = P.Parser.p('''
+            def f():
+                pass
+            while True:
+                pass
+            for x in S:
+                pass
+            if True:
+                pass
+            if False:
+                x = 1
+            ''')
+        tree = PassScrubber.run(orig_tree)
+        tree = PassPostprocessor.run(tree)
+        self.assertEqual(tree, orig_tree)
+
+
 if __name__ == '__main__':
     unittest.main()
