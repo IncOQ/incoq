@@ -106,6 +106,9 @@ def transform_source(input_source):
     tree = P.Parser.p(input_source)
     tree = transform_ast(tree)
     source = P.Parser.ts(tree)
+    # All good human beings have trailing newlines in their
+    # text files.
+    source = source + '\n'
     return source
 
 
