@@ -9,33 +9,67 @@ __all__ = [
 
 
 from incoq.mars.incast import L, P
+from incoq.mars.symtab import SymbolTable
 
 from .rewritings import (ExpressionPreprocessor, RuntimeImportPreprocessor,
+                         preprocess_vardecls,
                          AttributeDisallower, GeneralCallDisallower,
-                         RuntimeImportPostprocessor)
+                         postprocess_vardecls, RuntimeImportPostprocessor,
+                         PassPostprocessor)
+
+
+def preprocess_tree(tree, symtab):
+    """Return a preprocessed tree. Store relation declarations
+    in the symbol table.
+    """
+    # Admit some constructs as syntactic sugar that would otherwise
+    # be excluded from IncAST.
+    tree = ExpressionPreprocessor.run(tree)
+    
+    # Get rid of import statement and qualifiers for the runtime
+    # library.
+    tree = RuntimeImportPreprocessor.run(tree)
+    
+    # Get relation declarations.
+    tree, rels = preprocess_vardecls(tree)
+    symtab.rels.update(rels)
+    
+    # Import into IncAST.
+    tree = L.import_incast(tree)
+    
+    # Check to make sure certain general-case IncAST nodes
+    # aren't used.
+    AttributeDisallower.run(tree)
+    GeneralCallDisallower.run(tree)
+    
+    return tree
+
+
+def postprocess_tree(tree, symtab):
+    """Return a post-processed tree."""
+    # Export back to Python.
+    tree = L.export_incast(tree)
+    
+    # Add in declarations for relations.
+    tree = postprocess_vardecls(tree, symtab.rels)
+    
+    # Add the runtime import statement.
+    tree = RuntimeImportPostprocessor.run(tree)
+    
+    # Correct any missing Pass statements.
+    tree = PassPostprocessor.run(tree)
+    
+    return tree
 
 
 def transform_ast(input_ast):
     """Take in a Python AST and return the transformed AST."""
     tree = input_ast
     
-    # Do some Python rewritings in order to admit some syntactic
-    # features that would otherwise be excluded by IncAST.
-    tree = ExpressionPreprocessor.run(tree)
-    # Get rid of import statement and qualifiers for the runtime
-    # library.
-    tree = RuntimeImportPreprocessor.run(tree)
-    # Import into IncAST.
-    tree = L.import_incast(tree)
-    # Check to make sure certain general-case IncAST nodes
-    # aren't used.
-    AttributeDisallower.run(tree)
-    GeneralCallDisallower.run(tree)
+    symtab = SymbolTable()
+    tree = preprocess_tree(tree, symtab)
     
-    # Export back to Python.
-    tree = L.export_incast(tree)
-    # Add the runtime import statement.
-    tree = RuntimeImportPostprocessor.run(tree)
+    tree = postprocess_tree(tree, symtab)
     
     return tree
 
