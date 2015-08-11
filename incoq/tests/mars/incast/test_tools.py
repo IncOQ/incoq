@@ -15,6 +15,11 @@ from incoq.mars.incast.pyconv import Parser, IncLangNodeImporter
 
 class MaskCase(unittest.TestCase):
     
+    def test_tuplify(self):
+        tree = tuplify(['x', 'y'])
+        exp_tree = L.Tuple([L.Name('x'), L.Name('y')])
+        self.assertEqual(tree, exp_tree)
+    
     def test_from_bounds(self):
         mask = mask_from_bounds(['x', 'y', 'z'], ['x', 'z'])
         exp_mask = L.mask('bub')

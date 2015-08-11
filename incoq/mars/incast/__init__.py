@@ -8,4 +8,4 @@ from . import pynodes as P
 from . import pyconv
 
 
-L = new_namespace(nodes, pyconv)
+L = new_namespace(nodes, tools, pyconv)

@@ -2,6 +2,7 @@
 
 
 __all__ = [
+    'tuplify',
     'mask_from_bounds',
     'split_by_mask',
     'Templater',
@@ -12,6 +13,11 @@ __all__ = [
 from functools import partial, partialmethod
 
 from . import nodes as L
+
+
+def tuplify(names):
+    """Return a tuple of Names for the given identifiers."""
+    return L.Tuple([L.Name(n) for n in names])
 
 
 def mask_from_bounds(items, bound_items):

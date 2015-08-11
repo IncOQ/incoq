@@ -13,7 +13,6 @@ __all__ = [
 
 
 from os.path import join, dirname
-
 from iast import parse_asdl, nodes_from_asdl
 
 from incoq.util.misc import flood_namespace
