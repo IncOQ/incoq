@@ -5,6 +5,7 @@ __all__ = [
     'transform_ast',
     'transform_source',
     'transform_file',
+    'transform_filename',
 ]
 
 
@@ -80,7 +81,16 @@ def transform_source(input_source):
     return source
 
 
-def transform_file(input_filename, output_filename):
+def transform_file(input_file, output_file):
+    """Take in input and output file-like objects, and write to the
+    output the transformed Python code corresponding to the input.
+    """
+    source = input_file.read()
+    source = transform_source(source)
+    output_file.write(source)
+
+
+def transform_filename(input_filename, output_filename):
     """Take in an input and output path, and write to the output
     the transformed Python file for the given input file.
     """
