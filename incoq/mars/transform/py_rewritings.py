@@ -18,6 +18,8 @@ __all__ = [
     'preprocess_vardecls',
     'postprocess_vardecls',
     
+    'SymbolInfoImporter',
+    
     # Main exports.
     'py_preprocess',
     'py_postprocess',
@@ -25,9 +27,10 @@ __all__ = [
 
 
 from incoq.util.seq import pairs
+from incoq.util.type import typechecked
 from incoq.util.collections import OrderedSet
 
-from incoq.mars.incast import P
+from incoq.mars.incast import P, L
 
 
 main_boilerplate_stmt = P.Parser.ps('''
@@ -242,6 +245,28 @@ def postprocess_vardecls(tree, rels, maps):
     return tree
 
 
+class SymbolInfoImporter(P.MacroProcessor):
+    
+    def process(self, tree):
+        self.syminfo = {}
+        tree = super().process(tree)
+        return tree, self.syminfo
+    
+    @typechecked
+    def handle_fs_INFO(self, _func, symbol:P.Name, **kargs):
+        symbol = symbol.id
+        if symbol in self.syminfo:
+            raise L.ProgramError('More than one INFO tag for symbol "{}"'
+                                 .format(symbol))
+        
+        info = {}
+        for k, v in kargs.items():
+            info[k] = P.LiteralEvaluator.run(v)
+        
+        self.syminfo[symbol] = info
+        return ()
+
+
 def py_preprocess(tree, symtab):
     # Admit some constructs as syntactic sugar that would otherwise
     # be excluded from IncAST.
@@ -254,6 +279,9 @@ def py_preprocess(tree, symtab):
     # Get relation declarations.
     tree, rels = preprocess_vardecls(tree)
     symtab.rels.update(rels)
+    # Get symbol info.
+    tree, syminfo = SymbolInfoImporter.run(tree)
+    symtab.add_syminfo(syminfo)
     return tree
 
 

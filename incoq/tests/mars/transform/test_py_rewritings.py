@@ -3,7 +3,7 @@
 
 import unittest
 
-from incoq.mars.incast import P
+from incoq.mars.incast import P, L
 from incoq.mars.transform.py_rewritings import *
 
 
@@ -37,7 +37,7 @@ class ExpressionPreprocessorCase(unittest.TestCase):
 
 class PassPostprocessorCase(unittest.TestCase):
     
-    def test_pass(self):
+    def test_postprocess(self):
         # Make a tree by parsing syntactically valid code, then
         # scrubbing out all the occurrences of Pass. The processor
         # should add them back.
@@ -182,6 +182,30 @@ class VardeclCase(unittest.TestCase):
         tree = postprocess_vardecls(tree, [], [])
         exp_tree = P.Parser.p('pass')
         self.assertEqual(tree, exp_tree)
+
+
+class SymbolInfoCase(unittest.TestCase):
+    
+    def test_preprocess(self):
+        tree = P.Parser.p('''
+            INFO(R, a=1)
+            INFO(S)
+            pass
+            ''')
+        tree, syminfo = SymbolInfoImporter.run(tree)
+        exp_tree = P.Parser.p('''
+            pass
+            ''')
+        exp_syminfo = {'R': {'a': 1}, 'S': {}}
+        self.assertEqual(tree, exp_tree)
+        self.assertEqual(syminfo, exp_syminfo)
+        
+        with self.assertRaises(L.ProgramError):
+            tree = P.Parser.p('''
+                INFO(R, a=1)
+                INFO(R, a=2)
+                ''')
+            SymbolInfoImporter.run(tree)
 
 
 if __name__ == '__main__':

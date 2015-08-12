@@ -37,3 +37,8 @@ class SymbolTable:
         """Names of relations in declaration order."""
         self.maps = OrderedSet()
         """Names of maps in declaration order."""
+    
+    def add_syminfo(self, syminfo):
+        for sym, info in syminfo.items():
+            if sym not in self.rels:
+                raise L.ProgramError('No relation symbol "{}"'.format(sym))
