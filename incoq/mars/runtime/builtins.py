@@ -3,6 +3,7 @@
 
 __all__ = [
     'OPTIONS',
+    'INFO',
     
     'IncOQType',
     'Set',
@@ -19,6 +20,9 @@ from collections import Counter
 # Execution wise, they are no-ops.
 
 def OPTIONS(*args, **kargs):
+    pass
+
+def INFO(*args, **kargs):
     pass
 
 
