@@ -49,11 +49,21 @@ class SymbolCase(unittest.TestCase):
 
 class SymbolTableCase(unittest.TestCase):
     
+    def test_symbols(self):
+        symtab = SymbolTable()
+        symtab.define_relation('R')
+        symtab.define_relation('S')
+        symtab.define_map('M')
+        
+        rels = list(symtab.get_relations().keys())
+        exp_rels = ['R', 'S']
+        self.assertSequenceEqual(rels, exp_rels)
+    
     def test_dump(self):
         symtab = SymbolTable()
         symtab.define_relation('R')
         symtab.define_relation('S')
-        symtab.maps.add(MapSymbol('M'))
+        symtab.define_map('M')
         
         s = symtab.dump_symbols()
         exp_s = L.trim('''

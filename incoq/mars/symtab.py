@@ -76,42 +76,62 @@ class MapSymbol(Symbol):
         return 'Map {}'.format(self.name)
 
 
+symbol_kindmap = {
+    'Set': RelationSymbol,
+    'Map': MapSymbol,
+}
+
+
 class SymbolTable:
     
     def __init__(self):
-        self.rels = OrderedDict()
-        """Names of relations in declaration order."""
-        self.maps = OrderedSet()
-        """Names of maps in declaration order."""
+        self.symbols = OrderedDict()
+        """Global symbols, in declaration order."""
+    
+    def define_symbol(self, name, kind):
+        """Define a new symbol of the given kind."""
+        symcls = symbol_kindmap[kind]
+        if name in self.symbols:
+            raise L.ProgramError('Symbol "{}" already defined'.format(name))
+        sym = symcls(name)
+        self.symbols[name] = sym
     
     def define_relation(self, name):
-        """Create a relation with the given name."""
-        if name in self.rels:
-            raise L.ProgramError('Relation "{}" already defined'.format(name))
-        sym = RelationSymbol(name)
-        self.rels[name] = sym
+        self.define_symbol(name, 'Set')
     
     def define_map(self, name):
-        """Create a map with the given name."""
-        if name in self.maps:
-            raise L.ProgramError('Map "{}" already defined'.format(name))
-        sym = MapSymbol(name)
-        self.maps.add(sym)
+        self.define_symbol(name, 'Map')
+    
+    def get_symbols(self, kind=None):
+        """Return an OrderedSet of symbols of the requested kind.
+        If kind is None, all symbols are returned.
+        """
+        result = OrderedDict(self.symbols)
+        if kind is not None:
+            symcls = symbol_kindmap[kind]
+            for name, sym in self.symbols.items():
+                if not isinstance(sym, symcls):
+                    result.pop(name)
+        return result
+    
+    def get_relations(self):
+        return self.get_symbols('Set')
+    
+    def get_maps(self):
+        return self.get_symbols('Map')
     
     def apply_syminfo(self, name, info):
         """Given a symbol name and a key-value dictionary of symbol
         properties, apply the properties.
         """
-        if name not in self.rels:
+        if name not in self.symbols:
             raise L.ProgramError('No symbol "{}"'.format(name))
-        sym = self.rels[name]
+        sym = self.symbols[name]
         sym.unify(**info)
     
     def dump_symbols(self):
         """Return a string describing the defined global symbols."""
         entries = []
-        for sym in self.rels.values():
-            entries.append(str(sym))
-        for sym in self.maps:
+        for sym in self.symbols.values():
             entries.append(str(sym))
         return '\n'.join(entries)

@@ -288,8 +288,10 @@ def py_preprocess(tree, symtab):
 
 
 def py_postprocess(tree, symtab):
+    rels = list(symtab.get_relations().keys())
+    maps = list(symtab.get_maps().keys())
     # Add in declarations for relations.
-    tree = postprocess_vardecls(tree, symtab.rels, symtab.maps)
+    tree = postprocess_vardecls(tree, rels, maps)
     # Add in main boilerplate, if main() is defined.
     tree = MainCallAdder.run(tree)
     # Add the runtime import statement.

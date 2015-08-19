@@ -57,8 +57,9 @@ class RelUpdateExporter(L.NodeTransformer):
 
 
 def incast_preprocess(tree, symtab):
+    rels = list(symtab.get_relations().keys())
     # Recognize relation updates.
-    tree = SetUpdateImporter.run(tree, symtab.rels)
+    tree = SetUpdateImporter.run(tree, rels)
     # Check to make sure certain general-case IncAST nodes
     # aren't used.
     AttributeDisallower.run(tree)

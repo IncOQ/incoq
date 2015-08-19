@@ -37,7 +37,13 @@ def postprocess_tree(tree, symtab):
 
 def transform_auxmaps(tree, symtab):
     auxmaps = AuxmapFinder.run(tree)
-    symtab.maps.update(auxmap.map for auxmap in auxmaps)
+    for auxmap in auxmaps:
+        if auxmap.rel not in symtab.get_relations():
+            raise L.ProgramError('Cannot make auxiliary map for image-set '
+                                 'lookup over non-relation variable {}'
+                                 .format(auxmap.rel))
+    for auxmap in auxmaps:
+        symtab.define_map(auxmap.map)
     tree = AuxmapTransformer.run(tree, auxmaps)
     return tree
 
