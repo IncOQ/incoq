@@ -1,4 +1,4 @@
-"""Pre- and post-processing rewritings."""
+"""Pre- and post-processings applied at the IncAST level."""
 
 
 __all__ = [
@@ -6,6 +6,10 @@ __all__ = [
     'AttributeDisallower',
     'GeneralCallDisallower',
     'RelUpdateExporter',
+    
+    # Main exports.
+    'incast_preprocess',
+    'incast_postprocess',
 ]
 
 
@@ -50,3 +54,19 @@ class RelUpdateExporter(L.NodeTransformer):
     
     def visit_RelUpdate(self, node):
         return L.SetUpdate(L.Name(node.rel), node.op, node.value)
+
+
+def incast_preprocess(tree, symtab):
+    # Recognize relation updates.
+    tree = SetUpdateImporter.run(tree, symtab.rels)
+    # Check to make sure certain general-case IncAST nodes
+    # aren't used.
+    AttributeDisallower.run(tree)
+    GeneralCallDisallower.run(tree)
+    return tree
+
+
+def incast_postprocess(tree):
+    # Turn relation updates back into set updates.
+    tree = RelUpdateExporter.run(tree)
+    return tree

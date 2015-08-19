@@ -1,10 +1,10 @@
-"""Unit tests for rewritings.py."""
+"""Unit tests for incast_rewritings.py."""
 
 
 import unittest
 
 from incoq.mars.incast import L
-from incoq.mars.transform.rewritings import *
+from incoq.mars.transform.incast_rewritings import *
 
 
 class RelUpdateCase(unittest.TestCase):

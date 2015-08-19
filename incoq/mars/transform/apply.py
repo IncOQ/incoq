@@ -14,34 +14,23 @@ from incoq.mars.symtab import SymbolTable
 from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer
 
 from .py_rewritings import py_preprocess, py_postprocess
-from .rewritings import (SetUpdateImporter, RelUpdateExporter,
-                         AttributeDisallower, GeneralCallDisallower)
+from .incast_rewritings import incast_preprocess, incast_postprocess
 
 
 def preprocess_tree(tree, symtab):
-    """Return a preprocessed tree. Store relation declarations
+    """Return a preprocessed tree. Store symbol declarations
     in the symbol table.
     """
-    # Preprocess the tree in Python some before importing.
     tree = py_preprocess(tree, symtab)
-    # Import into IncAST.
     tree = L.import_incast(tree)
-    # Recognize relation updates.
-    tree = SetUpdateImporter.run(tree, symtab.rels)
-    # Check to make sure certain general-case IncAST nodes
-    # aren't used.
-    AttributeDisallower.run(tree)
-    GeneralCallDisallower.run(tree)
+    tree = incast_preprocess(tree, symtab)
     return tree
 
 
 def postprocess_tree(tree, symtab):
     """Return a post-processed tree."""
-    # Turn relation updates back into set updates.
-    tree = RelUpdateExporter.run(tree)
-    # Export back to Python.
+    tree = incast_postprocess(tree)
     tree = L.export_incast(tree)
-    # Postprocess the tree in Python some.
     tree = py_postprocess(tree, symtab)
     return tree
 
