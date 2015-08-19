@@ -25,5 +25,44 @@ class NamingCase(unittest.TestCase):
         self.assertEqual(name, exp_name)
 
 
+class SymbolCase(unittest.TestCase):
+    
+    def test_rel(self):
+        r = RelationSymbol('R')
+        self.assertIs(r.arity, None)
+        r.unify(arity=2)
+        self.assertEqual(r.arity, 2)
+        
+        s = str(r)
+        exp_s = 'Relation R (arity: 2)'
+        self.assertEqual(s, exp_s)
+        
+        with self.assertRaises(L.ProgramError):
+            r.unify(arity=3)
+    
+    def test_map(self):
+        m = MapSymbol('M')
+        s = str(m)
+        exp_s = 'Map M'
+        self.assertEqual(s, exp_s)
+
+
+class SymbolTableCase(unittest.TestCase):
+    
+    def test_dump(self):
+        symtab = SymbolTable()
+        symtab.define_relation('R')
+        symtab.define_relation('S')
+        symtab.maps.add(MapSymbol('M'))
+        
+        s = symtab.dump_symbols()
+        exp_s = L.trim('''
+            Relation R
+            Relation S
+            Map M
+            ''')
+        self.assertEqual(s, exp_s)
+
+
 if __name__ == '__main__':
     unittest.main()

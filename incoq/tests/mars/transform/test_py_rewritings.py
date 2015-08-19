@@ -196,16 +196,9 @@ class SymbolInfoCase(unittest.TestCase):
         exp_tree = P.Parser.p('''
             pass
             ''')
-        exp_syminfo = {'R': {'a': 1}, 'S': {}}
+        exp_syminfo = [('R', {'a': 1}), ('S', {})]
         self.assertEqual(tree, exp_tree)
         self.assertEqual(syminfo, exp_syminfo)
-        
-        with self.assertRaises(L.ProgramError):
-            tree = P.Parser.p('''
-                INFO(R, a=1)
-                INFO(R, a=2)
-                ''')
-            SymbolInfoImporter.run(tree)
 
 
 if __name__ == '__main__':

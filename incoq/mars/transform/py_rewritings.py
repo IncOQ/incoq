@@ -247,23 +247,23 @@ def postprocess_vardecls(tree, rels, maps):
 
 class SymbolInfoImporter(P.MacroProcessor):
     
+    """Parse and remove INFO(<sym>, <key>=<value>, ...) directives,
+    and return a list of pairs of symbol names and key-value
+    dictionaries.
+    """
+    
     def process(self, tree):
-        self.syminfo = {}
+        self.syminfo = []
         tree = super().process(tree)
         return tree, self.syminfo
     
     @typechecked
     def handle_fs_INFO(self, _func, symbol:P.Name, **kargs):
-        symbol = symbol.id
-        if symbol in self.syminfo:
-            raise L.ProgramError('More than one INFO tag for symbol "{}"'
-                                 .format(symbol))
-        
+        name = symbol.id
         info = {}
         for k, v in kargs.items():
             info[k] = P.LiteralEvaluator.run(v)
-        
-        self.syminfo[symbol] = info
+        self.syminfo.append((name, info))
         return ()
 
 
@@ -278,10 +278,12 @@ def py_preprocess(tree, symtab):
     tree = MainCallRemover.run(tree)
     # Get relation declarations.
     tree, rels = preprocess_vardecls(tree)
-    symtab.rels.update(rels)
+    for rel in rels:
+        symtab.define_relation(rel)
     # Get symbol info.
     tree, syminfo = SymbolInfoImporter.run(tree)
-    symtab.add_syminfo(syminfo)
+    for name, info in syminfo:
+        symtab.apply_syminfo(name, info)
     return tree
 
 
