@@ -153,9 +153,38 @@ class ParseImportCase(unittest.TestCase):
                                  [L.Name('a')])
         self.assertEqual(tree, exp_tree)
     
-    def test_maplookup_default(self):
+    def test_dictupdates(self):
+        tree = Parser.ps('M[k] = v')
+        exp_tree = L.DictAssign(L.Name('M'), L.Name('k'), L.Name('v'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.ps('del M[k]')
+        exp_tree = L.DictDelete(L.Name('M'), L.Name('k'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.ps('M.mapassign(k, v)')
+        exp_tree = L.MapAssign('M', L.Name('k'), L.Name('v'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.ps('M.mapdelete(k)')
+        exp_tree = L.MapDelete('M', L.Name('k'))
+        self.assertEqual(tree, exp_tree)
+        
+    def test_dictlookups(self):
         tree = Parser.pe('M.get(k, d)')
-        exp_tree = L.MapLookup(L.Name('M'), L.Name('k'), L.Name('d'))
+        exp_tree = L.DictLookup(L.Name('M'), L.Name('k'), L.Name('d'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.pe('M[k]')
+        exp_tree = L.DictLookup(L.Name('M'), L.Name('k'), None)
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.pe('M.mapget(k, d)')
+        exp_tree = L.MapLookup('M', L.Name('k'), L.Name('d'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.pe('M.maplookup(k)')
+        exp_tree = L.MapLookup('M', L.Name('k'), None)
         self.assertEqual(tree, exp_tree)
     
     def test_imgset(self):
@@ -207,16 +236,20 @@ class RoundTripCase(unittest.TestCase):
         self.trip.ps('S.add(x)')
         self.trip.ps('S.reladd(x)')
     
-    def test_mapupdates(self):
+    def test_dictupdates(self):
         self.trip.ps('M[k] = v')
         self.trip.ps('del M[k]')
+        self.trip.ps('M.mapassign(k, v)')
+        self.trip.ps('M.mapdelete(k)')
     
     def test_lists(self):
         self.trip.pe('[1, 2]')
     
-    def test_maplookup(self):
+    def test_dictlookup(self):
         self.trip.pe('M[k]')
         self.trip.pe('M.get(k, d)')
+        self.trip.pe('M.maplookup(k)')
+        self.trip.pe('M.mapget(k, d)')
     
     def test_imgset(self):
         self.trip.pe("R.imgset('bu', (x,))")

@@ -2,10 +2,14 @@
 
 
 __all__ = [
-    'SetUpdateImporter',
+   # Preprocessings are paired with their postprocessings,
+    # and listed in order of their application, outermost-first.
+    
+    'SetMapImporter',
+    'SetMapExporter',
+    
     'AttributeDisallower',
     'GeneralCallDisallower',
-    'RelUpdateExporter',
     
     # Main exports.
     'incast_preprocess',
@@ -16,21 +20,55 @@ __all__ = [
 from incoq.mars.incast import L
 
 
-class SetUpdateImporter(L.NodeTransformer):
+class SetMapImporter(L.NodeTransformer):
     
-    """Replace SetUpdate nodes on known relations variables with
-    RelUpdate nodes.
-    """
+    """Rewrite nodes for sets and dicts as nodes for relations and maps."""
     
-    def __init__(self, rels):
+    def __init__(self, rels, maps):
         super().__init__()
         self.rels = rels
+        self.maps = maps
     
     def visit_SetUpdate(self, node):
         if (isinstance(node.target, L.Name) and
             node.target.id in self.rels):
             return L.RelUpdate(node.target.id, node.op, node.value)
         return node
+    
+    def visit_DictAssign(self, node):
+        if (isinstance(node.target, L.Name) and
+            node.target.id in self.maps):
+            return L.MapAssign(node.target.id, node.key, node.value)
+        return node
+    
+    def visit_DictDelete(self, node):
+        if (isinstance(node.target, L.Name) and
+            node.target.id in self.maps):
+            return L.MapDelete(node.target.id, node.key)
+        return node
+    
+    def visit_DictLookup(self, node):
+        if (isinstance(node.value, L.Name) and
+            node.value.id in self.maps):
+            return L.MapLookup(node.value.id, node.key, node.default)
+        return node
+
+
+class SetMapExporter(L.NodeTransformer):
+    
+    """Rewrite nodes for relations and maps as nodes for sets and dicts."""
+    
+    def visit_RelUpdate(self, node):
+        return L.SetUpdate(L.Name(node.rel), node.op, node.value)
+    
+    def visit_MapAssign(self, node):
+        return L.DictAssign(L.Name(node.map), node.key, node.value)
+    
+    def visit_MapDelete(self, node):
+        return L.DictDelete(L.Name(node.map), node.key)
+    
+    def visit_MapLookup(self, node):
+        return L.DictLookup(L.Name(node.map), node.key, node.default)
 
 
 class AttributeDisallower(L.NodeVisitor):
@@ -50,16 +88,11 @@ class GeneralCallDisallower(L.NodeVisitor):
                         'by function name')
 
 
-class RelUpdateExporter(L.NodeTransformer):
-    
-    def visit_RelUpdate(self, node):
-        return L.SetUpdate(L.Name(node.rel), node.op, node.value)
-
-
 def incast_preprocess(tree, symtab):
     rels = list(symtab.get_relations().keys())
+    maps = list(symtab.get_maps().keys())
     # Recognize relation updates.
-    tree = SetUpdateImporter.run(tree, rels)
+    tree = SetMapImporter.run(tree, rels, maps)
     # Check to make sure certain general-case IncAST nodes
     # aren't used.
     AttributeDisallower.run(tree)
@@ -69,5 +102,5 @@ def incast_preprocess(tree, symtab):
 
 def incast_postprocess(tree):
     # Turn relation updates back into set updates.
-    tree = RelUpdateExporter.run(tree)
+    tree = SetMapExporter.run(tree)
     return tree

@@ -33,6 +33,8 @@ module IncAST
          | SetUpdate(expr target, setupop op, expr value)
          | RelUpdate(identifier rel, setupop op, expr value)
          
+         | DictAssign(expr target, expr key, expr value)
+         | DictDelete(expr target, expr key)
          | MapAssign(identifier map, expr key, expr value)
          | MapDelete(identifier map, expr key)
     
@@ -56,7 +58,8 @@ module IncAST
          | List(expr* elts)
          | Tuple(expr* elts)
          | Attribute(expr value, identifier attr)
-         | MapLookup(expr value, expr key, expr? default)
+         | DictLookup(expr value, expr key, expr? default)
+         | MapLookup(identifier map, expr key, expr? default)
          
            -- Utility expressions.
          | Imgset(identifier rel, mask mask, identifier* bounds)

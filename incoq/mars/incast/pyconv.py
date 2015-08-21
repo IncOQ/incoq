@@ -96,20 +96,17 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         
         return [name.id for name in names]
     
-    def match_maplookup(self, node):
-        """Turn a lookup expression M[k] into a pair of identifier M
+    def match_dictlookup(self, node):
+        """Turn a lookup expression M[k] into a pair of expression M
         and expression k.
         """
         if not isinstance(node, P.Subscript):
-            raise ASTErr('Invalid node where map lookup expected: ' +
-                         node.__class__.__name__)
-        if not isinstance(node.value, P.Name):
-            raise ASTErr('Invalid node where map identifier expected: ' +
+            raise ASTErr('Invalid node where dict lookup expected: ' +
                          node.__class__.__name__)
         if not isinstance(node.slice, P.Index):
-            raise ASTErr('Invalid node where map lookup index expected: ' +
+            raise ASTErr('Invalid node where dict lookup key expected: ' +
                          node.__class__.__name__)
-        return node.value.id, node.slice.value
+        return node.value, node.slice.value
     
     # Visitors for trivial nodes are auto-generated below
     # the class definition.
@@ -138,8 +135,8 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_Delete(self, node):
         if len(node.targets) != 1:
             raise ASTErr('IncAST does not allow multiple deletion')
-        map, key = self.match_maplookup(node.targets[0])
-        return L.MapDelete(map, self.visit(key))
+        dict, key = self.match_dictlookup(node.targets[0])
+        return L.DictDelete(self.visit(dict), self.visit(key))
     
     def visit_Assign(self, node):
         if len(node.targets) != 1:
@@ -149,9 +146,9 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
             result = L.Assign(vars, self.visit(node.value))
         except ASTErr:
             try:
-                map, key = self.match_maplookup(node.targets[0])
-                result = L.MapAssign(map, self.visit(key),
-                                     self.visit(node.value))
+                dict, key = self.match_dictlookup(node.targets[0])
+                result = L.DictAssign(self.visit(dict), self.visit(key),
+                                      self.visit(node.value))
             except ASTErr:
                 raise ASTErr('IncAST assignment does not fit '
                              'allowed forms') from None
@@ -209,10 +206,10 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     
     def visit_Subscript(self, node):
         if not isinstance(node.slice, P.Index):
-            raise ASTErr('IncAST does not allow complex map indexing')
-        return L.MapLookup(self.visit(node.value),
-                           self.visit(node.slice.value),
-                           None)
+            raise ASTErr('IncAST does not allow complex dict indexing')
+        return L.DictLookup(self.visit(node.value),
+                            self.visit(node.slice.value),
+                            None)
     
     def visit_Name(self, node):
         return L.Name(node.id)
@@ -257,8 +254,32 @@ class IncLangSpecialImporter(L.MacroExpander):
                          '{} node'.format(rel.__class__.__name__))
         return L.RelUpdate(rel.id, L.SetRemove(), elem)
     
-    def handle_me_get(self, _func, map, key, default):
-        return L.MapLookup(map, key, default)
+    def handle_ms_mapassign(self, _func, map, key, value):
+        if not isinstance(map, L.Name):
+            raise ASTErr('Cannot apply mapassign operation to '
+                         '{} node'.format(map.__class__.__name__))
+        return L.MapAssign(map.id, key, value)
+    
+    def handle_ms_mapdelete(self, _func, map, key):
+        if not isinstance(map, L.Name):
+            raise ASTErr('Cannot apply mapdelete operation to '
+                         '{} node'.format(map.__class__.__name__))
+        return L.MapDelete(map.id, key)
+    
+    def handle_me_get(self, _func, dict, key, default):
+        return L.DictLookup(dict, key, default)
+    
+    def handle_me_mapget(self, _func, map, key, default):
+        if not isinstance(map, L.Name):
+            raise ASTErr('Cannot apply mapget operation to '
+                         '{} node'.format(map.__class__.__name__))
+        return L.MapLookup(map.id, key, default)
+    
+    def handle_me_maplookup(self, _func, map, key):
+        if not isinstance(map, L.Name):
+            raise ASTErr('Cannot apply lookup operation to '
+                         '{} node'.format(map.__class__.__name__))
+        return L.MapLookup(map.id, key, None)
     
     def handle_me_imgset(self, _func, rel, maskstr, bounds):
         if not isinstance(rel, L.Name):
@@ -320,6 +341,29 @@ class IncLangSpecialExporter(L.NodeTransformer):
               L.SetRemove: 'relremove'}[node.op.__class__]
         return L.Expr(L.GeneralCall(L.Attribute(L.Name(node.rel), op),
                                     [node.value]))
+    
+    def visit_MapAssign(self, node):
+        node = self.generic_visit(node)
+        
+        func = L.Attribute(L.Name(node.map), 'mapassign')
+        return L.Expr(L.GeneralCall(func, [node.key, node.value]))
+    
+    def visit_MapDelete(self, node):
+        node = self.generic_visit(node)
+        
+        func = L.Attribute(L.Name(node.map), 'mapdelete')
+        return L.Expr(L.GeneralCall(func, [node.key]))
+    
+    def visit_MapLookup(self, node):
+        node = self.generic_visit(node)
+        
+        if node.default is None:
+            func = L.Attribute(L.Name(node.map), 'maplookup')
+            node = L.GeneralCall(func, [node.key])
+        else:
+            func = L.Attribute(L.Name(node.map), 'mapget')
+            node = L.GeneralCall(func, [node.key, node.default])
+        return node
     
     def visit_Imgset(self, node):
         node = self.generic_visit(node)
@@ -392,17 +436,17 @@ class IncLangNodeExporter(NodeMapper):
         target = self.vars_helper(node.vars)
         return P.Assign([target], self.visit(node.value))
     
-    def visit_MapAssign(self, node):
-        map = P.Name(node.map, P.Load())
+    def visit_DictAssign(self, node):
+        dict = self.visit(node.target)
         key = self.visit(node.key)
         value = self.visit(node.value)
-        return P.Assign([P.Subscript(map, P.Index(key), P.Load())],
+        return P.Assign([P.Subscript(dict, P.Index(key), P.Load())],
                         value)
     
-    def visit_MapDelete(self, node):
-        map = P.Name(node.map, P.Load())
+    def visit_DictDelete(self, node):
+        dict = self.visit(node.target)
         key = self.visit(node.key)
-        return P.Delete([P.Subscript(map, P.Index(key), P.Load())])
+        return P.Delete([P.Subscript(dict, P.Index(key), P.Load())])
     
     def visit_Compare(self, node):
         return P.Compare(self.visit(node.left),
@@ -432,7 +476,7 @@ class IncLangNodeExporter(NodeMapper):
         return P.Attribute(self.visit(node.value),
                            node.attr, P.Load())
     
-    def visit_MapLookup(self, node):
+    def visit_DictLookup(self, node):
         if node.default is None:
             return P.Subscript(self.visit(node.value),
                                P.Index(self.visit(node.key)),
