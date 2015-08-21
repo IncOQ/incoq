@@ -7,8 +7,7 @@ from incoq.mars.incast import L
 from incoq.mars.auxmap import *
 from incoq.mars.auxmap import (insert_rel_maint,
                                make_imgadd, make_imgremove,
-                               make_auxmap_maint_func,
-                               AuxmapFinder, AuxmapTransformer)
+                               make_auxmap_maint_func)
 
 
 class AuxmapCase(unittest.TestCase):
@@ -38,8 +37,8 @@ class AuxmapCase(unittest.TestCase):
         code = make_imgadd('m', key, value)
         exp_code = L.Parser.pc('''
             if k not in m:
-                m[k] = set()
-            m[k].add(v)
+                m.mapassign(k, set())
+            m.maplookup(k).add(v)
             ''')
         self.assertEqual(code, exp_code)
     
@@ -48,9 +47,9 @@ class AuxmapCase(unittest.TestCase):
         value = L.Parser.pe('v')
         code = make_imgremove('m', key, value)
         exp_code = L.Parser.pc('''
-            m[k].remove(v)
-            if len(m[k]) == 0:
-                del m[k]
+            m.maplookup(k).remove(v)
+            if len(m.maplookup(k)) == 0:
+                m.mapdelete(k)
             ''')
         self.assertEqual(code, exp_code)
     
@@ -61,8 +60,8 @@ class AuxmapCase(unittest.TestCase):
             def _maint_m_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem
                 if ((_elem_v1,) not in m):
-                    m[(_elem_v1,)] = set()
-                m[(_elem_v1,)].add((_elem_v2,))
+                    m.mapassign((_elem_v1,), set())
+                m.maplookup((_elem_v1,)).add((_elem_v2,))
             ''')
         self.assertEqual(func, exp_func)
     
@@ -72,9 +71,9 @@ class AuxmapCase(unittest.TestCase):
         exp_func = L.Parser.ps('''
             def _maint_m_for_R_remove(_elem):
                 (_elem_v1, _elem_v2) = _elem
-                m[(_elem_v1,)].remove((_elem_v2,))
-                if (len(m[(_elem_v1,)]) == 0):
-                    del m[(_elem_v1,)]
+                m.maplookup((_elem_v1,)).remove((_elem_v2,))
+                if (len(m.maplookup((_elem_v1,))) == 0):
+                    m.mapdelete((_elem_v1,))
             ''')
         self.assertEqual(func, exp_func)
     
@@ -110,19 +109,19 @@ class AuxmapCase(unittest.TestCase):
             def _maint_R_bu_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem
                 if ((_elem_v1,) not in R_bu):
-                    R_bu[(_elem_v1,)] = set()
-                R_bu[(_elem_v1,)].add((_elem_v2,))
+                    R_bu.mapassign((_elem_v1,), set())
+                R_bu.maplookup((_elem_v1,)).add((_elem_v2,))
             
             def _maint_R_bu_for_R_remove(_elem):
                 (_elem_v1, _elem_v2) = _elem
-                R_bu[(_elem_v1,)].remove((_elem_v2,))
-                if (len(R_bu[(_elem_v1,)]) == 0):
-                    del R_bu[(_elem_v1,)]
+                R_bu.maplookup((_elem_v1,)).remove((_elem_v2,))
+                if (len(R_bu.maplookup((_elem_v1,))) == 0):
+                    R_bu.mapdelete((_elem_v1,))
             
             def f():
                 R.reladd((1, 2))
                 _maint_R_bu_for_R_add((1, 2))
-                print(R_bu.get((x,), set()))
+                print(R_bu.mapget((x,), set()))
                 S.reladd((3, 4))
                 print(S.imgset('bu', (x,)))
             ''')

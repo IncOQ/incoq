@@ -132,6 +132,7 @@ class Templater(L.NodeTransformer):
     visit_MapDelete = partialmethod(node_helper, fields=['map'])
     visit_Call = partialmethod(node_helper, fields=['func'])
     visit_Attribute = partialmethod(node_helper, fields=['attr'])
+    visit_MapLookup = partialmethod(node_helper, fields=['map'])
     visit_Imgset = partialmethod(node_helper, fields=['rel', 'bounds'])
     visit_Member = partialmethod(node_helper, fields=['vars', 'rel'])
     
