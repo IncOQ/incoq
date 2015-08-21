@@ -45,6 +45,13 @@ class SymbolCase(unittest.TestCase):
         s = str(m)
         exp_s = 'Map M'
         self.assertEqual(s, exp_s)
+    
+    def test_var(self):
+        v = VarSymbol('v')
+        v.type = 'test'
+        s = str(v)
+        exp_s = 'Var v (type: test)'
+        self.assertEqual(s, exp_s)
 
 
 class SymbolTableCase(unittest.TestCase):

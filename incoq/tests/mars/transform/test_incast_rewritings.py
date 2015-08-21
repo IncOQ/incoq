@@ -51,5 +51,19 @@ class DisallowerCase(unittest.TestCase):
             GeneralCallDisallower.run(L.Parser.pc('o.f(a)'))
 
 
+class VarsFinderCase(unittest.TestCase):
+    
+    def test_varsfinder(self):
+        tree = L.Parser.p('''
+            def main():
+                a, b = c
+                for d, e in f:
+                    {g for h in i}
+            ''')
+        vars = VarsFinder.run(tree)
+        exp_vars = ['c', 'a', 'b', 'f', 'g', 'h', 'd', 'e']
+        self.assertEqual(vars, exp_vars)
+
+
 if __name__ == '__main__':
     unittest.main()

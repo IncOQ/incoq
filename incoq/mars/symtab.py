@@ -7,6 +7,7 @@ __all__ = [
     'Symbol',
     'RelationSymbol',
     'MapSymbol',
+    'VarSymbol',
     
     'SymbolTable',
 ]
@@ -14,7 +15,6 @@ __all__ = [
 
 from collections import OrderedDict
 
-from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
 
 
@@ -39,7 +39,11 @@ class N:
 
 
 class Symbol:
-    pass
+    
+    def unify(self, **kargs):
+        for k, v in kargs.items():
+            method = getattr(self, 'unify_' + k)
+            method(v)
 
 
 class RelationSymbol(Symbol):
@@ -53,11 +57,6 @@ class RelationSymbol(Symbol):
         if self.arity is not None:
             s += ' (arity: {})'.format(self.arity)
         return s
-    
-    def unify(self, **kargs):
-        for k, v in kargs.items():
-            method = getattr(self, 'unify_' + k)
-            method(v)
     
     def unify_arity(self, new_arity):
         if self.arity is not None and self.arity != new_arity:
@@ -76,9 +75,23 @@ class MapSymbol(Symbol):
         return 'Map {}'.format(self.name)
 
 
+class VarSymbol(Symbol):
+    
+    def __init__(self, name):
+        self.name = name
+        self.type = None
+    
+    def __str__(self):
+        s = 'Var {}'.format(self.name)
+        if self.type is not None:
+            s += ' (type: {})'.format(self.type)
+        return s
+
+
 symbol_kindmap = {
     'Set': RelationSymbol,
     'Map': MapSymbol,
+    'Var': VarSymbol,
 }
 
 
@@ -102,8 +115,11 @@ class SymbolTable:
     def define_map(self, name):
         self.define_symbol(name, 'Map')
     
+    def define_var(self, name):
+        self.define_symbol(name, 'Var')
+    
     def get_symbols(self, kind=None):
-        """Return an OrderedSet of symbols of the requested kind.
+        """Return an OrderedDict of symbols of the requested kind.
         If kind is None, all symbols are returned.
         """
         result = OrderedDict(self.symbols)
@@ -119,6 +135,9 @@ class SymbolTable:
     
     def get_maps(self):
         return self.get_symbols('Map')
+    
+    def get_vars(self):
+        return self.get_symbols('Var')
     
     def apply_syminfo(self, name, info):
         """Given a symbol name and a key-value dictionary of symbol
