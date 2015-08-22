@@ -126,7 +126,8 @@ class Templater(L.NodeTransformer):
     
     visit_fun = partialmethod(node_helper, fields=['name', 'args'])
     visit_For = partialmethod(node_helper, fields=['vars'])
-    visit_Assign = partialmethod(node_helper, fields=['vars'])
+    visit_Assign = partialmethod(node_helper, fields=['target'])
+    visit_DecompAssign = partialmethod(node_helper, fields=['vars'])
     visit_RelUpdate = partialmethod(node_helper, fields=['rel'])
     visit_MapAssign = partialmethod(node_helper, fields=['map'])
     visit_MapDelete = partialmethod(node_helper, fields=['map'])

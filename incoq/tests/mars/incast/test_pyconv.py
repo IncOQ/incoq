@@ -131,6 +131,19 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.Comment('Text')
         self.assertEqual(tree, exp_tree)
     
+    def test_assign(self):
+        tree = Parser.ps('a = b')
+        exp_tree = L.Assign('a', L.Name('b'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.ps('a, b = c')
+        exp_tree = L.DecompAssign(['a', 'b'], L.Name('c'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.ps('a, = c')
+        exp_tree = L.DecompAssign(['a'], L.Name('c'))
+        self.assertEqual(tree, exp_tree)
+    
     def test_setupdates(self):
         tree = Parser.ps('S.add(x)')
         exp_tree = L.SetUpdate(L.Name('S'), L.SetAdd(), L.Name('x'))
@@ -231,6 +244,11 @@ class RoundTripCase(unittest.TestCase):
     def test_loops(self):
         self.trip.ps('for x in S: continue')
         self.trip.ps('while True: break')
+    
+    def test_assign(self):
+        self.trip.ps('a = b')
+        self.trip.ps('a, b = c')
+        self.trip.ps('a, = c')
     
     def test_setupdates(self):
         self.trip.ps('S.add(x)')

@@ -26,9 +26,12 @@ module IncAST
          
            -- Updates.
          
-           -- Assign targets are variables or tuples of variables.
-           -- Assignment to multiple targets (a = b = c) aren't allowed.
-         | Assign(identifier* vars, expr value)
+           
+           -- Assignment to multiple targets (a = b = c) isn't allowed.
+           -- Decomposing assignment (a, b = c) is a separate node.
+           -- The components must be identifiers.
+         | Assign(identifier target, expr value)
+         | DecompAssign(identifier* vars, expr value)
          
          | SetUpdate(expr target, setupop op, expr value)
          | RelUpdate(identifier rel, setupop op, expr value)

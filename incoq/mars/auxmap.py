@@ -80,7 +80,7 @@ def make_auxmap_maint_func(auxmap: AuxmapInvariant, op: L.setupop):
     # Fresh variables for components of the element.
     vars = N.get_subnames('_elem', len(auxmap.mask.m))
     
-    decomp_code = L.Assign(vars, L.Name('_elem'))
+    decomp_code = L.DecompAssign(vars, L.Name('_elem'))
     
     key, value = L.split_by_mask(auxmap.mask, vars)
     key = L.tuplify(key)

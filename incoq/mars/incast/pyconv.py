@@ -141,17 +141,22 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_Assign(self, node):
         if len(node.targets) != 1:
             raise ASTErr('IncAST does not allow multiple assignment')
-        try:
-            vars = self.match_vars(node.targets[0])
-            result = L.Assign(vars, self.visit(node.value))
-        except ASTErr:
+        # Try for simple assignment, then decomposing assignment,
+        # then dictionary assignment.
+        if isinstance(node.targets[0], P.Name):
+            result = L.Assign(node.targets[0].id, self.visit(node.value))
+        else:
             try:
-                dict, key = self.match_dictlookup(node.targets[0])
-                result = L.DictAssign(self.visit(dict), self.visit(key),
-                                      self.visit(node.value))
+                vars = self.match_vars(node.targets[0])
+                result = L.DecompAssign(vars, self.visit(node.value))
             except ASTErr:
-                raise ASTErr('IncAST assignment does not fit '
-                             'allowed forms') from None
+                try:
+                    dict, key = self.match_dictlookup(node.targets[0])
+                    result = L.DictAssign(self.visit(dict), self.visit(key),
+                                          self.visit(node.value))
+                except ASTErr:
+                    raise ASTErr('IncAST assignment does not fit '
+                                 'allowed forms') from None
         return result
     
     def visit_For(self, node):
@@ -406,6 +411,13 @@ class IncLangNodeExporter(NodeMapper):
                            P.Load())
         return node
     
+    def tuple_helper(self, vars):
+        """Turn a list of variables into a Tuple of Name nodes,
+        all in Load context.
+        """
+        return P.Tuple([P.Name(var, P.Load()) for var in vars],
+                       P.Load())
+    
     # Visitors for trivial nodes are auto-generated below
     # the class definition.
     
@@ -433,7 +445,11 @@ class IncLangNodeExporter(NodeMapper):
                        self.visit(node.body), [])
     
     def visit_Assign(self, node):
-        target = self.vars_helper(node.vars)
+        target = self.name_helper(node.target)
+        return P.Assign([target], self.visit(node.value))
+    
+    def visit_DecompAssign(self, node):
+        target = self.tuple_helper(node.vars)
         return P.Assign([target], self.visit(node.value))
     
     def visit_DictAssign(self, node):

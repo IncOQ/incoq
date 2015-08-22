@@ -40,6 +40,10 @@ class VarsFinder(L.NodeVisitor):
     
     def visit_Assign(self, node):
         self.generic_visit(node)
+        self.names.add(node.target)
+    
+    def visit_DecompAssign(self, node):
+        self.generic_visit(node)
         self.names.update(node.vars)
     
     def visit_Name(self, node):

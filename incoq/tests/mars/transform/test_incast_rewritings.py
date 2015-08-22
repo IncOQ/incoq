@@ -2,6 +2,7 @@
 
 
 import unittest
+import string
 
 from incoq.mars.incast import L
 from incoq.mars.transform.incast_rewritings import *
@@ -54,14 +55,16 @@ class DisallowerCase(unittest.TestCase):
 class VarsFinderCase(unittest.TestCase):
     
     def test_varsfinder(self):
+        # Exclude function name main and iterated relation R.
         tree = L.Parser.p('''
             def main():
-                a, b = c
-                for d, e in f:
-                    {g for h in i}
+                a = b
+                c, d = e
+                for f, g in h:
+                    {i for j in R}
             ''')
-        vars = VarsFinder.run(tree)
-        exp_vars = ['c', 'a', 'b', 'f', 'g', 'h', 'd', 'e']
+        vars = sorted(VarsFinder.run(tree))
+        exp_vars = list(string.ascii_lowercase)[:10]
         self.assertEqual(vars, exp_vars)
 
 

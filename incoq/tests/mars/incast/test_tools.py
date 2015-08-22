@@ -39,16 +39,17 @@ class TemplaterCase(unittest.TestCase):
     def test_name(self):
         # This test eschews the parser in case the parser breaks.
         # a = a + b
-        tree = L.Assign(['a'], L.BinOp(L.Name('a'), L.Add(), L.Name('b')))
+        tree = L.Assign('a', L.BinOp(L.Name('a'), L.Add(), L.Name('b')))
         tree = Templater.run(tree, subst={'a': L.Name('c')})
         # a = c + b
-        exp_tree = L.Assign(['a'], L.BinOp(L.Name('c'), L.Add(), L.Name('b')))
+        exp_tree = L.Assign('a', L.BinOp(L.Name('c'), L.Add(), L.Name('b')))
         self.assertEqual(tree, exp_tree)
     
     def test_ident(self):
         tree = Parser.pc('''
             def a(a):
                 for a, b in a:
+                    a = a
                     a, b = a
                     a.add(a)
                     a.reladd(a)
@@ -66,6 +67,7 @@ class TemplaterCase(unittest.TestCase):
         exp_tree = Parser.pc('''
             def c(c):
                 for c, b in c:
+                    c = c
                     c, b = c
                     c.add(c)
                     c.reladd(c)
