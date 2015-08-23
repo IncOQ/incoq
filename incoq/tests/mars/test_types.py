@@ -17,7 +17,6 @@ class TypeCase(unittest.TestCase):
         self.assertEqual(str(Number), 'Number')
         self.assertEqual(str(String), 'str')
         
-        self.assertEqual(str(Union([Bool, String])), '(bool | str)')
         self.assertEqual(str(Tuple([Bool, String])), '(bool, str)')
         self.assertEqual(str(Set(Bool)), '{bool}')
     
@@ -28,16 +27,16 @@ class TypeCase(unittest.TestCase):
         self.assertIs(obj, Bottom)
     
     def test_order_trivial(self):
-        ts = [Bottom, Bool, Set(String), Union([Bool, String]), Top]
+        ts = [Bottom, Bool, Tuple([Number]), Set(String), Top]
         for t in ts:
             with self.subTest(t=t):
-                self.assertTrue(Bottom.issubtype(t))
-                self.assertTrue(t.issubtype(Top))
-                self.assertTrue(Top.issupertype(t))
-                self.assertTrue(t.issupertype(Bottom))
+                self.assertTrue(Bottom.smaller(t))
+                self.assertTrue(t.smaller(Top))
+                self.assertTrue(Top.bigger(t))
+                self.assertTrue(t.bigger(Bottom))
     
     def test_join_trivial(self):
-        ts = [Bottom, Bool, Set(String), Union([Bool, String]), Top]
+        ts = [Bottom, Bool, Tuple([Number]), Set(String), Top]
         for t in ts:
             with self.subTest(t=t):
                 # Join.
@@ -51,22 +50,12 @@ class TypeCase(unittest.TestCase):
                 self.assertEqual(t.meet(Top), t)
                 self.assertEqual(Top.meet(t), t)
     
-    def test_union(self):
-        t = Union([Bool, String])
-        self.assertTrue(Bool.issubtype(t))
-        self.assertFalse(Number.issubtype(t))
-        
-        # These are true in reality but not produced by the
-        # current implementation.
-        self.assertFalse(Union([Bool]).issubtype(t))
-        self.assertFalse(Union([]).issubtype(Bottom))
-    
     def test_tuple(self):
         t = Tuple([Bool, String])
-        self.assertTrue(Tuple([Bottom, String]).issubtype(t))
-        self.assertTrue(Tuple([Top, String]).issupertype(t))
-        self.assertFalse(Tuple([Bottom, Top]).issubtype(t))
-        self.assertFalse(Tuple([Bottom, Top]).issupertype(t))
+        self.assertTrue(Tuple([Bottom, String]).smaller(t))
+        self.assertTrue(Tuple([Top, String]).bigger(t))
+        self.assertFalse(Tuple([Bottom, Top]).smaller(t))
+        self.assertFalse(Tuple([Bottom, Top]).bigger(t))
         
         t2 = Tuple([String, String])
         self.assertEqual(t.join(t2), Tuple([Top, String]))
@@ -74,14 +63,19 @@ class TypeCase(unittest.TestCase):
     
     def test_set(self):
         t = Set(String)
-        self.assertTrue(Set(Bottom).issubtype(t))
-        self.assertTrue(Set(Top).issupertype(t))
-        self.assertFalse(Set(Bool).issubtype(t))
-        self.assertFalse(Set(Bool).issupertype(t))
+        self.assertTrue(Set(Bottom).smaller(t))
+        self.assertTrue(Set(Top).bigger(t))
+        self.assertFalse(Set(Bool).smaller(t))
+        self.assertFalse(Set(Bool).bigger(t))
         
         t2 = Set(Bool)
         self.assertEqual(t.join(t2), Set(Top))
         self.assertEqual(t.meet(t2), Set(Bottom))
+    
+    def test_eval(self):
+        t = eval_typestr('Set(Tuple([Bool, Number]))')
+        exp_t = Set(Tuple([Bool, Number]))
+        self.assertEqual(t, exp_t)
 
 
 if __name__ == '__main__':
