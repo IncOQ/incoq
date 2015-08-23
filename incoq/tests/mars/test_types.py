@@ -30,10 +30,10 @@ class TypeCase(unittest.TestCase):
         ts = [Bottom, Bool, Tuple([Number]), Set(String), Top]
         for t in ts:
             with self.subTest(t=t):
-                self.assertTrue(Bottom.smaller(t))
-                self.assertTrue(t.smaller(Top))
-                self.assertTrue(Top.bigger(t))
-                self.assertTrue(t.bigger(Bottom))
+                self.assertTrue(Bottom.issmaller(t))
+                self.assertTrue(t.issmaller(Top))
+                self.assertTrue(Top.isbigger(t))
+                self.assertTrue(t.isbigger(Bottom))
     
     def test_join_trivial(self):
         ts = [Bottom, Bool, Tuple([Number]), Set(String), Top]
@@ -52,10 +52,10 @@ class TypeCase(unittest.TestCase):
     
     def test_tuple(self):
         t = Tuple([Bool, String])
-        self.assertTrue(Tuple([Bottom, String]).smaller(t))
-        self.assertTrue(Tuple([Top, String]).bigger(t))
-        self.assertFalse(Tuple([Bottom, Top]).smaller(t))
-        self.assertFalse(Tuple([Bottom, Top]).bigger(t))
+        self.assertTrue(Tuple([Bottom, String]).issmaller(t))
+        self.assertTrue(Tuple([Top, String]).isbigger(t))
+        self.assertFalse(Tuple([Bottom, Top]).issmaller(t))
+        self.assertFalse(Tuple([Bottom, Top]).isbigger(t))
         
         t2 = Tuple([String, String])
         self.assertEqual(t.join(t2), Tuple([Top, String]))
@@ -63,10 +63,10 @@ class TypeCase(unittest.TestCase):
     
     def test_set(self):
         t = Set(String)
-        self.assertTrue(Set(Bottom).smaller(t))
-        self.assertTrue(Set(Top).bigger(t))
-        self.assertFalse(Set(Bool).smaller(t))
-        self.assertFalse(Set(Bool).bigger(t))
+        self.assertTrue(Set(Bottom).issmaller(t))
+        self.assertTrue(Set(Top).isbigger(t))
+        self.assertFalse(Set(Bool).issmaller(t))
+        self.assertFalse(Set(Bool).isbigger(t))
         
         t2 = Set(Bool)
         self.assertEqual(t.join(t2), Set(Top))

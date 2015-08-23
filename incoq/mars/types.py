@@ -98,24 +98,24 @@ class Type(Struct):
                     return False
             return bool(b)
     
-    def smaller(self, other):
+    def issmaller(self, other):
         """Return whether self <= other."""
         return self.order_helper(other, self.smaller_cmp,
                                  other.bigger_cmp)
     
     def smaller_cmp(self, other):
-        """Helper for smaller(). May return NotImplemented to defer to
+        """Helper for issmaller(). May return NotImplemented to defer to
         the other type's comparison function.
         """
         return NotImplemented
     
-    def bigger(self, other):
+    def isbigger(self, other):
         """Return whether other <= self."""
         return self.order_helper(other, self.bigger_cmp,
                                  other.smaller_cmp)
     
     def bigger_cmp(self, other):
-        """Helper for bigger(). May return NotImplemented to defer to
+        """Helper for isbigger(). May return NotImplemented to defer to
         the other type's comparison function.
         """
         return NotImplemented
@@ -131,9 +131,9 @@ class Type(Struct):
     
     def join_one(self, other, *, inverted=False):
         """Handle join() for one other type."""
-        if self.smaller(other):
+        if self.issmaller(other):
             return other if not inverted else self
-        elif other.smaller(self):
+        elif other.issmaller(self):
             return self if not inverted else other
         else:
             return self.join_helper(other, inverted=inverted)
@@ -221,7 +221,7 @@ class Tuple(Type):
             return NotImplemented
         if len(self.elts) != len(other.elts):
             return NotImplemented
-        return all(e1.smaller(e2)
+        return all(e1.issmaller(e2)
                    for e1, e2 in zip(self.elts, other.elts))
     
     def join_helper(self, other, *, inverted=False):
@@ -247,7 +247,7 @@ class Set(Type):
     def smaller_cmp(self, other):
         if type(self) != type(other):
             return NotImplemented
-        return self.elt.smaller(other.elt)
+        return self.elt.issmaller(other.elt)
     
     def join_helper(self, other, *, inverted=False):
         top = Top if not inverted else Bottom
