@@ -7,7 +7,7 @@ from incoq.mars.incast import P, L
 from incoq.mars.transform.py_rewritings import *
 
 
-class ExpressionPreprocessorCase(unittest.TestCase):
+class ConstructPreprocessorCase(unittest.TestCase):
     
     def setUp(self):
         class check(P.ExtractMixin):
@@ -19,11 +19,25 @@ class ExpressionPreprocessorCase(unittest.TestCase):
                 if exp_source is None:
                     exp_source = source
                 tree = P.Parser.action(source, mode=mode)
-                tree = ExpressionPreprocessor.run(tree)
+                tree = ConstructPreprocessor.run(tree)
                 exp_tree = P.Parser.action(exp_source, mode=mode)
                 self.assertEqual(tree, exp_tree)
         
         self.check = check
+    
+    def test_for(self):
+        self.check.ps('''
+            for x in S:
+                pass
+            ''')
+        self.check.ps('''
+            for x, y in S:
+                pass
+            ''', '''
+            for _v in S:
+                x, y = _v
+                pass
+            ''')
     
     def test_assignment(self):
         self.check.pc('a = b')

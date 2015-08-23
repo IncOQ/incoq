@@ -60,11 +60,11 @@ class VarsFinderCase(unittest.TestCase):
             def main():
                 a = b
                 c, d = e
-                for f, g in h:
-                    {i for j in R}
+                for f in g:
+                    {h for i in R}
             ''')
         vars = sorted(VarsFinder.run(tree))
-        exp_vars = list(string.ascii_lowercase)[:10]
+        exp_vars = list(string.ascii_lowercase)[:9]
         self.assertEqual(vars, exp_vars)
 
 

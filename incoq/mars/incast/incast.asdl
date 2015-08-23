@@ -15,8 +15,8 @@ module IncAST
          | Return(expr? value)
          
            -- Loops have no else clause.
-           -- For loop targets are only variables or tuples of variables.
-         | For(identifier* vars, expr iter, stmt* body)
+           -- A For loop's target is just a variable.
+         | For(identifier target, expr iter, stmt* body)
          | While(expr test, stmt* body)
          | If(expr test, stmt* body, stmt* orelse)
          

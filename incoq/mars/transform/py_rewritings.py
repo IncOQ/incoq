@@ -5,7 +5,7 @@ __all__ = [
     # Preprocessings are paired with their postprocessings,
     # and listed in order of their application, outermost-first.
     
-    'ExpressionPreprocessor',
+    'ConstructPreprocessor',
     
     'PassPostprocessor',
     
@@ -39,10 +39,10 @@ main_boilerplate_stmt = P.Parser.ps('''
     ''')
 
 
-class ExpressionPreprocessor(P.NodeTransformer):
+class ConstructPreprocessor(P.NodeTransformer):
     
-    """Preprocessor for Python code that eliminates some features
-    that can't be directly expressed in IncAST.
+    """Preprocessor for Python code that eliminates some syntactic
+    constructs that can't be directly expressed in IncAST.
     """
     
     def visit_Assign(self, node):
@@ -57,6 +57,20 @@ class ExpressionPreprocessor(P.NodeTransformer):
                 rhs_load = P.ContextSetter.run(rhs, P.Load)
                 stmts.append(P.Assign([lhs], rhs_load))
             node = stmts
+        
+        return node
+    
+    def visit_For(self, node):
+        node = self.generic_visit(node)
+        
+        # Translate tuple decomposition into a separate assignment.
+        if isinstance(node.target, P.Tuple):
+            # TODO: Use a passed in generator of fresh var names.
+            var = '_v'
+            decomp_stmt = P.Assign([node.target], P.Name(var, P.Load()))
+            new_body = (decomp_stmt,) + node.body
+            node = node._replace(target=P.Name(var, P.Store()),
+                                 body=new_body)
         
         return node
     
@@ -270,7 +284,7 @@ class SymbolInfoImporter(P.MacroProcessor):
 def py_preprocess(tree, symtab):
     # Admit some constructs as syntactic sugar that would otherwise
     # be excluded from IncAST.
-    tree = ExpressionPreprocessor.run(tree)
+    tree = ConstructPreprocessor.run(tree)
     # Get rid of import statement and qualifiers for the runtime
     # library.
     tree = RuntimeImportPreprocessor.run(tree)

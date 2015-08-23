@@ -131,6 +131,14 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.Comment('Text')
         self.assertEqual(tree, exp_tree)
     
+    def test_for(self):
+        tree = Parser.ps('for x in S: pass')
+        exp_tree = L.For('x', L.Name('S'), [L.Pass()])
+        self.assertEqual(tree, exp_tree)
+        
+        with self.assertRaises(IncASTConversionError):
+            Parser.ps('for x, y in S: pass')
+    
     def test_assign(self):
         tree = Parser.ps('a = b')
         exp_tree = L.Assign('a', L.Name('b'))

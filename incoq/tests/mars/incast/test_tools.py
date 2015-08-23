@@ -48,7 +48,7 @@ class TemplaterCase(unittest.TestCase):
     def test_ident(self):
         tree = Parser.pc('''
             def a(a):
-                for a, b in a:
+                for a in a:
                     a = a
                     a, b = a
                     a.add(a)
@@ -66,7 +66,7 @@ class TemplaterCase(unittest.TestCase):
         tree = Templater.run(tree, subst={'a': 'c'})
         exp_tree = Parser.pc('''
             def c(c):
-                for c, b in c:
+                for c in c:
                     c = c
                     c, b = c
                     c.add(c)

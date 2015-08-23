@@ -162,8 +162,9 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_For(self, node):
         if len(node.orelse) > 0:
             raise ASTErr('IncAST does not allow else clauses in loops')
-        vars = self.match_vars(node.target)
-        return L.For(vars,
+        if not isinstance(node.target, P.Name):
+            raise ASTErr('IncAST does not allow complex targets in For loops')
+        return L.For(node.target.id,
                      self.visit(node.iter),
                      self.visit(node.body))
     
@@ -436,7 +437,7 @@ class IncLangNodeExporter(NodeMapper):
                              [], None, None))
     
     def visit_For(self, node):
-        target = self.vars_helper(node.vars)
+        target = self.name_helper(node.target)
         return P.For(target, self.visit(node.iter),
                      self.visit(node.body), [])
     

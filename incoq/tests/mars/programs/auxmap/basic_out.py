@@ -14,7 +14,8 @@ def _maint_S_bu_for_S_remove(_elem):
         del S_bu[(_elem_v1,)]
 
 def main():
-    for (x, y) in [(1, 2), (1, 3), (2, 3), (2, 4)]:
+    for _v in [(1, 2), (1, 3), (2, 3), (2, 4)]:
+        (x, y) = _v
         S.add((x, y))
         _maint_S_bu_for_S_add((x, y))
     x = 1
