@@ -142,14 +142,16 @@ class DEM_CORERBAC_CA(COM):
 #    INC,
 #])
 
-#add_impls('Social', 'experiments/twitter/twitter', [
+add_impls('Social', 'experiments/twitter/twitter', [
 #    INC,
 #    DEM,
 #    DEM_SINGLE_TAG,
+#    DEM_NORCELIM_NODRELIM,
+#    DEM_INLINE_NORCELIM_NODRELIM,
+#    DEM_INLINE_NODRELIM,
 #    DEM_INLINE,
-#    DEM_INLINE_NORCELIM,
 #    DEM_INLINE_NOTYPECHECK,
-#])
+])
 #
 #add_impls('Auth', 'experiments/django/django', [
 #    INC,

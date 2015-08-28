@@ -13,7 +13,7 @@ import importlib
 from frexp import (ExpWorkflow, Datagen,
                    SimpleExtractor, MetricExtractor,
                    TotalSizeExtractor, NormalizedExtractor,
-                   Printer)
+                   Printer, get_mem_usage)
 
 from experiments.twitter.gendb_wrapper import (
                         gen_pairs, gen_pairs_with_inverse,
@@ -243,6 +243,7 @@ class TwitterDriver:
         import incoq.runtime
         self.results['size'] = incoq.runtime.get_total_structure_size(
                                     self.module.__dict__)
+        self.results['mem'] = get_mem_usage()
         self.results['opstime_user'] = timer_user.consume()
         self.results['opstime_cpu'] = timer_cpu.consume()
         self.results['opstime_wall'] = timer_wall.consume()
@@ -1225,7 +1226,7 @@ class Factor2DTimeNorm(Factor2D, FactorTimeNorm):
     pass
 
 
-class DensityFactor(TwitterWorkflow):
+class Density(TwitterWorkflow):
     
     """Vary the number of users and the user degree
     inversely, keeping the number of follower pairs
@@ -1237,11 +1238,16 @@ class DensityFactor(TwitterWorkflow):
     
     class ExpDatagen(TwitterWorkflow.ExpDatagen):
         
+        upkind = None
+        
         progs = [
+            'twitter_dem_norcelim_nodrelim',
+            'twitter_dem_inline_norcelim_nodrelim',
+            'twitter_dem_inline_nodrelim',
+            'twitter_dem_inline_nodrelim_rcsettoset',
             'twitter_dem_inline',
-            'twitter_dem',
-            'twitter_dem_inline_norcelim',
             'twitter_dem_inline_notypecheck',
+            'twitter_dem_inline_notypecheck_maintelim',
         ]
         
         def get_dsparams_list(self):
@@ -1254,7 +1260,7 @@ class DensityFactor(TwitterWorkflow):
                     n_groups =       200,
                     pad_celeb =      None,
                     
-                    user_deg =       100 * (20000 // x),
+                    user_deg =       int(100 * (20000 / x)),
                     group_deg =      10,
                     
                     n_locs =         20,
@@ -1268,11 +1274,12 @@ class DensityFactor(TwitterWorkflow):
                     reps =           1,
                     
                     need_exact =     False,
-                    upkind =         'loc',
+                    upkind =         self.upkind,
                     celebusertag =   True,
                     groupusertag =   True,
                 )
-                for x in range(2000, 20000 + 1, 2000)
+                for x in [4000, 8000, 12000, 16000, 20000]
+#                for x in range(2000, 20000 + 1, 2000)
             ]
     
     stddev_window = .1
@@ -1282,13 +1289,26 @@ class DensityFactor(TwitterWorkflow):
     class ExpExtractor(TwitterWorkflow.ExpExtractor, MetricExtractor):
         
         series = [
-            (('twitter_dem_inline', 'all'), 'inlined',
-             'cyan', '-- ^ normal'),
-            (('twitter_dem', 'all'), 'non-inlined',
+            (('twitter_dem_norcelim_nodrelim', 'all'),
+             'Standard',
+             'purple', '-- ^ normal'),
+            (('twitter_dem_inline_norcelim_nodrelim', 'all'),
+             'Inlined',
              'green', '-- ^ normal'),
-            (('twitter_dem_inline_norcelim', 'all'), 'no RC elim',
+            (('twitter_dem_inline_nodrelim', 'all'),
+             'RC elim',
+             'cyan', '-- ^ normal'),
+            (('twitter_dem_inline_nodrelim_rcsettoset', 'all'),
+             'RC elim using Set',
+             'blue', '-- ^ normal'),
+            (('twitter_dem_inline', 'all'),
+             'DR elim',
              'red', '-- ^ normal'),
-            (('twitter_dem_inline_notypecheck', 'all'), 'no type checks',
+            (('twitter_dem_inline_notypecheck', 'all'),
+             'TC elim',
+             'orange', '-- ^ normal'),
+            (('twitter_dem_inline_notypecheck_maintelim', 'all'),
+             'Maint elim',
              'yellow', '-- ^ normal'),
         ]
         
@@ -1296,17 +1316,57 @@ class DensityFactor(TwitterWorkflow):
         
         ylabel = 'Running time (in seconds)'
         ymin = 0
-        xlabel = 'x'
+        
+        legend_loc = 'upper right'
+        
+        xlabel = 'Number of users (in thousands)'
+        
+        def project_x(self, p):
+            return super().project_x(p) / 1e3
+        
+        xmin = 1
+        xmax = 21
+        x_ticklocs = [0, 4, 8, 12, 16, 20]
 
-class DensityFactorNorm(DensityFactor):
+class DensityNorm(Density):
     
     class ExpExtractor(NormalizedExtractor,
-                       DensityFactor.ExpExtractor):
+                       Density.ExpExtractor):
         
-        base_sid = ('twitter_dem_inline', 'all')
+        base_sid = ('twitter_dem_norcelim_nodrelim', 'all')
         
         def normalize(self, pre_y, base_y):
             return pre_y / base_y
+        
+        ylabel = 'Running time (normalized)'
+        ymin = .5
+        ymax = 1.1
+
+
+class DensityLoc(Density):
+    prefix = 'results/twitter_density_loc'
+    class ExpDatagen(Density.ExpDatagen):
+        upkind = 'loc'
+
+class DensityLocNorm(DensityLoc, DensityNorm):
+    pass
+
+class DensityLocMem(DensityLoc):
+    
+    class ExpExtractor(DensityLoc.ExpExtractor):
+        
+        metric = 'mem'
+        ylabel = 'Memory usage (in MB)'
+        def project_y(self, p):
+            return super().project_y(p) / (2**20)
+
+class DensityCeleb(Density):
+    prefix = 'results/twitter_density_celeb'
+    class ExpDatagen(Density.ExpDatagen):
+        upkind = 'celeb'
+
+class DensityCelebNorm(DensityCeleb, DensityNorm):
+    pass
 
 
 class Tag(TwitterWorkflow):

@@ -20,8 +20,9 @@ __all__ = [
     'DEM_INLINE',
     'DEM_NO_TAG_CHECK',
     'DEM_SINGLE_TAG',
-    'DEM_NORCELIM',
-    'DEM_INLINE_NORCELIM',
+    'DEM_NORCELIM_NODRELIM',
+    'DEM_INLINE_NORCELIM_NODRELIM',
+    'DEM_INLINE_NODRELIM',
     'DEM_NOTYPECHECK',
     'DEM_INLINE_NOTYPECHECK',
     'DEM_OBJ',
@@ -202,16 +203,24 @@ class DEM_SINGLE_TAG(DEM):
     display_suffix = 'Filtered (single tag)'
     extra_nopts = {'single_tag': True}
 
-class DEM_NORCELIM(DEM):
-    output_suffix = 'dem_norcelim'
-    display_suffix = 'Filtered (no rc elim.)'
-    extra_nopts = {'rc_elim': False}
+class DEM_NORCELIM_NODRELIM(DEM):
+    output_suffix = 'dem_norcelim_nodrelim'
+    display_suffix = 'Filtered (no rc+dr elim.)'
+    extra_nopts = {'rc_elim': False,
+                   'deadcode_elim': False}
 
-class DEM_INLINE_NORCELIM(DEM):
-    output_suffix = 'dem_inline_norcelim'
-    display_suffix = 'Filtered (inline; no rc elim.)'
+class DEM_INLINE_NORCELIM_NODRELIM(DEM):
+    output_suffix = 'dem_inline_norcelim_nodrelim'
+    display_suffix = 'Filtered (inline; no rc+dr elim.)'
     extra_nopts = {'maint_inline': True,
-                   'rc_elim': False}
+                   'rc_elim': False,
+                   'deadcode_elim': False}
+
+class DEM_INLINE_NODRELIM(DEM):
+    output_suffix = 'dem_inline_nodrelim'
+    display_suffix = 'Filtered (inline; no dr elim.)'
+    extra_nopts = {'maint_inline': True,
+                   'deadcode_elim': False}
 
 class DEM_NOTYPECHECK(DEM):
     output_suffix = 'dem_notypecheck'

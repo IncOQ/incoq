@@ -26,8 +26,11 @@ factor2b = twitter.Factor2BTimeNorm()
 factor2c = twitter.Factor2CTimeNorm()
 factor2d = twitter.Factor2DTimeNorm()
 
-densityfactor = twitter.DensityFactor()
-densityfactornorm = twitter.DensityFactorNorm()
+densityloc = twitter.DensityLoc()
+densitylocnorm = twitter.DensityLocNorm()
+densitylocmem = twitter.DensityLocMem()
+densityceleb = twitter.DensityCeleb()
+densitycelebnorm = twitter.DensityCelebNorm()
 
 tag = twitter.TagTime()
 
@@ -93,8 +96,11 @@ def main():
 #        factor2c,
 #        factor2d,
         
-#        densityfactor,
-#        densityfactornorm,
+#        densityloc,
+#        densitylocnorm,
+#        densitylocmem,
+#        densityceleb,
+#        densitycelebnorm,
         
 #        jqlratio1,
 #        jqlratio2,        # jql_ratio
