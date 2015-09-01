@@ -1278,46 +1278,44 @@ class Density(TwitterWorkflow):
                     celebusertag =   True,
                     groupusertag =   True,
                 )
-                for x in [4000, 8000, 12000, 16000, 20000]
-#                for x in range(2000, 20000 + 1, 2000)
+#                for x in [4000, 8000, 12000, 16000, 20000]
+                for x in range(2000, 20000 + 1, 2000)
             ]
     
     stddev_window = .1
-    min_repeats = 1#10
-    max_repeats = 1#50
+    min_repeats = 10
+    max_repeats = 50
      
     class ExpExtractor(TwitterWorkflow.ExpExtractor, MetricExtractor):
         
         series = [
             (('twitter_dem_norcelim_nodrelim', 'all'),
              'Standard',
-             'purple', '-- ^ normal'),
+             'black', '- s normal'),
             (('twitter_dem_inline_norcelim_nodrelim', 'all'),
              'Inlined',
-             'green', '-- ^ normal'),
+             'red', '- D normal'),
             (('twitter_dem_inline_nodrelim', 'all'),
              'RC elim',
-             'cyan', '-- ^ normal'),
+             'orange', '-- ^ normal'),
             (('twitter_dem_inline_nodrelim_rcsettoset', 'all'),
-             'RC elim using Set',
-             'blue', '-- ^ normal'),
+             'Native RC elim',
+             'yellow', '-- ^ normal'),
             (('twitter_dem_inline', 'all'),
              'DR elim',
-             'red', '-- ^ normal'),
+             'green', '-- v normal'),
             (('twitter_dem_inline_notypecheck', 'all'),
              'TC elim',
-             'orange', '-- ^ normal'),
+             'blue', ': < normal'),
             (('twitter_dem_inline_notypecheck_maintelim', 'all'),
              'Maint elim',
-             'yellow', '-- ^ normal'),
+             'purple', ': > normal'),
         ]
         
         metric = 'opstime_cpu'
         
         ylabel = 'Running time (in seconds)'
         ymin = 0
-        
-        legend_loc = 'upper right'
         
         xlabel = 'Number of users (in thousands)'
         
@@ -1338,8 +1336,11 @@ class DensityNorm(Density):
         def normalize(self, pre_y, base_y):
             return pre_y / base_y
         
+        legend_loc = 'lower left'
+        legend_ncol = 2
+        
         ylabel = 'Running time (normalized)'
-        ymin = .5
+        ymin = 0
         ymax = 1.1
 
 
@@ -1367,6 +1368,12 @@ class DensityCeleb(Density):
 
 class DensityCelebNorm(DensityCeleb, DensityNorm):
     pass
+#    class ExpViewer(Printer):
+#        
+#        transpose = True
+#        
+#        def round_y(self, y):
+#            return round(y, 3)
 
 
 class Tag(TwitterWorkflow):
