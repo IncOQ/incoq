@@ -144,7 +144,7 @@ class CompSpecCase(unittest.TestCase):
         spec = self.make_spec('(x, z) for (x, y) in R for (y, z) in R', [])
         code, comps = make_comp_maint_code(
                         spec, 'Q', 'R', 'add', L.pe('e'), '_',
-                        maint_impl='auxonly', rc='safe',
+                        maint_impl='auxonly', rc=True,
                         selfjoin='sub')
         
         comp1 = L.pe('''
@@ -181,7 +181,7 @@ class CompSpecCase(unittest.TestCase):
         spec = self.make_spec('(x, z) for (x, y) in R for (y, z) in R', [])
         code, comps = make_comp_maint_code(
                         spec, 'Q', 'R', 'add', L.pe('e'), '_',
-                        maint_impl='auxonly', rc='no',
+                        maint_impl='auxonly', rc=False,
                         selfjoin='assume_disjoint')
         
         comp1 = L.pe('''

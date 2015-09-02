@@ -380,7 +380,7 @@ def make_comp_maint_code(spec, resrel, deltarel, op, elem, prefix, *,
         
         rc:
           Whether or not the incrementally computed comprehension
-          uses reference counts ('yes', 'no', 'safe').
+          uses reference counts
         
         selfjoin:
           Strategy for computing self-joins. Possible values:
@@ -399,7 +399,7 @@ def make_comp_maint_code(spec, resrel, deltarel, op, elem, prefix, *,
     """
     assert op in ['add', 'remove']
     assert maint_impl in ['batch', 'auxonly']
-    assert rc in ['yes', 'no', 'safe']
+    assert rc in [True, False]
     assert selfjoin in ['sub', 'aug', 'das', 'assume_disjoint',
                         'assume_disjoint_verify']
     
@@ -423,10 +423,7 @@ def make_comp_maint_code(spec, resrel, deltarel, op, elem, prefix, *,
     
     # Decide whether the body is a normal update or
     # a reference-counted one.
-    use_rc = {'yes': True,
-              'no': False,
-              'safe': not spec.is_duplicate_safe}[rc]
-    if use_rc:
+    if rc:
         op = 'rc' + op
     resvars = L.VarsFinder.run(spec.resexp, ignore_functions=True)
     resexp = L.prefix_names(spec.resexp, resvars, prefix)

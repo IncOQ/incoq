@@ -112,6 +112,14 @@ class RelcompMaintainer(L.OuterMaintTransformer):
             ''', subst={'RES': self.inccomp.name,
                         'RESINIT': resinit})
         
+        rc = {'yes': True,
+              'no': False,
+              'safe': not self.inccomp.spec.is_duplicate_safe} \
+              [self.inccomp.rc]
+        
+        if not rc:
+            self.manager.stats['rcsets simplified'] += 1
+        
         for rel in self.inccomp.spec.join.rels:
             prefix1 = self.manager.namegen.next_prefix()
             prefix2 = self.manager.namegen.next_prefix()
@@ -121,7 +129,7 @@ class RelcompMaintainer(L.OuterMaintTransformer):
                 rel, 'add', L.pe('_e'),
                 prefix1,
                 maint_impl=self.inccomp.maint_impl,
-                rc=self.inccomp.rc,
+                rc=rc,
                 selfjoin=self.inccomp.selfjoin)
             
             remove_code, remove_comps = make_comp_maint_code(
@@ -129,7 +137,7 @@ class RelcompMaintainer(L.OuterMaintTransformer):
                 rel, 'remove', L.pe('_e'),
                 prefix2,
                 maint_impl=self.inccomp.maint_impl,
-                rc=self.inccomp.rc,
+                rc=rc,
                 selfjoin=self.inccomp.selfjoin)
             
             self.maint_comps.extend(add_comps)
