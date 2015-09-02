@@ -474,6 +474,7 @@ class DistalgoRCDRSchema(GroupedSchema):
         ((0, 'lines'), 'Original LOC', None),
         ((1, 'lines'), 'Unoptimized LOC', None),
         ((2, 'lines'), 'Optimized LOC', None),
+        ((2, 'eliminated rels'), '# rels elim.', None)
     ]
     
     rows = [

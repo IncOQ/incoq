@@ -133,6 +133,11 @@ class Manager:
                                     # analyzed cost
             'domain_subst': {},     # domain constraint solutions
             'invariants': {},       # mapping from invariant name to spec obj
+            
+            'eliminated rels': 0,   # number of relations eliminated
+                                    # as dead code
+            'rcsets simplified': 0, # number of rcsets turned into
+                                    # ordinary sets
         }
         """Statistics about the transformation."""
         

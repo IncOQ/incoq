@@ -43,6 +43,16 @@ class RewriterCase(CentralCase):
         exp_res = ['R', 'S']
         self.assertCountEqual(res, exp_res)
     
+    def test_relationinitfinder(self):
+        tree = L.p('''
+            R = RCSet()
+            S = 5
+            print(R)
+            ''')
+        res = RelationInitFinder.run(tree)
+        exp_res = ['R']
+        self.assertCountEqual(res, exp_res)
+    
     def test_macroupdaterewriter(self):
         tree = L.p('''
             A.update(B)
@@ -176,7 +186,7 @@ class RewriterCase(CentralCase):
             C.add(z)
             print(C)
             ''')
-        tree = eliminate_deadcode(tree, obj_domain_out=True)
+        tree, elim_vars = eliminate_deadcode(tree, obj_domain_out=True)
         
         exp_tree = L.p('''
             A = Set()
@@ -187,8 +197,10 @@ class RewriterCase(CentralCase):
             C.add(z)
             print(C)
             ''')
+        exp_elim_vars = ['B', 'x']
         
         self.assertEqual(tree, exp_tree)
+        self.assertSequenceEqual(elim_vars, exp_elim_vars)
     
     def test_eagerdemandrewriter(self):
         tree = L.p('''

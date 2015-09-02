@@ -7,6 +7,7 @@ __all__ = [
     'import_distalgo',
     'get_distalgo_message_sets',
     'RelationFinder',
+    'RelationInitFinder',
     'MacroUpdateRewriter',
     'SetTypeRewriter',
     'ObjTypeRewriter',
@@ -168,6 +169,36 @@ class RelationFinder(L.NodeVisitor):
     def visit_Name(self, node):
         # We got here through some disallowed use of R.
         self.disqual.add(node.id)
+
+
+class RelationInitFinder(L.NodeVisitor):
+    """As above but find anything that looks like it's initialized
+    like a relation, even if it's used in other contexts.
+    """
+    
+    def process(self, tree):
+        self.rels = OrderedSet()
+        super().process(tree)
+        return self.rels
+    
+    def visit_Assign(self, node):
+        allowed_inits = [
+            L.pe('Set()'),
+            L.pe('incoq.runtime.Set()'),
+            L.pe('RCSet()'),
+            L.pe('incoq.runtime.RCSet()'),
+        ]
+        # If this is a relation initializer, mark the relation name
+        # and don't recurse.
+        if (L.is_varassign(node)):
+            name, value = L.get_varassign(node)
+            # Strip stupid type info.
+            value = L.pe(L.ts(value))
+            if value in allowed_inits:
+                self.rels.add(name)
+                return
+        
+        self.generic_visit(node)
 
 
 class LegalUpdateValidator(L.NodeVisitor):
@@ -692,7 +723,7 @@ def eliminate_deadcode(tree, *, keepvars=None, obj_domain_out, verbose=False):
         else:
             print('No dead vars eliminated')
     
-    return tree
+    return tree, write_only_vars
 
 
 class EagerDemandRewriter(L.NodeTransformer):

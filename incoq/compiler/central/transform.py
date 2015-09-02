@@ -40,7 +40,7 @@ from .rewritings import (import_distalgo, get_distalgo_message_sets,
                          StrictUpdateRewriter,
                          UpdateRewriter, MinMaxRewriter,
                          eliminate_deadcode, PassEliminator,
-                         RelationFinder)
+                         RelationFinder, RelationInitFinder)
 
 
 class FunctionUniqueChecker(L.NodeVisitor):
@@ -530,11 +530,16 @@ def transform_ast(tree, *, nopts=None, qopts=None):
     # Must happen before we return to obj domain, where there
     # could be aliasing.
     if opman.get_opt('deadcode_elim'):
-        tree = eliminate_deadcode(
+        rels = RelationInitFinder.run(tree)
+        tree, eliminated_vars = eliminate_deadcode(
                 tree,
                 keepvars=opman.get_opt('deadcode_keepvars'),
                 obj_domain_out=opman.get_opt('obj_domain_out'),
                 verbose=verbose)
+        eliminated_rels = eliminated_vars & rels
+        if verbose:
+            print('Eliminated rels: ' + str(eliminated_rels))
+        manager.stats['eliminated rels'] = len(eliminated_rels)
     
     # Go back to the object domain.
     if opman.get_opt('obj_domain') and opman.get_opt('obj_domain_out'):
