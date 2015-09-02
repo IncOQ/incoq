@@ -11,6 +11,7 @@ __all__ = [
 ]
 
 
+from itertools import chain
 from simplestruct import Struct, TypedField
 
 from incoq.util.type import checktype
@@ -102,8 +103,12 @@ class CompSpec(Struct):
         # For loops.
         #
         # We know it's safe if the result expression is injective
-        # and makes use of all local variables.
-        localvars = set(self.join.enumvars) - set(self.params)
+        # and makes use of all non-constant local variables.
+        constantvars = list(chain.from_iterable(
+                            cl.constvars for cl in self.join.clauses))
+        localvars = (set(self.join.enumvars) -
+                     set(self.params) -
+                     set(constantvars))
         resvars = set(L.VarsFinder.run(resexp, ignore_functions=True))
         self.is_duplicate_safe = (resvars.issuperset(localvars) and
                                   L.is_injective(resexp))

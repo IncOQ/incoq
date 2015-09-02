@@ -27,6 +27,8 @@ __all__ = [
     'is_cmp',
     'get_vareqcmp',
     'is_vareqcmp',
+    'get_varconsteqcmp',
+    'is_varconsteqcmp',
     'get_singletonset',
     'is_singletonset',
     'get_singadd',
@@ -265,6 +267,27 @@ def get_vareqcmp(node):
     raise TypeError('get_vareqcmp failed: ' + ts(node))
 
 is_vareqcmp = isify(get_vareqcmp)
+
+def get_varconsteqcmp(node):
+    """Match a Compare node of form
+    
+        <Name> == <Constant>
+    
+    and return a singleton tuple of Name.
+    """
+    checktype(node, AST)
+    
+    if (isinstance(node, Compare) and
+        len(node.ops) == len(node.comparators) == 1 and
+        isinstance(node.ops[0], Eq) and
+        isinstance(node.left, Name) and
+        isinstance(node.comparators[0], (Num, Str))):
+        return (node.left.id,)
+    
+    from . import ts
+    raise TypeError('get_vareqcmp failed: ' + ts(node))
+
+is_varconsteqcmp = isify(get_varconsteqcmp)
 
 def get_singletonset(node):
     """Match a singleton set, i.e.

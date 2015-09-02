@@ -66,11 +66,11 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
     }
     
     extra_qopts = {
-        '''{(c2, p) for (_ConstantPattern0_, c2, p) in P_q
-             if (_ConstantPattern0_ == 'request')
-             if (not (((c2, p) == (P_mutex_c, SELF_ID)) or
-                      ((P_mutex_c, SELF_ID) < (c2, p))))}
-        ''': {'no_rc': True},
+#        '''{(c2, p) for (_ConstantPattern0_, c2, p) in P_q
+#             if (_ConstantPattern0_ == 'request')
+#             if (not (((c2, p) == (P_mutex_c, SELF_ID)) or
+#                      ((P_mutex_c, SELF_ID) < (c2, p))))}
+#        ''': {'no_rc': True},
         '''{p for p in P_s
               for (_, _, (_ConstantPattern16_, c2, _FreePattern18_))
                 in _PReceivedEvent_0
@@ -78,11 +78,11 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
               if (_FreePattern18_ == p)
               if (c2 > P_mutex_c)}
         ''': {'no_rc': True},
-        '''{('request', c, P__P_handler_1_p)
-            for (_ConstantPattern27_, c, _BoundPattern29_) in P_q
-            if (_ConstantPattern27_ == 'request')
-            if (_BoundPattern29_ == P__P_handler_1_p)}
-        ''': {'no_rc': True},
+#        '''{('request', c, P__P_handler_1_p)
+#            for (_ConstantPattern27_, c, _BoundPattern29_) in P_q
+#            if (_ConstantPattern27_ == 'request')
+#            if (_BoundPattern29_ == P__P_handler_1_p)}
+#        ''': {'no_rc': True},
         }
 
 class INC_SUBDEM_LAMUTEX_ORIG_NORCELIM_NODRELIM(INC_SUBDEM_LAMUTEX_ORIG):

@@ -46,6 +46,11 @@ class CompSpecCase(unittest.TestCase):
         spec = self.make_spec(
                     '(x, y) for (x, y) in R for (y, _) in R', [])
         self.assertTrue(spec.is_duplicate_safe)
+        
+        spec = self.make_spec(
+                    '(x, y) for (x, y) in R for (y, z) in R '
+                    'if z == 5', [])
+        self.assertTrue(spec.is_duplicate_safe)
     
     def test_pattern(self):
         spec = self.make_spec(

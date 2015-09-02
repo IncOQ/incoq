@@ -56,6 +56,7 @@ class ClauseCase(unittest.TestCase):
         
         self.assertEqual(cl.vars, ('x', 'y'))
         self.assertEqual(cl.eqvars, None)
+        self.assertEqual(cl.constvars, ())
         
         self.assertTrue(cl.robust)
         self.assertEqual(cl.demname, None)
@@ -243,6 +244,10 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(cl.vars, ('a', 'b'))
         cl2 = CondClause(L.pe('a == b'))
         self.assertEqual(cl2.eqvars, ('a', 'b'))
+        self.assertEqual(cl2.constvars, ())
+        cl3 = CondClause(L.pe('a == "s"'))
+        self.assertEqual(cl3.eqvars, None)
+        self.assertEqual(cl3.constvars, ('a',))
         
         # Rating.
         self.assertEqual(cl.rate(['a', 'b']), Rate.CONSTANT)

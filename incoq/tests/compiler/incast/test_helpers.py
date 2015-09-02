@@ -108,6 +108,11 @@ class HelpersCase(unittest.TestCase):
         vars = get_vareqcmp(tree)
         self.assertEqual(vars, ('a', 'b', 'c'))
     
+    def test_varconsteqcmp(self):
+        tree = self.pe('a == 1')
+        vars = get_varconsteqcmp(tree)
+        self.assertEqual(vars, ('a',))
+    
     def test_singletonset(self):
         tree = self.pe('{1}')
         res = get_singletonset(tree)

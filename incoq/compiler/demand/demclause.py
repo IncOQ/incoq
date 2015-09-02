@@ -80,7 +80,7 @@ class DemClause(Clause, ABCStruct):
     def __init__(self, cl, demname, demparams):
         for attr in [
             'isdelta', 'enumlhs', 'enumrel',
-            'vars', 'eqvars', 'robust']:
+            'vars', 'eqvars', 'constvars', 'robust']:
             setattr(self, attr, getattr(cl, attr))
     
     def to_AST(self):

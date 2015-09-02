@@ -110,6 +110,12 @@ class Clause(metaclass=ABCMeta):
     enumerators.
     """
     
+    constvars = ()
+    """For a condition that equates a variable to a constant,
+    the singleton list of the name of the constant. Empty tuple
+    for other conditions and for enumerators.
+    """
+    
     robust = True
     """True if this enumerator's meaning is independent of context
     (i.e., relies only on relations, which are global).
@@ -506,7 +512,7 @@ class SubClause(Clause, ABCStruct):
         for attr in [
             'isdelta', 'enumlhs', 'enumrel',
             'pat_mask', 'con_mask', 'tagsin_mask', 'tagsout_mask',
-            'vars', 'eqvars', 'demname', 'demparams']:
+            'vars', 'eqvars', 'constvars', 'demname', 'demparams']:
             setattr(self, attr, getattr(cl, attr))
     
     def to_AST(self):
@@ -579,7 +585,7 @@ class AugClause(Clause, ABCStruct):
         for attr in [
             'isdelta', 'enumlhs', 'enumrel',
             'pat_mask', 'con_mask', 'tagsin_mask', 'tagsout_mask',
-            'vars', 'eqvars', 'demname', 'demparams']:
+            'vars', 'eqvars', 'constvars', 'demname', 'demparams']:
             setattr(self, attr, getattr(cl, attr))
     
     def to_AST(self):
@@ -833,8 +839,13 @@ class CondClause(Clause, ABCStruct):
         
         if L.is_vareqcmp(cond):
             self.eqvars = L.get_vareqcmp(cond)
+            self.constvars = ()
+        elif L.is_varconsteqcmp(cond):
+            self.eqvars = None
+            self.constvars = L.get_varconsteqcmp(cond)
         else:
             self.eqvars = None
+            self.constvars = ()
     
     def to_AST(self):
         return self.cond
