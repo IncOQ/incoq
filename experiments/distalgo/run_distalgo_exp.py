@@ -125,6 +125,13 @@ class DistalgoWorkflow(ExpWorkflow):
              'lightgreen', '- ^ normal'),
             (('opt dem', 'time_wall'), 'opt. filtered (wall time)',
              'lightgreen', '1-2 _^ normal'),
+            
+            (('inc_norcelim_nodrelim', 'time_cpu'),
+             'incremental unopt (total cpu time)',
+             'green', '- ^ normal'),
+            (('inc_norcelim_nodrelim', 'time_wall'),
+             'incremental unopt (wall time)',
+             'green', '1-2 _^ normal'),
         ]
         
         @property
@@ -376,8 +383,10 @@ class LAMutexOrigWorkflow(DistalgoWorkflow):
         
         use_progs_ex = True
         progs_ex = [
-            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_in'),
+#            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_in'),
             ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_inc'),
+            ('lamutex/lamutex_orig.da',
+             'lamutex_orig_inc_inc_norcelim_nodrelim'),
         ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):

@@ -63,8 +63,33 @@ class INC_SUBDEM_LAMUTEX_ORIG(INC_SUBDEM):
                                  subtype('procs', number)]))''',
             },
         'default_uset_lru': 1,
-#        'maint_inline': True,
     }
+    
+    extra_qopts = {
+        '''{(c2, p) for (_ConstantPattern0_, c2, p) in P_q
+             if (_ConstantPattern0_ == 'request')
+             if (not (((c2, p) == (P_mutex_c, SELF_ID)) or
+                      ((P_mutex_c, SELF_ID) < (c2, p))))}
+        ''': {'no_rc': True},
+        '''{p for p in P_s
+              for (_, _, (_ConstantPattern16_, c2, _FreePattern18_))
+                in _PReceivedEvent_0
+              if (_ConstantPattern16_ == 'ack')
+              if (_FreePattern18_ == p)
+              if (c2 > P_mutex_c)}
+        ''': {'no_rc': True},
+        '''{('request', c, P__P_handler_1_p)
+            for (_ConstantPattern27_, c, _BoundPattern29_) in P_q
+            if (_ConstantPattern27_ == 'request')
+            if (_BoundPattern29_ == P__P_handler_1_p)}
+        ''': {'no_rc': True},
+        }
+
+class INC_SUBDEM_LAMUTEX_ORIG_NORCELIM_NODRELIM(INC_SUBDEM_LAMUTEX_ORIG):
+    output_suffix = 'inc_norcelim_nodrelim'
+    display_suffix = 'Unfiltered (no rc+dr elim.)'
+    extra_nopts = {'rc_elim': False,
+                   'deadcode_elim': False}
 
 class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
     _inherit_fields = True
@@ -142,7 +167,7 @@ class DEM_CORERBAC_CA(COM):
 #    INC,
 #])
 
-add_impls('Social', 'experiments/twitter/twitter', [
+#add_impls('Social', 'experiments/twitter/twitter', [
 #    INC,
 #    DEM,
 #    DEM_SINGLE_TAG,
@@ -151,7 +176,7 @@ add_impls('Social', 'experiments/twitter/twitter', [
 #    DEM_INLINE_NODRELIM,
 #    DEM_INLINE,
 #    DEM_INLINE_NOTYPECHECK,
-])
+#])
 #
 #add_impls('Auth', 'experiments/django/django', [
 #    INC,
@@ -225,6 +250,7 @@ add_impls('Social', 'experiments/twitter/twitter', [
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
 #    INC_SUBDEM_LAMUTEX_ORIG,
+#    INC_SUBDEM_LAMUTEX_ORIG_NORCELIM_NODRELIM,
 #    DEM_LRU,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
@@ -443,6 +469,20 @@ class DistalgoSchema(OrigIncFilterSchema):
 #        _rowgen2('sktoken'),
     ]
 
+class DistalgoRCDRSchema(GroupedSchema):
+    cols = [
+        ((0, 'lines'), 'Original LOC', None),
+        ((1, 'lines'), 'Unoptimized LOC', None),
+        ((2, 'lines'), 'Optimized LOC', None),
+    ]
+    
+    rows = [
+        (['lamutex orig Input',
+          'lamutex orig Unfiltered (no rc+dr elim.)',
+          'lamutex orig Unfiltered'],
+         'lamutex'),
+    ]
+
 class RunningExCostSchema(CostSchema):
     rows = [
         ('Social Unfiltered', 'incremental'),
@@ -529,6 +569,7 @@ runningex_schema = RunningExSchema(stats.allstats)
 comparison_schema = ComparisonSchema(stats.allstats)
 applications_schema = ApplicationsSchema(stats.allstats)
 distalgo_schema = DistalgoSchema(stats.allstats)
+distalgo_rcdr_screma = DistalgoRCDRSchema(stats.allstats)
 runningex_costschema = RunningExCostSchema(stats.allstats)
 lamutexspec_costschema = LamutexspecCostSchema(stats.allstats)
 lamutexorig_costschema = LamutexorigCostSchema(stats.allstats)
@@ -538,6 +579,7 @@ runningex_schema.save_csv(STATS_DIR + 'stats-runningex.csv')
 comparison_schema.save_csv(STATS_DIR + 'stats-comparison.csv')
 applications_schema.save_csv(STATS_DIR + 'stats-applications.csv')
 distalgo_schema.save_csv(STATS_DIR + 'stats-distalgo.csv')
+distalgo_rcdr_screma.save_csv(STATS_DIR + 'stats-distalgo-rcdr.csv')
 oopsla15_schema.save_csv(STATS_DIR + 'stats-oopsla15.csv')
 runningex_costschema.save_csv(STATS_DIR + 'stats-runninex_cost.csv')
 lamutexspec_costschema.save_csv(STATS_DIR + 'stats-lamutexspec_cost.csv')
@@ -547,6 +589,7 @@ lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
 #print(comparison_schema.to_ascii())
 #print(applications_schema.to_ascii())
 #print(distalgo_schema.to_ascii())
+print(distalgo_rcdr_screma.to_ascii())
 #print(oopsla15_schema.to_ascii())
 
 #print(runningex_costschema.to_ascii())
