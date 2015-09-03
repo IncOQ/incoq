@@ -393,8 +393,8 @@ class LAMutexOrigWorkflow(DistalgoWorkflow):
         name = 'lamutex_orig'
         show_wall = True
     
-    min_repeats = 5
-    max_repeats = 5
+    min_repeats = 1#5
+    max_repeats = 1#5
 
 class LAMutexSpecProcs(LAMutexSpecWorkflow):
     
@@ -505,7 +505,8 @@ class LAMutexOrigProcs(LAMutexOrigWorkflow):
                     n_procs =  x,
                     n_rounds = 5,
                 )
-                for x in range(5, 50 + 1, 5)
+                for x in range(10, 50 + 1, 10)
+#                for x in range(5, 50 + 1, 5)
             ]
     
     class ExpExtractor(LAMutexOrigWorkflow.ExpExtractor):
@@ -746,6 +747,7 @@ class SKToken(DistalgoWorkflow):
 
 
 class TPCommitDriver(DistalgoDriver):
+    rugroup_id = 'bo_measured'
     dafilename = 'tpcommit/tpcommit.da'
     argnames = ['n_procs', 'failrate']
 
@@ -758,8 +760,9 @@ class TPCommit(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-            'tpcommit_inc_in',
+#            'tpcommit_inc_in',
             'tpcommit_inc_inc',
+            'tpcommit_inc_inc_norcelim_nodrelim',
 #            'tpcommit_inc_dem',
         ]
         
@@ -772,11 +775,11 @@ class TPCommit(DistalgoWorkflow):
                     n_procs =  x,
                     failrate = 10,
                 )
-                for x in range(10, 60 + 1, 10)
+                for x in range(5, 60 + 1, 5)
             ]
     
-    min_repeats = 5
-    max_repeats = 5
+    min_repeats = 10
+    max_repeats = 10
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         

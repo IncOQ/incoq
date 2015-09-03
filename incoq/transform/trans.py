@@ -14,6 +14,7 @@ __all__ = [
     'AUX',
     'INC',
     'INC_SUBDEM',
+    'INC_SUBDEM_NORCELIM_NODRELIM',
     'INC_SUBDEM_OBJ',
     'DEM',
     'DEM_LRU',
@@ -29,6 +30,7 @@ __all__ = [
     'DEM_OBJ',
     'DEM_SUBDEM',
     'DEM_OBJ_NS',
+    'DEM_OBJ_NS_NORCELIM_NODRELIM',
 ]
 
 
@@ -178,6 +180,12 @@ class INC(COM):
 class INC_SUBDEM(INC):
     extra_nopts = {'subdem_tags': False}
 
+class INC_SUBDEM_NORCELIM_NODRELIM(INC_SUBDEM):
+    output_suffix = 'inc_norcelim_nodrelim'
+    display_suffix = 'Unfiltered (no rc+dr elim.)'
+    extra_nopts = {'rc_elim': False,
+                   'deadcode_elim': False}
+
 class INC_SUBDEM_OBJ(INC_SUBDEM):
     extra_nopts = {'obj_domain': True}
 
@@ -243,14 +251,20 @@ class DEM_INLINE_NOTYPECHECK(DEM):
 
 class DEM_OBJ(DEM):
     output_suffix = 'dem'
-    display_suffix = 'Filtered (obj)'
+    display_suffix = 'Filtered'
     extra_nopts = {'obj_domain': True}
 
 class DEM_SUBDEM(DEM):
     output_suffix = 'dem_subdem'
-    display_suffix = 'Filtered (alternate subquery demand)'
+    display_suffix = 'Filtered'
     extra_nopts = {'subdem_tags': False}
 
 class DEM_OBJ_NS(DEM_OBJ):
     extra_nopts = {'nonstrict_fields': True,
                    'nonstrict_maps': True}
+
+class DEM_OBJ_NS_NORCELIM_NODRELIM(DEM_OBJ_NS):
+    output_suffix = 'dem_norcelim_nodrelim'
+    display_suffix = 'Filtered (no rc+dr elim.)'
+    extra_nopts = {'rc_elim': False,
+                   'deadcode_elim': False}

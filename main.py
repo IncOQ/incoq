@@ -117,6 +117,12 @@ class DEM_OBJ_NS_RATOKEN(DEM_OBJ_NS):
             },
     }
 
+class DEM_OBJ_NS_RATOKEN_NORCELIM_NODRELIM(DEM_OBJ_NS_RATOKEN):
+    output_suffix = 'dem_norcelim_nodrelim'
+    display_suffix = 'Filtered (no rc+dr elim.)'
+    extra_nopts = {'rc_elim': False,
+                   'deadcode_elim': False}
+
 CHECKACCESS_STR = '{r for r in ROLES if (session,r) in SR if (operation,object,r) in PR}'
 ASSIGNEDROLES_STR = '{r for r in ROLES if (user,r) in UR}'
 DELETESESSION_STR = '{(session,r) for r in ROLES if (session, r) in SR}'
@@ -223,17 +229,21 @@ class DEM_CORERBAC_CA(COM):
 #
 #add_impls('clpaxos', 'experiments/distalgo/clpaxos/clpaxos_inc', [
 #    INC_SUBDEM,
+#    INC_SUBDEM_NORCELIM_NODRELIM,
 #    DEM,
 #])
 #add_impls('crleader', 'experiments/distalgo/crleader/crleader_inc', [
 #    INC_SUBDEM,
+#    INC_SUBDEM_NORCELIM_NODRELIM,
 #    DEM,
 #])
 #add_impls('dscrash', 'experiments/distalgo/dscrash/dscrash_inc', [
 #    DEM_OBJ_NS,
+#    DEM_OBJ_NS_NORCELIM_NODRELIM,
 #])
 #add_impls('hsleader', 'experiments/distalgo/hsleader/hsleader_inc', [
 #    INC_SUBDEM,
+#    INC_SUBDEM_NORCELIM_NODRELIM,
 #    DEM,
 #])
 #add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
@@ -255,20 +265,25 @@ class DEM_CORERBAC_CA(COM):
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
 #    INC_SUBDEM,
+#    INC_SUBDEM_NORCELIM_NODRELIM,
 #    DEM,
 #])
 #add_impls('ramutex', 'experiments/distalgo/ramutex/ramutex_inc', [
 #    INC_SUBDEM,
+#    INC_SUBDEM_NORCELIM_NODRELIM,
 #    DEM,
 #])
 #add_impls('ratoken', 'experiments/distalgo/ratoken/ratoken_inc', [
 #    DEM_OBJ_NS_RATOKEN,
+#    DEM_OBJ_NS_RATOKEN_NORCELIM_NODRELIM,
 #])
 #add_impls('sktoken', 'experiments/distalgo/sktoken/sktoken_inc', [
 #    DEM_OBJ_NS,
+#    DEM_OBJ_NS_NORCELIM_NODRELIM,
 #])
 #add_impls('2pcommit', 'experiments/distalgo/tpcommit/tpcommit_inc', [
 #    INC_SUBDEM,
+#    INC_SUBDEM_NORCELIM_NODRELIM,
 #    DEM,
 #])
 #add_impls('vrpaxos', 'experiments/distalgo/vrpaxos/vrpaxos_inc', [
@@ -474,15 +489,30 @@ class DistalgoRCDRSchema(GroupedSchema):
         ((0, 'lines'), 'Original LOC', None),
         ((1, 'lines'), 'Unoptimized LOC', None),
         ((2, 'lines'), 'Optimized LOC', None),
-        ((2, 'eliminated rels'), '# rels elim.', None),
         ((2, 'rcsets simplified'), '# rcsets elim.', None),
+        ((2, 'eliminated rels'), '# rels elim.', None),
     ]
     
+    def _rowgen(name, filtered=False, dispname=None):
+        f = 'Filtered' if filtered else 'Unfiltered'
+        if dispname is None:
+            dispname = name
+        return ([name + ' Input',
+                 name + ' ' + f + ' (no rc+dr elim.)',
+                 name + ' ' + f],
+                dispname)
+    
     rows = [
-        (['lamutex orig Input',
-          'lamutex orig Unfiltered (no rc+dr elim.)',
-          'lamutex orig Unfiltered'],
-         'lamutex'),
+        _rowgen('2pcommit'),
+        _rowgen('clpaxos'),
+        _rowgen('crleader'),
+        _rowgen('dscrash', filtered=True),
+        _rowgen('hsleader'),
+        _rowgen('lamutex orig', dispname='lamutex'),
+        _rowgen('lapaxos'),
+        _rowgen('ramutex'),
+        _rowgen('ratoken', filtered=True),
+        _rowgen('sktoken', filtered=True),
     ]
 
 class RunningExCostSchema(CostSchema):
