@@ -214,3 +214,55 @@ class Wifi(ExpWorkflow):
         xmin = 150
         xmax = 2600
         ymax = .7
+
+
+class WifiOpt(Wifi):
+    
+    prefix = 'results/wifi_opt'
+    
+    class ExpDatagen(WifiDatagen):
+        
+        progs = [
+            'wifi_inc',
+            'wifi_inc_norcelim_nodrelim',
+            'wifi_dem_notypecheck_maintelim',
+            'wifi_dem_norcelim_nodrelim',
+        ]
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid = str(x),
+                    x =    x,
+                    N =    x
+                )
+                for x in range(10000, 100000 + 1, 10000)
+            ]
+    
+    stddev_window = .1
+    min_repeats = 10
+    max_repeats = 50
+    
+    class ExpExtractor(MetricExtractor, SmallExtractor):
+        
+        series = [
+            ('wifi_inc_norcelim_nodrelim', 'Unfiltered',
+             'blue', '-- _o poly1'),
+            ('wifi_inc', 'Unfiltered opt',
+             'blue', '- o poly1'),
+            ('wifi_dem_norcelim_nodrelim', 'Filtered',
+             'green', '-- _^ poly1'),
+            ('wifi_dem_notypecheck_maintelim', 'Filtered opt',
+             'green', '- ^ poly1'),
+        ]
+        
+        ylabel = 'Running time (in seconds)'
+        xlabel = 'Number of queries and updates (in thousands)'
+        
+        def project_x(self, p):
+            return super().project_x(p) / 1e3
+        
+        metric = 'time_cpu'
+        
+        xmin = 5
+        xmax = 105

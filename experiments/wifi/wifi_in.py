@@ -11,6 +11,7 @@ OPTIONS(
 QUERYOPTIONS(
     '{ap.ssid for ap in wifi.scan if ap.strength > wifi.threshold}',
     uset_mode = 'all',
+    no_rc = True,
 )
 
 def make_wifi(threshold):

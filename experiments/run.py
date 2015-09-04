@@ -44,6 +44,7 @@ jqlscale3 = jql.Scale3()
 jqlscale3bigger = jql.Scale3Bigger()
 
 wifiscale = wifi.Wifi()
+wifiopt = wifi.WifiOpt()
 
 djangoscale = django.Scale()
 djangodemand = django.DemandTime()
@@ -118,6 +119,7 @@ def main():
 #        crbacscale,
         
 #        wifiscale,
+#        wifiopt,
 #        djangoscale,
 #        djangodemand,
 #        djangodemandnorm,
