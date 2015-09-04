@@ -195,7 +195,10 @@ class DEM_CORERBAC_CA(COM):
 #
 #add_impls('Wifi', 'experiments/wifi/wifi', [
 #    INC,
+#    INC_NORCELIM_NODRELIM,
 #    DEM,
+#    DEM_NORCELIM_NODRELIM,
+#    DEM_NOTYPECHECK,
 #])
 #
 #for level in [
@@ -621,7 +624,7 @@ lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
 #print(comparison_schema.to_ascii())
 #print(applications_schema.to_ascii())
 #print(distalgo_schema.to_ascii())
-print(distalgo_rcdr_screma.to_ascii())
+#print(distalgo_rcdr_screma.to_ascii())
 #print(oopsla15_schema.to_ascii())
 
 #print(runningex_costschema.to_ascii())

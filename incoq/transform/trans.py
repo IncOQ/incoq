@@ -13,6 +13,7 @@ __all__ = [
     'COM',
     'AUX',
     'INC',
+    'INC_NORCELIM_NODRELIM',
     'INC_SUBDEM',
     'INC_SUBDEM_NORCELIM_NODRELIM',
     'INC_SUBDEM_OBJ',
@@ -176,6 +177,12 @@ class INC(COM):
     output_suffix = 'inc'
     display_suffix = 'Unfiltered'
     extra_nopts = {'default_impl': 'inc'}
+
+class INC_NORCELIM_NODRELIM(INC):
+    output_suffix = 'inc_norcelim_nodrelim'
+    display_suffix = 'Unfiltered (no rc+dr elim.)'
+    extra_nopts = {'rc_elim': False,
+                   'deadcode_elim': False}
 
 class INC_SUBDEM(INC):
     extra_nopts = {'subdem_tags': False}
