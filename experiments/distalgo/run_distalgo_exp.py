@@ -125,13 +125,6 @@ class DistalgoWorkflow(ExpWorkflow):
              'lightgreen', '- ^ normal'),
             (('opt dem', 'time_wall'), 'opt. filtered (wall time)',
              'lightgreen', '1-2 _^ normal'),
-            
-            (('inc_norcelim_nodrelim', 'time_cpu'),
-             'incremental unopt (total cpu time)',
-             'green', '- ^ normal'),
-            (('inc_norcelim_nodrelim', 'time_wall'),
-             'incremental unopt (wall time)',
-             'green', '1-2 _^ normal'),
         ]
         
         @property
@@ -393,8 +386,8 @@ class LAMutexOrigWorkflow(DistalgoWorkflow):
         name = 'lamutex_orig'
         show_wall = True
     
-    min_repeats = 1#5
-    max_repeats = 1#5
+    min_repeats = 10
+    max_repeats = 50
 
 class LAMutexSpecProcs(LAMutexSpecWorkflow):
     
@@ -503,17 +496,29 @@ class LAMutexOrigProcs(LAMutexOrigWorkflow):
                     x =        x,
                     
                     n_procs =  x,
-                    n_rounds = 5,
+                    n_rounds = 10,
                 )
-                for x in range(10, 50 + 1, 10)
-#                for x in range(5, 50 + 1, 5)
+                for x in range(5, 70 + 1, 5)
             ]
     
     class ExpExtractor(LAMutexOrigWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
-        xmin = 5
-        xmax = 55
+        xmin = 0
+        xmax = 75
+        
+        series_template = [
+            (('inc_norcelim_nodrelim', 'time_cpu'),
+             'Unoptimized (total cpu time)',
+             'red', '-- ^ normal'),
+            (('inc', 'time_cpu'), 'Optimized (total cpu time)',
+             'green', '- o normal'),
+            (('inc_norcelim_nodrelim', 'time_wall'),
+             'Unoptimized (wall time)',
+             'red', '-- _^ normal'),
+            (('inc', 'time_wall'), 'Optimized (wall time)',
+             'green', '- _o normal'),
+        ]
 
 class LAMutexOrigRounds(LAMutexOrigWorkflow):
     

@@ -28,6 +28,7 @@ factor2d = twitter.Factor2DTimeNorm()
 
 densityloc = twitter.DensityLoc()
 densitylocnorm = twitter.DensityLocNorm()
+densitylocnormtable = twitter.DensityLocNormTable()
 densitylocmem = twitter.DensityLocMem()
 densityceleb = twitter.DensityCeleb()
 densitycelebnorm = twitter.DensityCelebNorm()
@@ -99,6 +100,7 @@ def main():
         
 #        densityloc,
 #        densitylocnorm,
+#        densitylocnormtable,
 #        densitylocmem,
 #        densityceleb,
 #        densitycelebnorm,

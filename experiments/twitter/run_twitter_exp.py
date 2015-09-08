@@ -491,6 +491,14 @@ class TwitterExtractor(SimpleExtractor, SmallExtractor):
         return data
 
 
+class TwitterPrinter(Printer):
+    
+    transpose = True
+    
+    def round_y(self, y):
+        return round(y, 3)
+
+
 class TwitterWorkflow(ExpWorkflow):
     
     ExpDatagen = TwitterDatagen
@@ -859,12 +867,7 @@ class Factor(TwitterWorkflow):
         
         xlabel = 'x'
     
-    class ExpViewer(Printer):
-        
-        transpose = True
-        
-        def round_y(self, y):
-            return round(y, 3)
+    ExpViewer = TwitterPrinter
 
 class Factor1A(Factor):
     
@@ -1278,7 +1281,6 @@ class Density(TwitterWorkflow):
                     celebusertag =   True,
                     groupusertag =   True,
                 )
-#                for x in [4000, 8000, 12000, 16000, 20000]
                 for x in range(2000, 20000 + 1, 2000)
             ]
     
@@ -1290,26 +1292,26 @@ class Density(TwitterWorkflow):
         
         series = [
             (('twitter_dem_norcelim_nodrelim', 'all'),
-             'Standard',
+             'Unoptimized',
              'black', '- s normal'),
             (('twitter_dem_inline_norcelim_nodrelim', 'all'),
-             'Inlined',
-             'red', '- D normal'),
+             'Inlining',
+             'purple', '2-2 ^ normal'),
             (('twitter_dem_inline_nodrelim', 'all'),
-             'RC elim',
-             'orange', '-- ^ normal'),
-            (('twitter_dem_inline_nodrelim_rcsettoset', 'all'),
-             'Native RC elim',
-             'yellow', '-- ^ normal'),
+             'Ref count elim',
+             'red', '2-2 v normal'),
+#            (('twitter_dem_inline_nodrelim_rcsettoset', 'all'),
+#             'Native sets',
+#             'yellow', '-- ^ normal'),
             (('twitter_dem_inline', 'all'),
-             'DR elim',
-             'green', '-- v normal'),
+             'Res set elim',
+             'orange', '-- o normal'),
             (('twitter_dem_inline_notypecheck', 'all'),
-             'TC elim',
-             'blue', ': < normal'),
+             'Type check elim',
+             '#00CCFF', '1-2 + normal'),
             (('twitter_dem_inline_notypecheck_maintelim', 'all'),
-             'Maint elim',
-             'purple', ': > normal'),
+             'Maint case elim',
+             '#00CC00', '1-2 x normal'),
         ]
         
         metric = 'opstime_cpu'
@@ -1336,21 +1338,31 @@ class DensityNorm(Density):
         def normalize(self, pre_y, base_y):
             return pre_y / base_y
         
-        legend_loc = 'lower left'
-        legend_ncol = 2
-        
         ylabel = 'Running time (normalized)'
         ymin = 0
         ymax = 1.1
 
 
 class DensityLoc(Density):
+    
     prefix = 'results/twitter_density_loc'
+    
     class ExpDatagen(Density.ExpDatagen):
         upkind = 'loc'
+    
+    class ExpExtractor(Density.ExpExtractor):
+        legend_loc = 'upper right'
 
-class DensityLocNorm(DensityLoc, DensityNorm):
-    pass
+class DensityLocNorm(DensityNorm, DensityLoc):
+    
+    imagename = 'norm'
+    
+    class ExpExtractor(DensityNorm.ExpExtractor):
+        no_legend = True
+
+class DensityLocNormTable(DensityLocNorm):
+    
+    ExpViewer = TwitterPrinter
 
 class DensityLocMem(DensityLoc):
     
@@ -1360,20 +1372,20 @@ class DensityLocMem(DensityLoc):
         ylabel = 'Memory usage (in MB)'
         def project_y(self, p):
             return super().project_y(p) / (2**20)
+    
+    ExpViewer = TwitterPrinter
 
 class DensityCeleb(Density):
     prefix = 'results/twitter_density_celeb'
     class ExpDatagen(Density.ExpDatagen):
         upkind = 'celeb'
+    class ExpExtractor(Density.ExpExtractor):
+        legend_loc = 'lower left'
 
-class DensityCelebNorm(DensityCeleb, DensityNorm):
-    pass
-#    class ExpViewer(Printer):
-#        
-#        transpose = True
-#        
-#        def round_y(self, y):
-#            return round(y, 3)
+class DensityCelebNorm(DensityNorm, DensityCeleb):
+    class ExpExtractor(DensityNorm.ExpExtractor):
+        legend_loc = 'lower left'
+#    ExpViewer = TwitterPrinter
 
 
 class Tag(TwitterWorkflow):
