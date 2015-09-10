@@ -1296,22 +1296,27 @@ class Density(TwitterWorkflow):
              'black', '- s normal'),
             (('twitter_dem_inline_norcelim_nodrelim', 'all'),
              'Inlining',
-             'purple', '2-2 ^ normal'),
+             'purple', '-- ^ normal'),
             (('twitter_dem_inline_nodrelim', 'all'),
              'Ref count elim',
-             'red', '2-2 v normal'),
+             'red', '- v normal'),
 #            (('twitter_dem_inline_nodrelim_rcsettoset', 'all'),
 #             'Native sets',
 #             'yellow', '-- ^ normal'),
             (('twitter_dem_inline', 'all'),
-             'Res set elim',
-             'orange', '-- o normal'),
+             'Result set elim',
+             'orange', '- o normal'),
             (('twitter_dem_inline_notypecheck', 'all'),
              'Type check elim',
              '#00CCFF', '1-2 + normal'),
             (('twitter_dem_inline_notypecheck_maintelim', 'all'),
              'Maint case elim',
              '#00CC00', '1-2 x normal'),
+            
+            
+            (('twitter_inc', 'all'),
+             'Unfiltered',
+             'black', '- s normal'),
         ]
         
         metric = 'opstime_cpu'
@@ -1379,10 +1384,57 @@ class DensityCeleb(Density):
     prefix = 'results/twitter_density_celeb'
     class ExpDatagen(Density.ExpDatagen):
         upkind = 'celeb'
+        
+        progs = [
+            'twitter_inc',
+#            'twitter_dem_norcelim_nodrelim',
+        ]
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =           str(x),
+                    x =              x,
+                    
+                    n_users =        x,
+                    n_groups =       200,
+                    pad_celeb =      None,
+                    
+                    user_deg =       500,#int(100 * (20000 / x)),
+                    group_deg =      10,
+                    
+                    n_locs =         20,
+                    
+                    n_q_celebs =     x,
+                    n_q_groups =     1,
+                    n_q_pairs =      x,
+                    
+                    n_u =            200000,
+                    q_p_u =          1,
+                    reps =           1,
+                    
+                    need_exact =     False,
+                    upkind =         self.upkind,
+                    celebusertag =   True,
+                    groupusertag =   True,
+                )
+                for x in range(3000, 8000 + 1, 1000)
+            ]
+    
+    stddev_window = .1
+    min_repeats = 1#10
+    max_repeats = 1#50
+        
     class ExpExtractor(Density.ExpExtractor):
         legend_loc = 'lower left'
+        xmin = 1
+        xmax = 9
+        x_ticklocs = None
 
 class DensityCelebNorm(DensityNorm, DensityCeleb):
+    
+    imagename = 'norm'
+    
     class ExpExtractor(DensityNorm.ExpExtractor):
         legend_loc = 'lower left'
 #    ExpViewer = TwitterPrinter

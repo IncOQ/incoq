@@ -502,23 +502,21 @@ class LAMutexOrigProcs(LAMutexOrigWorkflow):
             ]
     
     class ExpExtractor(LAMutexOrigWorkflow.ExpExtractor):
-        ylabel = 'Running time (in seconds)'
+        ylabel = 'CPU time per process (in seconds)'
         xlabel = 'Number of processes'
         xmin = 0
         xmax = 75
         
         series_template = [
             (('inc_norcelim_nodrelim', 'time_cpu'),
-             'Unoptimized (total cpu time)',
+             'Unoptimized',
              'red', '-- ^ normal'),
-            (('inc', 'time_cpu'), 'Optimized (total cpu time)',
+            (('inc', 'time_cpu'), 'Optimized',
              'green', '- o normal'),
-            (('inc_norcelim_nodrelim', 'time_wall'),
-             'Unoptimized (wall time)',
-             'red', '-- _^ normal'),
-            (('inc', 'time_wall'), 'Optimized (wall time)',
-             'green', '- _o normal'),
         ]
+        
+        def project_y(self, p):
+            return super().project_y(p) / p['dsparams']['x']
 
 class LAMutexOrigRounds(LAMutexOrigWorkflow):
     
