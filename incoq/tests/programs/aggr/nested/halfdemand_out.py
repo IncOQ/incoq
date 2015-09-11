@@ -24,7 +24,7 @@ def _maint__m_S_w_add(_e):
     else:
         _m_S_w[()].incref(())
 
-Aggr1_delta = RCSet()
+Aggr1_delta = Set()
 def _maint_Aggr1_delta_S_add(_e):
     # Iterate {() : _ in deltamatch(S, 'w', _e, 1)}
     for _ in setmatch(({_e} if ((_m_S_w[()] if (() in _m_S_w) else RCSet()).getref(()) == 1) else {}), 'w', ()):

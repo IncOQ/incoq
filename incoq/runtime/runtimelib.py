@@ -288,6 +288,9 @@ class Set(Type, set):
             self.clear()
             self.update(other)
     
+    def elements(self):
+        return iter(self)
+    
     def get_structure_size(self):
         return len(self)
     

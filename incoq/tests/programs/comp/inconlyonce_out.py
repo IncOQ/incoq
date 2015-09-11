@@ -10,7 +10,7 @@ def _maint__m_E_bw_add(_e):
     else:
         _m_E_bw[v3_1].incref(())
 
-Comp1 = RCSet()
+Comp1 = Set()
 def _maint_Comp1_E_add(_e):
     # Iterate {v1_x : (v1_x, _) in deltamatch(E, 'bw', _e, 1)}
     for v1_x in setmatch(({_e} if ((_m_E_bw[_e[0]] if (_e[0] in _m_E_bw) else RCSet()).getref(()) == 1) else {}), 'uw', ()):

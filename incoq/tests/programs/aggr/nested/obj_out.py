@@ -65,7 +65,7 @@ def _maint__m_Aggr1_out_remove(_e):
     if (len(_m_Aggr1_out[v33_1]) == 0):
         del _m_Aggr1_out[v33_1]
 
-Aggr1_delta = RCSet()
+Aggr1_delta = Set()
 def _maint_Aggr1_delta_Comp8_To_add(_e):
     # Iterate {v26_o : v26_o in deltamatch(Comp8_To, 'b', _e, 1)}
     v26_o = _e
@@ -94,7 +94,7 @@ def _maint_Comp8_To_Comp8_d_M_remove(_e):
     else:
         Comp8_To.decref(v25_o)
 
-Comp8_d_M = RCSet()
+Comp8_d_M = Set()
 def _maint_Comp8_d_M_Comp8_Ts_add(_e):
     # Iterate {(v20_s, v20_o) : v20_s in deltamatch(Comp8_Ts, 'b', _e, 1), (v20_s, v20_o) in _M}
     v20_s = _e
@@ -133,7 +133,7 @@ def _maint_Comp8_d_M__M_add(_e):
         _maint_Comp8_To_Comp8_d_M_add((v22_s, v22_o))
         # End maint Comp8_To after "Comp8_d_M.add((v22_s, v22_o))"
 
-Comp8_Ts = RCSet()
+Comp8_Ts = Set()
 def _maint_Comp8_Ts__U_Comp8_add(_e):
     # Iterate {v18_s : v18_s in deltamatch(_U_Comp8, 'b', _e, 1)}
     v18_s = _e

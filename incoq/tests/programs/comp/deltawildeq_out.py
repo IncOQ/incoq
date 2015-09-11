@@ -24,7 +24,7 @@ def _maint__m_S_b1w_add(_e):
         else:
             _m_S_b1w[v5_1].incref(())
 
-Comp1 = RCSet()
+Comp1 = Set()
 def _maint_Comp1_S_add(_e):
     # Iterate {(v1_x, v1_w) : (v1_x, v1_x, _) in deltamatch(S, 'b1w', _e, 1), (v1_x, v1_w) in T}
     for v1_x in setmatch(({_e} if ((_m_S_b1w[_e[0]] if (_e[0] in _m_S_b1w) else RCSet()).getref(()) == 1) else {}), 'u1w', ()):

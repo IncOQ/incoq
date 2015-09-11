@@ -116,6 +116,10 @@ class DefaultNormalOptions:
     """
     rc_elim =               True
     """If True, eliminate reference counts where possible."""
+    native_sets =           True
+    """If True, optimize rc-eliminated comprehensions to use native
+    sets.
+    """
     deadcode_elim =         True
     """If False, do not run deadcode elimination."""
     deadcode_keepvars =     []

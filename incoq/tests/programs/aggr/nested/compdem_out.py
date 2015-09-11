@@ -74,13 +74,13 @@ def _maint__m__U_Comp1_w_remove(_e):
     if (len(_m__U_Comp1_w[()]) == 0):
         del _m__U_Comp1_w[()]
 
-Aggr1_delta = RCSet()
+Aggr1_delta = Set()
 def _maint_Aggr1_delta__U_Comp1_add(_e):
     # Iterate {() : _ in deltamatch(_U_Comp1, 'w', _e, 1)}
     for _ in setmatch(({_e} if ((_m__U_Comp1_w[()] if (() in _m__U_Comp1_w) else RCSet()).getref(()) == 1) else {}), 'w', ()):
         Aggr1_delta.add(())
 
-Comp1_dE = RCSet()
+Comp1_dE = Set()
 def _maint_Comp1_dE_Comp1_Tx1_add(_e):
     # Iterate {(v13_x, v13_y) : v13_x in deltamatch(Comp1_Tx1, 'b', _e, 1), (v13_x, v13_y) in E}
     v13_x = _e
@@ -108,7 +108,7 @@ def _maint_Comp1_dE_E_add(_e):
         _maint__m_Comp1_dE_out_add((v15_x, v15_y))
         # End maint _m_Comp1_dE_out after "Comp1_dE.add((v15_x, v15_y))"
 
-Comp1_Tx1 = RCSet()
+Comp1_Tx1 = Set()
 def _maint_Comp1_Tx1__U_Comp1_add(_e):
     # Iterate {v11_x : v11_x in deltamatch(_U_Comp1, 'b', _e, 1)}
     v11_x = _e

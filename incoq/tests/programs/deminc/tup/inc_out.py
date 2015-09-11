@@ -174,7 +174,7 @@ def _maint_Comp1_T_tup2_Comp1_dR2_remove(_e):
     else:
         Comp1_T_tup2.decref(v20__tup2)
 
-Comp1_dR2 = RCSet()
+Comp1_dR2 = Set()
 def _maint_Comp1_dR2_Comp1_Tb21_add(_e):
     # Iterate {(v15_b2, v15__tup2) : v15_b2 in deltamatch(Comp1_Tb21, 'b', _e, 1), (v15_b2, v15__tup2) in R}
     v15_b2 = _e

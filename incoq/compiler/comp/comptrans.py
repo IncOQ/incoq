@@ -105,17 +105,20 @@ class RelcompMaintainer(L.OuterMaintTransformer):
         return tree, self.maint_comps
     
     def visit_Module(self, node):
-        resinit = L.pe('RCSet()')
+        rc = {'yes': True,
+              'no': False,
+              'safe': not self.inccomp.spec.is_duplicate_safe} \
+              [self.inccomp.rc]
+        
+        if not rc and self.manager.options.get_opt('native_sets'):
+            resinit = L.pe('Set()')
+        else:
+            resinit = L.pe('RCSet()')
         
         code = L.pc('''
             RES = RESINIT
             ''', subst={'RES': self.inccomp.name,
                         'RESINIT': resinit})
-        
-        rc = {'yes': True,
-              'no': False,
-              'safe': not self.inccomp.spec.is_duplicate_safe} \
-              [self.inccomp.rc]
         
         if not rc:
             self.manager.stats['rcsets simplified'] += 1

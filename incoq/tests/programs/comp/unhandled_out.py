@@ -1,6 +1,6 @@
 from incoq.runtime import *
 # Comp1 := {(x, y) : x in N, y in N}
-Comp1 = RCSet()
+Comp1 = Set()
 def _maint_Comp1_N_add(_e):
     v1_DAS = set()
     # Iterate {(v1_x, v1_y) : v1_x in deltamatch(N, 'b', _e, 1), v1_y in N}

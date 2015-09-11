@@ -22,7 +22,7 @@ class TransCase(CentralCase):
         tree = L.elim_deadfuncs(tree, lambda n: n.startswith('_maint_'))
         
         exp_tree = L.p('''
-            Q_dT = RCSet()
+            Q_dT = Set()
             def _maint_Q_dT_Q_Ty1_add(_e):
                 for (v7_y, v7_z) in COMP({(v7_y, v7_z)
                         for v7_y in deltamatch(Q_Ty1, 'b', _e, 1)
@@ -100,7 +100,7 @@ class TransCase(CentralCase):
         tree = L.elim_deadfuncs(tree, lambda n: n.startswith('_maint_'))
         
         exp_tree = L.p('''
-            foo_delta = RCSet()
+            foo_delta = Set()
             def _maint_foo_delta_Q_Ty_add(_e):
                 for v7_y in COMP({v7_y
                         for v7_y in deltamatch(Q_Ty, 'b', _e, 1)},
@@ -127,7 +127,7 @@ class TransCase(CentralCase):
                     else:
                         Q_Ty.incref(v5_y)
             
-            Q = RCSet()
+            Q = Set()
             def _maint_Q_R_add(_e):
                 for (v1_x, v1_y, v1_z) in COMP({(v1_x, v1_y, v1_z)
                         for (v1_x, v1_y) in deltamatch(R, 'bb', _e, 1)

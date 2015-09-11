@@ -27,7 +27,7 @@ class TestComp(CentralCase):
         tree, comps = RelcompMaintainer.run(tree, self.manager, inccomp)
         
         exp_tree = L.p('''
-            Q = RCSet()
+            Q = Set()
             def _maint_Q_S_add(_e):
                 for (v1_x, v1_y, v1_z) in COMP({(v1_x, v1_y, v1_z)
                         for (v1_x, v1_y) in deltamatch(S, 'bb', _e, 1)
@@ -122,7 +122,7 @@ class TestComp(CentralCase):
         tree = inc_relcomp(tree, self.manager, comp, 'Q')
         
         exp_tree = L.p('''
-            Q = RCSet()
+            Q = Set()
             def _maint_Q_S_add(_e):
                 for (v1_x, v1_y) in COMP({(v1_x, v1_y)
                         for (v1_x, v1_y) in deltamatch(S, 'bb', _e, 1)},
@@ -160,7 +160,7 @@ class TestComp(CentralCase):
         tree = inc_relcomp(tree, self.manager, comp, 'Q')
         
         exp_tree = L.p('''
-            Q = RCSet()
+            Q = Set()
             def _maint_Q_S_add(_e):
                 for (v1_x, v1_y) in COMP({(v1_x, v1_y)
                         for (v1_x, v1_y) in deltamatch(S, 'bb', _e, 1)},

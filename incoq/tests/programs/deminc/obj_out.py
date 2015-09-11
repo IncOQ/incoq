@@ -30,7 +30,7 @@ def _maint__m_Comp1_d_M_in_remove(_e):
     if (len(_m_Comp1_d_M_in[v20_2]) == 0):
         del _m_Comp1_d_M_in[v20_2]
 
-Comp1_d_F_a = RCSet()
+Comp1_d_F_a = Set()
 def _maint_Comp1_d_F_a_Comp1_Tx_add(_e):
     # Iterate {(v15_x, v15_x_a) : v15_x in deltamatch(Comp1_Tx, 'b', _e, 1), (v15_x, v15_x_a) in _F_a}
     v15_x = _e
@@ -74,7 +74,7 @@ def _maint_Comp1_Tx_Comp1_d_M_remove(_e):
     else:
         Comp1_Tx.decref(v14_x)
 
-Comp1_d_M = RCSet()
+Comp1_d_M = Set()
 def _maint_Comp1_d_M_Comp1_TS_add(_e):
     # Iterate {(v9_S, v9_x) : v9_S in deltamatch(Comp1_TS, 'b', _e, 1), (v9_S, v9_x) in _M}
     v9_S = _e
@@ -113,7 +113,7 @@ def _maint_Comp1_d_M__M_add(_e):
         _maint_Comp1_Tx_Comp1_d_M_add((v11_S, v11_x))
         # End maint Comp1_Tx after "Comp1_d_M.add((v11_S, v11_x))"
 
-Comp1_TS = RCSet()
+Comp1_TS = Set()
 def _maint_Comp1_TS__U_Comp1_add(_e):
     # Iterate {v7_S : v7_S in deltamatch(_U_Comp1, 'b', _e, 1)}
     v7_S = _e

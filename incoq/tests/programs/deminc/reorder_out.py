@@ -42,7 +42,7 @@ def _maint__m_E_in_add(_e):
         _m_E_in[v9_2] = set()
     _m_E_in[v9_2].add(v9_1)
 
-Comp1_dE1 = RCSet()
+Comp1_dE1 = Set()
 def _maint_Comp1_dE1_Comp1_Ty2_add(_e):
     # Iterate {(v5_y, v5_x) : v5_y in deltamatch(Comp1_Ty2, 'b', _e, 1), (v5_x, v5_y) in E}
     v5_y = _e

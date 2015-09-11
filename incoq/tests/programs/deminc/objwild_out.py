@@ -60,7 +60,7 @@ def _maint_Comp1_d_M__M_add(_e):
         _maint__m_Comp1_d_M_bw_add((v9_S, v9__v1))
         # End maint _m_Comp1_d_M_bw after "Comp1_d_M.add((v9_S, v9__v1))"
 
-Comp1_TS = RCSet()
+Comp1_TS = Set()
 def _maint_Comp1_TS__U_Comp1_add(_e):
     # Iterate {v5_S : v5_S in deltamatch(_U_Comp1, 'b', _e, 1)}
     v5_S = _e

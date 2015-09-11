@@ -68,7 +68,7 @@ def _maint__m_Comp1_buu_remove(_e):
     if (len(_m_Comp1_buu[v20_1]) == 0):
         del _m_Comp1_buu[v20_1]
 
-Comp1_delta = RCSet()
+Comp1_delta = Set()
 def _maint_Comp1_delta_Comp8_Ta_add(_e):
     # Iterate {v13_a : v13_a in deltamatch(Comp8_Ta, 'b', _e, 1)}
     v13_a = _e

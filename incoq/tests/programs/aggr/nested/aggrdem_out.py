@@ -52,7 +52,7 @@ def _maint__m_Aggr1_out_remove(_e):
     if (len(_m_Aggr1_out[v25_1]) == 0):
         del _m_Aggr1_out[v25_1]
 
-Aggr1_delta = RCSet()
+Aggr1_delta = Set()
 def _maint_Aggr1_delta_Comp12_Tx_add(_e):
     # Iterate {v21_x : v21_x in deltamatch(Comp12_Tx, 'b', _e, 1)}
     v21_x = _e
@@ -183,7 +183,7 @@ def query_Aggr1(x):
         demand_Aggr1(x)
     return True
 
-Comp1_dE = RCSet()
+Comp1_dE = Set()
 def _maint_Comp1_dE_Comp1_Tx1_add(_e):
     # Iterate {(v7_x, v7_y) : v7_x in deltamatch(Comp1_Tx1, 'b', _e, 1), (v7_x, v7_y) in E}
     v7_x = _e
@@ -211,7 +211,7 @@ def _maint_Comp1_dE_E_add(_e):
         _maint__m_Comp1_dE_out_add((v9_x, v9_y))
         # End maint _m_Comp1_dE_out after "Comp1_dE.add((v9_x, v9_y))"
 
-Comp1_Tx1 = RCSet()
+Comp1_Tx1 = Set()
 def _maint_Comp1_Tx1__U_Comp1_add(_e):
     # Iterate {v5_x : v5_x in deltamatch(_U_Comp1, 'b', _e, 1)}
     v5_x = _e

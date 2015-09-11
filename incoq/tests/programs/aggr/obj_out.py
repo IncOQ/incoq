@@ -143,7 +143,7 @@ def query_Aggr2(o):
         demand_Aggr2(o)
     return True
 
-Comp12_d_M = RCSet()
+Comp12_d_M = Set()
 def _maint_Comp12_d_M_Comp12_To_f_add(_e):
     # Iterate {(v29_o_f, v29__e) : v29_o_f in deltamatch(Comp12_To_f, 'b', _e, 1), (v29_o_f, v29__e) in _M}
     v29_o_f = _e
@@ -193,7 +193,7 @@ def _maint_Comp12_To_f_Comp12_d_F_f_remove(_e):
     else:
         Comp12_To_f.decref(v28_o_f)
 
-Comp12_d_F_f = RCSet()
+Comp12_d_F_f = Set()
 def _maint_Comp12_d_F_f_Comp12_To_add(_e):
     # Iterate {(v23_o, v23_o_f) : v23_o in deltamatch(Comp12_To, 'b', _e, 1), (v23_o, v23_o_f) in _F_f}
     v23_o = _e
@@ -232,7 +232,7 @@ def _maint_Comp12_d_F_f__F_f_add(_e):
         _maint_Comp12_To_f_Comp12_d_F_f_add((v25_o, v25_o_f))
         # End maint Comp12_To_f after "Comp12_d_F_f.add((v25_o, v25_o_f))"
 
-Comp12_To = RCSet()
+Comp12_To = Set()
 def _maint_Comp12_To__U_Comp12_add(_e):
     # Iterate {v21_o : v21_o in deltamatch(_U_Comp12, 'b', _e, 1)}
     v21_o = _e
@@ -442,7 +442,7 @@ def query_Aggr1(s):
         demand_Aggr1(s)
     return True
 
-Comp1_d_M = RCSet()
+Comp1_d_M = Set()
 def _maint_Comp1_d_M_Comp1_Ts_add(_e):
     # Iterate {(v7_s, v7__e) : v7_s in deltamatch(Comp1_Ts, 'b', _e, 1), (v7_s, v7__e) in _M}
     v7_s = _e
@@ -469,7 +469,7 @@ def _maint_Comp1_d_M__M_remove(_e):
     if (v10_s in Comp1_Ts):
         Comp1_d_M.remove((v10_s, v10__e))
 
-Comp1_Ts = RCSet()
+Comp1_Ts = Set()
 def _maint_Comp1_Ts__U_Comp1_add(_e):
     # Iterate {v5_s : v5_s in deltamatch(_U_Comp1, 'b', _e, 1)}
     v5_s = _e

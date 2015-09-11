@@ -90,7 +90,7 @@ def _maint_Comp1_T_tup1_Comp1_d_M_remove(_e):
     else:
         Comp1_T_tup1.decref(v14__tup1)
 
-Comp1_d_M = RCSet()
+Comp1_d_M = Set()
 def _maint_Comp1_d_M_Comp1_Ts_add(_e):
     # Iterate {(v9_s, v9__tup1) : v9_s in deltamatch(Comp1_Ts, 'b', _e, 1), (v9_s, v9__tup1) in _M}
     v9_s = _e
@@ -129,7 +129,7 @@ def _maint_Comp1_d_M__M_add(_e):
         _maint_Comp1_T_tup1_Comp1_d_M_add((v11_s, v11__tup1))
         # End maint Comp1_T_tup1 after "Comp1_d_M.add((v11_s, v11__tup1))"
 
-Comp1_Ts = RCSet()
+Comp1_Ts = Set()
 def _maint_Comp1_Ts__U_Comp1_add(_e):
     # Iterate {v7_s : v7_s in deltamatch(_U_Comp1, 'b', _e, 1)}
     v7_s = _e
