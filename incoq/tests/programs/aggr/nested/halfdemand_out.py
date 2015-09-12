@@ -126,13 +126,14 @@ def demand_Aggr1():
         # Begin maint Aggr1 after "_U_Aggr1.add(())"
         v3_val = _m_Aggr1_u.singlelookup((), None)
         if (v3_val is None):
-            Aggr1.add((0, 0))
-            # Begin maint _m_Aggr1_u after "Aggr1.add((0, 0))"
-            _maint__m_Aggr1_u_add((0, 0))
-            # End maint _m_Aggr1_u after "Aggr1.add((0, 0))"
-            # Begin maint Comp1 after "Aggr1.add((0, 0))"
-            _maint_Comp1_Aggr1_add((0, 0))
-            # End maint Comp1 after "Aggr1.add((0, 0))"
+            v_zero = (0, 0)
+            Aggr1.add(v_zero)
+            # Begin maint _m_Aggr1_u after "Aggr1.add(v_zero)"
+            _maint__m_Aggr1_u_add(v_zero)
+            # End maint _m_Aggr1_u after "Aggr1.add(v_zero)"
+            # Begin maint Comp1 after "Aggr1.add(v_zero)"
+            _maint_Comp1_Aggr1_add(v_zero)
+            # End maint Comp1 after "Aggr1.add(v_zero)"
         # End maint Aggr1 after "_U_Aggr1.add(())"
     else:
         _U_Aggr1.incref(())

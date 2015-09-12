@@ -249,8 +249,9 @@ class HalfDemSumParamNoDemCase(unittest.TestCase):
         exp_code = L.pc('''
             _val = A.smdeflookup('bbu', (p1, p2), None)
             if (_val is None):
+                v_zero = (0, 0)
                 (_1, _2) = (p1, p2)
-                A.add((_1, _2, (0, 0)))
+                A.add((_1, _2, v_zero))
             ''')
         self.assertEqual(code, exp_code)
     

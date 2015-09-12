@@ -254,11 +254,14 @@ class AggrCodegen(metaclass=ABCMeta):
         # If we're using half-demand, there's no demand to propagate
         # to the operand. All we need to do is add an entry with count
         # 0 if one is not already there.
+        # Careful, ZERO can have a side-effect of constructing a new
+        # value, e.g. a bintree.
         if incaggr.half_demand:
             return L.pc('''
                 S_MV = A.smdeflookup(MASK, KEY, None)
                 if MV is None:
-                    A.smassignkey(MASK, KEY, ZERO, PREFIX)
+                    v_zero = ZERO
+                    A.smassignkey(MASK, KEY, v_zero, PREFIX)
                 ''', subst={'A': L.ln(incaggr.name),
                             'S_MV': L.sn(mv_var),
                             'MV': L.ln(mv_var),
