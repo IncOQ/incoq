@@ -25,6 +25,7 @@ __all__ = [
     'DEM_NORCELIM_NODRELIM',
     'DEM_LRU_NORCELIM_NODRELIM',
     'DEM_INLINE_NORCELIM_NODRELIM',
+    'DEM_INLINE_NONATIVE_NODRELIM',
     'DEM_INLINE_NODRELIM',
     'DEM_NOTYPECHECK',
     'DEM_INLINE_NOTYPECHECK',
@@ -237,6 +238,13 @@ class DEM_INLINE_NORCELIM_NODRELIM(DEM):
     display_suffix = 'Filtered (inline; no rc+dr elim.)'
     extra_nopts = {'maint_inline': True,
                    'rc_elim': False,
+                   'deadcode_elim': False}
+
+class DEM_INLINE_NONATIVE_NODRELIM(DEM):
+    output_suffix = 'dem_inline_nonative_nodrelim'
+    display_suffix = 'Filtered (inline; no native+dr elim.)'
+    extra_nopts = {'maint_inline': True,
+                   'native_sets': False,
                    'deadcode_elim': False}
 
 class DEM_INLINE_NODRELIM(DEM):

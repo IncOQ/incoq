@@ -1246,8 +1246,8 @@ class Density(TwitterWorkflow):
         progs = [
             'twitter_dem_norcelim_nodrelim',
             'twitter_dem_inline_norcelim_nodrelim',
+            'twitter_dem_inline_nonative_nodrelim',
             'twitter_dem_inline_nodrelim',
-            'twitter_dem_inline_nodrelim_rcsettoset',
             'twitter_dem_inline',
             'twitter_dem_inline_notypecheck',
             'twitter_dem_inline_notypecheck_maintelim',
@@ -1297,12 +1297,20 @@ class Density(TwitterWorkflow):
             (('twitter_dem_inline_norcelim_nodrelim', 'all'),
              'Inlining',
              'purple', '-- ^ normal'),
+            
+            # For when native set optimization is not included.
             (('twitter_dem_inline_nodrelim', 'all'),
              'Ref count elim',
              'red', '- v normal'),
-#            (('twitter_dem_inline_nodrelim_rcsettoset', 'all'),
+            
+            # For when native set optimization is included.
+#            (('twitter_dem_inline_nonative_nodrelim', 'all'),
+#             'Ref count elim',
+#             'red', '- D normal'),
+#            (('twitter_dem_inline_nodrelim', 'all'),
 #             'Native sets',
-#             'yellow', '-- ^ normal'),
+#             'yellow', '- v normal'),
+            
             (('twitter_dem_inline', 'all'),
              'Result set elim',
              'orange', '- o normal'),

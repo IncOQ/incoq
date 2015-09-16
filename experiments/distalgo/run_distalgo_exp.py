@@ -163,6 +163,33 @@ class DistalgoWorkflow(ExpWorkflow):
             return p['results'][p['metric']]
 
 
+class OptExtractorMixin:
+    
+    generate_csv = True
+    
+    series_template = [
+        (('inc_norcelim_nodrelim', 'time_cpu'),
+         'Inc. w/o opt.',
+         'red', '-- ^ normal'),
+        (('inc', 'time_cpu'),
+         'Inc. w/ opt.',
+         'green', '- o normal'),
+        
+        (('dem_norcelim_nodrelim', 'time_cpu'),
+         'Inc. w/o opt.',
+         'red', '-- ^ normal'),
+        (('dem', 'time_cpu'),
+         'Inc. w/ opt.',
+         'green', '- o normal'),
+    ]
+    
+    ylabel = 'CPU time per process (in seconds)'
+    xlabel = 'Number of processes'
+    
+    def project_y(self, p):
+        return super().project_y(p) / p['dsparams']['x']
+
+
 class CLPaxosDriver(DistalgoDriver):
     dafilename = 'clpaxos/clpaxos.da'
     argnames = ['n_prop', 'n_acc', 'n_rounds', 'timeout']
@@ -176,7 +203,8 @@ class CLPaxos(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-            'clpaxos_inc_in',
+#            'clpaxos_inc_in',
+            'clpaxos_inc_inc_norcelim_nodrelim',
             'clpaxos_inc_inc',
 #            'clpaxos_inc_dem',
         ]
@@ -198,11 +226,25 @@ class CLPaxos(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
         name = 'clpaxos'
-        noninline = True
-        show_wall = True
+        generate_csv = True
         
-        ylabel = 'Running time (in seconds)'
+        series_template = [
+            (('inc_norcelim_nodrelim', 'time_cpu'),
+             'Unoptimized',
+             'red', '-- ^ normal'),
+            (('inc', 'time_cpu'), 'Optimized',
+             'green', '- o normal'),
+        ]
+        
+        ylabel = 'CPU time per process (in seconds)'
         xlabel = 'Number of processes'
+        
+        def project_y(self, p):
+            return super().project_y(p) / p['dsparams']['x']
+    
+    stddev_window = .1
+    min_repeats = 1
+    max_repeats = 1
 
 
 class CRLeaderDriver(DistalgoDriver):
@@ -218,8 +260,9 @@ class CRLeader(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-            'crleader_inc_in',
-            'crleader_inc_dem',
+#            'crleader_inc_in',
+            'crleader_inc_inc',
+            'crleader_inc_inc_norcelim_nodrelim',
         ]
         
         def get_dsparams_list(self):
@@ -230,7 +273,8 @@ class CRLeader(DistalgoWorkflow):
                     
                     n_procs =  x,
                 )
-                for x in range(10, 80 + 1, 10)
+                    for x in [150]
+#                for x in range(20, 80 + 1, 20)
             ]
     
 #    min_repeats = 5
@@ -239,11 +283,21 @@ class CRLeader(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
         name = 'crleader'
+        generate_csv = True
         
-        show_wall = True
+        series_template = [
+            (('inc_norcelim_nodrelim', 'time_cpu'),
+             'Unoptimized',
+             'red', '-- ^ normal'),
+            (('inc', 'time_cpu'), 'Optimized',
+             'green', '- o normal'),
+        ]
         
-        ylabel = 'Running time (in seconds)'
+        ylabel = 'CPU time per process (in seconds)'
         xlabel = 'Number of processes'
+        
+        def project_y(self, p):
+            return super().project_y(p) / p['dsparams']['x']
 
 
 class DSCrashDriver(DistalgoDriver):
@@ -259,7 +313,8 @@ class DSCrash(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-            'dscrash_inc_in',
+#            'dscrash_inc_in',
+            'dscrash_inc_dem_norcelim_nodrelim',
             'dscrash_inc_dem',
         ]
         
@@ -272,15 +327,16 @@ class DSCrash(DistalgoWorkflow):
                     n_procs =  x,
                     maxfail =  2,#int(0.25 * x),
                 )
-                for x in range(5, 100 + 1, 5)
+                for x in range(25, 150 + 1, 25)
             ]
     
-    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
+    class ExpExtractor(OptExtractorMixin, DistalgoWorkflow.ExpExtractor):
         
         name = 'dscrash'
-        
-        ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of processes'
+    
+    stddev_window = .1
+    min_repeats = 10
+    max_repeats = 50
 
 
 class HSLeaderDriver(DistalgoDriver):
@@ -296,8 +352,9 @@ class HSLeader(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-            'hsleader_inc_in',
+#            'hsleader_inc_in',
             'hsleader_inc_inc',
+            'hsleader_inc_inc_norcelim_nodrelim',
 #            'hsleader_inc_dem',
         ]
         
@@ -309,7 +366,7 @@ class HSLeader(DistalgoWorkflow):
                     
                     n_procs =  x,
                 )
-                for x in range(10, 100 + 1, 10)
+                for x in range(20, 100 + 1, 20)
             ]
     
 #    min_repeats = 5
@@ -318,9 +375,21 @@ class HSLeader(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
         name = 'hsleader'
+        generate_csv = True
         
-        ylabel = 'Running time (in seconds)'
+        series_template = [
+            (('inc_norcelim_nodrelim', 'time_cpu'),
+             'Unoptimized',
+             'red', '-- ^ normal'),
+            (('inc', 'time_cpu'), 'Optimized',
+             'green', '- o normal'),
+        ]
+        
+        ylabel = 'CPU time per process (in seconds)'
         xlabel = 'Number of processes'
+        
+        def project_y(self, p):
+            return super().project_y(p) / p['dsparams']['x']
 
 
 class LAMutexDriver(DistalgoDriver):
@@ -498,25 +567,17 @@ class LAMutexOrigProcs(LAMutexOrigWorkflow):
                     n_procs =  x,
                     n_rounds = 10,
                 )
-                for x in range(5, 70 + 1, 5)
+                for x in range(15, 75 + 1, 15)
             ]
     
-    class ExpExtractor(LAMutexOrigWorkflow.ExpExtractor):
+    class ExpExtractor(OptExtractorMixin, LAMutexOrigWorkflow.ExpExtractor):
         ylabel = 'CPU time per process (in seconds)'
         xlabel = 'Number of processes'
-        xmin = 0
-        xmax = 75
-        
-        series_template = [
-            (('inc_norcelim_nodrelim', 'time_cpu'),
-             'Unoptimized',
-             'red', '-- ^ normal'),
-            (('inc', 'time_cpu'), 'Optimized',
-             'green', '- o normal'),
-        ]
-        
-        def project_y(self, p):
-            return super().project_y(p) / p['dsparams']['x']
+        xmin = 10
+        xmax = 80
+    
+    min_repeats = 10
+    max_repeats = 50
 
 class LAMutexOrigRounds(LAMutexOrigWorkflow):
     
@@ -556,7 +617,8 @@ class LAPaxos(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-            'lapaxos_inc_in',
+#            'lapaxos_inc_in',
+            'lapaxos_inc_inc_norcelim_nodrelim',
             'lapaxos_inc_inc',
         ]
         
@@ -576,16 +638,24 @@ class LAPaxos(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
         name = 'lapaxos'
-        noninline = True
+        generate_csv = True
         
-#        show_cpu = False
-#        show_wall = True
+        series_template = [
+            (('inc_norcelim_nodrelim', 'time_cpu'),
+             'Unoptimized',
+             'red', '-- ^ normal'),
+            (('inc', 'time_cpu'), 'Optimized',
+             'green', '- o normal'),
+        ]
         
-        ylabel = 'Running time (in seconds)'
+        ylabel = 'CPU time per process (in seconds)'
         xlabel = 'Number of processes'
+        
+        def project_y(self, p):
+            return super().project_y(p) / p['dsparams']['x']
     
-    min_repeats = 10
-    max_repeats = 10
+#    min_repeats = 10
+#    max_repeats = 10
 
 
 class LAPaxosExcludeDriver(LAPaxosDriver):
@@ -609,9 +679,10 @@ class RAMutex(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-            'ramutex_inc_in',
+#            'ramutex_inc_in',
+            'ramutex_inc_inc_norcelim_nodrelim',
             'ramutex_inc_inc',
-            'ramutex_inc_dem',
+#            'ramutex_inc_dem',
         ]
         
         def get_dsparams_list(self):
@@ -623,18 +694,15 @@ class RAMutex(DistalgoWorkflow):
                     n_procs =  x,
                     n_rounds = 10,
                 )
-                for x in range(2, 20 + 1, 2)
+                for x in range(4, 20 + 1, 4)
             ]
     
-#    min_repeats = 5
-#    max_repeats = 5
+    min_repeats = 10
+    max_repeats = 50
     
-    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
+    class ExpExtractor(OptExtractorMixin, DistalgoWorkflow.ExpExtractor):
         
         name = 'ramutex'
-        
-        ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of processes'
 
 
 class RATokenDriver(DistalgoDriver):
@@ -650,7 +718,8 @@ class RATokenProcs(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-            'ratoken_inc_in',
+#            'ratoken_inc_in',
+            'ratoken_inc_dem_norcelim_nodrelim',
             'ratoken_inc_dem',
         ]
         
@@ -663,7 +732,7 @@ class RATokenProcs(DistalgoWorkflow):
                     n_procs =  x,
                     n_rounds = 10,
                 )
-                for x in range(10, 70 + 1, 10)
+                for x in range(20, 80 + 1, 20)
             ]
     
 #    min_repeats = 3
@@ -672,9 +741,21 @@ class RATokenProcs(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
         name = 'ratoken'
+        generate_csv = True
         
-        ylabel = 'Running time (in seconds)'
+        series_template = [
+            (('dem_norcelim_nodrelim', 'time_cpu'),
+             'Unoptimized',
+             'red', '-- ^ normal'),
+            (('dem', 'time_cpu'), 'Optimized',
+             'green', '- o normal'),
+        ]
+        
+        ylabel = 'CPU time per process (in seconds)'
         xlabel = 'Number of processes'
+        
+        def project_y(self, p):
+            return super().project_y(p) / p['dsparams']['x']
 
 class RATokenRounds(DistalgoWorkflow):
     
@@ -725,7 +806,8 @@ class SKToken(DistalgoWorkflow):
     class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
         progs = [
-            'sktoken_inc_in',
+#            'sktoken_inc_in',
+            'sktoken_inc_dem_norcelim_nodrelim',
             'sktoken_inc_dem',
         ]
         
@@ -738,15 +820,15 @@ class SKToken(DistalgoWorkflow):
                     n_procs =  x,
                     n_rounds = 10,
                 )
-                for x in range(5, 40 + 1, 5)
+                for x in range(10, 60 + 1, 10)
             ]
     
-    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
+    class ExpExtractor(OptExtractorMixin, DistalgoWorkflow.ExpExtractor):
         
         name = 'sktoken'
-        
-        ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of processes'
+    
+    min_repeats = 10
+    max_repeats = 50
 
 
 class TPCommitDriver(DistalgoDriver):
@@ -778,18 +860,30 @@ class TPCommit(DistalgoWorkflow):
                     n_procs =  x,
                     failrate = 10,
                 )
-                for x in range(5, 60 + 1, 5)
+                for x in range(25, 150 + 1, 25)
             ]
     
-    min_repeats = 10
-    max_repeats = 10
+#    min_repeats = 10
+#    max_repeats = 10
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
         name = 'tpcommit'
+        generate_csv = True
         
-        ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of proposers'
+        series_template = [
+            (('inc_norcelim_nodrelim', 'time_cpu'),
+             'Unoptimized',
+             'red', '-- ^ normal'),
+            (('inc', 'time_cpu'), 'Optimized',
+             'green', '- o normal'),
+        ]
+        
+        ylabel = 'CPU time per process (in seconds)'
+        xlabel = 'Number of processes'
+        
+        def project_y(self, p):
+            return super().project_y(p) / p['dsparams']['x']
 
 
 class VRPaxosDriver(DistalgoDriver):

@@ -236,7 +236,7 @@ class WifiOpt(Wifi):
                     x =    x,
                     N =    x
                 )
-                for x in range(10000, 100000 + 1, 10000)
+                for x in range(20000, 100000 + 1, 20000)
             ]
     
     stddev_window = .1

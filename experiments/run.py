@@ -144,6 +144,15 @@ def main():
 #        sktoken,
 #        tpcommit,
 #        vrpaxos,
+        
+        # PEPM 2015 figures:
+#        densityloc,
+#        densitylocnorm,
+#        densitylocmem,
+#        lamutexorigprocs,
+#        ramutex,
+#        sktoken,
+#        wifiopt,
     ]
     
     # Change to directory of this file so we can find the
