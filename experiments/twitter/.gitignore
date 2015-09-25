@@ -5,7 +5,9 @@ twitter_dem_handopt.py
 twitter_dem_noalias.py
 twitter_dem_norcelim_nodrelim.py
 twitter_dem_inline_nodrelim.py
+twitter_dem_inline_nonative_nodrelim.py
 twitter_dem_inline_norcelim_nodrelim.py
+twitter_dem_inline_notypecheck.py
 twitter_dem_inline_notypecheck.py
 twitter_dem_notypecheck_noalias.py
 twitter_dem_singletag.py

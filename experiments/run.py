@@ -8,6 +8,10 @@ import experiments.django as django
 import experiments.rbac.corerbac as corerbac
 import experiments.rbac.constrainedrbac as crbac
 import experiments.distalgo
+import experiments.other.setbenchmark as setbenchmark
+
+sets = setbenchmark.Sets()
+setstable = setbenchmark.SetsTable()
 
 scaletime = twitter.ScaleTime()
 scaletime_poster = twitter.ScaleTimePoster()
@@ -30,8 +34,10 @@ densityloc = twitter.DensityLoc()
 densitylocnorm = twitter.DensityLocNorm()
 densitylocnormtable = twitter.DensityLocNormTable()
 densitylocmem = twitter.DensityLocMem()
+densitylocmemtable = twitter.DensityLocMemTable()
 densityceleb = twitter.DensityCeleb()
 densitycelebnorm = twitter.DensityCelebNorm()
+densitycelebnormtable = twitter.DensityCelebNormTable()
 
 tag = twitter.TagTime()
 
@@ -46,6 +52,7 @@ jqlscale3bigger = jql.Scale3Bigger()
 
 wifiscale = wifi.Wifi()
 wifiopt = wifi.WifiOpt()
+wifiopttable = wifi.WifiOptTable()
 
 djangoscale = django.Scale()
 djangodemand = django.DemandTime()
@@ -78,6 +85,9 @@ vrpaxos = experiments.distalgo.VRPaxos()
 def main():
     
     ws = [
+#        sets,
+#        setstable,
+        
         # DLS14 figures
 #        scaletime,        # celeb_asymp_time
 #        scalesize,        # celeb_asymp_space
@@ -102,8 +112,10 @@ def main():
 #        densitylocnorm,
 #        densitylocnormtable,
 #        densitylocmem,
+#        densitylocmemtable,
 #        densityceleb,
 #        densitycelebnorm,
+#        densitycelebnormtable,
         
 #        jqlratio1,
 #        jqlratio2,        # jql_ratio
@@ -122,6 +134,7 @@ def main():
         
 #        wifiscale,
 #        wifiopt,
+#        wifiopttable,
 #        djangoscale,
 #        djangodemand,
 #        djangodemandnorm,
@@ -145,14 +158,22 @@ def main():
 #        tpcommit,
 #        vrpaxos,
         
-        # PEPM 2015 figures:
+        # Optimization paper figures:
 #        densityloc,
 #        densitylocnorm,
+#        densitylocnormtable,
 #        densitylocmem,
+#        densitylocmemtable,
+#        densityceleb,
+#        densitycelebnorm,
+#        densitycelebnormtable,
 #        lamutexorigprocs,
 #        ramutex,
 #        sktoken,
 #        wifiopt,
+#        wifiopttable,
+#        sets,
+        setstable,
     ]
     
     # Change to directory of this file so we can find the

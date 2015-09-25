@@ -50,7 +50,7 @@ def _maint__m_Comp1_d_F_scan_in_remove(_e):
     if (len(_m_Comp1_d_F_scan_in[v42_2]) == 0):
         del _m_Comp1_d_F_scan_in[v42_2]
 
-Comp1_d_F_ssid = RCSet()
+Comp1_d_F_ssid = Set()
 def _maint_Comp1_d_F_ssid_Comp1_Tap_add(_e):
     # Cost: O(1)
     # Iterate {(v37_ap, v37_ap_ssid) : v37_ap in deltamatch(Comp1_Tap, 'b', _e, 1), (v37_ap, v37_ap_ssid) in _F_ssid}
@@ -72,7 +72,7 @@ def _maint_Comp1_d_F_ssid__F_ssid_add(_e):
     if (v39_ap in Comp1_Tap):
         Comp1_d_F_ssid.add((v39_ap, v39_ap_ssid))
 
-Comp1_d_F_threshold = RCSet()
+Comp1_d_F_threshold = Set()
 def _maint_Comp1_d_F_threshold_Comp1_Twifi_add(_e):
     # Cost: O(1)
     # Iterate {(v33_wifi, v33_wifi_threshold) : v33_wifi in deltamatch(Comp1_Twifi, 'b', _e, 1), (v33_wifi, v33_wifi_threshold) in _F_threshold}
@@ -94,7 +94,7 @@ def _maint_Comp1_d_F_threshold__F_threshold_add(_e):
     if (v35_wifi in Comp1_Twifi):
         Comp1_d_F_threshold.add((v35_wifi, v35_wifi_threshold))
 
-Comp1_d_F_strength = RCSet()
+Comp1_d_F_strength = Set()
 def _maint_Comp1_d_F_strength_Comp1_Tap_add(_e):
     # Cost: O(1)
     # Iterate {(v29_ap, v29_ap_strength) : v29_ap in deltamatch(Comp1_Tap, 'b', _e, 1), (v29_ap, v29_ap_strength) in _F_strength}
@@ -147,7 +147,7 @@ def _maint_Comp1_Tap_Comp1_d_M_remove(_e):
     else:
         Comp1_Tap.decref(v28_ap)
 
-Comp1_d_M = RCSet()
+Comp1_d_M = Set()
 def _maint_Comp1_d_M_Comp1_Twifi_scan_add(_e):
     # Cost: O(v23_wifi_scan)
     # Iterate {(v23_wifi_scan, v23_ap) : v23_wifi_scan in deltamatch(Comp1_Twifi_scan, 'b', _e, 1), (v23_wifi_scan, v23_ap) in _M}
@@ -225,7 +225,7 @@ def _maint_Comp1_Twifi_scan_Comp1_d_F_scan_remove(_e):
     else:
         Comp1_Twifi_scan.decref(v22_wifi_scan)
 
-Comp1_d_F_scan = RCSet()
+Comp1_d_F_scan = Set()
 def _maint_Comp1_d_F_scan_Comp1_Twifi_add(_e):
     # Cost: O(v23_wifi_scan)
     # Iterate {(v17_wifi, v17_wifi_scan) : v17_wifi in deltamatch(Comp1_Twifi, 'b', _e, 1), (v17_wifi, v17_wifi_scan) in _F_scan}
@@ -265,7 +265,7 @@ def _maint_Comp1_d_F_scan__F_scan_add(_e):
         _maint_Comp1_Twifi_scan_Comp1_d_F_scan_add((v19_wifi, v19_wifi_scan))
         # End maint Comp1_Twifi_scan after "Comp1_d_F_scan.add((v19_wifi, v19_wifi_scan))"
 
-Comp1_Twifi = RCSet()
+Comp1_Twifi = Set()
 def _maint_Comp1_Twifi__U_Comp1_add(_e):
     # Cost: O(v23_wifi_scan)
     # Iterate {v15_wifi : v15_wifi in deltamatch(_U_Comp1, 'b', _e, 1)}

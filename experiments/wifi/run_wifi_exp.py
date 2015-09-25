@@ -5,7 +5,7 @@ import os, sys, importlib
 from copy import deepcopy
 
 from frexp import (ExpWorkflow, Datagen, Runner, Verifier,
-                   SimpleExtractor, MetricExtractor)
+                   SimpleExtractor, MetricExtractor, Task)
 
 from experiments.util import SmallExtractor, LargeExtractor, canonize
 
@@ -266,3 +266,26 @@ class WifiOpt(Wifi):
         
         xmin = 5
         xmax = 105
+
+class WifiOptTable(WifiOpt):
+    
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            means = df.mean()
+            
+            print('Average overhead of filtering')
+            print(round(means['Filtered'] / means['Unfiltered'], 1))
+            print('Average overhead of filtering with optimization')
+            print(round(means['Filtered opt'] / means['Unfiltered'], 1))
+            print('Average improvement of opt for filtered')
+            print(round((means['Filtered'] - means['Filtered opt']) /
+                  means['Filtered'], 1))
+            print('Average improvement of opt for unfiltered')
+            print(round((means['Unfiltered'] - means['Unfiltered opt']) /
+                        means['Unfiltered'], 1))

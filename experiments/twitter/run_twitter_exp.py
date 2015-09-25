@@ -13,7 +13,7 @@ import importlib
 from frexp import (ExpWorkflow, Datagen,
                    SimpleExtractor, MetricExtractor,
                    TotalSizeExtractor, NormalizedExtractor,
-                   Printer, get_mem_usage)
+                   Printer, get_mem_usage, Task)
 
 from experiments.twitter.gendb_wrapper import (
                         gen_pairs, gen_pairs_with_inverse,
@@ -1299,17 +1299,17 @@ class Density(TwitterWorkflow):
              'purple', '-- ^ normal'),
             
             # For when native set optimization is not included.
-            (('twitter_dem_inline_nodrelim', 'all'),
-             'Ref count elim',
-             'red', '- v normal'),
+#            (('twitter_dem_inline_nodrelim', 'all'),
+#             'Ref count elim',
+#             'red', '- v normal'),
             
             # For when native set optimization is included.
-#            (('twitter_dem_inline_nonative_nodrelim', 'all'),
-#             'Ref count elim',
-#             'red', '- D normal'),
-#            (('twitter_dem_inline_nodrelim', 'all'),
-#             'Native sets',
-#             'yellow', '- v normal'),
+            (('twitter_dem_inline_nonative_nodrelim', 'all'),
+             'Ref count elim',
+             'red', '- D normal'),
+            (('twitter_dem_inline_nodrelim', 'all'),
+             'Native sets',
+             'yellow', '- v normal'),
             
             (('twitter_dem_inline', 'all'),
              'Result set elim',
@@ -1375,7 +1375,18 @@ class DensityLocNorm(DensityNorm, DensityLoc):
 
 class DensityLocNormTable(DensityLocNorm):
     
-    ExpViewer = TwitterPrinter
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            means = df.mean()
+            means = means.apply(lambda x: 100 - round(x * 100))
+            print('Average percent improvement over unoptimized:')
+            print(means)
 
 class DensityLocMem(DensityLoc):
     
@@ -1385,59 +1396,31 @@ class DensityLocMem(DensityLoc):
         ylabel = 'Memory usage (in MB)'
         def project_y(self, p):
             return super().project_y(p) / (2**20)
+
+class DensityLocMemTable(DensityLocMem):
     
-    ExpViewer = TwitterPrinter
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            print('Memory usage of Unoptimized at x=2k, x=20k')
+            print('  {} MB to {} MB'.format(
+                  int(round(df['Unoptimized'][2])),
+                  int(round(df['Unoptimized'][20]))))
+            
+            print('Average memory reduction (in MB)')
+            means = df.mean()
+            red = means.apply(lambda x: round(means['Unoptimized'] - x, 2))
+            print(red)
 
 class DensityCeleb(Density):
     prefix = 'results/twitter_density_celeb'
     class ExpDatagen(Density.ExpDatagen):
         upkind = 'celeb'
-        
-        progs = [
-            'twitter_inc',
-#            'twitter_dem_norcelim_nodrelim',
-        ]
-        
-        def get_dsparams_list(self):
-            return [
-                dict(
-                    dsid =           str(x),
-                    x =              x,
-                    
-                    n_users =        x,
-                    n_groups =       200,
-                    pad_celeb =      None,
-                    
-                    user_deg =       500,#int(100 * (20000 / x)),
-                    group_deg =      10,
-                    
-                    n_locs =         20,
-                    
-                    n_q_celebs =     x,
-                    n_q_groups =     1,
-                    n_q_pairs =      x,
-                    
-                    n_u =            200000,
-                    q_p_u =          1,
-                    reps =           1,
-                    
-                    need_exact =     False,
-                    upkind =         self.upkind,
-                    celebusertag =   True,
-                    groupusertag =   True,
-                )
-                for x in range(3000, 8000 + 1, 1000)
-            ]
-    
-    stddev_window = .1
-    min_repeats = 1#10
-    max_repeats = 1#50
-        
-    class ExpExtractor(Density.ExpExtractor):
-        legend_loc = 'lower left'
-        xmin = 1
-        xmax = 9
-        x_ticklocs = None
 
 class DensityCelebNorm(DensityNorm, DensityCeleb):
     
@@ -1445,7 +1428,21 @@ class DensityCelebNorm(DensityNorm, DensityCeleb):
     
     class ExpExtractor(DensityNorm.ExpExtractor):
         legend_loc = 'lower left'
-#    ExpViewer = TwitterPrinter
+
+class DensityCelebNormTable(DensityCelebNorm):
+    
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            means = df.mean()
+            means = means.apply(lambda x: 100 - round(x * 100))
+            print('Average percent improvement over unoptimized:')
+            print(means)
 
 
 class Tag(TwitterWorkflow):
