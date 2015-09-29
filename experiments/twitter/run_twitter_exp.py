@@ -1383,6 +1383,11 @@ class DensityLocNormTable(DensityLocNorm):
             with open(self.workflow.csv_filename, 'rt') as in_file:
                 df = pd.DataFrame.from_csv(in_file)
             
+            bests = df.min()
+            bests = bests.apply(lambda x: 100 - round(x * 100))
+            print('Best percent improvement over unoptimized:')
+            print(bests)
+            
             means = df.mean()
             means = means.apply(lambda x: 100 - round(x * 100))
             print('Average percent improvement over unoptimized:')
