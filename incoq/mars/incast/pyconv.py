@@ -310,9 +310,7 @@ class IncLangSpecialImporter(L.MacroExpander):
 
 class CallSimplifier(L.NodeTransformer):
     
-    """Replaces GeneralCall nodes with Call nodes. Fails if this
-    isn't possible.
-    """
+    """Replaces GeneralCall nodes with Call nodes if possible."""
     
     def visit_GeneralCall(self, node):
         node = self.generic_visit(node)
@@ -331,6 +329,8 @@ def import_incast(tree):
 
 
 class IncLangSpecialExporter(L.NodeTransformer):
+    
+    """Export IncAST constructs, expressing them as IncAST nodes."""
     
     def visit_SetUpdate(self, node):
         node = self.generic_visit(node)

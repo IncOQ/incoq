@@ -56,7 +56,9 @@ class VarsFinder(L.NodeVisitor):
 
 class SetMapImporter(L.NodeTransformer):
     
-    """Rewrite nodes for sets and dicts as nodes for relations and maps."""
+    """Rewrite nodes for sets and dicts as nodes for relations and maps,
+    where possible.
+    """
     
     def __init__(self, rels, maps):
         super().__init__()

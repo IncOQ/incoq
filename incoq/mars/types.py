@@ -34,15 +34,14 @@ cases that are implied by reflexivity and transitivity:
   - A is Set<T> and B is Set<S>, and T <= S (covariance of set element)
 
 Type analysis works via abstract interpretation. Each syntactic
-construct has an interpretation function that monotonically maps
-from the types of its inputs to the types of its outputs. Each
-construct also has upper-bound constraints on the allowed types
-for its inputs. The meaning of the interpretation function is that,
-if the input values are of the appropriate input types, then the
-output values are of the appropriate output types. Likewise, the
-meaning of the upper-bound constraints is that if the input values
-are subtypes of the upper bounds, then execution of the construct
-does not cause a type error.
+construct has a transfer function that monotonically maps from the
+types of its inputs to the types of its outputs. Each construct also
+has upper-bound constraints on the allowed types for its inputs.
+The meaning of the transfer function is that, if the input values are
+of the appropriate input types, then the output values are of the
+appropriate output types. Likewise, the meaning of the upper-bound
+constraints is that if the input values are subtypes of the upper
+bounds, then execution of the construct does not cause a type error.
 
 The abstract interpretation initializes all symbols' types to Bottom,
 meaning that (so far) they have no possible values and are safe to use
@@ -194,7 +193,7 @@ class Primitive(Type):
     
     """Built-in type."""
     
-    # Note that t is a Python class, not a Type.
+    # Note that t holds a Python class, not a Type.
     t = TypedField(type)
     
     def __str__(self):
