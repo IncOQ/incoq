@@ -26,7 +26,6 @@ module IncAST
          
            -- Updates.
          
-         
            -- Assignment to multiple targets (a = b = c) isn't allowed.
            -- Decomposing assignment (a, b = c) is a separate node.
            -- The components must be identifiers.
