@@ -46,11 +46,11 @@ def do_typeinference(tree, symtab):
     store = {name: Bottom if sym.type is None else sym.type 
              for name, sym in symtab.symbols.items()}
     # Apply analysis, update saved type info.
-    store, errors = analyze_types(tree, store)
+    store, illtyped = analyze_types(tree, store)
     for name, type in store.items():
         sym = symtab.symbols[name]
         sym.type = type
-    return errors
+    return illtyped
 
 
 def transform_auxmaps(tree, symtab):
@@ -73,7 +73,7 @@ def transform_ast(input_ast):
     symtab = SymbolTable()
     tree = preprocess_tree(tree, symtab)
     
-    errors = do_typeinference(tree, symtab)
+    illtyped = do_typeinference(tree, symtab)
     
     # Incrementalize image-set lookups with auxiliary maps.
     tree = transform_auxmaps(tree, symtab)

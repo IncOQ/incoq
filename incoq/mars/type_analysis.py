@@ -53,7 +53,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         """Mapping from symbol names to inferred types.
         Each type may only change in a monotonically increasing way.
         """
-        self.errors = OrderedSet()
+        self.illtyped = OrderedSet()
         """Nodes where the well-typedness constraints are violated."""
         self.changed = True
         """True if the last call to process() updated the store
@@ -73,8 +73,8 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
             self.store[name] = new_type
         return new_type
     
-    def mark_error(self, node):
-        self.errors.add(node)
+    def mark_bad(self, node):
+        self.illtyped.add(node)
     
     def readonly(f):
         """Decorator for handlers for expression nodes that only
@@ -83,7 +83,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         @wraps(f)
         def wrapper(self, node, *, type=None):
             if type is not None:
-                self.mark_error(node)
+                self.mark_bad(node)
             return f(self, node, type=type)
         return wrapper
     
@@ -139,7 +139,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
             t_target = t_iter.elt
         else:
             t_target = Top
-            self.mark_error(node)
+            self.mark_bad(node)
         self.update_store(node.target, type=t_target)
         self.visit(node.body)
     
@@ -147,14 +147,14 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         # Check test <= Bool
         t_test = self.visit(node.test)
         if not t_test.issmaller(Bool):
-            self.mark_error(node)
+            self.mark_bad(node)
         self.visit(node.body)
     
     def visit_If(self, node):
         # Check test <= Bool
         t_test = self.visit(node.test)
         if not t_test.issmaller(Bool):
-            self.mark_error(node)
+            self.mark_bad(node)
         self.visit(node.body)
         self.visit(node.orelse)
     
@@ -186,7 +186,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
             t_vars = t_value.elts
         else:
             t_vars = [Top] * n
-            self.mark_error(node)
+            self.mark_bad(node)
         for v, t in zip(node.vars, t_vars):
             self.update_store(v, t)
     
@@ -197,7 +197,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         t_value = self.visit(node.value)
         t_target = self.visit(node.target, type=Set(t_value))
         if not t_target.issmaller(Set(Top)):
-            self.mark_error(node)
+            self.mark_bad(node)
     
     def visit_RelUpdate(self, node):
         # rel := Set<value>
@@ -206,7 +206,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         t_value = self.visit(node.value)
         t_rel = self.update_store(node.rel, Set(t_value))
         if not t_rel.issmaller(Set(Top)):
-            self.mark_error(node)
+            self.mark_bad(node)
     
     # TODO: Requires adding map types to type algebra.
 #    visit_DictAssign
@@ -228,7 +228,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         else:
             t = Number
         if not t_operand.issmaller(t):
-            self.mark_error(node)
+            self.mark_bad(node)
         return t
     
     @readonly
@@ -238,7 +238,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         # Check v <= Bool for v in values
         t_values = [self.visit(v) for v in node.values]
         if not all(t.issmaller(Bool) for t in t_values):
-            self.mark_error(node)
+            self.mark_bad(node)
         return Bool
     
     @readonly
@@ -264,7 +264,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         t_body = self.visit(node.body)
         t_orelse = self.visit(node.orelse)
         if not t_test.issmaller(Bool):
-            self.mark_error(node)
+            self.mark_bad(node)
         return t_body.join(t_orelse)
     
     # TODO:
@@ -347,4 +347,4 @@ def analyze_types(tree, store):
         store = analyzer.process(tree)
         steps += 1
     
-    return store, analyzer.errors
+    return store, analyzer.illtyped

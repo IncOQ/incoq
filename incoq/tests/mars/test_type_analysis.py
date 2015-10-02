@@ -10,7 +10,7 @@ from incoq.mars.type_analysis import *
 
 class TypeAnalysisCase(unittest.TestCase):
     
-    def check(self, source, store, exp_store, type_error):
+    def check(self, source, store, exp_store, illtyped):
         """Confirm that the analyzer produces the expected modification
         to the type store, and the expected well-typedness result.
         """
@@ -18,8 +18,8 @@ class TypeAnalysisCase(unittest.TestCase):
         analyzer = TypeAnalysisStepper(store)
         store = analyzer.process(tree)
         self.assertEqual(store, exp_store)
-        assertfunc = self.assertTrue if type_error else self.assertFalse
-        assertfunc(len(analyzer.errors) != 0)
+        assertfunc = self.assertTrue if illtyped else self.assertFalse
+        assertfunc(len(analyzer.illtyped) != 0)
     
     def test_for(self):
         source = '''
@@ -278,12 +278,12 @@ class TypeAnalysisCase(unittest.TestCase):
             ''')
         store = {'S': Set(Number), 'T': Set(String),
                  'R': Bottom, 'x': Bottom, 'y': Bottom}
-        store, errors = analyze_types(tree, store)
+        store, illtyped = analyze_types(tree, store)
         exp_store = {'S': Set(Number), 'T': Set(String),
                      'R': Set(Tuple([Top, Number])),
                      'x': Number, 'y': String}
         self.assertEqual(store, exp_store)
-        self.assertTrue(len(errors) == 0)
+        self.assertTrue(len(illtyped) == 0)
     
     def test_analyze_bailout(self):
         # If successful, this test should terminate. If unsuccessful...
@@ -292,12 +292,12 @@ class TypeAnalysisCase(unittest.TestCase):
                 S.add(S)
             ''')
         store = {'S': Bottom}
-        store, errors = analyze_types(tree, store)
+        store, illtyped = analyze_types(tree, store)
         # S should be a Set<Set<... <Bottom> ...>> type. Just check that
         # the top level is a Set and don't worry about how precise
         # its element type is.
         self.assertTrue(isinstance(store['S'], Set))
-        self.assertTrue(len(errors) == 0)
+        self.assertTrue(len(illtyped) == 0)
 
 
 if __name__ == '__main__':
