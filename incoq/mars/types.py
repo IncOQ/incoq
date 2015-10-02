@@ -15,6 +15,7 @@ following type constructors:
     Composites:
     - Tuple<T1, ..., Tn>
     - Set<T>
+    - List<T>
 
 Each type represents a domain of values, although multiple types may
 have the same domain. Types are arranged in a lattice with order
@@ -32,6 +33,9 @@ cases that are implied by reflexivity and transitivity:
     Ti <= Si for each i in 1..n (covariance of tuple components)
   
   - A is Set<T> and B is Set<S>, and T <= S (covariance of set element)
+  
+  - A is List<T> and B is List<S>, and T <= S (covariance of list
+    element)
 """
 
 
@@ -44,6 +48,7 @@ __all__ = [
     'String',
     'Tuple',
     'Set',
+    'List',
     
     'eval_typestr',
 ]
@@ -210,14 +215,16 @@ class Tuple(Type):
         return self._replace(elts=new_elts)
 
 
-class Set(Type):
+class SequenceTypeBase(Type):
     
-    """Set type. Covariant in element type."""
+    """Base class for types of sequences of homogeneous elements.
+    Covariant in element type.
+    """
     
     elt = TypedField(Type)
     
     def __str__(self):
-        return '{' + str(self.elt) + '}'
+        raise NotImplementedError
     
     def smaller_cmp(self, other):
         if type(self) != type(other):
@@ -230,6 +237,26 @@ class Set(Type):
             return top
         new_elt = self.elt.join(other.elt, inverted=inverted)
         return self._replace(elt=new_elt)
+
+
+class Set(SequenceTypeBase):
+    
+    """Set type."""
+    
+    _inherit_fields = True
+    
+    def __str__(self):
+        return '{' + str(self.elt) + '}'
+
+
+class List(SequenceTypeBase):
+    
+    """List type."""
+    
+    _inherit_fields = True
+    
+    def __str__(self):
+        return '[' + str(self.elt) + ']'
 
 
 def eval_typestr(s):

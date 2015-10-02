@@ -61,7 +61,9 @@ class TypeCase(unittest.TestCase):
         self.assertEqual(t.join(t2), Tuple([Top, String]))
         self.assertEqual(t.meet(t2), Tuple([Bottom, String]))
     
-    def test_set(self):
+    def test_sequence(self):
+        # Test covariant sequences, using Set.
+        
         t = Set(String)
         self.assertTrue(Set(Bottom).issmaller(t))
         self.assertTrue(Set(Top).isbigger(t))
