@@ -10,6 +10,8 @@ __all__ = [
 
 
 from incoq.mars.incast import L, P
+from incoq.mars.types import Bottom
+from incoq.mars.type_analysis import analyze_types
 from incoq.mars.symtab import SymbolTable
 from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer
 
@@ -35,6 +37,22 @@ def postprocess_tree(tree, symtab):
     return tree
 
 
+def do_typeinference(tree, symtab):
+    """Run type inference, update symbol type info.
+    Return a list of nodes where well-typedness is violated.
+    """
+    # Construct a type store correpsonding to current known
+    # information.
+    store = {name: Bottom if sym.type is None else sym.type 
+             for name, sym in symtab.symbols.items()}
+    # Apply analysis, update saved type info.
+    store, errors = analyze_types(tree, store)
+    for name, type in store.items():
+        sym = symtab.symbols[name]
+        sym.type = type
+    return errors
+
+
 def transform_auxmaps(tree, symtab):
     auxmaps = AuxmapFinder.run(tree)
     for auxmap in auxmaps:
@@ -54,6 +72,8 @@ def transform_ast(input_ast):
     
     symtab = SymbolTable()
     tree = preprocess_tree(tree, symtab)
+    
+    errors = do_typeinference(tree, symtab)
     
     # Incrementalize image-set lookups with auxiliary maps.
     tree = transform_auxmaps(tree, symtab)

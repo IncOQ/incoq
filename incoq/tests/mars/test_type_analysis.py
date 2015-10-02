@@ -16,7 +16,7 @@ class TypeAnalysisCase(unittest.TestCase):
         """
         tree = L.Parser.p(source)
         analyzer = TypeAnalysisStepper(store)
-        store, _changed = analyzer.process(tree)
+        store = analyzer.process(tree)
         self.assertEqual(store, exp_store)
         assertfunc = self.assertTrue if type_error else self.assertFalse
         assertfunc(len(analyzer.errors) != 0)
@@ -278,11 +278,12 @@ class TypeAnalysisCase(unittest.TestCase):
             ''')
         store = {'S': Set(Number), 'T': Set(String),
                  'R': Bottom, 'x': Bottom, 'y': Bottom}
-        store = analyze_types(tree, store)
+        store, errors = analyze_types(tree, store)
         exp_store = {'S': Set(Number), 'T': Set(String),
                      'R': Set(Tuple([Top, Number])),
                      'x': Number, 'y': String}
         self.assertEqual(store, exp_store)
+        self.assertTrue(len(errors) == 0)
     
     def test_analyze_bailout(self):
         # If successful, this test should terminate. If unsuccessful...
@@ -291,7 +292,12 @@ class TypeAnalysisCase(unittest.TestCase):
                 S.add(S)
             ''')
         store = {'S': Bottom}
-        store = analyze_types(tree, store)
+        store, errors = analyze_types(tree, store)
+        # S should be a Set<Set<... <Bottom> ...>> type. Just check that
+        # the top level is a Set and don't worry about how precise
+        # its element type is.
+        self.assertTrue(isinstance(store['S'], Set))
+        self.assertTrue(len(errors) == 0)
 
 
 if __name__ == '__main__':

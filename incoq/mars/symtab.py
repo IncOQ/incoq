@@ -50,12 +50,18 @@ class RelationSymbol(Symbol):
     
     def __init__(self, name):
         self.name = name
+        self.type = None
         self.arity = None
     
     def __str__(self):
         s = 'Relation {}'.format(self.name)
+        opts = []
+        if self.type is not None:
+            opts.append('type: {}'.format(self.type))
         if self.arity is not None:
-            s += ' (arity: {})'.format(self.arity)
+            opts.append('arity: {}'.format(self.arity))
+        if len(opts) > 0:
+            s += ' (' + ', '.join(opts) + ')'
         return s
     
     def unify_arity(self, new_arity):

@@ -55,11 +55,15 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         """
         self.errors = OrderedSet()
         """Nodes where the well-typedness constraints are violated."""
+        self.changed = True
+        """True if the last call to process() updated the store
+        (or if there was no call so far).
+        """
     
     def process(self, tree):
         self.changed = False
         super().process(tree)
-        return self.store, self.changed
+        return self.store
     
     def update_store(self, name, type):
         old_type = self.store[name]
@@ -329,17 +333,18 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
 def analyze_types(tree, store):
     """Given a mapping, store, from variable identifiers to types,
     return a modified version of the store that expands types according
-    to the requirements of the program. Each type may only increase,
+    to the requirements of the program. Also return an OrderedSet of
+    nodes where well-typedness is violated. Each type may only increase,
     not decrease. Each variable in the program must appear in the given
     store mapping.
     """
     store = dict(store)
     
-    changed = True
     limit = 20
     steps = 0
-    while changed and steps < limit:
-        store, changed = TypeAnalysisStepper.run(tree, store)
+    analyzer = TypeAnalysisStepper(store)
+    while analyzer.changed and steps < limit:
+        store = analyzer.process(tree)
         steps += 1
     
-    return store
+    return store, analyzer.errors
