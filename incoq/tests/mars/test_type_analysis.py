@@ -8,15 +8,15 @@ from incoq.mars.types import *
 from incoq.mars.type_analysis import *
 
 
-class AnalyzerCase(unittest.TestCase):
+class TypeAnalysisCase(unittest.TestCase):
     
     def check(self, source, store, exp_store, type_error):
         """Confirm that the analyzer produces the expected modification
         to the type store, and the expected well-typedness result.
         """
         tree = L.Parser.p(source)
-        analyzer = TypeAnalyzer(store)
-        store = analyzer.process(tree)
+        analyzer = TypeAnalysisStepper(store)
+        store, _changed = analyzer.process(tree)
         self.assertEqual(store, exp_store)
         assertfunc = self.assertTrue if type_error else self.assertFalse
         assertfunc(len(analyzer.errors) != 0)
@@ -267,6 +267,31 @@ class AnalyzerCase(unittest.TestCase):
             {'a': Bottom, 'b': Number, 'c': String},
             {'a': Tuple([Number, String]), 'b': Number, 'c': String},
             False)
+    
+    def test_analyze_basic(self):
+        tree = L.Parser.p('''
+            def main():
+                for x in S:
+                    R.add((x, 1))
+                for y in T:
+                    R.add((y, 2))
+            ''')
+        store = {'S': Set(Number), 'T': Set(String),
+                 'R': Bottom, 'x': Bottom, 'y': Bottom}
+        store = analyze_types(tree, store)
+        exp_store = {'S': Set(Number), 'T': Set(String),
+                     'R': Set(Tuple([Top, Number])),
+                     'x': Number, 'y': String}
+        self.assertEqual(store, exp_store)
+    
+    def test_analyze_bailout(self):
+        # If successful, this test should terminate. If unsuccessful...
+        tree = L.Parser.p('''
+            def main():
+                S.add(S)
+            ''')
+        store = {'S': Bottom}
+        store = analyze_types(tree, store)
 
 
 if __name__ == '__main__':

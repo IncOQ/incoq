@@ -27,7 +27,8 @@ programs to be well-typed.
 
 
 __all__ = [
-    'TypeAnalyzer',
+    'TypeAnalysisStepper',
+    'analyze_types',
 ]
 
 
@@ -38,7 +39,13 @@ from incoq.mars.incast import L
 from incoq.mars.types import *
 
 
-class TypeAnalyzer(L.AdvNodeVisitor):
+class TypeAnalysisStepper(L.AdvNodeVisitor):
+    
+    """Run one iteration of transfer functions for all the program's
+    nodes. Return the store (variable -> type mapping) and a boolean
+    indicating whether the store has been changed (i.e. whether new
+    information was inferred).
+    """
     
     def __init__(self, store):
         super().__init__()
@@ -50,12 +57,17 @@ class TypeAnalyzer(L.AdvNodeVisitor):
         """Nodes where the well-typedness constraints are violated."""
     
     def process(self, tree):
+        self.changed = False
         super().process(tree)
-        return self.store
+        return self.store, self.changed
     
     def update_store(self, name, type):
-        self.store[name] = self.store[name].join(type)
-        return self.store[name]
+        old_type = self.store[name]
+        new_type = old_type.join(type)
+        if new_type != old_type:
+            self.changed = True
+            self.store[name] = new_type
+        return new_type
     
     def mark_error(self, node):
         self.errors.add(node)
@@ -70,6 +82,12 @@ class TypeAnalyzer(L.AdvNodeVisitor):
                 self.mark_error(node)
             return f(self, node, type=type)
         return wrapper
+    
+    @readonly
+    def default_expr_handler(self, node, *, type=None):
+        """Expression handler that just recurses and returns Top."""
+        self.generic_visit(node)
+        return Top
     
     # Each visitor handler has a monotonic transfer function and
     # possibly a constraint for well-typedness.
@@ -186,11 +204,11 @@ class TypeAnalyzer(L.AdvNodeVisitor):
         if not t_rel.issmaller(Set(Top)):
             self.mark_error(node)
     
-    # TODO:
-    #   visit_DictAssign
-    #   visit_DictDelete
-    #   visit_MapAssign
-    #   visit_MapDelete
+    # TODO: Requires adding map types to type algebra.
+#    visit_DictAssign
+#    visit_DictDelete
+#    visit_MapAssign
+#    visit_MapDelete
     
     @readonly
     def visit_UnaryOp(self, node, *, type=None):
@@ -281,8 +299,9 @@ class TypeAnalyzer(L.AdvNodeVisitor):
         else:
             return self.update_store(name, type)
     
-    # TODO:
-    #   visit_List
+    # TODO: Add a new List type to the type algebra, return that
+    # instead. May require understanding list updates as well.
+    visit_List = default_expr_handler
     
     @readonly
     def visit_Tuple(self, node, *, type=None):
@@ -290,13 +309,37 @@ class TypeAnalyzer(L.AdvNodeVisitor):
         t_elts = [self.visit(e) for e in node.elts]
         return Tuple(t_elts)
     
-    # TODO:
-    #   visit_Attribute
-    #   visit_DictLookup
-    #   visit_MapLookup
-    #   visit_Imgset
-    #   visit_Comp
-    #   visit_Member
-    #   visit_Cond
+    # TODO: More precise behavior requires adding objects and map types
+    # to the type algebra.
+    
+    visit_Attribute = default_expr_handler
+    visit_DictLookup = default_expr_handler
+    visit_MapLookup = default_expr_handler
+    visit_Imgset = default_expr_handler
+    
+    # TODO: Comprehensions not handled yet.
+    
+    visit_Comp = default_expr_handler
+    visit_Member = default_expr_handler
+    visit_Cond = default_expr_handler
     
     # Remaining nodes require no handler.
+
+
+def analyze_types(tree, store):
+    """Given a mapping, store, from variable identifiers to types,
+    return a modified version of the store that expands types according
+    to the requirements of the program. Each type may only increase,
+    not decrease. Each variable in the program must appear in the given
+    store mapping.
+    """
+    store = dict(store)
+    
+    changed = True
+    limit = 20
+    steps = 0
+    while changed and steps < limit:
+        store, changed = TypeAnalysisStepper.run(tree, store)
+        steps += 1
+    
+    return store
