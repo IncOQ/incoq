@@ -102,6 +102,49 @@ class AnalyzerCase(unittest.TestCase):
                    {'x': String, 'y': Bottom, 'v': Bottom},
                    False)
     
+    def test_setupdate(self):
+        source = '''
+            def main():
+                S.add(v)
+            '''
+        # Normal case.
+        self.check(source,
+                   {'S': Set(String), 'v': Number},
+                   {'S': Set(Top), 'v': Number},
+                   False)
+        # target is not a set.
+        self.check(source,
+                   {'S': Top, 'v': Number},
+                   {'S': Top, 'v': Number},
+                   True)
+    
+    def test_relupdate(self):
+        source = '''
+            def main():
+                S.reladd(v)
+            '''
+        # Normal case.
+        self.check(source,
+                   {'S': Set(String), 'v': Number},
+                   {'S': Set(Top), 'v': Number},
+                   False)
+        # target is not a set.
+        self.check(source,
+                   {'S': Top, 'v': Number},
+                   {'S': Top, 'v': Number},
+                   True)
+    
+    def test_readonly(self):
+        # Disallow write context for UnaryOp.
+        source = '''
+            def main():
+                (-a).add(b)
+            '''
+        self.check(source,
+                   {'a': Set(Bottom), 'b': Number},
+                   {'a': Set(Bottom), 'b': Number},
+                   True)
+    
     def test_unaryop(self):
         # Not requires Bool.
         source = '''

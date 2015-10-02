@@ -31,6 +31,8 @@ __all__ = [
 ]
 
 
+from functools import wraps
+
 from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
 from incoq.mars.types import *
@@ -53,9 +55,21 @@ class TypeAnalyzer(L.AdvNodeVisitor):
     
     def update_store(self, name, type):
         self.store[name] = self.store[name].join(type)
+        return self.store[name]
     
     def mark_error(self, node):
         self.errors.add(node)
+    
+    def readonly(f):
+        """Decorator for handlers for expression nodes that only
+        make sense in read context.
+        """
+        @wraps(f)
+        def wrapper(self, node, *, type=None):
+            if type is not None:
+                self.mark_error(node)
+            return f(self, node, type=type)
+        return wrapper
     
     # Each visitor handler has a monotonic transfer function and
     # possibly a constraint for well-typedness.
@@ -71,10 +85,12 @@ class TypeAnalyzer(L.AdvNodeVisitor):
     # This syntax is augmented by If/Elif/Else and pattern matching,
     # e.g. iter == Set<T> introduces T as the element type of iter.
     #
-    # Some visitor handlers take a keyword argument 'type', which is
-    # an input type passed in from the node's context. Handlers may
-    # use the presence of this keyword argument to distinguish read
-    # and write context.
+    # Expression visitors have a keyword argument 'type', and can be
+    # used in read or write context. In read context, type is None.
+    # In write context, type is the type passed in from context. In
+    # both cases the type of the expression is returned. Handlers
+    # that do not tolerate write context are decorated as @readonly;
+    # they still run but record a well-typedness error.
     
     # Use default handler for Return.
     
@@ -152,11 +168,23 @@ class TypeAnalyzer(L.AdvNodeVisitor):
         for v, t in zip(node.vars, t_vars):
             self.update_store(v, t)
     
-#    def visit_SetUpdate(self, node):
-#        pass
+    def visit_SetUpdate(self, node):
+        # target := Set<value>
+        #
+        # Check target <= Set<Top>
+        t_value = self.visit(node.value)
+        t_target = self.visit(node.target, type=Set(t_value))
+        if not t_target.issmaller(Set(Top)):
+            self.mark_error(node)
     
-#    def visit_RelUpdate(self, node):
-#        pass
+    def visit_RelUpdate(self, node):
+        # rel := Set<value>
+        #
+        # Check rel <= Set<Top>
+        t_value = self.visit(node.value)
+        t_rel = self.update_store(node.rel, Set(t_value))
+        if not t_rel.issmaller(Set(Top)):
+            self.mark_error(node)
     
     # TODO:
     #   visit_DictAssign
@@ -164,7 +192,8 @@ class TypeAnalyzer(L.AdvNodeVisitor):
     #   visit_MapAssign
     #   visit_MapDelete
     
-    def visit_UnaryOp(self, node):
+    @readonly
+    def visit_UnaryOp(self, node, *, type=None):
         # If op == Not:
         #   Return Bool
         #   Check operand <= Bool
@@ -180,7 +209,8 @@ class TypeAnalyzer(L.AdvNodeVisitor):
             self.mark_error(node)
         return t
     
-    def visit_BoolOp(self, node):
+    @readonly
+    def visit_BoolOp(self, node, *, type=None):
         # Return Bool
         #
         # Check v <= Bool for v in values
@@ -189,19 +219,22 @@ class TypeAnalyzer(L.AdvNodeVisitor):
             self.mark_error(node)
         return Bool
     
-    def visit_BinOp(self, node):
+    @readonly
+    def visit_BinOp(self, node, *, type=None):
         # Return join(left, right)
         t_left = self.visit(node.left)
         t_right = self.visit(node.right)
         return t_left.join(t_right)
     
-    def visit_Compare(self, node):
+    @readonly
+    def visit_Compare(self, node, *, type=None):
         # Return Bool.
         self.visit(node.left)
         self.visit(node.right)
         return Bool
     
-    def visit_IfExp(self, node):
+    @readonly
+    def visit_IfExp(self, node, *, type=None):
         # return join(body, orelse)
         #
         # Check test <= Bool
@@ -216,15 +249,18 @@ class TypeAnalyzer(L.AdvNodeVisitor):
     #   visit_GeneralCall
     #   visit_Call
     
-    def visit_Num(self, node):
+    @readonly
+    def visit_Num(self, node, *, type=None):
         # Return Number
         return Number
     
-    def visit_Str(self, node):
+    @readonly
+    def visit_Str(self, node, *, type=None):
         # Return String
         return String
     
-    def visit_NameConstant(self, node):
+    @readonly
+    def visit_NameConstant(self, node, *, type=None):
         # For True/False:
         #   Return Bool
         # For None:
@@ -243,12 +279,13 @@ class TypeAnalyzer(L.AdvNodeVisitor):
         if type is None:
             return self.store[name]
         else:
-            self.update_store(name, type)
+            return self.update_store(name, type)
     
     # TODO:
     #   visit_List
     
-    def visit_Tuple(self, node):
+    @readonly
+    def visit_Tuple(self, node, *, type=None):
         # Return Tuple<elts>
         t_elts = [self.visit(e) for e in node.elts]
         return Tuple(t_elts)
