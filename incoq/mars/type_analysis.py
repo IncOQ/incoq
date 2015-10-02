@@ -119,23 +119,23 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     def visit_For(self, node):
         # If iter == Bottom:
         #   target := Bottom
-        # Elif iter == Set<T>:
+        # Elif iter == Set<T> or iter == List<T>:
         #   target := T
         # Else:
         #   target := Top
         #
-        # Check iter <= Set<Top>
+        # Check iter <= Set<Top> or iter <= List<Top>
         t_iter = self.visit(node.iter)
         if t_iter is Bottom:
             t_target = Bottom
-        elif t_iter.issmaller(Set(Top)):
+        elif t_iter.issmaller(Set(Top)) or t_iter.issmaller(List(Top)):
             # This might happen if we have a user-defined subtype of
-            # Set. We need to retrieve the element type, but the subtype
-            # is a different class that may not have one. Unclear what
-            # to do in this case.
-            if not isinstance(t_iter, Set):
+            # Set/List. We need to retrieve the element type, but the
+            # subtype is a different class that may not have one.
+            # Unclear what to do in this case.
+            if not isinstance(t_iter, (Set, List)):
                 raise L.ProgramError('Cannot handle iteration over subtype '
-                                     'of Set constructor')
+                                     'of Set/List constructor')
             t_target = t_iter.elt
         else:
             t_target = Top
@@ -303,9 +303,12 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         else:
             return self.update_store(name, type)
     
-    # TODO: Add a new List type to the type algebra, return that
-    # instead. May require understanding list updates as well.
-    visit_List = default_expr_handler
+    @readonly
+    def visit_List(self, node, *, type=None):
+        # Return List<join(T1, ..., Tn)>
+        t_elts = [self.visit(e) for e in node.elts]
+        t_elt = Bottom.join(*t_elts)
+        return List(t_elt)
     
     @readonly
     def visit_Tuple(self, node, *, type=None):

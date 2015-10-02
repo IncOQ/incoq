@@ -32,6 +32,11 @@ class TypeAnalysisCase(unittest.TestCase):
             {'S': Set(String), 'x': Bottom},
             {'S': Set(String), 'x': String},
             False)
+        # Normal case, iter is List.
+        self.check(source,
+            {'S': List(String), 'x': Bottom},
+            {'S': List(String), 'x': String},
+            False)
         # Iter is Top.
         self.check(source,
             {'S': Top, 'x': Bottom},
@@ -258,6 +263,15 @@ class TypeAnalysisCase(unittest.TestCase):
             False)
     
     # Name should be sufficiently tested by all the other cases.
+    
+    def test_list(self):
+        self.check('''
+            def main():
+                a = [b, c]
+            ''',
+            {'a': Bottom, 'b': Number, 'c': String},
+            {'a': List(Top), 'b': Number, 'c': String},
+            False)
     
     def test_tuple(self):
         self.check('''
