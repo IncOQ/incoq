@@ -19,6 +19,17 @@ from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
 
 
+def debug_symbols(symtab, illtyped, badsyms):
+    print('---- Symbol info ----')
+    print(symtab.dump_symbols())
+    print('---- Ill-typed nodes ----')
+    for node in illtyped:
+        print(L.Parser.ts(node))
+    print('---- Ill-typed symbols ----')
+    print(', '.join(sym.name for sym in symtab.symbols.values()
+                             if sym in badsyms))
+
+
 def preprocess_tree(tree, symtab):
     """Return a preprocessed tree. Store symbol declarations
     in the symbol table.
@@ -39,18 +50,22 @@ def postprocess_tree(tree, symtab):
 
 def do_typeinference(tree, symtab):
     """Run type inference, update symbol type info.
-    Return a list of nodes where well-typedness is violated.
+    Return a list of nodes where well-typedness is violated,
+    and a list of variables where their max type is exceeded.
     """
-    # Construct a type store correpsonding to current known
-    # information.
-    store = {name: Bottom if sym.type is None else sym.type 
+    # Retrieve current type information (the type store).
+    store = {name: sym.min_type if sym.type is None else sym.type 
              for name, sym in symtab.symbols.items()}
+    
     # Apply analysis, update saved type info.
     store, illtyped = analyze_types(tree, store)
+    badsyms = set()
     for name, type in store.items():
         sym = symtab.symbols[name]
         sym.type = type
-    return illtyped
+        if not type.issmaller(sym.max_type):
+            badsyms.add(sym)
+    return illtyped, badsyms
 
 
 def transform_auxmaps(tree, symtab):
@@ -73,7 +88,9 @@ def transform_ast(input_ast):
     symtab = SymbolTable()
     tree = preprocess_tree(tree, symtab)
     
-    illtyped = do_typeinference(tree, symtab)
+    illtyped, badsyms = do_typeinference(tree, symtab)
+    
+#    debug_symbols(symtab, illtyped, badsyms)
     
     # Incrementalize image-set lookups with auxiliary maps.
     tree = transform_auxmaps(tree, symtab)

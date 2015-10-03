@@ -16,6 +16,7 @@ __all__ = [
 from collections import OrderedDict
 
 from incoq.mars.incast import L
+import incoq.mars.types as T
 
 
 class N:
@@ -39,37 +40,51 @@ class N:
 
 
 class Symbol:
+    pass
+
+
+class TypedSymbolMixin(Symbol):
     
-    def unify(self, **kargs):
-        for k, v in kargs.items():
-            method = getattr(self, 'unify_' + k)
-            method(v)
+    # Min/max type can be supplied as INFO inputs, but type
+    # should not be.
+    
+    type = T.Bottom
+    """Current annotated or inferred type of the symbol."""
+    
+    min_type = T.Bottom
+    """Initial minimum type before type inference; the type
+    of input values for variables.
+    """
+    max_type = T.Top
+    """Maximum type after type inference; the type of output
+    values for variables.
+    """
+    
+    def type_helper(self, t):
+        return T.eval_typestr(t)
+    
+    parse_type = type_helper
+    parse_min_type = type_helper
+    parse_max_type = type_helper
 
 
-class RelationSymbol(Symbol):
+class RelationSymbol(TypedSymbolMixin, Symbol):
+    
+    min_type = T.Set(T.Bottom)
+    max_type = T.Set(T.Top)
     
     def __init__(self, name):
         self.name = name
         self.type = None
-        self.arity = None
     
     def __str__(self):
         s = 'Relation {}'.format(self.name)
         opts = []
         if self.type is not None:
             opts.append('type: {}'.format(self.type))
-        if self.arity is not None:
-            opts.append('arity: {}'.format(self.arity))
         if len(opts) > 0:
             s += ' (' + ', '.join(opts) + ')'
         return s
-    
-    def unify_arity(self, new_arity):
-        if self.arity is not None and self.arity != new_arity:
-            raise L.ProgramError('Inconsistent arities for relation "{}": '
-                                 '{}, {}'.format(self.name, self.arity,
-                                                 new_arity))
-        self.arity = new_arity
 
 
 class MapSymbol(Symbol):
@@ -81,7 +96,7 @@ class MapSymbol(Symbol):
         return 'Map {}'.format(self.name)
 
 
-class VarSymbol(Symbol):
+class VarSymbol(TypedSymbolMixin, Symbol):
     
     def __init__(self, name):
         self.name = name
@@ -152,7 +167,13 @@ class SymbolTable:
         if name not in self.symbols:
             raise L.ProgramError('No symbol "{}"'.format(name))
         sym = self.symbols[name]
-        sym.unify(**info)
+        # Hook into a parse_*()  method, if one exists for that
+        # info key on the symbol.
+        for k, v in info.items():
+            parse_method = getattr(sym, 'parse_' + k, None)
+            if parse_method is not None:
+                v = parse_method(v)
+            setattr(sym, k, v)
     
     def dump_symbols(self):
         """Return a string describing the defined global symbols."""

@@ -4,6 +4,7 @@
 import unittest
 
 from incoq.mars.incast import L
+from incoq.mars.types import Set, Top
 from incoq.mars.symtab import *
 
 
@@ -29,16 +30,10 @@ class SymbolCase(unittest.TestCase):
     
     def test_rel(self):
         r = RelationSymbol('R')
-        self.assertIs(r.arity, None)
-        r.unify(arity=2)
-        self.assertEqual(r.arity, 2)
-        
+        r.type = Set(Top)
         s = str(r)
-        exp_s = 'Relation R (arity: 2)'
+        exp_s = 'Relation R (type: {Top})'
         self.assertEqual(s, exp_s)
-        
-        with self.assertRaises(L.ProgramError):
-            r.unify(arity=3)
     
     def test_map(self):
         m = MapSymbol('M')
@@ -48,9 +43,9 @@ class SymbolCase(unittest.TestCase):
     
     def test_var(self):
         v = VarSymbol('v')
-        v.type = 'test'
+        v.type = v.parse_type('Set(Top)')
         s = str(v)
-        exp_s = 'Var v (type: test)'
+        exp_s = 'Var v (type: {Top})'
         self.assertEqual(s, exp_s)
 
 
