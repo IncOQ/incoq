@@ -198,17 +198,17 @@ class VardeclCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
 
 
-class SymbolInfoCase(unittest.TestCase):
+class DirectiveCase(unittest.TestCase):
     
     def test_preprocess(self):
         tree = P.Parser.p('''
-            OPTIONS(a=1)
-            OPTIONS(a=1, b=2)
-            INFO(R, a=1)
-            INFO(S)
+            CONFIG(a=1)
+            CONFIG(a=1, b=2)
+            SYMCONFIG(R, a=1)
+            SYMCONFIG(S)
             pass
             ''')
-        tree, options, syminfo = SymbolInfoImporter.run(tree)
+        tree, options, syminfo = DirectiveImporter.run(tree)
         exp_tree = P.Parser.p('''
             pass
             ''')

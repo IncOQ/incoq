@@ -18,7 +18,7 @@ __all__ = [
     'preprocess_vardecls',
     'postprocess_vardecls',
     
-    'SymbolInfoImporter',
+    'DirectiveImporter',
     
     # Main exports.
     'py_preprocess',
@@ -259,38 +259,38 @@ def postprocess_vardecls(tree, rels, maps):
     return tree
 
 
-class SymbolInfoImporter(P.MacroProcessor):
+class DirectiveImporter(P.MacroProcessor):
     
-    """Parse and remove OPTIONS and INFO directives, whose forms are:
+    """Parse and remove directives of the forms:
     
-        OPTIONS(<key>=<value>, ...)
-        INFO(<sym>, <key>=<value>, ...)
+        CONFIG(<key>=<value>, ...)
+        SYMCONFIG(<sym>, <key>=<value>, ...)
     
-    Return a list of options dictionaries and a list of pairs of symbol
-    names and info dictionaries.
+    Return 1) a list of dictionaries (one per CONFIG), and 2) a list
+    of pairs of symbol names and dictionaries (one pair per SYMCONFIG).
     """
     
     def process(self, tree):
-        self.options = []
-        self.syminfo = []
+        self.config_info = []
+        self.symconfig_info = []
         tree = super().process(tree)
-        return tree, self.options, self.syminfo
+        return tree, self.config_info, self.symconfig_info
     
     @typechecked
-    def handle_fs_OPTIONS(self, _func, **kargs):
-        opts = {}
+    def handle_fs_CONFIG(self, _func, **kargs):
+        info = {}
         for k, v in kargs.items():
-            opts[k] = P.LiteralEvaluator.run(v)
-        self.options.append(opts)
+            info[k] = P.LiteralEvaluator.run(v)
+        self.config_info.append(info)
         return ()
     
     @typechecked
-    def handle_fs_INFO(self, _func, symbol:P.Name, **kargs):
+    def handle_fs_SYMCONFIG(self, _func, symbol:P.Name, **kargs):
         name = symbol.id
         info = {}
         for k, v in kargs.items():
             info[k] = P.LiteralEvaluator.run(v)
-        self.syminfo.append((name, info))
+        self.symconfig_info.append((name, info))
         return ()
 
 
@@ -308,11 +308,11 @@ def py_preprocess(tree, symtab, config):
     for rel in rels:
         symtab.define_relation(rel)
     # Get symbol info.
-    tree, options, syminfo = SymbolInfoImporter.run(tree)
-    for opt in options:
-        config.update(**opt)
-    for name, info in syminfo:
-        symtab.apply_syminfo(name, info)
+    tree, config_info, symconfig_info = DirectiveImporter.run(tree)
+    for info in config_info:
+        config.update(**info)
+    for name, info in symconfig_info:
+        symtab.apply_symconfig(name, info)
     return tree
 
 

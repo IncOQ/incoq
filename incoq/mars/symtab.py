@@ -160,15 +160,15 @@ class SymbolTable:
     def get_vars(self):
         return self.get_symbols('Var')
     
-    def apply_syminfo(self, name, info):
+    def apply_symconfig(self, name, info):
         """Given a symbol name and a key-value dictionary of symbol
-        properties, apply the properties.
+        config attribute, apply the attributes.
         """
         if name not in self.symbols:
             raise L.ProgramError('No symbol "{}"'.format(name))
         sym = self.symbols[name]
         # Hook into a parse_*()  method, if one exists for that
-        # info key on the symbol.
+        # attr key on the symbol.
         for k, v in info.items():
             parse_method = getattr(sym, 'parse_' + k, None)
             if parse_method is not None:

@@ -10,8 +10,8 @@ from incoq.mars.runtime.builtins import *
 class BuiltinsCase(unittest.TestCase):
     
     def test_noops(self):
-        OPTIONS(1, 2, a=3)
-        INFO(1, a=2, b=3)
+        CONFIG(1, 2, a=3)
+        SYMCONFIG(1, a=2, b=3)
     
     def test_set_identity(self):
         s1 = Set()

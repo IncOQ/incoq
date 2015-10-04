@@ -2,8 +2,8 @@
 
 
 __all__ = [
-    'OPTIONS',
-    'INFO',
+    'CONFIG',
+    'SYMCONFIG',
     
     'IncOQType',
     'Set',
@@ -19,10 +19,10 @@ from collections import Counter
 # These act as syntactic directives for the transformation system.
 # Execution wise, they are no-ops.
 
-def OPTIONS(*args, **kargs):
+def CONFIG(*args, **kargs):
     pass
 
-def INFO(*args, **kargs):
+def SYMCONFIG(*args, **kargs):
     pass
 
 
