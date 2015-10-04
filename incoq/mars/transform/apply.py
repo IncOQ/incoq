@@ -12,6 +12,7 @@ __all__ = [
 from incoq.mars.incast import L, P
 from incoq.mars.types import Bottom
 from incoq.mars.type_analysis import analyze_types
+from incoq.mars.config import Config
 from incoq.mars.symtab import SymbolTable
 from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer
 
@@ -30,11 +31,11 @@ def debug_symbols(symtab, illtyped, badsyms):
                              if sym in badsyms))
 
 
-def preprocess_tree(tree, symtab):
+def preprocess_tree(tree, symtab, config):
     """Return a preprocessed tree. Store symbol declarations
     in the symbol table.
     """
-    tree = py_preprocess(tree, symtab)
+    tree = py_preprocess(tree, symtab, config)
     tree = L.import_incast(tree)
     tree = incast_preprocess(tree, symtab)
     return tree
@@ -81,16 +82,22 @@ def transform_auxmaps(tree, symtab):
     return tree
 
 
-def transform_ast(input_ast):
+def transform_ast(input_ast, *, options=None):
     """Take in a Python AST and return the transformed AST."""
     tree = input_ast
+    if options is None:
+        options = {}
+    
+    config = Config()
+    config.update(**options)
     
     symtab = SymbolTable()
-    tree = preprocess_tree(tree, symtab)
+    tree = preprocess_tree(tree, symtab, config)
     
     illtyped, badsyms = do_typeinference(tree, symtab)
     
-#    debug_symbols(symtab, illtyped, badsyms)
+    if config.verbose:
+        debug_symbols(symtab, illtyped, badsyms)
     
     # Incrementalize image-set lookups with auxiliary maps.
     tree = transform_auxmaps(tree, symtab)
@@ -100,12 +107,12 @@ def transform_ast(input_ast):
     return tree
 
 
-def transform_source(input_source):
+def transform_source(input_source, *, options=None):
     """Take in the Python source code to a module and return the
     transformed source code.
     """
     tree = P.Parser.p(input_source)
-    tree = transform_ast(tree)
+    tree = transform_ast(tree, options=options)
     source = P.Parser.ts(tree)
     # All good human beings have trailing newlines in their
     # text files.
@@ -113,21 +120,21 @@ def transform_source(input_source):
     return source
 
 
-def transform_file(input_file, output_file):
+def transform_file(input_file, output_file, *, options=None):
     """Take in input and output file-like objects, and write to the
     output the transformed Python code corresponding to the input.
     """
     source = input_file.read()
-    source = transform_source(source)
+    source = transform_source(source, options=options)
     output_file.write(source)
 
 
-def transform_filename(input_filename, output_filename):
+def transform_filename(input_filename, output_filename, *, options=None):
     """Take in an input and output path, and write to the output
     the transformed Python file for the given input file.
     """
     with open(input_filename, 'rt') as file:
         source = file.read()
-    source = transform_source(source)
+    source = transform_source(source, options=options)
     with open(output_filename, 'wt') as file:
         file.write(source)

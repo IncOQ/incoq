@@ -202,16 +202,20 @@ class SymbolInfoCase(unittest.TestCase):
     
     def test_preprocess(self):
         tree = P.Parser.p('''
+            OPTIONS(a=1)
+            OPTIONS(a=1, b=2)
             INFO(R, a=1)
             INFO(S)
             pass
             ''')
-        tree, syminfo = SymbolInfoImporter.run(tree)
+        tree, options, syminfo = SymbolInfoImporter.run(tree)
         exp_tree = P.Parser.p('''
             pass
             ''')
+        exp_options = [{'a': 1}, {'a': 1, 'b': 2}]
         exp_syminfo = [('R', {'a': 1}), ('S', {})]
         self.assertEqual(tree, exp_tree)
+        self.assertEqual(options, exp_options)
         self.assertEqual(syminfo, exp_syminfo)
 
 

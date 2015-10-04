@@ -261,15 +261,28 @@ def postprocess_vardecls(tree, rels, maps):
 
 class SymbolInfoImporter(P.MacroProcessor):
     
-    """Parse and remove INFO(<sym>, <key>=<value>, ...) directives,
-    and return a list of pairs of symbol names and key-value
-    dictionaries.
+    """Parse and remove OPTIONS and INFO directives, whose forms are:
+    
+        OPTIONS(<key>=<value>, ...)
+        INFO(<sym>, <key>=<value>, ...)
+    
+    Return a list of options dictionaries and a list of pairs of symbol
+    names and info dictionaries.
     """
     
     def process(self, tree):
+        self.options = []
         self.syminfo = []
         tree = super().process(tree)
-        return tree, self.syminfo
+        return tree, self.options, self.syminfo
+    
+    @typechecked
+    def handle_fs_OPTIONS(self, _func, **kargs):
+        opts = {}
+        for k, v in kargs.items():
+            opts[k] = P.LiteralEvaluator.run(v)
+        self.options.append(opts)
+        return ()
     
     @typechecked
     def handle_fs_INFO(self, _func, symbol:P.Name, **kargs):
@@ -281,7 +294,7 @@ class SymbolInfoImporter(P.MacroProcessor):
         return ()
 
 
-def py_preprocess(tree, symtab):
+def py_preprocess(tree, symtab, config):
     # Admit some constructs as syntactic sugar that would otherwise
     # be excluded from IncAST.
     tree = ConstructPreprocessor.run(tree)
@@ -295,7 +308,9 @@ def py_preprocess(tree, symtab):
     for rel in rels:
         symtab.define_relation(rel)
     # Get symbol info.
-    tree, syminfo = SymbolInfoImporter.run(tree)
+    tree, options, syminfo = SymbolInfoImporter.run(tree)
+    for opt in options:
+        config.update(**opt)
     for name, info in syminfo:
         symtab.apply_syminfo(name, info)
     return tree
