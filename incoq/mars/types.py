@@ -16,6 +16,7 @@ following type constructors:
     - Tuple<T1, ..., Tn>
     - Set<T>
     - List<T>
+    - Map<K, V>
 
 Each type represents a domain of values, although multiple types may
 have the same domain. Types are arranged in a lattice with order
@@ -36,6 +37,9 @@ cases that are implied by reflexivity and transitivity:
   
   - A is List<T> and B is List<S>, and T <= S (covariance of list
     element)
+  
+  - A is Map<K1, V1> and B is Map<K2, V2>, and K1 <= K2 and V1 <= V2
+    (covariance of keys and values)
 """
 
 
@@ -49,6 +53,7 @@ __all__ = [
     'Tuple',
     'Set',
     'List',
+    'Map',
     
     'eval_typestr',
 ]
@@ -278,6 +283,36 @@ class List(SequenceTypeBase):
     
     def __str__(self):
         return '[' + str(self.elt) + ']'
+
+
+class Map(Type):
+    
+    """Map type."""
+    
+    key = TypedField(Type)
+    value = TypedField(Type)
+    
+    def __str__(self):
+        return '{{{}: {}}}'.format(self.key, self.value)
+    
+    def smaller_cmp(self, other):
+        if type(self) != type(other):
+            return NotImplemented
+        return (self.key.issmaller(other.key) and
+                self.value.issmaller(other.value))
+    
+    def join_helper(self, other, *, inverted=False):
+        top = Top if not inverted else Bottom
+        if type(self) != type(other):
+            return top
+        new_key = self.key.join(other.key, inverted=inverted)
+        new_value = self.value.join(other.value, inverted=inverted)
+        return self._replace(key=new_key, value=new_value)
+    
+    def widen_helper(self, height):
+        new_key = self.key.widen(height - 1)
+        new_value = self.value.widen(height - 1)
+        return self._replace(key=new_key, value=new_value)
 
 
 def eval_typestr(s):

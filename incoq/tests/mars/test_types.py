@@ -9,6 +9,15 @@ from incoq.mars.types import TopClass, BottomClass
 
 class TypeCase(unittest.TestCase):
     
+    @property
+    def sample_types(self):
+        return [Bottom, Bool, Top, Tuple([Number]),
+                Set(String), Map(String, Bool)]
+    
+    @property
+    def sample_types_simple(self):
+        return [Bottom, Bool, Top]
+    
     def test_str(self):
         self.assertEqual(str(Top), 'Top')
         self.assertEqual(str(Bottom), 'Bottom')
@@ -27,8 +36,7 @@ class TypeCase(unittest.TestCase):
         self.assertIs(obj, Bottom)
     
     def test_order_trivial(self):
-        ts = [Bottom, Bool, Tuple([Number]), Set(String), Top]
-        for t in ts:
+        for t in self.sample_types:
             with self.subTest(t=t):
                 self.assertTrue(Bottom.issmaller(t))
                 self.assertTrue(t.issmaller(Top))
@@ -36,8 +44,7 @@ class TypeCase(unittest.TestCase):
                 self.assertTrue(t.isbigger(Bottom))
     
     def test_join_trivial(self):
-        ts = [Bottom, Bool, Tuple([Number]), Set(String), Top]
-        for t in ts:
+        for t in self.sample_types:
             with self.subTest(t=t):
                 # Join.
                 self.assertEqual(t.join(Bottom), t)
@@ -51,7 +58,7 @@ class TypeCase(unittest.TestCase):
                 self.assertEqual(Top.meet(t), t)
     
     def test_widen_trivial(self):
-        ts = [Bottom, Bool, Top]
+        ts = self.sample_types_simple
         for t in ts:
             with self.subTest(t=t):
                 self.assertEqual(t.widen(0), Top)
@@ -86,6 +93,24 @@ class TypeCase(unittest.TestCase):
         t2 = Set(Bool)
         self.assertEqual(t.join(t2), Set(Top))
         self.assertEqual(t.meet(t2), Set(Bottom))
+    
+    def test_map(self):
+        t = Map(String, Bool)
+        self.assertTrue(Map(Top, Bool).isbigger(t))
+        self.assertTrue(Map(Bottom, Bottom).issmaller(t))
+        self.assertFalse(Map(Top, Bottom).isbigger(t))
+        self.assertFalse(Map(Bottom, Top).isbigger(t))
+        
+        t2 = Map(Bool, Bool)
+        self.assertEqual(t.join(t2), Map(Top, Bool))
+        self.assertEqual(t.meet(t2), Map(Bottom, Bool))
+        
+        t = Map(String, Map(String, Bool))
+        self.assertEqual(t.widen(3), t)
+        self.assertEqual(t.widen(2), Map(String, Map(Top, Top)))
+        self.assertEqual(t.widen(1), Map(Top, Top))
+        self.assertEqual(t.widen(0), Top)
+        
     
     def test_eval(self):
         t = eval_typestr('Set(Tuple([Bool, Number]))')
