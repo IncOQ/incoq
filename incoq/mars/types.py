@@ -128,6 +128,19 @@ class Type(Struct):
     def meet(self, *others, inverted=False):
         """Opposite of join()."""
         return self.join(*others, inverted=not inverted)
+    
+    def widen(self, height):
+        """Return a type no smaller than this one, whose type term
+        tree height is no greater than the given limit.
+        """
+        if height == 0:
+            return Top
+        else:
+            return self.widen_helper(height)
+    
+    def widen_helper(self, height):
+        """Handle widen() for the case where height is not 0."""
+        return self
 
 
 class TopClass(Type):
@@ -213,6 +226,10 @@ class Tuple(Type):
         new_elts = [e1.join(e2, inverted=inverted)
                     for e1, e2 in zip(self.elts, other.elts)]
         return self._replace(elts=new_elts)
+    
+    def widen_helper(self, height):
+        new_elts = [e.widen(height - 1) for e in self.elts]
+        return self._replace(elts=new_elts)
 
 
 class SequenceTypeBase(Type):
@@ -236,6 +253,10 @@ class SequenceTypeBase(Type):
         if type(self) != type(other):
             return top
         new_elt = self.elt.join(other.elt, inverted=inverted)
+        return self._replace(elt=new_elt)
+    
+    def widen_helper(self, height):
+        new_elt = self.elt.widen(height - 1)
         return self._replace(elt=new_elt)
 
 

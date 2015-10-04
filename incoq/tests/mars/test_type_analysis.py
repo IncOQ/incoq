@@ -299,7 +299,7 @@ class TypeAnalysisCase(unittest.TestCase):
         self.assertEqual(store, exp_store)
         self.assertTrue(len(illtyped) == 0)
     
-    def test_analyze_bailout(self):
+    def test_analyze_termination(self):
         # If successful, this test should terminate. If unsuccessful...
         tree = L.Parser.p('''
             def main():
@@ -307,9 +307,11 @@ class TypeAnalysisCase(unittest.TestCase):
             ''')
         store = {'S': Bottom}
         store, illtyped = analyze_types(tree, store)
-        # S should be a Set<Set<... <Bottom> ...>> type. Just check that
+        # S should be a Set<Set<... <Top> ...>> type. Just check that
         # the top level is a Set and don't worry about how precise
-        # its element type is.
+        # its element type is. (The inner type can also be Bottom
+        # instead of Top if analysis terminated due to bailout instead
+        # of widening.)
         self.assertTrue(isinstance(store['S'], Set))
         self.assertTrue(len(illtyped) == 0)
 

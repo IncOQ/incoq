@@ -50,6 +50,13 @@ class TypeCase(unittest.TestCase):
                 self.assertEqual(t.meet(Top), t)
                 self.assertEqual(Top.meet(t), t)
     
+    def test_widen_trivial(self):
+        ts = [Bottom, Bool, Top]
+        for t in ts:
+            with self.subTest(t=t):
+                self.assertEqual(t.widen(0), Top)
+                self.assertEqual(t.widen(1), t)
+    
     def test_tuple(self):
         t = Tuple([Bool, String])
         self.assertTrue(Tuple([Bottom, String]).issmaller(t))
@@ -60,6 +67,12 @@ class TypeCase(unittest.TestCase):
         t2 = Tuple([String, String])
         self.assertEqual(t.join(t2), Tuple([Top, String]))
         self.assertEqual(t.meet(t2), Tuple([Bottom, String]))
+        
+        t = Tuple([Tuple([Bool, String]), String])
+        self.assertEqual(t.widen(3), t)
+        self.assertEqual(t.widen(2), Tuple([Tuple([Top, Top]), String]))
+        self.assertEqual(t.widen(1), Tuple([Top, Top])),
+        self.assertEqual(t.widen(0), Top)
     
     def test_sequence(self):
         # Test covariant sequences, using Set.

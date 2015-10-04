@@ -47,12 +47,14 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     information was inferred).
     """
     
-    def __init__(self, store):
+    def __init__(self, store, height_limit=None):
         super().__init__()
         self.store = store
         """Mapping from symbol names to inferred types.
         Each type may only change in a monotonically increasing way.
         """
+        self.height_limit = height_limit
+        """Maximum height of type terms in the store. None for no limit."""
         self.illtyped = OrderedSet()
         """Nodes where the well-typedness constraints are violated."""
         self.changed = True
@@ -68,6 +70,8 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     def update_store(self, name, type):
         old_type = self.store[name]
         new_type = old_type.join(type)
+        if self.height_limit is not None:
+            new_type = new_type.widen(self.height_limit)
         if new_type != old_type:
             self.changed = True
             self.store[name] = new_type
@@ -343,10 +347,15 @@ def analyze_types(tree, store):
     """
     store = dict(store)
     
+    height_limit = 5
     limit = 20
     steps = 0
-    analyzer = TypeAnalysisStepper(store)
-    while analyzer.changed and steps < limit:
+    analyzer = TypeAnalysisStepper(store, height_limit)
+    while analyzer.changed:
+        if steps == limit:
+            print('Warning: Type analysis did not converge after '
+                  '{} steps'.format(limit))
+            break
         store = analyzer.process(tree)
         steps += 1
     
