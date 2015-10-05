@@ -108,6 +108,7 @@ class Type(Struct):
     def join(self, *others, inverted=False):
         """Return the join of this type and each type listed in others.
         If inverted is True, return the meet instead of the join.
+        Types of None are ignored.
         """
         t = self
         for o in others:
@@ -116,6 +117,8 @@ class Type(Struct):
     
     def join_one(self, other, *, inverted=False):
         """Handle join() for one other type."""
+        if other is None:
+            return self
         if self.issmaller(other):
             return other if not inverted else self
         elif other.issmaller(self):

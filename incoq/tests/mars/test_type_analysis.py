@@ -115,37 +115,54 @@ class TypeAnalysisCase(unittest.TestCase):
                    {'x': String, 'y': Bottom, 'v': Bottom},
                    False)
     
-    def test_setupdate(self):
+    def test_setrel_update(self):
         source = '''
             def main():
                 S.add(v)
+                R.reladd(v)
             '''
         # Normal case.
         self.check(source,
-                   {'S': Set(String), 'v': Number},
-                   {'S': Set(Top), 'v': Number},
+                   {'S': Set(String), 'R': Set(String), 'v': Number},
+                   {'S': Set(Top), 'R': Set(Top), 'v': Number},
                    False)
         # target is not a set.
         self.check(source,
-                   {'S': Top, 'v': Number},
-                   {'S': Top, 'v': Number},
+                   {'S': Top, 'R': Bottom, 'v': Number},
+                   {'S': Top, 'R': Set(Number), 'v': Number},
+                   True)
+        self.check(source,
+                   {'S': Bottom, 'R': Top, 'v': Number},
+                   {'S': Set(Number), 'R': Top, 'v': Number},
                    True)
     
-    def test_relupdate(self):
+    def test_dictmap_update(self):
         source = '''
             def main():
-                S.reladd(v)
+                d[k] = v
+                m.mapassign(k, v)
             '''
         # Normal case.
         self.check(source,
-                   {'S': Set(String), 'v': Number},
-                   {'S': Set(Top), 'v': Number},
+                   {'d': Map(String, Bool), 'm': Map(String, Bool),
+                    'k': Bool, 'v': String},
+                   {'d': Map(Top, Top), 'm': Map(Top, Top),
+                    'k': Bool, 'v': String},
                    False)
-        # target is not a set.
+        # Value is Top.
         self.check(source,
-                   {'S': Top, 'v': Number},
-                   {'S': Top, 'v': Number},
+                   {'d': Top, 'm': Top,
+                    'k': Bool, 'v': String},
+                   {'d': Top, 'm': Top,
+                    'k': Bool, 'v': String},
                    True)
+        # Value is Bottom.
+        self.check(source,
+                   {'d': Bottom, 'm': Bottom,
+                    'k': Bool, 'v': String},
+                   {'d': Map(Bool, String), 'm': Map(Bool, String),
+                    'k': Bool, 'v': String},
+                   False)
     
     def test_readonly(self):
         # Disallow write context for UnaryOp.
@@ -288,6 +305,31 @@ class TypeAnalysisCase(unittest.TestCase):
             ''',
             {'a': Bottom, 'b': Number, 'c': String},
             {'a': Tuple([Number, String]), 'b': Number, 'c': String},
+            False)
+    
+    def test_dictmap_lookup(self):
+        source = '''
+            def main():
+                a = d.get(k, v)
+                b = m.mapget(k, v)
+            '''
+        mt = Map(String, Bool)
+        self.check(source,
+            {'d': mt, 'm': mt, 'k': String, 'v': Number,
+             'a': Bottom, 'b': Bottom},
+            {'d': mt, 'm': mt, 'k': String, 'v': Number,
+             'a': Top, 'b': Top},
+            False)
+        
+        # Check passing in types from context.
+        self.check('''
+            def main():
+                d[k1][k2] = v
+            ''',
+            {'d': Map(String, Map(Number, Bottom)),
+             'k1': String, 'k2': Number, 'v': Bool},
+            {'d': Map(String, Map(Number, Bool)),
+             'k1': String, 'k2': Number, 'v': Bool},
             False)
     
     def test_analyze_basic(self):

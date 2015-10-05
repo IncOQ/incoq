@@ -56,6 +56,9 @@ class TypeCase(unittest.TestCase):
                 self.assertEqual(Bottom.meet(t), Bottom)
                 self.assertEqual(t.meet(Top), t)
                 self.assertEqual(Top.meet(t), t)
+                # None.
+                self.assertEqual(t.join(None), t)
+                self.assertEqual(t.meet(None), t)
     
     def test_widen_trivial(self):
         ts = self.sample_types_simple

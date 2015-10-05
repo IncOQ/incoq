@@ -215,11 +215,43 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         if not t_rel.issmaller(Set(Top)):
             self.mark_bad(node)
     
-    # TODO: Requires adding map types to type algebra.
-#    visit_DictAssign
-#    visit_DictDelete
-#    visit_MapAssign
-#    visit_MapDelete
+    def visit_DictAssign(self, node):
+        # target := Map<key, value>
+        #
+        # Check target <= Map<Top, Top>
+        t_key = self.visit(node.key)
+        t_value = self.visit(node.value)
+        t_target = self.visit(node.target, type=Map(t_key, t_value))
+        if not t_target.issmaller(Map(Top, Top)):
+            self.mark_bad(node)
+    
+    def visit_DictDelete(self, node):
+        # target := Map<key, Bottom>
+        #
+        # Check target <= Map<Top, Top>
+        t_key = self.visit(node.key)
+        t_target = self.visit(node.target, type=Map(t_key, Bottom))
+        if not t_target.issmaller(Map(Top, Top)):
+            self.mark_bad(node)
+    
+    def visit_MapAssign(self, node):
+        # map := Map<key, value>
+        #
+        # Check map <= Map<Top, Top>
+        t_key = self.visit(node.key)
+        t_value = self.visit(node.value)
+        t_map = self.update_store(node.map, Map(t_key, t_value))
+        if not t_map.issmaller(Map(Top, Top)):
+            self.mark_bad(node)
+    
+    def visit_MapDelete(self, node):
+        # map := Map<key, Bottom>
+        #
+        # Check map <= Map<Top, Top>
+        t_key = self.visit(node.key)
+        t_map = self.update_store(node.map, Map(t_key, Bottom))
+        if not t_map.issmaller(Map(Top, Top)):
+            self.mark_bad(node)
     
     @readonly
     def visit_UnaryOp(self, node, *, type=None):
@@ -323,12 +355,70 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         t_elts = [self.visit(e) for e in node.elts]
         return Tuple(t_elts)
     
-    # TODO: More precise behavior requires adding objects and map types
-    # to the type algebra.
+    # TODO: More precise behavior requires adding objects to the
+    # type algebra.
     
     visit_Attribute = default_expr_handler
-    visit_DictLookup = default_expr_handler
-    visit_MapLookup = default_expr_handler
+    
+    def visit_DictLookup(self, node, *, type=None):
+        # If type is not None:
+        #   value := Map<Bottom, type>
+        #
+        # If value == Bottom:
+        #   R = Bottom
+        # Elif value == Map<K, V>:
+        #   R = V
+        # Else:
+        #   R = Top
+        # Return join(R, default)
+        #
+        # Check value <= Map<Top, Top>
+        t_value = Map(Bottom, type) if type is not None else None
+        t_value = self.visit(node.value, type=t_value)
+        t_default = (self.visit(node.default)
+                     if node.default is not None else None)
+        if t_value is Bottom:
+            t = Bottom
+        elif t_value.issmaller(Map(Top, Top)):
+            # Just as for visit_For, make sure we have an actual
+            # instances of Map.
+            if not isinstance(t_value, Map):
+                raise L.ProgramError('Cannot handle lookup over subtype '
+                                     'of Map constructor')
+            t = t_value.value
+        else:
+            self.mark_bad(node)
+            t = Top
+        return t.join(t_default)
+    
+    @readonly
+    def visit_MapLookup(self, node, *, type=None):
+        # If map == Bottom:
+        #   R = Return Bottom
+        # Elif map == Map<K, V>:
+        #   R = Return V
+        # Else:
+        #   R = Return Top
+        # Return join(R, default)
+        #
+        # Check map <= Map<Top, Top>
+        t_map = self.get_store(node.map)
+        t_default = (self.visit(node.default)
+                     if node.default is not None else None)
+        if t_map is Bottom:
+            t = Bottom
+        elif t_map.issmaller(Map(Top, Top)):
+            # Just as for visit_For, make sure we have an actual
+            # instances of Map.
+            if not isinstance(t_map, Map):
+                raise L.ProgramError('Cannot handle lookup over subtype '
+                                     'of Map constructor')
+            t = t_map.value
+        else:
+            self.mark_bad(node)
+            t = Top
+        return t.join(t_default)
+    
     visit_Imgset = default_expr_handler
     
     # TODO: Comprehensions not handled yet.
