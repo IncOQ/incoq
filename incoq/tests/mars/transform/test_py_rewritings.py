@@ -4,6 +4,8 @@
 import unittest
 
 from incoq.mars.incast import P, L
+from incoq.mars.types import Top, Set, Map
+from incoq.mars.symtab import RelationSymbol, MapSymbol
 from incoq.mars.transform.py_rewritings import *
 
 
@@ -178,14 +180,23 @@ class VardeclCase(unittest.TestCase):
         self.assertSequenceEqual(rels, exp_rels)
     
     def test_postprocess(self):
+        S_sym = RelationSymbol('S')
+        S_sym.type = Set(Top)
+        T_sym = RelationSymbol('T')
+        S_bu_sym = MapSymbol('S_bu')
+        S_bu_sym.type = Map(Top, Top)
+        
         tree = P.Parser.p('''
             def main():
                 print(S, T)
             ''')
-        tree = postprocess_vardecls(tree, ['S', 'T'], ['S_bu'])
+        tree = postprocess_vardecls(tree, [S_sym, T_sym], [S_bu_sym])
         exp_tree = P.Parser.p('''
+            COMMENT('S : {Top}')
             S = Set()
+            COMMENT('T')
             T = Set()
+            COMMENT('S_bu : {Top: Top}')
             S_bu = Map()
             def main():
                 print(S, T)

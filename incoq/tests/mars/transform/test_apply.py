@@ -19,6 +19,7 @@ class ApplyCase(unittest.TestCase):
         source = transform_source(source)
         exp_source = P.trim('''
             from incoq.mars.runtime import *
+            # S : {Bottom}
             S = Set()
             def main():
                 b = c

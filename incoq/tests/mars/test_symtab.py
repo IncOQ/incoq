@@ -34,6 +34,10 @@ class SymbolCase(unittest.TestCase):
         s = str(r)
         exp_s = 'Relation R (type: {Top})'
         self.assertEqual(s, exp_s)
+        
+        s = r.decl_comment()
+        exp_s = 'R : {Top}'
+        self.assertEqual(s, exp_s)
     
     def test_map(self):
         m = MapSymbol('M')

@@ -251,10 +251,18 @@ def postprocess_vardecls(tree, rels, maps):
     """
     assert isinstance(tree, P.Module)
     header = ()
-    header += tuple(P.Parser.ps('_REL = Set()', subst={'_REL': rel})
-                    for rel in rels)
-    header += tuple(P.Parser.ps('_MAP = Map()', subst={'_MAP': map})
-                    for map in maps)
+    for rel in rels:
+        header += P.Parser.pc('''
+            COMMENT(_S)
+            _REL = Set()
+            ''', subst={'_S': P.Str(rel.decl_comment()),
+                        '_REL': rel.name})
+    for map in maps:
+        header += P.Parser.pc('''
+            COMMENT(_S)
+            _MAP = Map()
+            ''', subst={'_S': P.Str(map.decl_comment()),
+                        '_MAP': map.name})
     tree = tree._replace(body=header + tree.body)
     return tree
 
@@ -317,8 +325,8 @@ def py_preprocess(tree, symtab, config):
 
 
 def py_postprocess(tree, symtab):
-    rels = list(symtab.get_relations().keys())
-    maps = list(symtab.get_maps().keys())
+    rels = list(symtab.get_relations().values())
+    maps = list(symtab.get_maps().values())
     # Add in declarations for relations.
     tree = postprocess_vardecls(tree, rels, maps)
     # Add in main boilerplate, if main() is defined.

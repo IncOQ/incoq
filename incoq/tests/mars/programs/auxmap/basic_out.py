@@ -1,5 +1,7 @@
 from incoq.mars.runtime import *
+# S : {(Number, Number)}
 S = Set()
+# S_bu : Bottom
 S_bu = Map()
 def _maint_S_bu_for_S_add(_elem):
     (_elem_v1, _elem_v2) = _elem

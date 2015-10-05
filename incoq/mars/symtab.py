@@ -66,6 +66,12 @@ class TypedSymbolMixin(Symbol):
     parse_type = type_helper
     parse_min_type = type_helper
     parse_max_type = type_helper
+    
+    def decl_comment(self):
+        if self.type is not None:
+            return self.name + ' : ' + str(self.type)
+        else:
+            return self.name
 
 
 class RelationSymbol(TypedSymbolMixin, Symbol):
@@ -87,7 +93,10 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
         return s
 
 
-class MapSymbol(Symbol):
+class MapSymbol(TypedSymbolMixin, Symbol):
+    
+    min_type = T.Map(T.Bottom, T.Bottom)
+    max_type = T.Map(T.Top, T.Top)
     
     def __init__(self, name):
         self.name = name
