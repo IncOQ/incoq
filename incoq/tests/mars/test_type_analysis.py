@@ -307,6 +307,41 @@ class TypeAnalysisCase(unittest.TestCase):
             {'a': Tuple([Number, String]), 'b': Number, 'c': String},
             False)
     
+    def test_subscript(self):
+        source = '''
+            def main():
+                a = t.index(0)
+                b = t.index(i)
+            '''
+        # Normal case, Tuple.
+        self.check(source,
+            {'t': Tuple([Bool, String]), 'i': Number,
+             'a': Bottom, 'b': Bottom},
+            {'t': Tuple([Bool, String]), 'i': Number,
+             'a': Bool, 'b': Top},
+            False)
+        # Normal case, List.
+        self.check(source,
+            {'t': List(Bool), 'i': Number,
+             'a': Bottom, 'b': Bottom},
+            {'t': List(Bool), 'i': Number,
+             'a': Bool, 'b': Bool},
+            False)
+        # Ill-typed, not List or Tuple.
+        self.check(source,
+            {'t': Set(String), 'i': Number,
+             'a': Bottom, 'b': Bottom},
+            {'t': Set(String), 'i': Number,
+             'a': Top, 'b': Top},
+            True)
+        # Ill-typed, index is not Number.
+        self.check(source,
+            {'t': List(Bool), 'i': String,
+             'a': Bottom, 'b': Bottom},
+            {'t': List(Bool), 'i': String,
+             'a': Bool, 'b': Bool},
+            True)
+    
     def test_dictmap_lookup(self):
         source = '''
             def main():

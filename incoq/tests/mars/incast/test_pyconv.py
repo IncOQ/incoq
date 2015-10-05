@@ -190,7 +190,12 @@ class ParseImportCase(unittest.TestCase):
         tree = Parser.ps('M.mapdelete(k)')
         exp_tree = L.MapDelete('M', L.Name('k'))
         self.assertEqual(tree, exp_tree)
-        
+    
+    def test_subscript(self):
+        tree = Parser.pe('t.index(i)')
+        exp_tree = L.Subscript(L.Name('t'), L.Name('i'))
+        self.assertEqual(tree, exp_tree)
+    
     def test_dictlookups(self):
         tree = Parser.pe('M.get(k, d)')
         exp_tree = L.DictLookup(L.Name('M'), L.Name('k'), L.Name('d'))
@@ -270,6 +275,9 @@ class RoundTripCase(unittest.TestCase):
     
     def test_lists(self):
         self.trip.pe('[1, 2]')
+    
+    def test_subscript(self):
+        self.trip.pe('t.index(i)')
     
     def test_dictlookup(self):
         self.trip.pe('M[k]')

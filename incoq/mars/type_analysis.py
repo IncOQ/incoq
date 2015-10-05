@@ -353,8 +353,48 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     visit_Attribute = default_expr_handler
     
+    @readonly
+    def visit_Subscript(self, node, *, type=None):
+        # If value == Bottom:
+        #   Return Bottom
+        # Elif value == List<T>:
+        #   return T
+        # Elif value == Tuple<T0, ..., Tn>:
+        #   If index == Num(k) node, 0 <= k <= n:
+        #     return Tk
+        #   Else:
+        #     return join(T0, ..., Tn)
+        # Else:
+        #   return Top
+        #
+        # Check value <= List<Top> or value is a Tuple
+        # Check index <= Number
+        t_value = self.visit(node.value)
+        t_index = self.visit(node.index)
+        if not t_index.issmaller(Number):
+            self.mark_bad(node)
+        if t_value is Bottom:
+            return Bottom
+        elif t_value.issmaller(List(Top)):
+            # Make sure we have an actual instance of List.
+            if not isinstance(t_value, List):
+                raise L.ProgramError('Cannot handle subscript over subtype '
+                                     'of List constructor')
+            return t_value.elt
+        # This doesn't quite catch cases of subtypes of Tuple that
+        # are not actually instances of the Tuple constructor.
+        elif isinstance(t_value, Tuple):
+            if (isinstance(node.index, L.Num) and
+                0 <= node.index.n < len(t_value.elts)):
+                return t_value.elts[node.index.n]
+            else:
+                return Bottom.join(*t_value.elts)
+        else:
+            self.mark_bad(node)
+            return Top
+    
     def visit_DictLookup(self, node, *, type=None):
-        # If type is not None:
+        # If type != None:
         #   value := Map<Bottom, type>
         #
         # If value == Bottom:

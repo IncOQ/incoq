@@ -272,6 +272,9 @@ class IncLangSpecialImporter(L.MacroExpander):
                          '{} node'.format(map.__class__.__name__))
         return L.MapDelete(map.id, key)
     
+    def handle_me_index(self, _func, value, index):
+        return L.Subscript(value, index)
+    
     def handle_me_get(self, _func, dict, key, default):
         return L.DictLookup(dict, key, default)
     
@@ -492,6 +495,12 @@ class IncLangNodeExporter(NodeMapper):
     def visit_Attribute(self, node):
         return P.Attribute(self.visit(node.value),
                            node.attr, P.Load())
+    
+    def visit_Subscript(self, node):
+        return P.Call(P.Attribute(self.visit(node.value),
+                                  'index', P.Load()),
+                      [self.visit(node.index)],
+                      [], None, None)
     
     def visit_DictLookup(self, node):
         if node.default is None:
