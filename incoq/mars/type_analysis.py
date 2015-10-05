@@ -113,6 +113,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     #
     # This syntax is augmented by If/Elif/Else and pattern matching,
     # e.g. iter == Set<T> introduces T as the element type of iter.
+    # join(T1, T2) is the lattice join of T1 and T2.
     #
     # Expression visitors have a keyword argument 'type', and can be
     # used in read or write context. In read context, type is None.
@@ -199,7 +200,6 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     def visit_SetUpdate(self, node):
         # target := Set<value>
-        #
         # Check target <= Set<Top>
         t_value = self.visit(node.value)
         t_target = self.visit(node.target, type=Set(t_value))
@@ -208,7 +208,6 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     def visit_RelUpdate(self, node):
         # rel := Set<value>
-        #
         # Check rel <= Set<Top>
         t_value = self.visit(node.value)
         t_rel = self.update_store(node.rel, Set(t_value))
@@ -217,7 +216,6 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     def visit_DictAssign(self, node):
         # target := Map<key, value>
-        #
         # Check target <= Map<Top, Top>
         t_key = self.visit(node.key)
         t_value = self.visit(node.value)
@@ -227,7 +225,6 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     def visit_DictDelete(self, node):
         # target := Map<key, Bottom>
-        #
         # Check target <= Map<Top, Top>
         t_key = self.visit(node.key)
         t_target = self.visit(node.target, type=Map(t_key, Bottom))
@@ -236,7 +233,6 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     def visit_MapAssign(self, node):
         # map := Map<key, value>
-        #
         # Check map <= Map<Top, Top>
         t_key = self.visit(node.key)
         t_value = self.visit(node.value)
@@ -246,7 +242,6 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     def visit_MapDelete(self, node):
         # map := Map<key, Bottom>
-        #
         # Check map <= Map<Top, Top>
         t_key = self.visit(node.key)
         t_map = self.update_store(node.map, Map(t_key, Bottom))
@@ -273,7 +268,6 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     @readonly
     def visit_BoolOp(self, node, *, type=None):
         # Return Bool
-        #
         # Check v <= Bool for v in values
         t_values = [self.visit(v) for v in node.values]
         if not all(t.issmaller(Bool) for t in t_values):
@@ -296,8 +290,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     @readonly
     def visit_IfExp(self, node, *, type=None):
-        # return join(body, orelse)
-        #
+        # Return join(body, orelse)
         # Check test <= Bool
         t_test = self.visit(node.test)
         t_body = self.visit(node.body)
