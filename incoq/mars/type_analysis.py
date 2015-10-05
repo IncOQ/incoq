@@ -67,8 +67,11 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         super().process(tree)
         return self.store
     
+    def get_store(self, name):
+        return self.store.get(name, Bottom)
+    
     def update_store(self, name, type):
-        old_type = self.store[name]
+        old_type = self.get_store(name)
         new_type = old_type.join(type)
         if self.height_limit is not None:
             new_type = new_type.widen(self.height_limit)
@@ -303,7 +306,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         # whether we're in read or write context.
         name = node.id
         if type is None:
-            return self.store[name]
+            return self.get_store(name)
         else:
             return self.update_store(name, type)
     

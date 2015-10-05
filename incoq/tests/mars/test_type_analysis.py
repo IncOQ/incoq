@@ -21,6 +21,14 @@ class TypeAnalysisCase(unittest.TestCase):
         assertfunc = self.assertTrue if illtyped else self.assertFalse
         assertfunc(len(analyzer.illtyped) != 0)
     
+    def test_missing_store(self):
+        source = '''
+            def main():
+                print(S)
+                S = S
+            '''
+        self.check(source, {}, {}, False)
+    
     def test_for(self):
         source = '''
             def main():
