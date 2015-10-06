@@ -6,6 +6,7 @@
 
 
 import unittest
+import string
 
 from incoq.mars.incast import nodes as L
 from incoq.mars.incast.tools import *
@@ -32,6 +33,22 @@ class MaskCase(unittest.TestCase):
         exp_unbounds = ['y']
         self.assertEqual(bounds, exp_bounds)
         self.assertEqual(unbounds, exp_unbounds)
+
+
+class VarsFinderCase(unittest.TestCase):
+    
+    def test_varsfinder(self):
+        # Exclude function name main and iterated relation R.
+        tree = Parser.p('''
+            def main():
+                a = b
+                c, d = e
+                for f in g:
+                    {h for i in R}
+            ''')
+        vars = sorted(VarsFinder.run(tree))
+        exp_vars = list(string.ascii_lowercase)[:9]
+        self.assertEqual(vars, exp_vars)
 
 
 class TemplaterCase(unittest.TestCase):

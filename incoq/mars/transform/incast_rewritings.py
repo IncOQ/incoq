@@ -2,8 +2,6 @@
 
 
 __all__ = [
-    'VarsFinder',
-    
     # Preprocessings are paired with their postprocessings,
     # and listed in order of their application, outermost-first.
     
@@ -19,39 +17,7 @@ __all__ = [
 ]
 
 
-from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
-
-
-class VarsFinder(L.NodeVisitor):
-    
-    """Return normal variables (e.g., not relations or maps) that are
-    defined by the program.
-    """  
-    
-    def process(self, tree):
-        self.names = OrderedSet()
-        super().process(tree)
-        return self.names
-    
-    def visit_For(self, node):
-        self.generic_visit(node)
-        self.names.add(node.target)
-    
-    def visit_Assign(self, node):
-        self.generic_visit(node)
-        self.names.add(node.target)
-    
-    def visit_DecompAssign(self, node):
-        self.generic_visit(node)
-        self.names.update(node.vars)
-    
-    def visit_Name(self, node):
-        self.names.add(node.id)
-    
-    def visit_Member(self, node):
-        self.generic_visit(node)
-        self.names.update(node.vars)
 
 
 class SetMapImporter(L.NodeTransformer):
@@ -134,7 +100,7 @@ def incast_preprocess(tree, symtab):
     AttributeDisallower.run(tree)
     GeneralCallDisallower.run(tree)
     # Make symbols for non-relation, non-map variables.
-    names = VarsFinder.run(tree)
+    names = L.VarsFinder.run(tree)
     names.difference_update(rels, maps)
     for name in names:
         symtab.define_var(name)

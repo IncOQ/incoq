@@ -5,12 +5,15 @@ __all__ = [
     'tuplify',
     'mask_from_bounds',
     'split_by_mask',
+    'VarsFinder',
     'Templater',
     'MacroExpander',
 ]
 
 
-from functools import partial, partialmethod
+from functools import partial
+
+from incoq.util.collections import OrderedSet
 
 from . import nodes as L
 
@@ -53,6 +56,37 @@ def split_by_mask(mask, items):
         else:
             assert()
     return bounds, unbounds
+
+
+class VarsFinder(L.NodeVisitor):
+    
+    """Return normal variables (e.g., not relations or maps) that are
+    defined by the program.
+    """  
+    
+    def process(self, tree):
+        self.names = OrderedSet()
+        super().process(tree)
+        return self.names
+    
+    def visit_For(self, node):
+        self.generic_visit(node)
+        self.names.add(node.target)
+    
+    def visit_Assign(self, node):
+        self.generic_visit(node)
+        self.names.add(node.target)
+    
+    def visit_DecompAssign(self, node):
+        self.generic_visit(node)
+        self.names.update(node.vars)
+    
+    def visit_Name(self, node):
+        self.names.add(node.id)
+    
+    def visit_Member(self, node):
+        self.generic_visit(node)
+        self.names.update(node.vars)
 
 
 class Templater(L.NodeTransformer):

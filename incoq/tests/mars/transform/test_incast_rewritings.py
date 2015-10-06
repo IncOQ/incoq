@@ -2,7 +2,6 @@
 
 
 import unittest
-import string
 
 from incoq.mars.incast import L
 from incoq.mars.transform.incast_rewritings import *
@@ -50,22 +49,6 @@ class DisallowerCase(unittest.TestCase):
         # GeneralCall nodes bad.
         with self.assertRaises(TypeError):
             GeneralCallDisallower.run(L.Parser.pc('o.f(a)'))
-
-
-class VarsFinderCase(unittest.TestCase):
-    
-    def test_varsfinder(self):
-        # Exclude function name main and iterated relation R.
-        tree = L.Parser.p('''
-            def main():
-                a = b
-                c, d = e
-                for f in g:
-                    {h for i in R}
-            ''')
-        vars = sorted(VarsFinder.run(tree))
-        exp_vars = list(string.ascii_lowercase)[:9]
-        self.assertEqual(vars, exp_vars)
 
 
 if __name__ == '__main__':
