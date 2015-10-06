@@ -131,22 +131,22 @@ class SymbolTable:
         self.symbols = OrderedDict()
         """Global symbols, in declaration order."""
     
-    def define_symbol(self, name, kind):
+    def define_symbol(self, name, kind, **kargs):
         """Define a new symbol of the given kind."""
         symcls = symbol_kindmap[kind]
         if name in self.symbols:
             raise L.ProgramError('Symbol "{}" already defined'.format(name))
-        sym = symcls(name)
+        sym = symcls(name, **kargs)
         self.symbols[name] = sym
     
-    def define_relation(self, name):
-        self.define_symbol(name, 'Set')
+    def define_relation(self, name, **kargs):
+        self.define_symbol(name, 'Set', **kargs)
     
-    def define_map(self, name):
-        self.define_symbol(name, 'Map')
+    def define_map(self, name, **kargs):
+        self.define_symbol(name, 'Map', **kargs)
     
-    def define_var(self, name):
-        self.define_symbol(name, 'Var')
+    def define_var(self, name, **kargs):
+        self.define_symbol(name, 'Var', **kargs)
     
     def get_symbols(self, kind=None):
         """Return an OrderedDict of symbols of the requested kind.

@@ -14,7 +14,7 @@ from incoq.mars.types import Bottom
 from incoq.mars.type_analysis import analyze_types
 from incoq.mars.config import Config
 from incoq.mars.symtab import SymbolTable
-from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer
+from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer, define_map
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
@@ -77,7 +77,7 @@ def transform_auxmaps(tree, symtab):
                                  'lookup over non-relation variable {}'
                                  .format(auxmap.rel))
     for auxmap in auxmaps:
-        symtab.define_map(auxmap.map)
+        define_map(auxmap, symtab)
     tree = AuxmapTransformer.run(tree, auxmaps)
     return tree
 

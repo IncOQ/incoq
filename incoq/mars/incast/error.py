@@ -3,6 +3,7 @@
 
 __all__ = [
     'ProgramError',
+    'TransformationError',
     'format_exception',
 ]
 
@@ -16,9 +17,16 @@ from .pyconv import Parser
 
 class ProgramError(Exception):
     
+    """Error in the input or intermediate program being transformed."""
+    
     def __init__(self, *args, node=None, **kargs):
         super().__init__(*args, **kargs)
         self.node = node
+
+
+class TransformationError(Exception):
+    
+    """Error in our internal state during the transformation."""
 
 
 def format_exception(type, value, tb,

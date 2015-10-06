@@ -5,6 +5,8 @@ __all__ = [
     'AuxmapInvariant',
     'AuxmapFinder',
     'AuxmapTransformer',
+    'make_auxmap_type',
+    'define_map',
 ]
 
 
@@ -14,6 +16,7 @@ from simplestruct import Struct, TypedField
 from incoq.util.collections import OrderedSet
 from incoq.util.type import typechecked
 from incoq.mars.incast import L
+import incoq.mars.types as T
 from incoq.mars.symtab import N
 
 
@@ -175,3 +178,46 @@ class AuxmapTransformer(L.NodeTransformer):
         return L.Parser.pe('_MAP.mapget(_KEY, set())',
                            subst={'_MAP': auxmap.map,
                                   '_KEY': key})
+
+
+def make_auxmap_type(mask, reltype):
+    """Given a mask and a relation type, determine the corresponding
+    auxiliary map type.
+    
+    We obtain by lattice join the smallest relation type that is at
+    least as big as the given relation type and that has the correct
+    arity. This should have the form {(T1, ..., Tn)}. The map type is
+    then from a tuple of some Ts to a tuple of the remaining Ts.
+    
+    If no such type exists, e.g. if the given relation type is {Top}
+    or a set of tuples of incorrect arity, we instead give the map type
+    {Top: Top}.
+    """
+    arity = len(mask.m)
+    bottom_reltype = T.Set(T.Tuple([T.Bottom] * arity))
+    top_reltype = T.Set(T.Tuple([T.Top] * arity))
+    
+    norm_type = reltype.join(bottom_reltype)
+    well_typed = norm_type.issmaller(top_reltype)
+    
+    if well_typed:
+        assert (isinstance(norm_type, T.Set) and
+                isinstance(norm_type.elt, T.Tuple) and
+                len(norm_type.elt.elts) == arity)
+        t_bs, t_us = L.split_by_mask(mask, norm_type.elt.elts)
+        map_type = T.Map(T.Tuple(t_bs), T.Tuple(t_us))
+    else:
+        map_type = T.Map(T.Top, T.Top)
+    
+    return map_type
+
+
+def define_map(auxmap, symtab):
+    """Add a map definition to the symbol table."""
+    # Obtain relation symbol.
+    relsym = symtab.get_relations().get(auxmap.rel, None)
+    if relsym is None:
+        raise L.TransformationError('No relation "{}" matching map "{}"'
+                                    .format(auxmap.rel, auxmap.map))
+    map_type = make_auxmap_type(auxmap.mask, relsym.type)
+    symtab.define_map(auxmap.map, type=map_type)

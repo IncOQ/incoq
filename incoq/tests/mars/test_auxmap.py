@@ -4,6 +4,8 @@
 import unittest
 
 from incoq.mars.incast import L
+import incoq.mars.types as T
+from incoq.mars.symtab import SymbolTable
 from incoq.mars.auxmap import *
 from incoq.mars.auxmap import (insert_rel_maint,
                                make_imgadd, make_imgremove,
@@ -126,6 +128,58 @@ class AuxmapCase(unittest.TestCase):
                 print(S.imgset('bu', (x,)))
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_make_auxmap_type(self):
+        mask = L.mask('bbu')
+        
+        # Normal case.
+        t_rel = T.Set(T.Tuple([T.Number, T.Top, T.String]))
+        t = make_auxmap_type(mask, t_rel)
+        exp_t = T.Map(T.Tuple([T.Number, T.Top]), T.Tuple([T.String]))
+        self.assertEqual(t, exp_t)
+        
+        # Bottom case.
+        t_rel = T.Set(T.Bottom)
+        t = make_auxmap_type(mask, t_rel)
+        exp_t = T.Map(T.Tuple([T.Bottom, T.Bottom]), T.Tuple([T.Bottom]))
+        self.assertEqual(t, exp_t)
+        
+        # Other case, incorrect arity.
+        t_rel = T.Set(T.Tuple([T.Number]))
+        t = make_auxmap_type(mask, t_rel)
+        exp_t = T.Map(T.Top, T.Top)
+        self.assertEqual(t, exp_t)
+    
+    def test_define_map(self):
+        symtab = SymbolTable()
+        symtab.define_relation(
+            'R', type=T.Set(T.Tuple([T.Number, T.Top, T.String])))
+        symtab.define_relation('S')
+        symtab.define_relation('T', type=T.Set(T.Top))
+        R_auxmap = AuxmapInvariant('R_bbu', 'R', L.mask('bbu'))
+        S_auxmap = AuxmapInvariant('S_bbu', 'S', L.mask('bbu'))
+        T_auxmap = AuxmapInvariant('T_bbu', 'T', L.mask('bbu'))
+        
+        # Normal relation type.
+        define_map(R_auxmap, symtab)
+        mapsym = symtab.get_maps()['R_bbu']
+        self.assertEqual(
+            mapsym.type,
+            T.Map(T.Tuple([T.Number, T.Top]), T.Tuple([T.String])))
+        
+        # Bottom relation type.
+        define_map(S_auxmap, symtab)
+        mapsym = symtab.get_maps()['S_bbu']
+        self.assertEqual(
+            mapsym.type,
+            T.Map(T.Tuple([T.Bottom, T.Bottom]), T.Tuple([T.Bottom])))
+        
+        # Top relation type.
+        define_map(T_auxmap, symtab)
+        mapsym = symtab.get_maps()['T_bbu']
+        self.assertEqual(
+            mapsym.type,
+            T.Map(T.Top, T.Top))
 
 
 if __name__ == '__main__':
