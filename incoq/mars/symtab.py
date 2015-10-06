@@ -17,6 +17,7 @@ from collections import OrderedDict
 
 from incoq.mars.incast import L
 import incoq.mars.types as T
+from incoq.mars.config import Attribute
 
 
 class N:
@@ -40,7 +41,18 @@ class N:
 
 
 class Symbol:
-    pass
+    
+    name = Attribute('name', None,
+            'Name of the symbol')
+    
+    def __init__(self, name, **kargs):
+        self.update(name=name, **kargs)
+    
+    def update(self, **kargs):
+        for name, value in kargs.items():
+            if not isinstance(getattr(self.__class__, name, None), Attribute):
+                raise KeyError('Unknown symbol attribute "{}"'.format(name))
+            setattr(self, name, value)
 
 
 class TypedSymbolMixin(Symbol):
@@ -48,17 +60,16 @@ class TypedSymbolMixin(Symbol):
     # Min/max type can be supplied as INFO inputs, but type
     # should not be.
     
-    type = T.Bottom
-    """Current annotated or inferred type of the symbol."""
+    type = Attribute('type', T.Bottom,
+            'Current annotated or inferred type of the symbol')
     
-    min_type = T.Bottom
-    """Initial minimum type before type inference; the type
-    of input values for variables.
-    """
-    max_type = T.Top
-    """Maximum type after type inference; the type of output
-    values for variables.
-    """
+    min_type = Attribute('min_type', T.Bottom,
+            'Initial minimum type before type inference; the type '
+            'of input values for variables')
+    
+    max_type = Attribute('max_type', T.Top,
+            'Maximum type after type inference; the type of output '
+            'values for variables')
     
     def type_helper(self, t):
         return T.eval_typestr(t)
@@ -68,20 +79,16 @@ class TypedSymbolMixin(Symbol):
     parse_max_type = type_helper
     
     def decl_comment(self):
-        if self.type is not None:
-            return self.name + ' : ' + str(self.type)
-        else:
-            return self.name
+        return self.name + ' : ' + str(self.type)
+
+TSM = TypedSymbolMixin
 
 
 class RelationSymbol(TypedSymbolMixin, Symbol):
     
-    min_type = T.Set(T.Bottom)
-    max_type = T.Set(T.Top)
-    
-    def __init__(self, name):
-        self.name = name
-        self.type = None
+    type = TSM.type._replace(default=T.Set(T.Bottom))
+    min_type = TSM.min_type._replace(default=T.Set(T.Bottom))
+    max_type = TSM.max_type._replace(default=T.Set(T.Top))
     
     def __str__(self):
         s = 'Relation {}'.format(self.name)
@@ -95,21 +102,14 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
 
 class MapSymbol(TypedSymbolMixin, Symbol):
     
-    min_type = T.Map(T.Bottom, T.Bottom)
-    max_type = T.Map(T.Top, T.Top)
-    
-    def __init__(self, name):
-        self.name = name
+    min_type = TSM.min_type._replace(default=T.Map(T.Bottom, T.Bottom))
+    max_type = TSM.max_type._replace(default=T.Map(T.Top, T.Top))
     
     def __str__(self):
         return 'Map {}'.format(self.name)
 
 
 class VarSymbol(TypedSymbolMixin, Symbol):
-    
-    def __init__(self, name):
-        self.name = name
-        self.type = None
     
     def __str__(self):
         s = 'Var {}'.format(self.name)

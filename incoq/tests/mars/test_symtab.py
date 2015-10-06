@@ -29,8 +29,7 @@ class NamingCase(unittest.TestCase):
 class SymbolCase(unittest.TestCase):
     
     def test_rel(self):
-        r = RelationSymbol('R')
-        r.type = Set(Top)
+        r = RelationSymbol('R', type=Set(Top))
         s = str(r)
         exp_s = 'Relation R (type: {Top})'
         self.assertEqual(s, exp_s)
@@ -46,8 +45,7 @@ class SymbolCase(unittest.TestCase):
         self.assertEqual(s, exp_s)
     
     def test_var(self):
-        v = VarSymbol('v')
-        v.type = v.parse_type('Set(Top)')
+        v = VarSymbol('v', type=Set(Top))
         s = str(v)
         exp_s = 'Var v (type: {Top})'
         self.assertEqual(s, exp_s)
@@ -73,8 +71,8 @@ class SymbolTableCase(unittest.TestCase):
         
         s = symtab.dump_symbols()
         exp_s = L.trim('''
-            Relation R
-            Relation S
+            Relation R (type: {Bottom})
+            Relation S (type: {Bottom})
             Map M
             ''')
         self.assertEqual(s, exp_s)

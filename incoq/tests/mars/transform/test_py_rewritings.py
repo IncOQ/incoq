@@ -180,11 +180,9 @@ class VardeclCase(unittest.TestCase):
         self.assertSequenceEqual(rels, exp_rels)
     
     def test_postprocess(self):
-        S_sym = RelationSymbol('S')
-        S_sym.type = Set(Top)
+        S_sym = RelationSymbol('S', type=Set(Top))
         T_sym = RelationSymbol('T')
-        S_bu_sym = MapSymbol('S_bu')
-        S_bu_sym.type = Map(Top, Top)
+        S_bu_sym = MapSymbol('S_bu', type=Map(Top, Top))
         
         tree = P.Parser.p('''
             def main():
@@ -194,7 +192,7 @@ class VardeclCase(unittest.TestCase):
         exp_tree = P.Parser.p('''
             COMMENT('S : {Top}')
             S = Set()
-            COMMENT('T')
+            COMMENT('T : {Bottom}')
             T = Set()
             COMMENT('S_bu : {Top: Top}')
             S_bu = Map()

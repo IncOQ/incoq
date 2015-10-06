@@ -2,8 +2,12 @@
 
 
 __all__ = [
+    'Attribute',
     'Config',
 ]
+
+
+from simplestruct import Struct, Field
 
 
 # Each configuration attribute is a descriptor, listed in the
@@ -12,14 +16,13 @@ __all__ = [
 # purposes.
 
 
-class Attribute:
+class Attribute(Struct):
     
     """Descriptor for a configuration attribute."""
     
-    def __init__(self, name, default, docstring):
-        self.name = name
-        self.default = default
-        self.docstring = docstring
+    name = Field()
+    default = Field()
+    docstring = Field()
     
     def __get__(self, inst, owner):
         if inst is None:
