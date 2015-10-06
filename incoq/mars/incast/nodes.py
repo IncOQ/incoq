@@ -4,6 +4,8 @@
 __all__ = [
     'incast_nodes',
     
+    'ident_fields',
+    
     # Programmatically include IncAST nodes.
     # ...
     
@@ -14,6 +16,7 @@ __all__ = [
 
 from os.path import join, dirname
 from iast import parse_asdl, nodes_from_asdl
+from iast.node import ASDLImporter
 
 from incoq.util.misc import flood_namespace
 
@@ -28,6 +31,14 @@ with open(incast_asdl_filename, 'rt') as file:
 incast_nodes = nodes_from_asdl(incast_asdl,
                                module=__name__,
                                typed=True)
+
+# Generate a list of locations of fields that have "identifier" type.
+# This is used to help visitors grab all occurrences of identifiers,
+# filtering by context.
+asdl_info = ASDLImporter().run(incast_asdl)
+ident_fields = [(node, fn) for node, (fields, _base) in asdl_info.items()
+                           for fn, ft, _fq in fields
+                           if ft == 'identifier']
 
 # Patch the auto-generated node classes.
 def mask_init(self, m):

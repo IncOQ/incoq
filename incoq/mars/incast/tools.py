@@ -81,6 +81,11 @@ class Templater(L.NodeTransformer):
     is used as-is.
     """
     
+    # Index nodes.ident_fields by node name.
+    ident_fields = {}
+    for node_name, field_name in L.ident_fields:
+        ident_fields.setdefault(node_name, []).append(field_name)
+    
     def __init__(self, subst):
         super().__init__()
         # Split subst into different mappings for each form of rule.
@@ -115,27 +120,12 @@ class Templater(L.NodeTransformer):
             node = node._replace(**{field: new})
         return node
     
-    def node_helper(self, node, *, fields):
-        """Applies ident_helper for each of the specified fields and
-        also recurses over the node's children.
-        """
-        node = self.generic_visit(node)
-        for f in fields:
+    def generic_visit(self, node):
+        node = super().generic_visit(node)
+        id_fields = self.ident_fields.get(node.__class__.__name__, [])
+        for f in id_fields:
             node = self.ident_helper(node, f)
         return node
-    
-    visit_fun = partialmethod(node_helper, fields=['name', 'args'])
-    visit_For = partialmethod(node_helper, fields=['target'])
-    visit_Assign = partialmethod(node_helper, fields=['target'])
-    visit_DecompAssign = partialmethod(node_helper, fields=['vars'])
-    visit_RelUpdate = partialmethod(node_helper, fields=['rel'])
-    visit_MapAssign = partialmethod(node_helper, fields=['map'])
-    visit_MapDelete = partialmethod(node_helper, fields=['map'])
-    visit_Call = partialmethod(node_helper, fields=['func'])
-    visit_Attribute = partialmethod(node_helper, fields=['attr'])
-    visit_MapLookup = partialmethod(node_helper, fields=['map'])
-    visit_Imgset = partialmethod(node_helper, fields=['rel', 'bounds'])
-    visit_Member = partialmethod(node_helper, fields=['vars', 'rel'])
     
     def visit_Name(self, node):
         # Name rule.
