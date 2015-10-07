@@ -14,6 +14,7 @@ __all__ = [
 
 
 from collections import OrderedDict
+from itertools import count
 
 from incoq.mars.incast import L
 import incoq.mars.types as T
@@ -130,6 +131,8 @@ class SymbolTable:
     def __init__(self):
         self.symbols = OrderedDict()
         """Global symbols, in declaration order."""
+        self.fresh_vars = ('_v{}'.format(i) for i in count(1))
+        """Fresh variable name generator."""
     
     def define_symbol(self, name, kind, **kargs):
         """Define a new symbol of the given kind."""

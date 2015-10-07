@@ -53,6 +53,15 @@ class SymbolCase(unittest.TestCase):
 
 class SymbolTableCase(unittest.TestCase):
     
+    def test_fresh_vars(self):
+        symtab = SymbolTable()
+        v = next(symtab.fresh_vars)
+        exp_v = '_v1'
+        self.assertEqual(v, exp_v)
+        v = next(symtab.fresh_vars)
+        exp_v = '_v2'
+        self.assertEqual(v, exp_v)
+    
     def test_symbols(self):
         symtab = SymbolTable()
         symtab.define_relation('R')
