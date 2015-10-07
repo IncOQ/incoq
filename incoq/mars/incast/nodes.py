@@ -36,9 +36,11 @@ incast_nodes = nodes_from_asdl(incast_asdl,
 # This is used to help visitors grab all occurrences of identifiers,
 # filtering by context.
 asdl_info = ASDLImporter().run(incast_asdl)
-ident_fields = [(node, fn) for node, (fields, _base) in asdl_info.items()
-                           for fn, ft, _fq in fields
-                           if ft == 'identifier']
+ident_fields = {}
+for node, (fields, _base) in asdl_info.items():
+    for fn, ft, _fq in fields:
+        if ft == 'identifier':
+            ident_fields.setdefault(node, []).append(fn)
 
 # Patch the auto-generated node classes.
 def mask_init(self, m):

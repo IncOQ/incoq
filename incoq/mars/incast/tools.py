@@ -115,11 +115,6 @@ class Templater(L.NodeTransformer):
     is used as-is.
     """
     
-    # Index nodes.ident_fields by node name.
-    ident_fields = {}
-    for node_name, field_name in L.ident_fields:
-        ident_fields.setdefault(node_name, []).append(field_name)
-    
     def __init__(self, subst):
         super().__init__()
         # Split subst into different mappings for each form of rule.
@@ -156,7 +151,7 @@ class Templater(L.NodeTransformer):
     
     def generic_visit(self, node):
         node = super().generic_visit(node)
-        id_fields = self.ident_fields.get(node.__class__.__name__, [])
+        id_fields = L.ident_fields.get(node.__class__.__name__, [])
         for f in id_fields:
             node = self.ident_helper(node, f)
         return node
