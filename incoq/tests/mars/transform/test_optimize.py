@@ -10,7 +10,7 @@ from incoq.mars.transform.optimize import *
 from incoq.mars.transform.optimize import SingletonUnwrapper
 
 
-class FlattenSingletonsCase(unittest.TestCase):
+class UnwrapSingletonsCase(unittest.TestCase):
     
     def test_unwrapper(self):
         symtab = SymbolTable()
@@ -38,7 +38,7 @@ class FlattenSingletonsCase(unittest.TestCase):
             ''')
         self.assertEqual(tree, exp_tree)
     
-    def test_flatten(self):
+    def test_unwrap(self):
         symtab = SymbolTable()
         symtab.define_relation('S', type=T.Set(T.Tuple([T.Number])))
         symtab.define_relation('T', type=T.Set(T.Tuple([T.Number, T.Number])))
@@ -52,7 +52,7 @@ class FlattenSingletonsCase(unittest.TestCase):
                 for x2 in T:
                     print(x2)
             ''')
-        tree = flatten_singletons(tree, symtab)
+        tree, rel_names = unwrap_singletons(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
                 S.reladd((1,)[0])
@@ -65,6 +65,8 @@ class FlattenSingletonsCase(unittest.TestCase):
                     print(x2)
             ''')
         self.assertEqual(tree, exp_tree)
+        exp_rel_names = {'S'}
+        self.assertEqual(rel_names, exp_rel_names)
         exp_S_type = T.Set(T.Number)
         exp_T_type = T.Set(T.Tuple([T.Number, T.Number]))
         self.assertEqual(symtab.get_relations()['S'].type, exp_S_type)

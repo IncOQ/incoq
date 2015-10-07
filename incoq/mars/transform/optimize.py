@@ -2,7 +2,7 @@
 
 
 __all__ = [
-    'flatten_singletons',
+    'unwrap_singletons',
 ]
 
 
@@ -47,9 +47,11 @@ class SingletonUnwrapper(L.NodeTransformer):
     # doesn't decompose the element.
 
 
-def flatten_singletons(tree, symtab):
+def unwrap_singletons(tree, symtab):
     """Rewrite relations that use singleton tuple types so that the
-    tuple contents are unpacked.
+    tuple contents are unpacked. Return the modified tree and a list
+    of names of unwrapped relations. Modify types of symbols in the
+    symbol table.
     
     This will change the types of relations, and add packing and
     unpacking operations at their uses, which should be eliminated
@@ -64,10 +66,10 @@ def flatten_singletons(tree, symtab):
             len(t.elt.elts) == 1):
             sing_rels.add(relsym)
     
-    tree = SingletonUnwrapper.run(tree, symtab.fresh_vars,
-                                  {rel.name for rel in sing_rels})
+    sing_rel_names = {rel.name for rel in sing_rels}
+    tree = SingletonUnwrapper.run(tree, symtab.fresh_vars, sing_rel_names)
     
     for rel in sing_rels:
         rel.type = T.Set(rel.type.elt.elts[0])
     
-    return tree
+    return tree, sing_rel_names

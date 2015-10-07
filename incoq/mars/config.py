@@ -37,6 +37,10 @@ class Attribute(Struct):
 all_attributes = [
     Attribute('verbose', False,
               'Print transformation information to standard output'),
+    
+    Attribute('unwrap_singletons', False,
+              'Rewrite singleton relations (sets of tuples of arity 1) '
+              'to eliminate the unnecessary tuple')
 ]
 
 

@@ -18,6 +18,7 @@ from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer, define_map
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
+from .optimize import unwrap_singletons
 
 
 def debug_symbols(symtab, illtyped, badsyms):
@@ -101,6 +102,11 @@ def transform_ast(input_ast, *, options=None):
     
     # Incrementalize image-set lookups with auxiliary maps.
     tree = transform_auxmaps(tree, symtab)
+    
+    if config.unwrap_singletons:
+        tree, rel_names = unwrap_singletons(tree, symtab)
+        if config.verbose and len(rel_names) > 0:
+            print('Unwrapped relations: ' + ', '.join(sorted(rel_names)))
     
     tree = postprocess_tree(tree, symtab)
     
