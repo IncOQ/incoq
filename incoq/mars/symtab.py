@@ -15,10 +15,10 @@ __all__ = [
 
 from collections import OrderedDict
 from itertools import count
+from simplestruct import Struct, Field
 
 from incoq.mars.incast import L
 import incoq.mars.types as T
-from incoq.mars.config import Attribute
 
 
 class N:
@@ -41,9 +41,25 @@ class N:
         return '_maint_{}_for_{}_{}'.format(inv, param, op)
 
 
+class SymbolAttribute(Struct):
+    
+    name = Field()
+    default = Field()
+    docstring = Field()
+    
+    def __get__(self, inst, owner):
+        if inst is None:
+            return self
+        else:
+            return getattr(inst, '_' + self.name, self.default)
+    
+    def __set__(self, inst, value):
+        setattr(inst, '_' + self.name, value)
+
+
 class Symbol:
     
-    name = Attribute('name', None,
+    name = SymbolAttribute('name', None,
             'Name of the symbol')
     
     def __init__(self, name, **kargs):
@@ -51,7 +67,8 @@ class Symbol:
     
     def update(self, **kargs):
         for name, value in kargs.items():
-            if not isinstance(getattr(self.__class__, name, None), Attribute):
+            if not isinstance(getattr(self.__class__, name, None),
+                              SymbolAttribute):
                 raise KeyError('Unknown symbol attribute "{}"'.format(name))
             setattr(self, name, value)
 
@@ -61,14 +78,14 @@ class TypedSymbolMixin(Symbol):
     # Min/max type can be supplied as INFO inputs, but type
     # should not be.
     
-    type = Attribute('type', T.Bottom,
+    type = SymbolAttribute('type', T.Bottom,
             'Current annotated or inferred type of the symbol')
     
-    min_type = Attribute('min_type', T.Bottom,
+    min_type = SymbolAttribute('min_type', T.Bottom,
             'Initial minimum type before type inference; the type '
             'of input values for variables')
     
-    max_type = Attribute('max_type', T.Top,
+    max_type = SymbolAttribute('max_type', T.Top,
             'Maximum type after type inference; the type of output '
             'values for variables')
     

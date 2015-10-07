@@ -21,8 +21,15 @@ class Attribute(Struct):
     """Descriptor for a configuration attribute."""
     
     name = Field()
+    """Name of attribute."""
     default = Field()
+    """Default value."""
     docstring = Field()
+    """User documentation."""
+    argparse_kargs = Field()
+    """Dictionary to pass along as **kargs to argparse's add_argument()
+    function.
+    """
     
     def __get__(self, inst, owner):
         if inst is None:
@@ -36,11 +43,12 @@ class Attribute(Struct):
 
 all_attributes = [
     Attribute('verbose', False,
-              'Print transformation information to standard output'),
+              'print transformation information to standard output',
+              {'action': 'store_true'}),
     
     Attribute('unwrap_singletons', False,
-              'Rewrite singleton relations (sets of tuples of arity 1) '
-              'to eliminate the unnecessary tuple')
+              'rewrite singleton relations to eliminate unneeded tuples',
+              {'action': 'store_true'})
 ]
 
 

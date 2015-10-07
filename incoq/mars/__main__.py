@@ -10,10 +10,11 @@ __all__ = [
 import sys
 import argparse
 
+from incoq.mars.config import all_attributes
 from incoq.mars.transform import transform_source
 
 
-def invoke(in_filename, out_filename):
+def invoke(in_filename, out_filename, *, options=None):
     """Transform one file and report to the user. Use stdin or stdout
     if '-' is given as the input or output filename respectively.
     """
@@ -30,7 +31,7 @@ def invoke(in_filename, out_filename):
             in_file = open(in_filename, 'rt')
         source = in_file.read()
         
-        source = transform_source(source)
+        source = transform_source(source, options=options)
         
         if out_filename == '-':
             out_file = sys.stdout
@@ -51,9 +52,22 @@ def main(args):
     parser.add_argument('in_file')
     parser.add_argument('out_file')
     
+    # Programmatically add options for each config attribute.
+    for attr in all_attributes:
+        parser.add_argument('--' + attr.name,
+                            help=attr.docstring,
+                            **attr.argparse_kargs)
+    
     ns = parser.parse_args(args)
     
-    invoke(ns.in_file, ns.out_file)
+    # Parse out config attribute options.
+    options = {}
+    for attr in all_attributes:
+        val = getattr(ns, attr.name)
+        if val is not None:
+            options[attr.name] = val
+    
+    invoke(ns.in_file, ns.out_file, options=options)
 
 
 if __name__ == '__main__':
