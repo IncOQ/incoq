@@ -48,12 +48,6 @@ class SetMapImporter(L.NodeTransformer):
             node.target.id in self.maps):
             return L.MapDelete(node.target.id, node.key)
         return node
-    
-    def visit_DictLookup(self, node):
-        if (isinstance(node.value, L.Name) and
-            node.value.id in self.maps):
-            return L.MapLookup(node.value.id, node.key, node.default)
-        return node
 
 
 class SetMapExporter(L.NodeTransformer):
@@ -68,9 +62,6 @@ class SetMapExporter(L.NodeTransformer):
     
     def visit_MapDelete(self, node):
         return L.DictDelete(L.Name(node.map), node.key)
-    
-    def visit_MapLookup(self, node):
-        return L.DictLookup(L.Name(node.map), node.key, node.default)
 
 
 class AttributeDisallower(L.NodeVisitor):

@@ -17,7 +17,6 @@ class SetMapCase(unittest.TestCase):
                 (a + b).add(3)
                 M[k] = v
                 del M[k]
-                print(M.get(k, d))
                 N[k] = v
             ''')
         tree = SetMapImporter.run(orig_tree, ['S'], ['M'])
@@ -28,7 +27,6 @@ class SetMapCase(unittest.TestCase):
                 (a + b).add(3)
                 M.mapassign(k, v)
                 M.mapdelete(k)
-                print(M.mapget(k, d))
                 N[k] = v
             ''')
         self.assertEqual(tree, exp_tree)

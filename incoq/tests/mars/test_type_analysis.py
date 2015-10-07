@@ -342,18 +342,15 @@ class TypeAnalysisCase(unittest.TestCase):
              'a': Bool, 'b': Bool},
             True)
     
-    def test_dictmap_lookup(self):
+    def test_dict_lookup(self):
         source = '''
             def main():
                 a = d.get(k, v)
-                b = m.mapget(k, v)
             '''
         mt = Map(String, Bool)
         self.check(source,
-            {'d': mt, 'm': mt, 'k': String, 'v': Number,
-             'a': Bottom, 'b': Bottom},
-            {'d': mt, 'm': mt, 'k': String, 'v': Number,
-             'a': Top, 'b': Top},
+            {'d': mt, 'm': mt, 'k': String, 'v': Number, 'a': Bottom},
+            {'d': mt, 'm': mt, 'k': String, 'v': Number, 'a': Top},
             False)
         
         # Check passing in types from context.

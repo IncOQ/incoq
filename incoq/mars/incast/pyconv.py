@@ -278,18 +278,6 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_me_get(self, _func, dict, key, default):
         return L.DictLookup(dict, key, default)
     
-    def handle_me_mapget(self, _func, map, key, default):
-        if not isinstance(map, L.Name):
-            raise ASTErr('Cannot apply mapget operation to '
-                         '{} node'.format(map.__class__.__name__))
-        return L.MapLookup(map.id, key, default)
-    
-    def handle_me_maplookup(self, _func, map, key):
-        if not isinstance(map, L.Name):
-            raise ASTErr('Cannot apply lookup operation to '
-                         '{} node'.format(map.__class__.__name__))
-        return L.MapLookup(map.id, key, None)
-    
     def handle_me_imgset(self, _func, rel, maskstr, bounds):
         if not isinstance(rel, L.Name):
             raise ASTErr('Cannot apply imgset operation to '
@@ -362,17 +350,6 @@ class IncLangSpecialExporter(L.NodeTransformer):
         
         func = L.Attribute(L.Name(node.map), 'mapdelete')
         return L.Expr(L.GeneralCall(func, [node.key]))
-    
-    def visit_MapLookup(self, node):
-        node = self.generic_visit(node)
-        
-        if node.default is None:
-            func = L.Attribute(L.Name(node.map), 'maplookup')
-            node = L.GeneralCall(func, [node.key])
-        else:
-            func = L.Attribute(L.Name(node.map), 'mapget')
-            node = L.GeneralCall(func, [node.key, node.default])
-        return node
     
     def visit_Imgset(self, node):
         node = self.generic_visit(node)

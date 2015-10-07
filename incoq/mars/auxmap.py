@@ -59,7 +59,7 @@ def make_imgadd(target: str, key: L.expr, elem: L.expr):
     return L.Parser.pc('''
         if _KEY not in _TARGET:
             _TARGET.mapassign(_KEY, set())
-        _TARGET.maplookup(_KEY).add(_ELEM)
+        _TARGET[_KEY].add(_ELEM)
         ''', subst={'_TARGET': target,
                     '_KEY': key,
                     '_ELEM': elem})
@@ -69,8 +69,8 @@ def make_imgadd(target: str, key: L.expr, elem: L.expr):
 def make_imgremove(target: str, key: L.expr, elem: L.expr):
     """Make code to remove elem from the image set for key in target."""
     return L.Parser.pc('''
-        _TARGET.maplookup(_KEY).remove(_ELEM)
-        if len(_TARGET.maplookup(_KEY)) == 0:
+        _TARGET[_KEY].remove(_ELEM)
+        if len(_TARGET[_KEY]) == 0:
             _TARGET.mapdelete(_KEY)
         ''', subst={'_TARGET': target,
                     '_KEY': key,
@@ -175,7 +175,7 @@ class AuxmapTransformer(L.NodeTransformer):
             return node
         
         key = L.tuplify(node.bounds)
-        return L.Parser.pe('_MAP.mapget(_KEY, set())',
+        return L.Parser.pe('_MAP.get(_KEY, set())',
                            subst={'_MAP': auxmap.map,
                                   '_KEY': key})
 

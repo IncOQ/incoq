@@ -424,34 +424,6 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
             t = Top
         return t.join(t_default)
     
-    @readonly
-    def visit_MapLookup(self, node, *, type=None):
-        # If map == Bottom:
-        #   R = Return Bottom
-        # Elif map == Map<K, V>:
-        #   R = Return V
-        # Else:
-        #   R = Return Top
-        # Return join(R, default)
-        #
-        # Check map <= Map<Top, Top>
-        t_map = self.get_store(node.map)
-        t_default = (self.visit(node.default)
-                     if node.default is not None else None)
-        if t_map is Bottom:
-            t = Bottom
-        elif t_map.issmaller(Map(Top, Top)):
-            # Just as for visit_For, make sure we have an actual
-            # instances of Map.
-            if not isinstance(t_map, Map):
-                raise L.ProgramError('Cannot handle lookup over subtype '
-                                     'of Map constructor')
-            t = t_map.value
-        else:
-            self.mark_bad(node)
-            t = Top
-        return t.join(t_default)
-    
     visit_Imgset = default_expr_handler
     
     # TODO: Comprehensions not handled yet.

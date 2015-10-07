@@ -40,7 +40,7 @@ class AuxmapCase(unittest.TestCase):
         exp_code = L.Parser.pc('''
             if k not in m:
                 m.mapassign(k, set())
-            m.maplookup(k).add(v)
+            m[k].add(v)
             ''')
         self.assertEqual(code, exp_code)
     
@@ -49,8 +49,8 @@ class AuxmapCase(unittest.TestCase):
         value = L.Parser.pe('v')
         code = make_imgremove('m', key, value)
         exp_code = L.Parser.pc('''
-            m.maplookup(k).remove(v)
-            if len(m.maplookup(k)) == 0:
+            m[k].remove(v)
+            if len(m[k]) == 0:
                 m.mapdelete(k)
             ''')
         self.assertEqual(code, exp_code)
@@ -63,7 +63,7 @@ class AuxmapCase(unittest.TestCase):
                 (_elem_v1, _elem_v2) = _elem
                 if ((_elem_v1,) not in m):
                     m.mapassign((_elem_v1,), set())
-                m.maplookup((_elem_v1,)).add((_elem_v2,))
+                m[(_elem_v1,)].add((_elem_v2,))
             ''')
         self.assertEqual(func, exp_func)
     
@@ -73,8 +73,8 @@ class AuxmapCase(unittest.TestCase):
         exp_func = L.Parser.ps('''
             def _maint_m_for_R_remove(_elem):
                 (_elem_v1, _elem_v2) = _elem
-                m.maplookup((_elem_v1,)).remove((_elem_v2,))
-                if (len(m.maplookup((_elem_v1,))) == 0):
+                m[(_elem_v1,)].remove((_elem_v2,))
+                if (len(m[(_elem_v1,)]) == 0):
                     m.mapdelete((_elem_v1,))
             ''')
         self.assertEqual(func, exp_func)
@@ -112,18 +112,18 @@ class AuxmapCase(unittest.TestCase):
                 (_elem_v1, _elem_v2) = _elem
                 if ((_elem_v1,) not in R_bu):
                     R_bu.mapassign((_elem_v1,), set())
-                R_bu.maplookup((_elem_v1,)).add((_elem_v2,))
+                R_bu[(_elem_v1,)].add((_elem_v2,))
             
             def _maint_R_bu_for_R_remove(_elem):
                 (_elem_v1, _elem_v2) = _elem
-                R_bu.maplookup((_elem_v1,)).remove((_elem_v2,))
-                if (len(R_bu.maplookup((_elem_v1,))) == 0):
+                R_bu[(_elem_v1,)].remove((_elem_v2,))
+                if (len(R_bu[(_elem_v1,)]) == 0):
                     R_bu.mapdelete((_elem_v1,))
             
             def f():
                 R.reladd((1, 2))
                 _maint_R_bu_for_R_add((1, 2))
-                print(R_bu.mapget((x,), set()))
+                print(R_bu.get((x,), set()))
                 S.reladd((3, 4))
                 print(S.imgset('bu', (x,)))
             ''')
