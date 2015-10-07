@@ -35,9 +35,9 @@ class MaskCase(unittest.TestCase):
         self.assertEqual(unbounds, exp_unbounds)
 
 
-class VarsFinderCase(unittest.TestCase):
+class IdentFinderCase(unittest.TestCase):
     
-    def test_varsfinder(self):
+    def test_identfinder(self):
         # Exclude function name main and iterated relation R.
         tree = Parser.p('''
             def main():
@@ -46,7 +46,9 @@ class VarsFinderCase(unittest.TestCase):
                 for f in g:
                     {h for i in R}
             ''')
-        vars = sorted(VarsFinder.run(tree))
+        vars = sorted(IdentFinder.run(
+                        tree, contexts=['Member.rel', 'fun.name'],
+                        invert=True))
         exp_vars = list(string.ascii_lowercase)[:9]
         self.assertEqual(vars, exp_vars)
 

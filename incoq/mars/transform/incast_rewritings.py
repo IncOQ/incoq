@@ -100,7 +100,7 @@ def incast_preprocess(tree, symtab):
     AttributeDisallower.run(tree)
     GeneralCallDisallower.run(tree)
     # Make symbols for non-relation, non-map variables.
-    names = L.VarsFinder.run(tree)
+    names = L.IdentFinder.find_vars(tree)
     names.difference_update(rels, maps)
     for name in names:
         symtab.define_var(name)

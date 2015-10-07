@@ -5,7 +5,7 @@ __all__ = [
     'tuplify',
     'mask_from_bounds',
     'split_by_mask',
-    'VarsFinder',
+    'IdentFinder',
     'Templater',
     'MacroExpander',
 ]
@@ -58,35 +58,58 @@ def split_by_mask(mask, items):
     return bounds, unbounds
 
 
-class VarsFinder(L.NodeVisitor):
+class IdentFinder(L.NodeVisitor):
     
-    """Return normal variables (e.g., not relations or maps) that are
-    defined by the program.
-    """  
+    """Return an OrderedSet of all identifiers in the specified
+    contexts.
+    """
+    
+    fun_ctxs = ('fun.name', 'Call.func')
+    
+    @classmethod
+    def find_functions(cls, tree):
+        return cls().run(tree, contexts=cls.fun_ctxs)
+    
+    @classmethod
+    def find_vars(cls, tree):
+        return cls().run(tree, contexts=cls.fun_ctxs, invert=True)
+    
+    def __init__(self, contexts=None, invert=False):
+        if contexts is not None:
+            for c in contexts:
+                node_name, field_name = c.split('.')
+                if not field_name in L.ident_fields.get(node_name, []):
+                    raise ValueError('Unknown identifier context "{}"'
+                                     .format(c))
+        
+        self.contexts = contexts
+        """Collection of contexts to include/exclude. Each context is
+        a string of the form '<node type name>.<field name>'. A value
+        of None is equivalent to specifying all contexts.
+        """
+        self.invert = bool(invert)
+        """If True, find identifiers that occur in any context besides
+        the ones given.
+        """
     
     def process(self, tree):
         self.names = OrderedSet()
         super().process(tree)
         return self.names
     
-    def visit_For(self, node):
-        self.generic_visit(node)
-        self.names.add(node.target)
-    
-    def visit_Assign(self, node):
-        self.generic_visit(node)
-        self.names.add(node.target)
-    
-    def visit_DecompAssign(self, node):
-        self.generic_visit(node)
-        self.names.update(node.vars)
-    
-    def visit_Name(self, node):
-        self.names.add(node.id)
-    
-    def visit_Member(self, node):
-        self.generic_visit(node)
-        self.names.update(node.vars)
+    def generic_visit(self, node):
+        super().generic_visit(node)
+        clsname = node.__class__.__name__
+        id_fields = L.ident_fields.get(clsname, [])
+        for f in id_fields:
+            inctx = (self.contexts is None or
+                     clsname + '.' + f in self.contexts)
+            if inctx != self.invert:
+                # Normalize for either one id or a sequence of ids.
+                ids = getattr(node, f)
+                if isinstance(ids, str):
+                    ids = [ids]
+                self.names.update(ids)
 
 
 class Templater(L.NodeTransformer):
