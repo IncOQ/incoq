@@ -124,11 +124,15 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
 
 class MapSymbol(TypedSymbolMixin, Symbol):
     
+    type = TSM.type._replace(default=T.Map(T.Bottom, T.Bottom))
     min_type = TSM.min_type._replace(default=T.Map(T.Bottom, T.Bottom))
     max_type = TSM.max_type._replace(default=T.Map(T.Top, T.Top))
     
     def __str__(self):
-        return 'Map {}'.format(self.name)
+        s = 'Map {}'.format(self.name)
+        if self.type is not None:
+            s += ' (type: {})'.format(self.type)
+        return s
 
 
 class VarSymbol(TypedSymbolMixin, Symbol):

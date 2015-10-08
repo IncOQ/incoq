@@ -41,7 +41,7 @@ class SymbolCase(unittest.TestCase):
     def test_map(self):
         m = MapSymbol('M')
         s = str(m)
-        exp_s = 'Map M'
+        exp_s = 'Map M (type: {Bottom: Bottom})'
         self.assertEqual(s, exp_s)
     
     def test_var(self):
@@ -82,7 +82,7 @@ class SymbolTableCase(unittest.TestCase):
         exp_s = L.trim('''
             Relation R (type: {Bottom})
             Relation S (type: {Bottom})
-            Map M
+            Map M (type: {Bottom: Bottom})
             ''')
         self.assertEqual(s, exp_s)
 

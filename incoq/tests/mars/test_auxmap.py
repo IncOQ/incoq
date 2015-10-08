@@ -146,13 +146,15 @@ class AuxmapCase(unittest.TestCase):
         # Normal case.
         t_rel = T.Set(T.Tuple([T.Number, T.Top, T.String]))
         t = make_auxmap_type(mask, t_rel)
-        exp_t = T.Map(T.Tuple([T.Number, T.Top]), T.Tuple([T.String]))
+        exp_t = T.Map(T.Tuple([T.Number, T.Top]),
+                      T.Set(T.Tuple([T.String])))
         self.assertEqual(t, exp_t)
         
         # Bottom case.
         t_rel = T.Set(T.Bottom)
         t = make_auxmap_type(mask, t_rel)
-        exp_t = T.Map(T.Tuple([T.Bottom, T.Bottom]), T.Tuple([T.Bottom]))
+        exp_t = T.Map(T.Tuple([T.Bottom, T.Bottom]),
+                      T.Set(T.Tuple([T.Bottom])))
         self.assertEqual(t, exp_t)
         
         # Other case, incorrect arity.
@@ -176,14 +178,16 @@ class AuxmapCase(unittest.TestCase):
         mapsym = symtab.get_maps()['R_bbu']
         self.assertEqual(
             mapsym.type,
-            T.Map(T.Tuple([T.Number, T.Top]), T.Tuple([T.String])))
+            T.Map(T.Tuple([T.Number, T.Top]),
+                  T.Set(T.Tuple([T.String]))))
         
         # Bottom relation type.
         define_map(S_auxmap, symtab)
         mapsym = symtab.get_maps()['S_bbu']
         self.assertEqual(
             mapsym.type,
-            T.Map(T.Tuple([T.Bottom, T.Bottom]), T.Tuple([T.Bottom])))
+            T.Map(T.Tuple([T.Bottom, T.Bottom]),
+                  T.Set(T.Tuple([T.Bottom]))))
         
         # Top relation type.
         define_map(T_auxmap, symtab)

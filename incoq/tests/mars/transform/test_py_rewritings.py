@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import P, L
 from incoq.mars.types import Top, Set, Map
-from incoq.mars.symtab import RelationSymbol, MapSymbol
+from incoq.mars.symtab import N, RelationSymbol, MapSymbol
 from incoq.mars.transform.py_rewritings import *
 
 
@@ -21,7 +21,8 @@ class ConstructPreprocessorCase(unittest.TestCase):
                 if exp_source is None:
                     exp_source = source
                 tree = P.Parser.action(source, mode=mode)
-                tree = ConstructPreprocessor.run(tree)
+                tree = ConstructPreprocessor.run(
+                            tree, N.fresh_var_generator())
                 exp_tree = P.Parser.action(exp_source, mode=mode)
                 self.assertEqual(tree, exp_tree)
         
@@ -36,8 +37,8 @@ class ConstructPreprocessorCase(unittest.TestCase):
             for x, y in S:
                 pass
             ''', '''
-            for _v in S:
-                x, y = _v
+            for _v1 in S:
+                x, y = _v1
                 pass
             ''')
     

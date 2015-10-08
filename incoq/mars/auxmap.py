@@ -198,7 +198,7 @@ def make_auxmap_type(mask, reltype):
     We obtain by lattice join the smallest relation type that is at
     least as big as the given relation type and that has the correct
     arity. This should have the form {(T1, ..., Tn)}. The map type is
-    then from a tuple of some Ts to a tuple of the remaining Ts.
+    then from a tuple of some Ts to a set of tuples of the remaining Ts.
     
     If no such type exists, e.g. if the given relation type is {Top}
     or a set of tuples of incorrect arity, we instead give the map type
@@ -216,7 +216,7 @@ def make_auxmap_type(mask, reltype):
                 isinstance(norm_type.elt, T.Tuple) and
                 len(norm_type.elt.elts) == arity)
         t_bs, t_us = L.split_by_mask(mask, norm_type.elt.elts)
-        map_type = T.Map(T.Tuple(t_bs), T.Tuple(t_us))
+        map_type = T.Map(T.Tuple(t_bs), T.Set(T.Tuple(t_us)))
     else:
         map_type = T.Map(T.Top, T.Top)
     
