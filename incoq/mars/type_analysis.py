@@ -207,9 +207,9 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
             self.mark_bad(node)
     
     def visit_RelUpdate(self, node):
-        # rel := Set<value>
+        # rel := Set<elem>
         # Check rel <= Set<Top>
-        t_value = self.visit(node.value)
+        t_value = self.get_store(node.elem)
         t_rel = self.update_store(node.rel, Set(t_value))
         if not t_rel.issmaller(Set(Top)):
             self.mark_bad(node)
@@ -234,8 +234,8 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     def visit_MapAssign(self, node):
         # map := Map<key, value>
         # Check map <= Map<Top, Top>
-        t_key = self.visit(node.key)
-        t_value = self.visit(node.value)
+        t_key = self.get_store(node.key)
+        t_value = self.get_store(node.value)
         t_map = self.update_store(node.map, Map(t_key, t_value))
         if not t_map.issmaller(Map(Top, Top)):
             self.mark_bad(node)
@@ -243,7 +243,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     def visit_MapDelete(self, node):
         # map := Map<key, Bottom>
         # Check map <= Map<Top, Top>
-        t_key = self.visit(node.key)
+        t_key = self.get_store(node.key)
         t_map = self.update_store(node.map, Map(t_key, Bottom))
         if not t_map.issmaller(Map(Top, Top)):
             self.mark_bad(node)

@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import L
 import incoq.mars.types as T
-from incoq.mars.symtab import SymbolTable
+from incoq.mars.symtab import N, SymbolTable
 from incoq.mars.auxmap import *
 from incoq.mars.auxmap import (insert_rel_maint,
                                make_imgadd, make_imgremove,
@@ -34,20 +34,17 @@ class AuxmapCase(unittest.TestCase):
         self.assertEqual(code, exp_code)
     
     def test_make_imgadd(self):
-        key = L.Parser.pe('k')
-        value = L.Parser.pe('v')
-        code = make_imgadd('m', key, value)
+        code = make_imgadd(N.fresh_var_generator(), 'm', 'k', 'v')
         exp_code = L.Parser.pc('''
             if k not in m:
-                m.mapassign(k, set())
+                _v1 = set()
+                m.mapassign(k, _v1)
             m[k].add(v)
             ''')
         self.assertEqual(code, exp_code)
     
     def test_make_imgremove(self):
-        key = L.Parser.pe('k')
-        value = L.Parser.pe('v')
-        code = make_imgremove('m', key, value)
+        code = make_imgremove(N.fresh_var_generator(), 'm', 'k', 'v')
         exp_code = L.Parser.pc('''
             m[k].remove(v)
             if len(m[k]) == 0:
@@ -57,25 +54,32 @@ class AuxmapCase(unittest.TestCase):
     
     def test_maint_add(self):
         auxmap = AuxmapInvariant('m', 'R', L.mask('bu'))
-        func = make_auxmap_maint_func(auxmap, L.SetAdd())
+        func = make_auxmap_maint_func(N.fresh_var_generator(),
+                                      auxmap, L.SetAdd())
         exp_func = L.Parser.ps('''
             def _maint_m_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem
-                if ((_elem_v1,) not in m):
-                    m.mapassign((_elem_v1,), set())
-                m[(_elem_v1,)].add((_elem_v2,))
+                _v1_key = (_elem_v1,)
+                _v1_value = (_elem_v2,)
+                if (_v1_key not in m):
+                    _v2 = set()
+                    m.mapassign(_v1_key, _v2)
+                m[_v1_key].add(_v1_value)
             ''')
         self.assertEqual(func, exp_func)
     
     def test_maint_remove(self):
         auxmap = AuxmapInvariant('m', 'R', L.mask('bu'))
-        func = make_auxmap_maint_func(auxmap, L.SetRemove())
+        func = make_auxmap_maint_func(N.fresh_var_generator(),
+                                      auxmap, L.SetRemove())
         exp_func = L.Parser.ps('''
             def _maint_m_for_R_remove(_elem):
                 (_elem_v1, _elem_v2) = _elem
-                m[(_elem_v1,)].remove((_elem_v2,))
-                if (len(m[(_elem_v1,)]) == 0):
-                    m.mapdelete((_elem_v1,))
+                _v1_key = (_elem_v1,)
+                _v1_value = (_elem_v2,)
+                m[_v1_key].remove(_v1_value)
+                if (len(m[_v1_key]) == 0):
+                    m.mapdelete(_v1_key)
             ''')
         self.assertEqual(func, exp_func)
     
@@ -101,30 +105,37 @@ class AuxmapCase(unittest.TestCase):
         ]
         tree = L.Parser.p('''
             def f():
-                R.reladd((1, 2))
+                elem = (1, 2)
+                R.reladd(elem)
                 print(R.imgset('bu', (x,)))
-                S.reladd((3, 4))
+                S.reladd(elem)
                 print(S.imgset('bu', (x,)))
             ''')
-        tree = AuxmapTransformer.run(tree, auxmaps)
+        tree = AuxmapTransformer.run(tree, N.fresh_var_generator(), auxmaps)
         exp_tree = L.Parser.p('''
             def _maint_R_bu_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem
-                if ((_elem_v1,) not in R_bu):
-                    R_bu.mapassign((_elem_v1,), set())
-                R_bu[(_elem_v1,)].add((_elem_v2,))
+                _v1_key = (_elem_v1,)
+                _v1_value = (_elem_v2,)
+                if (_v1_key not in R_bu):
+                    _v2 = set()
+                    R_bu.mapassign(_v1_key, _v2)
+                R_bu[_v1_key].add(_v1_value)
             
             def _maint_R_bu_for_R_remove(_elem):
                 (_elem_v1, _elem_v2) = _elem
-                R_bu[(_elem_v1,)].remove((_elem_v2,))
-                if (len(R_bu[(_elem_v1,)]) == 0):
-                    R_bu.mapdelete((_elem_v1,))
+                _v3_key = (_elem_v1,)
+                _v3_value = (_elem_v2,)
+                R_bu[_v3_key].remove(_v3_value)
+                if (len(R_bu[_v3_key]) == 0):
+                    R_bu.mapdelete(_v3_key)
             
             def f():
-                R.reladd((1, 2))
-                _maint_R_bu_for_R_add((1, 2))
+                elem = (1, 2)
+                R.reladd(elem)
+                _maint_R_bu_for_R_add(elem)
                 print(R_bu.get((x,), set()))
-                S.reladd((3, 4))
+                S.reladd(elem)
                 print(S.imgset('bu', (x,)))
             ''')
         self.assertEqual(tree, exp_tree)

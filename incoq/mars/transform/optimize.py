@@ -22,14 +22,14 @@ class SingletonUnwrapper(L.NodeTransformer):
         self.rels = rels
     
     def visit_RelUpdate(self, node):
-        # TODO: Should generic_visit() over value, but if we redo
-        # RelUpdate nodes to have no expressions (just variables)
-        # that's not needed.
+        var = next(self.fresh_vars)
         if node.rel in self.rels:
-            new_value = L.Parser.pe('_VALUE[0]',
-                                    subst={'_VALUE': node.value})
-            node = node._replace(value=new_value)
-        return node
+            asgn = L.Parser.pc('_VAR = _VALUE[0]',
+                               subst={'_VAR': var, '_VALUE': node.elem})
+            update = node._replace(elem=var)
+            return asgn + (update,)
+        else:
+            return node
     
     def visit_For(self, node):
         if (isinstance(node.iter, L.Name) and

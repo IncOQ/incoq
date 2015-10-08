@@ -237,6 +237,12 @@ class IncLangSpecialImporter(L.MacroExpander):
     multi-statement operations.
     """
     
+    def assert_isname(self, nodes, op):
+        for node in nodes:
+            if not isinstance(node, L.Name):
+                raise ASTErr('Cannot apply {} operation with '
+                             '{} node'.format(op, node.__class__.__name__))
+    
     def handle_fs_COMMENT(self, _func, text):
         if not isinstance(text, L.Str):
             raise ASTErr('Comment argument must be string literal')
@@ -249,28 +255,20 @@ class IncLangSpecialImporter(L.MacroExpander):
         return L.SetUpdate(set_, L.SetRemove(), elem)
     
     def handle_ms_reladd(self, _func, rel, elem):
-        if not isinstance(rel, L.Name):
-            raise ASTErr('Cannot apply reladd operation to '
-                         '{} node'.format(rel.__class__.__name__))
-        return L.RelUpdate(rel.id, L.SetAdd(), elem)
+        self.assert_isname([rel, elem], 'reladd')
+        return L.RelUpdate(rel.id, L.SetAdd(), elem.id)
     
     def handle_ms_relremove(self, _func, rel, elem):
-        if not isinstance(rel, L.Name):
-            raise ASTErr('Cannot apply relremove operation to '
-                         '{} node'.format(rel.__class__.__name__))
-        return L.RelUpdate(rel.id, L.SetRemove(), elem)
+        self.assert_isname([rel, elem], 'relremove')
+        return L.RelUpdate(rel.id, L.SetRemove(), elem.id)
     
     def handle_ms_mapassign(self, _func, map, key, value):
-        if not isinstance(map, L.Name):
-            raise ASTErr('Cannot apply mapassign operation to '
-                         '{} node'.format(map.__class__.__name__))
-        return L.MapAssign(map.id, key, value)
+        self.assert_isname([map, key, value], 'mapassign')
+        return L.MapAssign(map.id, key.id, value.id)
     
     def handle_ms_mapdelete(self, _func, map, key):
-        if not isinstance(map, L.Name):
-            raise ASTErr('Cannot apply mapdelete operation to '
-                         '{} node'.format(map.__class__.__name__))
-        return L.MapDelete(map.id, key)
+        self.assert_isname([map, key], 'mapdelete')
+        return L.MapDelete(map.id, key.id)
     
     def handle_me_index(self, _func, value, index):
         return L.Subscript(value, index)
@@ -332,24 +330,19 @@ class IncLangSpecialExporter(L.NodeTransformer):
                                     [node.value]))
     
     def visit_RelUpdate(self, node):
-        node = self.generic_visit(node)
-        
         op = {L.SetAdd: 'reladd',
               L.SetRemove: 'relremove'}[node.op.__class__]
         return L.Expr(L.GeneralCall(L.Attribute(L.Name(node.rel), op),
-                                    [node.value]))
+                                    [L.Name(node.elem)]))
     
     def visit_MapAssign(self, node):
-        node = self.generic_visit(node)
-        
         func = L.Attribute(L.Name(node.map), 'mapassign')
-        return L.Expr(L.GeneralCall(func, [node.key, node.value]))
+        return L.Expr(L.GeneralCall(func, [L.Name(node.key),
+                                           L.Name(node.value)]))
     
     def visit_MapDelete(self, node):
-        node = self.generic_visit(node)
-        
         func = L.Attribute(L.Name(node.map), 'mapdelete')
-        return L.Expr(L.GeneralCall(func, [node.key]))
+        return L.Expr(L.GeneralCall(func, [L.Name(node.key)]))
     
     def visit_Imgset(self, node):
         node = self.generic_visit(node)

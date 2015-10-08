@@ -16,8 +16,10 @@ class UnwrapSingletonsCase(unittest.TestCase):
         symtab = SymbolTable()
         tree = L.Parser.p('''
             def main():
-                S.reladd((1,))
-                T.reladd(2)
+                v = (1,)
+                S.reladd(v)
+                v = 2
+                T.reladd(v)
                 for x in S:
                     (y,) = x
                     print(y)
@@ -27,10 +29,13 @@ class UnwrapSingletonsCase(unittest.TestCase):
         tree = SingletonUnwrapper.run(tree, symtab.fresh_vars, ['S'])
         exp_tree = L.Parser.p('''
             def main():
-                S.reladd((1,)[0])
-                T.reladd(2)
-                for _v1 in S:
-                    x = (_v1,)
+                v = (1,)
+                _v1 = v[0]
+                S.reladd(_v1)
+                v = 2
+                T.reladd(v)
+                for _v3 in S:
+                    x = (_v3,)
                     (y,) = x
                     print(y)
                 for z in T:
@@ -44,8 +49,10 @@ class UnwrapSingletonsCase(unittest.TestCase):
         symtab.define_relation('T', type=T.Set(T.Tuple([T.Number, T.Number])))
         tree = L.Parser.p('''
             def main():
-                S.reladd((1,))
-                T.reladd((2, 3))
+                v = (1,)
+                S.reladd(v)
+                v = (2, 3)
+                T.reladd(v)
                 for x in S:
                     (y,) = x
                     print(y)
@@ -55,10 +62,13 @@ class UnwrapSingletonsCase(unittest.TestCase):
         tree, rel_names = unwrap_singletons(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
-                S.reladd((1,)[0])
-                T.reladd((2, 3))
-                for _v1 in S:
-                    x = (_v1,)
+                v = (1,)
+                _v1 = v[0]
+                S.reladd(_v1)
+                v = (2, 3)
+                T.reladd(v)
+                for _v3 in S:
+                    x = (_v3,)
                     (y,) = x
                     print(y)
                 for x2 in T:

@@ -4,6 +4,7 @@
 import unittest
 
 from incoq.mars.incast import L
+from incoq.mars.symtab import N
 from incoq.mars.transform.incast_rewritings import *
 
 
@@ -12,19 +13,23 @@ class SetMapCase(unittest.TestCase):
     def test_preprocess(self):
         orig_tree = L.Parser.p('''
             def main():
-                S.add(1)
-                T.add(2)
-                (a + b).add(3)
+                S.add(x)
+                S.add(x + y)
+                T.add(x)
+                (a + b).add(x)
                 M[k] = v
                 del M[k]
                 N[k] = v
             ''')
-        tree = SetMapImporter.run(orig_tree, ['S'], ['M'])
+        tree = SetMapImporter.run(orig_tree, N.fresh_var_generator(),
+                                  ['S'], ['M'])
         exp_tree = L.Parser.p('''
             def main():
-                S.reladd(1)
-                T.add(2)
-                (a + b).add(3)
+                S.reladd(x)
+                _v1 = (x + y)
+                S.reladd(_v1)
+                T.add(x)
+                (a + b).add(x)
                 M.mapassign(k, v)
                 M.mapdelete(k)
                 N[k] = v
@@ -32,7 +37,18 @@ class SetMapCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         
         tree = SetMapExporter.run(tree)
-        self.assertEqual(tree, orig_tree)
+        exp_tree = L.Parser.p('''
+            def main():
+                S.add(x)
+                _v1 = (x + y)
+                S.add(_v1)
+                T.add(x)
+                (a + b).add(x)
+                M[k] = v
+                del M[k]
+                N[k] = v
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 class DisallowerCase(unittest.TestCase):

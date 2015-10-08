@@ -33,12 +33,12 @@ module IncAST
          | DecompAssign(identifier* vars, expr value)
          
          | SetUpdate(expr target, setupop op, expr value)
-         | RelUpdate(identifier rel, setupop op, expr value)
+         | RelUpdate(identifier rel, setupop op, identifier elem)
          
          | DictAssign(expr target, expr key, expr value)
          | DictDelete(expr target, expr key)
-         | MapAssign(identifier map, expr key, expr value)
-         | MapDelete(identifier map, expr key)
+         | MapAssign(identifier map, identifier key, identifier value)
+         | MapDelete(identifier map, identifier key)
     
     expr = UnaryOp(unaryop op, expr operand)
          | BoolOp(boolop op, expr* values)

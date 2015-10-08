@@ -5,25 +5,32 @@ S = Set()
 S_bu = Map()
 def _maint_S_bu_for_S_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    if ((_elem_v1,) not in S_bu):
-        S_bu[(_elem_v1,)] = set()
-    S_bu[(_elem_v1,)].add((_elem_v2,))
+    _v3_key = (_elem_v1,)
+    _v3_value = (_elem_v2,)
+    if (_v3_key not in S_bu):
+        _v4 = set()
+        S_bu[_v3_key] = _v4
+    S_bu[_v3_key].add(_v3_value)
 
 def _maint_S_bu_for_S_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    S_bu[(_elem_v1,)].remove((_elem_v2,))
-    if (len(S_bu[(_elem_v1,)]) == 0):
-        del S_bu[(_elem_v1,)]
+    _v5_key = (_elem_v1,)
+    _v5_value = (_elem_v2,)
+    S_bu[_v5_key].remove(_v5_value)
+    if (len(S_bu[_v5_key]) == 0):
+        del S_bu[_v5_key]
 
 def main():
     for _v in [(1, 2), (1, 3), (2, 3), (2, 4)]:
         (x, y) = _v
-        S.add((x, y))
-        _maint_S_bu_for_S_add((x, y))
+        _v1 = (x, y)
+        S.add(_v1)
+        _maint_S_bu_for_S_add(_v1)
     x = 1
     print(sorted(S_bu.get((x,), set())))
-    _maint_S_bu_for_S_remove((1, 3))
-    S.remove((1, 3))
+    _v2 = (1, 3)
+    _maint_S_bu_for_S_remove(_v2)
+    S.remove(_v2)
     print(sorted(S_bu.get((x,), set())))
 
 if (__name__ == '__main__'):

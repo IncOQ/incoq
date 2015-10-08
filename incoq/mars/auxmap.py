@@ -54,19 +54,22 @@ class AuxmapInvariant(Struct):
 
 
 @typechecked
-def make_imgadd(target: str, key: L.expr, elem: L.expr):
+def make_imgadd(fresh_vars, target: str, key: str, elem: str):
     """Make code to add elem to the image set for key in target."""
+    var = next(fresh_vars)
     return L.Parser.pc('''
         if _KEY not in _TARGET:
-            _TARGET.mapassign(_KEY, set())
+            _VAR = set()
+            _TARGET.mapassign(_KEY, _VAR)
         _TARGET[_KEY].add(_ELEM)
         ''', subst={'_TARGET': target,
                     '_KEY': key,
-                    '_ELEM': elem})
+                    '_ELEM': elem,
+                    '_VAR': var})
 
 
 @typechecked
-def make_imgremove(target: str, key: L.expr, elem: L.expr):
+def make_imgremove(fresh_vars, target: str, key: str, elem: str):
     """Make code to remove elem from the image set for key in target."""
     return L.Parser.pc('''
         _TARGET[_KEY].remove(_ELEM)
@@ -78,23 +81,30 @@ def make_imgremove(target: str, key: L.expr, elem: L.expr):
 
 
 @typechecked
-def make_auxmap_maint_func(auxmap: AuxmapInvariant, op: L.setupop):
+def make_auxmap_maint_func(fresh_vars,
+                           auxmap: AuxmapInvariant, op: L.setupop):
     """Make maintenance function for auxiliary map."""
     # Fresh variables for components of the element.
     vars = N.get_subnames('_elem', len(auxmap.mask.m))
     
-    decomp_code = L.DecompAssign(vars, L.Name('_elem'))
+    decomp_code = (L.DecompAssign(vars, L.Name('_elem')),)
     
     key, value = L.split_by_mask(auxmap.mask, vars)
     key = L.tuplify(key)
     value = L.tuplify(value)
+    fresh_var_prefix = next(fresh_vars)
+    key_var = fresh_var_prefix + '_key'
+    value_var = fresh_var_prefix + '_value'
     
-    if isinstance(op, L.SetAdd):
-        img_code = make_imgadd(auxmap.map, key, value)
-    elif isinstance(op, L.SetRemove):
-        img_code = make_imgremove(auxmap.map, key, value)
-    else:
-        assert()
+    decomp_code += L.Parser.pc('''
+        _KEY_VAR = _KEY
+        _VALUE_VAR = _VALUE
+        ''', subst={'_KEY_VAR': key_var, '_KEY': key,
+                    '_VALUE_VAR': value_var, '_VALUE': value})
+    
+    img_func = {L.SetAdd: make_imgadd,
+                L.SetRemove: make_imgremove}[op.__class__]
+    img_code = img_func(fresh_vars, auxmap.map, key_var, value_var)
     
     func_name = auxmap.get_maint_func_name(op)
     
@@ -138,8 +148,9 @@ class AuxmapTransformer(L.NodeTransformer):
     uses of auxmaps.
     """
     
-    def __init__(self, auxmaps):
+    def __init__(self, fresh_vars, auxmaps):
         super().__init__()
+        self.fresh_vars = fresh_vars
         # Index over auxmaps for fast retrieval.
         self.auxmaps_by_rel = OrderedDict()
         self.auxmaps_by_relmask = OrderedDict()
@@ -154,7 +165,7 @@ class AuxmapTransformer(L.NodeTransformer):
         for rel, auxmaps in self.auxmaps_by_rel.items():
             for auxmap in auxmaps:
                 for op in [L.SetAdd(), L.SetRemove()]:
-                    func = make_auxmap_maint_func(auxmap, op)
+                    func = make_auxmap_maint_func(self.fresh_vars, auxmap, op)
                     funcs.append(func)
         
         node = node._replace(decls=tuple(funcs) + node.decls)
@@ -165,7 +176,7 @@ class AuxmapTransformer(L.NodeTransformer):
         code = (node,)
         for auxmap in auxmaps:
             func_name = auxmap.get_maint_func_name(node.op)
-            call_code = (L.Expr(L.Call(func_name, [node.value])),)
+            call_code = (L.Expr(L.Call(func_name, [L.Name(node.elem)])),)
             code = insert_rel_maint(code, call_code, node.op)
         return code
     

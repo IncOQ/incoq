@@ -26,27 +26,42 @@ class SetMapImporter(L.NodeTransformer):
     where possible.
     """
     
-    def __init__(self, rels, maps):
+    def __init__(self, fresh_vars, rels, maps):
         super().__init__()
+        self.fresh_vars = fresh_vars
         self.rels = rels
         self.maps = maps
     
     def visit_SetUpdate(self, node):
-        if (isinstance(node.target, L.Name) and
-            node.target.id in self.rels):
-            return L.RelUpdate(node.target.id, node.op, node.value)
-        return node
+        if not (isinstance(node.target, L.Name) and
+                node.target.id in self.rels):
+            return node
+        
+        code = ()
+        if isinstance(node.value, L.Name):
+            elem_var = node.value.id
+        else:
+            elem_var = next(self.fresh_vars)
+            code += L.Parser.pc('_VAR = _VALUE',
+                                subst={'_VAR': elem_var,
+                                       '_VALUE': node.value})
+        update = L.RelUpdate(node.target.id, node.op, elem_var)
+        code += (update,)
+        return code
     
     def visit_DictAssign(self, node):
         if (isinstance(node.target, L.Name) and
+            isinstance(node.key, L.Name) and
+            isinstance(node.value, L.Name) and
             node.target.id in self.maps):
-            return L.MapAssign(node.target.id, node.key, node.value)
+            return L.MapAssign(node.target.id, node.key.id, node.value.id)
         return node
     
     def visit_DictDelete(self, node):
         if (isinstance(node.target, L.Name) and
+            isinstance(node.key, L.Name) and
             node.target.id in self.maps):
-            return L.MapDelete(node.target.id, node.key)
+            return L.MapDelete(node.target.id, node.key.id)
         return node
 
 
@@ -55,13 +70,14 @@ class SetMapExporter(L.NodeTransformer):
     """Rewrite nodes for relations and maps as nodes for sets and dicts."""
     
     def visit_RelUpdate(self, node):
-        return L.SetUpdate(L.Name(node.rel), node.op, node.value)
+        return L.SetUpdate(L.Name(node.rel), node.op, L.Name(node.elem))
     
     def visit_MapAssign(self, node):
-        return L.DictAssign(L.Name(node.map), node.key, node.value)
+        return L.DictAssign(L.Name(node.map), L.Name(node.key),
+                            L.Name(node.value))
     
     def visit_MapDelete(self, node):
-        return L.DictDelete(L.Name(node.map), node.key)
+        return L.DictDelete(L.Name(node.map), L.Name(node.key))
 
 
 class AttributeDisallower(L.NodeVisitor):
@@ -85,7 +101,7 @@ def incast_preprocess(tree, symtab):
     rels = list(symtab.get_relations().keys())
     maps = list(symtab.get_maps().keys())
     # Recognize relation updates.
-    tree = SetMapImporter.run(tree, rels, maps)
+    tree = SetMapImporter.run(tree, symtab.fresh_vars, rels, maps)
     # Check to make sure certain general-case IncAST nodes
     # aren't used.
     AttributeDisallower.run(tree)

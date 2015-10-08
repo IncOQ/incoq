@@ -158,11 +158,13 @@ class ParseImportCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         
         tree = Parser.ps('S.reladd(x)')
-        exp_tree = L.RelUpdate('S', L.SetAdd(), L.Name('x'))
+        exp_tree = L.RelUpdate('S', L.SetAdd(), 'x')
         self.assertEqual(tree, exp_tree)
         
         with self.assertRaises(IncASTConversionError):
             Parser.ps('(a + b).reladd(x)')
+        with self.assertRaises(IncASTConversionError):
+            Parser.ps('S.reladd(x + y)')
     
     def test_calls(self):
         tree = Parser.pe('f(a)')
@@ -184,11 +186,11 @@ class ParseImportCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         
         tree = Parser.ps('M.mapassign(k, v)')
-        exp_tree = L.MapAssign('M', L.Name('k'), L.Name('v'))
+        exp_tree = L.MapAssign('M', 'k', 'v')
         self.assertEqual(tree, exp_tree)
         
         tree = Parser.ps('M.mapdelete(k)')
-        exp_tree = L.MapDelete('M', L.Name('k'))
+        exp_tree = L.MapDelete('M', 'k')
         self.assertEqual(tree, exp_tree)
     
     def test_subscript(self):

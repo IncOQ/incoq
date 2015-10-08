@@ -79,7 +79,7 @@ def transform_auxmaps(tree, symtab):
                                  .format(auxmap.rel))
     for auxmap in auxmaps:
         define_map(auxmap, symtab)
-    tree = AuxmapTransformer.run(tree, auxmaps)
+    tree = AuxmapTransformer.run(tree, symtab.fresh_vars, auxmaps)
     return tree
 
 
