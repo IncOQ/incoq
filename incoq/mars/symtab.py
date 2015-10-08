@@ -26,6 +26,10 @@ class N:
     """Namespace for naming scheme helpers."""
     
     @classmethod
+    def fresh_var_generator(cls):
+        return ('_v{}'.format(i) for i in count(1))
+    
+    @classmethod
     def get_subnames(cls, prefix, num):
         """Return a list of num many fresh variable names that share
         a common prefix.
@@ -148,7 +152,7 @@ class SymbolTable:
     def __init__(self):
         self.symbols = OrderedDict()
         """Global symbols, in declaration order."""
-        self.fresh_vars = ('_v{}'.format(i) for i in count(1))
+        self.fresh_vars = N.fresh_var_generator()
         """Fresh variable name generator."""
     
     def define_symbol(self, name, kind, **kargs):
