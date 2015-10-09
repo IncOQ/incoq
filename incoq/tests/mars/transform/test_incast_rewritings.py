@@ -20,6 +20,7 @@ class SetMapCase(unittest.TestCase):
                 M[k] = v
                 del M[k]
                 N[k] = v
+                {x for (x, y) in S}
             ''')
         tree = SetMapImporter.run(orig_tree, N.fresh_var_generator(),
                                   ['S'], ['M'])
@@ -33,6 +34,7 @@ class SetMapCase(unittest.TestCase):
                 M.mapassign(k, v)
                 M.mapdelete(k)
                 N[k] = v
+                {x for (x, y) in REL(S)}
             ''')
         self.assertEqual(tree, exp_tree)
         
@@ -47,6 +49,7 @@ class SetMapCase(unittest.TestCase):
                 M[k] = v
                 del M[k]
                 N[k] = v
+                {x for (x, y) in S}
             ''')
         self.assertEqual(tree, exp_tree)
 

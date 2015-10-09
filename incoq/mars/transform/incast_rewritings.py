@@ -63,6 +63,15 @@ class SetMapImporter(L.NodeTransformer):
             node.target.id in self.maps):
             return L.MapDelete(node.target.id, node.key.id)
         return node
+    
+    def visit_Member(self, node):
+        if (isinstance(node.iter, L.Name) and
+            node.iter.id in self.rels and
+            isinstance(node.target, L.Tuple) and
+            all(isinstance(elt, L.Name) for elt in node.target.elts)):
+            return L.RelMember([elt.id for elt in node.target.elts],
+                               node.iter.id)
+        return node
 
 
 class SetMapExporter(L.NodeTransformer):
@@ -78,6 +87,9 @@ class SetMapExporter(L.NodeTransformer):
     
     def visit_MapDelete(self, node):
         return L.DictDelete(L.Name(node.map), L.Name(node.key))
+    
+    def visit_RelMember(self, node):
+        return L.Member(L.tuplify(node.vars), L.Name(node.rel))
 
 
 class AttributeDisallower(L.NodeVisitor):

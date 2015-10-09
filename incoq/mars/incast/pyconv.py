@@ -181,8 +181,26 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         return L.Comp(self.visit(node.elt), clauses)
     
     def visit_comprehension(self, node):
-        member = L.Member(self.visit(node.target),
-                          self.visit(node.iter))
+        # Switch on iter to determine what kind of membership clause
+        # to produce.
+        iter = self.visit(node.iter)
+        
+        # for x1, ..., xn in REL(R)
+        if (isinstance(iter, L.GeneralCall) and
+            isinstance(iter.func, L.Name) and
+            iter.func.id == 'REL'):
+            if not (len(iter.args) == 1 and
+                    isinstance(iter.args[0], L.Name)):
+                raise ASTErr('Invalid REL clause')
+            rel = iter.args[0].id
+            vars = self.match_vars(node.target)
+            member = L.RelMember(vars, rel)
+        
+        # General case.
+        else:
+            target = self.visit(node.target)
+            member = L.Member(target, iter)
+        
         conds = [L.Cond(self.visit(c)) for c in node.ifs]
         return [member] + conds
     
@@ -503,6 +521,12 @@ class IncLangNodeExporter(NodeMapper):
     def visit_Member(self, node):
         return P.comprehension(self.visit(node.target),
                                self.visit(node.iter), [])
+    
+    def visit_RelMember(self, node):
+        return P.comprehension(self.tuple_helper(node.vars),
+                               P.Call(P.Name('REL', P.Load()),
+                                      [self.name_helper(node.rel)],
+                                      [], None, None), [])
     
     def visit_Cond(self, node):
         return self.visit(node.cond)

@@ -223,6 +223,20 @@ class ParseImportCase(unittest.TestCase):
         tree = Parser.pe("R.imgset('bu', (x,))")
         exp_tree = L.Imgset('R', L.mask('bu'), ['x'])
         self.assertEqual(tree, exp_tree)
+    
+    def test_clauses(self):
+        N = L.Name
+        
+        # Member and Cond.
+        tree = Parser.pe('{x for x in R if x in S}')
+        exp_tree = L.Comp(N('x'), [L.Member(N('x'), N('R')),
+                                   L.Cond(L.Compare(N('x'), L.In(), N('S')))])
+        self.assertEqual(tree, exp_tree)
+        
+        # RelMember.
+        tree = Parser.pe('{x for (x, y) in REL(R)}')
+        exp_tree =L.Comp(N('x'), [L.RelMember(['x', 'y'], 'R')])
+        self.assertEqual(tree, exp_tree)
 
 
 class RoundTripCase(unittest.TestCase):
@@ -294,6 +308,7 @@ class RoundTripCase(unittest.TestCase):
     
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')
+        self.trip.pe('{x for (x, y) in REL(R)}')
 
 
 if __name__ == '__main__':

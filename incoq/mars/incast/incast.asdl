@@ -72,6 +72,7 @@ module IncAST
          | Comp(expr resexp, clause* clauses)
     
     clause = Member(expr target, expr iter)
+           | RelMember(identifier* vars, identifier rel)
            | Cond(expr cond)
     
     mask = (string m)
