@@ -71,6 +71,18 @@ class ParserCase(unittest.TestCase):
         exp_source = '(a + b)'
         self.assertEqual(source, exp_source)
     
+    def test_unparse_comp_bad(self):
+        # No clauses.
+        node = L.Comp(L.Name('x'), [])
+        with self.assertRaises(IncASTConversionError):
+            Parser.ts(node)
+        
+        # Condition clause before membership.
+        node = L.Comp(L.Name('x'), [L.Cond(L.NameConstant(True)),
+                                    L.Member(L.Name('x'), L.Name('S'))])
+        with self.assertRaises(IncASTConversionError):
+            Parser.ts(node)
+    
     def test_unparse_extras(self):
         # Also check cases of unparsing IncAST nodes that normally
         # don't appear (at least not by themselves) in complete
@@ -83,7 +95,7 @@ class ParserCase(unittest.TestCase):
         exp_source = '(a + b)(c)'
         self.assertEqual(source, exp_source)
         
-        source = ts(L.Member(['x', 'y'], 'R'))
+        source = ts(L.Member(pe('(x, y)'), pe('R')))
         exp_source = ' for (x, y) in R'
         self.assertEqual(source, exp_source)
         

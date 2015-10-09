@@ -71,7 +71,7 @@ module IncAST
            -- format, where conditions are nested underneath memberships.
          | Comp(expr resexp, clause* clauses)
     
-    clause = Member(identifier* vars, identifier rel)
+    clause = Member(expr target, expr iter)
            | Cond(expr cond)
     
     mask = (string m)

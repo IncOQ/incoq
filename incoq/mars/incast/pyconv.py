@@ -177,18 +177,14 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_SetComp(self, node):
         clauses = []
         for gen in node.generators:
-            vars = self.match_vars(gen.target)
-            iter = self.visit(gen.iter)
-            if not isinstance(iter, L.Name):
-                raise ASTErr('IncAST membership clauses must have '
-                             'variables on right-hand side; got ' +
-                             iter.__class__.__name__)
-            rel = iter.id
-            member = L.Member(vars, rel)
-            conds = [L.Cond(self.visit(if_)) for if_ in gen.ifs]
-            clauses.append(member)
-            clauses.extend(conds)
+            clauses.extend(self.visit(gen))
         return L.Comp(self.visit(node.elt), clauses)
+    
+    def visit_comprehension(self, node):
+        member = L.Member(self.visit(node.target),
+                          self.visit(node.iter))
+        conds = [L.Cond(self.visit(c)) for c in node.ifs]
+        return [member] + conds
     
     def visit_Compare(self, node):
         # Comparisons must involve exactly two terms and one operator.
@@ -485,30 +481,28 @@ class IncLangNodeExporter(NodeMapper):
                           [], None, None)
     
     def visit_Comp(self, node):
-        assert (len(node.clauses) > 0 and
-                isinstance(node.clauses[0], L.Member))
         generators = []
-        for clause in node.clauses:
-            if isinstance(clause, L.Member):
-                target = self.vars_helper(clause.vars)
-                gen = P.comprehension(target,
-                                      self.name_helper(clause.rel), [])
-                generators.append(gen)
-            elif isinstance(clause, L.Cond):
+        for cl in node.clauses:
+            cl = self.visit(cl)
+            if isinstance(cl, P.comprehension):
+                generators.append(cl)
+            elif isinstance(cl, P.expr):
+                if len(generators) == 0:
+                    break
                 last = generators[-1]
-                new_ifs = last.ifs + (self.visit(clause.cond),)
+                new_ifs = last.ifs + (cl,)
                 last = last._replace(ifs=new_ifs)
                 generators[-1] = last
             else:
                 assert()
+        if len(generators) == 0:
+            raise ASTErr('Comprehension has no clauses, or first clause '
+                         'is a condition')
         return P.SetComp(self.visit(node.resexp), generators)
     
-    # Member and Cond are handled by the case for Comp, but these
-    # cases are still needed to convert clauses in isolation.
-    
     def visit_Member(self, node):
-        target = self.vars_helper(node.vars)
-        return P.comprehension(target, self.name_helper(node.rel), [])
+        return P.comprehension(self.visit(node.target),
+                               self.visit(node.iter), [])
     
     def visit_Cond(self, node):
         return self.visit(node.cond)

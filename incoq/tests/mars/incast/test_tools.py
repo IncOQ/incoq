@@ -38,18 +38,19 @@ class MaskCase(unittest.TestCase):
 class IdentFinderCase(unittest.TestCase):
     
     def test_identfinder(self):
-        # Exclude function name main and iterated relation R.
+        # Exclude function name main and updated relation R.
         tree = Parser.p('''
             def main():
                 a = b
                 c, d = e
                 for f in g:
-                    {h for i in R}
+                    {h for i in j}
+                R.reladd(a)
             ''')
         vars = sorted(IdentFinder.run(
-                        tree, contexts=['Member.rel', 'fun.name'],
+                        tree, contexts=['RelUpdate.rel', 'fun.name'],
                         invert=True))
-        exp_vars = list(string.ascii_lowercase)[:9]
+        exp_vars = list(string.ascii_lowercase)[:10]
         self.assertEqual(vars, exp_vars)
 
 
