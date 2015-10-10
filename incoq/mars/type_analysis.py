@@ -122,6 +122,33 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     # that do not tolerate write context are decorated as @readonly;
     # they still run but record a well-typedness error.
     
+    def get_sequence_elt(self, node, t_seq, *, set_only=False):
+        """Given a sequence type of List or Set, return its element
+        type. If Bottom or Top is given, return that instead. If
+        another type is given that is a subtype of List or Set but
+        is distinct from them, raise an error. (This last case can
+        happen in the future if we extend the type lattice.)
+        
+        If set_only is given, Lists are treated as any other non-
+        collection type.
+        """
+        if t_seq is Bottom:
+            t_elt = Bottom
+        elif (t_seq.issmaller(Set(Top)) or
+              not set_only and t_seq.issmaller(List(Top))):
+            # This might happen if we have a user-defined subtype of
+            # Set/List. We need to retrieve the element type, but the
+            # subtype is a different class that may not have one.
+            # Unclear what to do in this case.
+            if not isinstance(t_seq, (Set, List)):
+                raise L.ProgramError('Cannot handle iteration over subtype '
+                                     'of Set/List constructor')
+            t_elt = t_seq.elt
+        else:
+            t_elt = Top
+            self.mark_bad(node)
+        return t_elt
+    
     # Use default handler for Return.
     
     def visit_For(self, node):
@@ -134,20 +161,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         #
         # Check iter <= Set<Top> or iter <= List<Top>
         t_iter = self.visit(node.iter)
-        if t_iter is Bottom:
-            t_target = Bottom
-        elif t_iter.issmaller(Set(Top)) or t_iter.issmaller(List(Top)):
-            # This might happen if we have a user-defined subtype of
-            # Set/List. We need to retrieve the element type, but the
-            # subtype is a different class that may not have one.
-            # Unclear what to do in this case.
-            if not isinstance(t_iter, (Set, List)):
-                raise L.ProgramError('Cannot handle iteration over subtype '
-                                     'of Set/List constructor')
-            t_target = t_iter.elt
-        else:
-            t_target = Top
-            self.mark_bad(node)
+        t_target = self.get_sequence_elt(node, t_iter)
         self.update_store(node.target, type=t_target)
         self.visit(node.body)
     
@@ -452,16 +466,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         #
         # Check iter <= Set<Top>
         t_iter = self.visit(node.iter)
-        if t_iter is Bottom:
-            t_target = Bottom
-        elif t_iter.issmaller(Set(Top)):
-            if not isinstance(t_iter, Set):
-                raise L.ProgramError('Cannot handle iteration over subtype '
-                                     'of Set constructor')
-            t_target = t_iter.elt
-        else:
-            t_target = Top
-            self.mark_bad(node)
+        t_target = self.get_sequence_elt(node, t_iter, set_only=True)
         self.visit(node.target, type=t_target)
     
     @readonly
@@ -476,14 +481,12 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         # Check iter <= Set<Tuple<Top, ..., Top>>
         n = len(node.vars)
         t_rel = self.get_store(node.rel)
-        if t_rel is Bottom:
-            t_vars = [Bottom] * n
-        elif t_rel.issmaller(Set(Tuple([Top] * n))):
-            if not (isinstance(t_rel, Set) and
-                    isinstance(t_rel.elt, Tuple)):
+        t_target = self.get_sequence_elt(node, t_rel, set_only=True)
+        if t_target.issmaller(Tuple([Top] * n)):
+            if not isinstance(t_target, Tuple):
                 raise L.ProgramError('Cannot handle iteration over subtype '
                                      'of Set-of-Tuples constructor')
-            t_vars = t_rel.elt.elts
+            t_vars = t_target.elts
         else:
             t_vars = [Top] * n
             self.mark_bad(node)
