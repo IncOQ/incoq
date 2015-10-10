@@ -336,6 +336,13 @@ class TypeAnalysisCase(unittest.TestCase):
             {'t': List(Bool), 'i': Number,
              'a': Bool, 'b': Bool},
             False)
+        # Type is Bottom.
+        self.check(source,
+            {'t': Bottom, 'i': Number,
+             'a': Bottom, 'b': Bottom},
+            {'t': Bottom, 'i': Number,
+             'a': Bottom, 'b': Bottom},
+            False)
         # Ill-typed, not List or Tuple.
         self.check(source,
             {'t': Set(String), 'i': Number,

@@ -122,46 +122,45 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     # that do not tolerate write context are decorated as @readonly;
     # they still run but record a well-typedness error.
     
-    def get_sequence_elt(self, node, t_seq, *, set_only=False):
-        """Given a sequence type of List or Set, return its element
-        type. If Bottom or Top is given, return that instead. If
-        another type is given that is a subtype of List or Set but
-        is distinct from them, raise an error. (This last case can
-        happen in the future if we extend the type lattice.)
-        
-        If set_only is given, Lists are treated as any other non-
-        collection type.
+    def get_sequence_elt(self, node, t_seq, seq_cls):
+        """Given a sequence type, and a sequence type constructor
+        (e.g. Sequence, List, or Set), return the element type of
+        the sequence type. If the sequence type cannot safely be
+        converted to the given type constructor's form (for instance
+        if it is not actually a sequence), return Top and mark node
+        as ill-typed.
         """
-        if t_seq is Bottom:
-            t_elt = Bottom
-        elif (t_seq.issmaller(Set(Top)) or
-              not set_only and t_seq.issmaller(List(Top))):
-            # This might happen if we have a user-defined subtype of
-            # Set/List. We need to retrieve the element type, but the
-            # subtype is a different class that may not have one.
-            # Unclear what to do in this case.
-            if not isinstance(t_seq, (Set, List)):
-                raise L.ProgramError('Cannot handle iteration over subtype '
-                                     'of Set/List constructor')
-            t_elt = t_seq.elt
-        else:
-            t_elt = Top
+        # Join to ensure that we're looking at a type object that
+        # is an instance of seq_cls, as opposed to some other type
+        # object in the lattice.
+        t_seq = t_seq.join(seq_cls(Bottom))
+        if not t_seq.issmaller(seq_cls(Top)):
             self.mark_bad(node)
-        return t_elt
+            return Top
+        return t_seq.elt
+    
+    def get_tuple_elts(self, node, t_tup, arity):
+        """Given a tuple type, return the element types. If the given
+        type cannot safely be converted to a tuple of the given arity,
+        return arity many Tops, and mark node as ill-typed.
+        """
+        t_tup = t_tup.join(Tuple([Bottom] * arity))
+        if not t_tup.issmaller(Tuple([Top] * arity)):
+            self.mark_bad(node)
+            return [Top] * arity
+        return t_tup.elts
     
     # Use default handler for Return.
     
     def visit_For(self, node):
-        # If iter == Bottom:
-        #   target := Bottom
-        # Elif iter == Set<T> or iter == List<T>:
+        # If join(iter, Sequence<Bottom>) == Sequence<T>:
         #   target := T
         # Else:
         #   target := Top
         #
-        # Check iter <= Set<Top> or iter <= List<Top>
+        # Check iter <= Sequence<Top>
         t_iter = self.visit(node.iter)
-        t_target = self.get_sequence_elt(node, t_iter)
+        t_target = self.get_sequence_elt(node, t_iter, Sequence)
         self.update_store(node.target, type=t_target)
         self.visit(node.body)
     
@@ -188,27 +187,16 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         self.update_store(node.target, t_value)
     
     def visit_DecompAssign(self, node):
-        # If value == Bottom:
-        #   vars_i := Bottom for each i
-        # Elif value == Tuple<T1, ..., Tn>, n == len(vars):
+        # If join(value, Tuple<Bottom, ..., Bottom>) ==
+        #    Tuple<T1, ..., Tn>, n == len(vars):
         #   vars_i := T_i for each i
-        # Else:
+        # else:
         #   vars_i := Top for each i
         #
-        # Check value <= Tuple<T1, ..., Tn>
+        # Check value <= Tuple<Top, ..., Top>
         n = len(node.vars)
         t_value = self.visit(node.value)
-        if t_value is Bottom:
-            t_vars = [Bottom] * n
-        elif t_value.issmaller(Tuple([Top] * n)):
-            # Reject subtypes, as above.
-            if not isinstance(t_value, Tuple):
-                raise L.ProgramError('Cannot handle decomposing assignment '
-                                     'of subtype of Tuple constructor')
-            t_vars = t_value.elts
-        else:
-            t_vars = [Top] * n
-            self.mark_bad(node)
+        t_vars = self.get_tuple_elts(node, t_value, n)
         for v, t in zip(node.vars, t_vars):
             self.update_store(v, t)
     
@@ -378,15 +366,15 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     def visit_Subscript(self, node, *, type=None):
         # If value == Bottom:
         #   Return Bottom
-        # Elif value == List<T>:
-        #   return T
         # Elif value == Tuple<T0, ..., Tn>:
         #   If index == Num(k) node, 0 <= k <= n:
-        #     return Tk
+        #     Return Tk
         #   Else:
-        #     return join(T0, ..., Tn)
+        #     Return join(T0, ..., Tn)
+        # Elif join(value, List<Bottom>) == List<T>:
+        #   Return T
         # Else:
-        #   return Top
+        #   Return Top
         #
         # Check value <= List<Top> or value is a Tuple
         # Check index <= Number
@@ -394,33 +382,26 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         t_index = self.visit(node.index)
         if not t_index.issmaller(Number):
             self.mark_bad(node)
-        if t_value is Bottom:
-            return Bottom
-        elif t_value.issmaller(List(Top)):
-            # Make sure we have an actual instance of List.
-            if not isinstance(t_value, List):
-                raise L.ProgramError('Cannot handle subscript over subtype '
-                                     'of List constructor')
-            return t_value.elt
-        # This doesn't quite catch cases of subtypes of Tuple that
-        # are not actually instances of the Tuple constructor.
-        elif isinstance(t_value, Tuple):
+        
+        # Try Tuple case first. Since we don't have a type for tuples
+        # of arbitrary arity, we'll use an isinstance() check. This
+        # may have to change if we add new subtypes of Tuple to the
+        # lattice.
+        if isinstance(t_value, Tuple):
             if (isinstance(node.index, L.Num) and
                 0 <= node.index.n < len(t_value.elts)):
                 return t_value.elts[node.index.n]
             else:
                 return Bottom.join(*t_value.elts)
-        else:
-            self.mark_bad(node)
-            return Top
+        
+        # Otherwise, treat it as a list or list subtype.
+        return self.get_sequence_elt(node, t_value, List)
     
     def visit_DictLookup(self, node, *, type=None):
         # If type != None:
         #   value := Map<Bottom, type>
         #
-        # If value == Bottom:
-        #   R = Bottom
-        # Elif value == Map<K, V>:
+        # If join(value, Map<Bottom, Bottom>) == Map<K, V>:
         #   R = V
         # Else:
         #   R = Top
@@ -431,19 +412,11 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         t_value = self.visit(node.value, type=t_value)
         t_default = (self.visit(node.default)
                      if node.default is not None else None)
-        if t_value is Bottom:
-            t = Bottom
-        elif t_value.issmaller(Map(Top, Top)):
-            # Just as for visit_For, make sure we have an actual
-            # instances of Map.
-            if not isinstance(t_value, Map):
-                raise L.ProgramError('Cannot handle lookup over subtype '
-                                     'of Map constructor')
-            t = t_value.value
-        else:
+        t_value = t_value.join(Map(Bottom, Bottom))
+        if not t_value.issmaller(Map(Top, Top)):
             self.mark_bad(node)
-            t = Top
-        return t.join(t_default)
+            return Top
+        return t_value.value.join(t_default)
     
     visit_Imgset = default_expr_handler
     
@@ -457,23 +430,20 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     @readonly
     def visit_Member(self, node, *, type=None):
-        # If iter == Bottom:
-        #   target := Bottom
-        # Elif iter == Set<T>:
+        # If join(iter, Set<Bottom>) == Set<T>:
         #   target := T
         # Else:
         #   target := Top
         #
         # Check iter <= Set<Top>
         t_iter = self.visit(node.iter)
-        t_target = self.get_sequence_elt(node, t_iter, set_only=True)
+        t_target = self.get_sequence_elt(node, t_iter, Set)
         self.visit(node.target, type=t_target)
     
     @readonly
     def visit_RelMember(self, node, *, type=None):
-        # If iter == Bottom:
-        #   vars_i := Bottom for each i
-        # Elif iter == Set<Tuple<T1, ..., Tn>> and n == len(vars):
+        # If join(iter, Set<Tuple<Bottom, ..., Bottom>) ==
+        #    Set<Tuple<T1, ..., Tn>>, n == len(vars):
         #   vars_i := T_i for each i
         # Else:
         #   vars_i := Top for each i
@@ -481,15 +451,8 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         # Check iter <= Set<Tuple<Top, ..., Top>>
         n = len(node.vars)
         t_rel = self.get_store(node.rel)
-        t_target = self.get_sequence_elt(node, t_rel, set_only=True)
-        if t_target.issmaller(Tuple([Top] * n)):
-            if not isinstance(t_target, Tuple):
-                raise L.ProgramError('Cannot handle iteration over subtype '
-                                     'of Set-of-Tuples constructor')
-            t_vars = t_target.elts
-        else:
-            t_vars = [Top] * n
-            self.mark_bad(node)
+        t_target = self.get_sequence_elt(node, t_rel, Set)
+        t_vars = self.get_tuple_elts(node, t_target, n)
         for v, t in zip(node.vars, t_vars):
             self.update_store(v, t)
     
