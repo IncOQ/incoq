@@ -84,7 +84,7 @@ class TypeCase(unittest.TestCase):
         self.assertEqual(t.widen(1), Tuple([Top, Top])),
         self.assertEqual(t.widen(0), Top)
     
-    def test_sequence(self):
+    def test_sequence_covariance(self):
         # Test covariant sequences, using Set.
         
         t = Set(String)
@@ -96,6 +96,17 @@ class TypeCase(unittest.TestCase):
         t2 = Set(Bool)
         self.assertEqual(t.join(t2), Set(Top))
         self.assertEqual(t.meet(t2), Set(Bottom))
+    
+    def test_sequence_subtype(self):
+        # Test mixing different kinds of sequences.
+        t1 = Set(String)
+        t2 = List(Bool)
+        
+        self.assertTrue(Sequence(String).isbigger(t1))
+        self.assertFalse(Sequence(String).isbigger(t2))
+        
+        self.assertEqual(t1.join(t2), Sequence(Top))
+        self.assertEqual(t1.meet(t2), Bottom)
     
     def test_map(self):
         t = Map(String, Bool)
@@ -113,7 +124,6 @@ class TypeCase(unittest.TestCase):
         self.assertEqual(t.widen(2), Map(String, Map(Top, Top)))
         self.assertEqual(t.widen(1), Map(Top, Top))
         self.assertEqual(t.widen(0), Top)
-        
     
     def test_eval(self):
         t = eval_typestr('Set(Tuple([Bool, Number]))')

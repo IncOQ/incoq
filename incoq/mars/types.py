@@ -14,6 +14,7 @@ following type constructors:
     
     Composites:
     - Tuple<T1, ..., Tn>
+    - Sequence<T>
     - Set<T>
     - List<T>
     - Map<K, V>
@@ -40,6 +41,8 @@ cases that are implied by reflexivity and transitivity:
   
   - A is Map<K1, V1> and B is Map<K2, V2>, and K1 <= K2 and V1 <= V2
     (covariance of keys and values)
+  
+  - A is Set<T> or List<T> and B is Sequence<T> (subtyping of Sequence)
 """
 
 
@@ -51,6 +54,7 @@ __all__ = [
     'Number',
     'String',
     'Tuple',
+    'Sequence',
     'Set',
     'List',
     'Map',
@@ -104,6 +108,11 @@ class Type(Struct):
         the other type's comparison function.
         """
         return NotImplemented
+    
+    # If the type lattice becomes more complicated in the future, we
+    # may need to add support for NotImplemented in join_helper(), or
+    # even running join_helper() in both directions and taking the
+    # better result.
     
     def join(self, *others, inverted=False):
         """Return the join of this type and each type listed in others.
@@ -240,35 +249,43 @@ class Tuple(Type):
         return self._replace(elts=new_elts)
 
 
-class SequenceTypeBase(Type):
+class Sequence(Type):
     
-    """Base class for types of sequences of homogeneous elements.
-    Covariant in element type.
-    """
+    """Sequence of homogeneous elements. Covariant in element type."""
     
     elt = TypedField(Type)
     
     def __str__(self):
-        raise NotImplementedError
+        return 'Seq<' + str(self.elt) + '>'
     
     def smaller_cmp(self, other):
-        if type(self) != type(other):
+        # Two Sequence-based types are comparable if they are of the
+        # same Sequence subtype or if one of the types is a Sequence
+        # proper. In either case it then comes down to the element type.
+        if (type(self) != type(other) and
+            type(other) != Sequence):
             return NotImplemented
         return self.elt.issmaller(other.elt)
     
     def join_helper(self, other, *, inverted=False):
+        # The join of two distinct Sequence-based types is a Sequence
+        # proper.
         top = Top if not inverted else Bottom
-        if type(self) != type(other):
+        if (type(self) != type(other) and
+            not issubclass(type(other), Sequence)):
             return top
         new_elt = self.elt.join(other.elt, inverted=inverted)
-        return self._replace(elt=new_elt)
+        if type(self) == type(other):
+            return self._replace(elt=new_elt)
+        else:
+            return Sequence(new_elt) if not inverted else Bottom 
     
     def widen_helper(self, height):
         new_elt = self.elt.widen(height - 1)
         return self._replace(elt=new_elt)
 
 
-class Set(SequenceTypeBase):
+class Set(Sequence):
     
     """Set type."""
     
@@ -278,7 +295,7 @@ class Set(SequenceTypeBase):
         return '{' + str(self.elt) + '}'
 
 
-class List(SequenceTypeBase):
+class List(Sequence):
     
     """List type."""
     
