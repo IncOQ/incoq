@@ -293,8 +293,9 @@ class RoundTripCase(unittest.TestCase):
         self.trip.ps('M.mapassign(k, v)')
         self.trip.ps('M.mapdelete(k)')
     
-    def test_lists(self):
+    def test_listssets(self):
         self.trip.pe('[1, 2]')
+        self.trip.pe('{1, 2}')
     
     def test_subscript(self):
         self.trip.pe('t.index(i)')

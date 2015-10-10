@@ -343,6 +343,13 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         return List(t_elt)
     
     @readonly
+    def visit_Set(self, node, *, type=None):
+        # Return Set<join(T1, ..., Tn)>
+        t_elts = [self.visit(e) for e in node.elts]
+        t_elt = Bottom.join(*t_elts)
+        return Set(t_elt)
+    
+    @readonly
     def visit_Tuple(self, node, *, type=None):
         # Return Tuple<elts>
         t_elts = [self.visit(e) for e in node.elts]

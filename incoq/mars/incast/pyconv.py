@@ -237,6 +237,9 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_List(self, node):
         return L.List(self.visit(node.elts))
     
+    def visit_Set(self, node):
+        return L.Set(self.visit(node.elts))
+    
     def visit_Tuple(self, node):
         return L.Tuple(self.visit(node.elts))
 
@@ -472,6 +475,9 @@ class IncLangNodeExporter(NodeMapper):
     
     def visit_List(self, node):
         return P.List(self.visit(node.elts), P.Load())
+    
+    def visit_Set(self, node):
+        return P.Set(self.visit(node.elts))
     
     def visit_Tuple(self, node):
         return P.Tuple(self.visit(node.elts), P.Load())

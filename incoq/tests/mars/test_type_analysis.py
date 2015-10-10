@@ -298,6 +298,15 @@ class TypeAnalysisCase(unittest.TestCase):
             {'a': List(Top), 'b': Number, 'c': String},
             False)
     
+    def test_set(self):
+        self.check('''
+            def main():
+                a = {b, c}
+            ''',
+            {'a': Bottom, 'b': Number, 'c': String},
+            {'a': Set(Top), 'b': Number, 'c': String},
+            False)
+    
     def test_tuple(self):
         self.check('''
             def main():
