@@ -433,11 +433,66 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     visit_Imgset = default_expr_handler
     
-    # TODO: Comprehensions not handled yet.
+    @readonly
+    def visit_Comp(self, node, *, type=None):
+        # Return Set<resexp>
+        for cl in node.clauses:
+            self.visit(cl)
+        t_resexp = self.visit(node.resexp)
+        return Set(t_resexp)
     
-    visit_Comp = default_expr_handler
-    visit_Member = default_expr_handler
-    visit_Cond = default_expr_handler
+    @readonly
+    def visit_Member(self, node, *, type=None):
+        # If iter == Bottom:
+        #   target := Bottom
+        # Elif iter == Set<T>:
+        #   target := T
+        # Else:
+        #   target := Top
+        #
+        # Check iter <= Set<Top>
+        t_iter = self.visit(node.iter)
+        if t_iter is Bottom:
+            t_target = Bottom
+        elif t_iter.issmaller(Set(Top)):
+            if not isinstance(t_iter, Set):
+                raise L.ProgramError('Cannot handle iteration over subtype '
+                                     'of Set constructor')
+            t_target = t_iter.elt
+        else:
+            t_target = Top
+            self.mark_bad(node)
+        self.visit(node.target, type=t_target)
+    
+    @readonly
+    def visit_RelMember(self, node, *, type=None):
+        # If iter == Bottom:
+        #   vars_i := Bottom for each i
+        # Elif iter == Set<Tuple<T1, ..., Tn>> and n == len(vars):
+        #   vars_i := T_i for each i
+        # Else:
+        #   vars_i := Top for each i
+        #
+        # Check iter <= Set<Tuple<Top, ..., Top>>
+        n = len(node.vars)
+        t_rel = self.get_store(node.rel)
+        if t_rel is Bottom:
+            t_vars = [Bottom] * n
+        elif t_rel.issmaller(Set(Tuple([Top] * n))):
+            if not (isinstance(t_rel, Set) and
+                    isinstance(t_rel.elt, Tuple)):
+                raise L.ProgramError('Cannot handle iteration over subtype '
+                                     'of Set-of-Tuples constructor')
+            t_vars = t_rel.elt.elts
+        else:
+            t_vars = [Top] * n
+            self.mark_bad(node)
+        for v, t in zip(node.vars, t_vars):
+            self.update_store(v, t)
+    
+    @readonly
+    def visit_Cond(self, node, *, type=None):
+        self.visit(node.cond)
     
     # Remaining nodes require no handler.
 

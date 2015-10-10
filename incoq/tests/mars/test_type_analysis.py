@@ -373,6 +373,35 @@ class TypeAnalysisCase(unittest.TestCase):
              'k1': String, 'k2': Number, 'v': Bool},
             False)
     
+    def test_comp(self):
+        # Member and Cond.
+        self.check('''
+            def main():
+                print({x for x in R for x in {1} if x == 1})
+            ''',
+            {'R': Set(String), 'x': Bottom},
+            {'R': Set(String), 'x': Top},
+            False)
+        
+        # RelMember.
+        self.check('''
+            def main():
+                print({x for x, y in REL(R)})
+            ''',
+            {'R': Set(Tuple([String, Number])), 'x': Bottom, 'y': Bottom},
+            {'R': Set(Tuple([String, Number])), 'x': String, 'y': Number},
+            False)
+        # RelMember, bad set type.
+        self.check('''
+            def main():
+                print({x for x, y in REL(R)})
+            ''',
+            {'R': Set(Top), 'x': Bottom, 'y': Bottom},
+            {'R': Set(Top), 'x': Top, 'y': Top},
+            True)
+    
+    # Clauses are taken care of by Comp's tests.
+    
     def test_analyze_basic(self):
         tree = L.Parser.p('''
             def main():
