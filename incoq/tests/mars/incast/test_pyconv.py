@@ -148,8 +148,9 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.For('x', L.Name('S'), [L.Pass()])
         self.assertEqual(tree, exp_tree)
         
-        with self.assertRaises(IncASTConversionError):
-            Parser.ps('for x, y in S: pass')
+        tree = Parser.ps('for x, y in S: pass')
+        exp_tree = L.DecompFor(['x', 'y'], L.Name('S'), [L.Pass()])
+        self.assertEqual(tree, exp_tree)
     
     def test_assign(self):
         tree = Parser.ps('a = b')
@@ -276,6 +277,7 @@ class RoundTripCase(unittest.TestCase):
     
     def test_loops(self):
         self.trip.ps('for x in S: continue')
+        self.trip.ps('for x, y in S: pass')
         self.trip.ps('while True: break')
     
     def test_assign(self):

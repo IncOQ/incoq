@@ -45,10 +45,6 @@ class ConstructPreprocessor(P.NodeTransformer):
     constructs that can't be directly expressed in IncAST.
     """
     
-    def __init__(self, fresh_vars):
-        super().__init__()
-        self.fresh_vars = fresh_vars
-    
     def visit_Assign(self, node):
         node = self.generic_visit(node)
         
@@ -61,19 +57,6 @@ class ConstructPreprocessor(P.NodeTransformer):
                 rhs_load = P.ContextSetter.run(rhs, P.Load)
                 stmts.append(P.Assign([lhs], rhs_load))
             node = stmts
-        
-        return node
-    
-    def visit_For(self, node):
-        node = self.generic_visit(node)
-        
-        # Translate tuple decomposition into a separate assignment.
-        if isinstance(node.target, P.Tuple):
-            var = next(self.fresh_vars)
-            decomp_stmt = P.Assign([node.target], P.Name(var, P.Load()))
-            new_body = (decomp_stmt,) + node.body
-            node = node._replace(target=P.Name(var, P.Store()),
-                                 body=new_body)
         
         return node
     
@@ -308,7 +291,7 @@ class DirectiveImporter(P.MacroProcessor):
 def py_preprocess(tree, symtab, config):
     # Admit some constructs as syntactic sugar that would otherwise
     # be excluded from IncAST.
-    tree = ConstructPreprocessor.run(tree, symtab.fresh_vars)
+    tree = ConstructPreprocessor.run(tree)
     # Get rid of import statement and qualifiers for the runtime
     # library.
     tree = RuntimeImportPreprocessor.run(tree)

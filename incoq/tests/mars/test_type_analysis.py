@@ -56,6 +56,25 @@ class TypeAnalysisCase(unittest.TestCase):
             {'S': Bottom, 'x': Bottom},
             False)
     
+    def test_decompfor(self):
+        source = '''
+            def main():
+                for x, y in S:
+                    pass
+            '''
+        # Normal case.
+        self.check(source,
+            {'S': Sequence(Tuple([String, Number])),
+             'x': Bottom, 'y': Bottom},
+            {'S': Sequence(Tuple([String, Number])),
+             'x': String, 'y': Number},
+            False)
+        # Tuple of wrong arity.
+        self.check(source,
+            {'S': Sequence(Tuple([String])), 'x': Bottom, 'y': Bottom},
+            {'S': Sequence(Tuple([String])), 'x': Top, 'y': Top},
+            True)
+    
     def test_while(self):
         # Booleans in While tests are fine; other types are not.
         source = '''

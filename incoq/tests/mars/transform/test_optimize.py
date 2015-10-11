@@ -12,7 +12,7 @@ from incoq.mars.transform.optimize import SingletonUnwrapper
 
 class UnwrapSingletonsCase(unittest.TestCase):
     
-    def test_unwrapper(self):
+    def test_unwrapper_updates(self):
         symtab = SymbolTable()
         tree = L.Parser.p('''
             def main():
@@ -20,11 +20,6 @@ class UnwrapSingletonsCase(unittest.TestCase):
                 S.reladd(v)
                 v = 2
                 T.reladd(v)
-                for x in S:
-                    (y,) = x
-                    print(y)
-                for z in T:
-                    print(z)
             ''')
         tree = SingletonUnwrapper.run(tree, symtab.fresh_vars, ['S'])
         exp_tree = L.Parser.p('''
@@ -34,12 +29,36 @@ class UnwrapSingletonsCase(unittest.TestCase):
                 S.reladd(_v1)
                 v = 2
                 T.reladd(v)
-                for _v3 in S:
-                    x = (_v3,)
+            ''')
+        self.assertEqual(tree, exp_tree)
+    
+    def test_unwrapper_loops(self):
+        symtab = SymbolTable()
+        tree = L.Parser.p('''
+            def main():
+                for x in S:
                     (y,) = x
                     print(y)
                 for z in T:
                     print(z)
+                for (x2,) in S:
+                    pass
+                for (z2,) in T:
+                    pass
+            ''')
+        tree = SingletonUnwrapper.run(tree, symtab.fresh_vars, ['S'])
+        exp_tree = L.Parser.p('''
+            def main():
+                for _v1 in S:
+                    x = (_v1,)
+                    (y,) = x
+                    print(y)
+                for z in T:
+                    print(z)
+                for x2 in S:
+                    pass
+                for (z2,) in T:
+                    pass
             ''')
         self.assertEqual(tree, exp_tree)
     

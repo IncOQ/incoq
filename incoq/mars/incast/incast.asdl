@@ -17,6 +17,7 @@ module IncAST
            -- Loops have no else clause.
            -- A For loop's target is just a variable.
          | For(identifier target, expr iter, stmt* body)
+         | DecompFor(identifier* vars, expr iter, stmt* body)
          | While(expr test, stmt* body)
          | If(expr test, stmt* body, stmt* orelse)
          

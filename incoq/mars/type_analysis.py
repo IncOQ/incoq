@@ -164,6 +164,21 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         self.update_store(node.target, type=t_target)
         self.visit(node.body)
     
+    def visit_DecompFor(self, node):
+        # If join(iter, Sequence<Tuple<Bottom, ..., Bottom>) ==
+        #    Sequence<Tuple<T1, ..., Tn>>, n == len(vars):
+        #   vars_i := T_i for each i
+        # Else:
+        #   vars_i := Top for each i
+        #
+        # Check iter <= Sequence<Tuple<Top, ..., Top>>
+        n = len(node.vars)
+        t_iter = self.visit(node.iter)
+        t_target = self.get_sequence_elt(node, t_iter, Sequence)
+        t_vars = self.get_tuple_elts(node, t_target, n)
+        for v, t in zip(node.vars, t_vars):
+            self.update_store(v, t)
+    
     def visit_While(self, node):
         # Check test <= Bool
         t_test = self.visit(node.test)
@@ -442,13 +457,13 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     @readonly
     def visit_RelMember(self, node, *, type=None):
-        # If join(iter, Set<Tuple<Bottom, ..., Bottom>) ==
+        # If join(rel, Set<Tuple<Bottom, ..., Bottom>) ==
         #    Set<Tuple<T1, ..., Tn>>, n == len(vars):
         #   vars_i := T_i for each i
         # Else:
         #   vars_i := Top for each i
         #
-        # Check iter <= Set<Tuple<Top, ..., Top>>
+        # Check rel <= Set<Tuple<Top, ..., Top>>
         n = len(node.vars)
         t_rel = self.get_store(node.rel)
         t_target = self.get_sequence_elt(node, t_rel, Set)

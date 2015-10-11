@@ -42,6 +42,16 @@ class SingletonUnwrapper(L.NodeTransformer):
             node = node._replace(target=var, body=new_body)
         return node
     
+    def visit_DecompFor(self, node):
+        if (isinstance(node.iter, L.Name) and
+            node.iter.id in self.rels):
+            if len(node.vars) != 1:
+                raise L.TransformationError(
+                    'Singleton unwrapping requires all DecompFor loops '
+                    'over relation to have exactly one target variable')
+            return L.For(node.vars[0], node.iter, node.body)
+        return node
+    
     # TODO: Properly handle comprehension clauses.
     # Requires figuring out a version of Membership clauses that
     # doesn't decompose the element.

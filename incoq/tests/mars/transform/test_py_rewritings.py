@@ -21,26 +21,11 @@ class ConstructPreprocessorCase(unittest.TestCase):
                 if exp_source is None:
                     exp_source = source
                 tree = P.Parser.action(source, mode=mode)
-                tree = ConstructPreprocessor.run(
-                            tree, N.fresh_var_generator())
+                tree = ConstructPreprocessor.run(tree)
                 exp_tree = P.Parser.action(exp_source, mode=mode)
                 self.assertEqual(tree, exp_tree)
         
         self.check = check
-    
-    def test_for(self):
-        self.check.ps('''
-            for x in S:
-                pass
-            ''')
-        self.check.ps('''
-            for x, y in S:
-                pass
-            ''', '''
-            for _v1 in S:
-                x, y = _v1
-                pass
-            ''')
     
     def test_assignment(self):
         self.check.pc('a = b')
