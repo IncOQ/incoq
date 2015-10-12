@@ -80,16 +80,17 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         raise ASTErr('Invalid node for IncAST: ' +
                      node.__class__.__name__)
     
-    def match_vars(self, node):
-        """Turn a variable or tuple of variables into a list of
-        identifiers.
+    def match_store_vars(self, node):
+        """Turn a tuple of variables into a list of identifiers. An
+        empty list is considered as an empty tuple (since Python grammar
+        does not allow us to write () = ...).
         """
-        if isinstance(node, P.Name):
-            names = [node]
-        elif isinstance(node, P.Tuple):
+        if isinstance(node, P.Tuple):
             if not all(isinstance(item, P.Name) for item in node.elts):
                 raise ASTErr('Vars list contains non-variables')
             names = node.elts
+        elif isinstance(node, P.List) and len(node.elts) == 0:
+            names = []
         else:
             raise ASTErr('Invalid node where vars list expected: ' +
                          node.__class__.__name__)
@@ -147,7 +148,7 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
             result = L.Assign(node.targets[0].id, self.visit(node.value))
         else:
             try:
-                vars = self.match_vars(node.targets[0])
+                vars = self.match_store_vars(node.targets[0])
                 result = L.DecompAssign(vars, self.visit(node.value))
             except ASTErr:
                 try:
@@ -162,17 +163,17 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_For(self, node):
         if len(node.orelse) > 0:
             raise ASTErr('IncAST does not allow else clauses in loops')
+        iter = self.visit(node.iter)
+        body = self.visit(node.body)
         if isinstance(node.target, P.Name):
-            return L.For(node.target.id,
-                         self.visit(node.iter),
-                         self.visit(node.body))
-        elif (isinstance(node.target, P.Tuple) and
-              all(isinstance(elt, P.Name) for elt in node.target.elts)):
-            return L.DecompFor([elt.id for elt in node.target.elts],
-                               self.visit(node.iter),
-                               self.visit(node.body))
+            result = L.For(node.target.id, iter, body)
         else:
-            raise ASTErr('Invalid left-hand-side of For loop')
+            try:
+                vars = self.match_store_vars(node.target)
+                result = L.DecompFor(vars, iter, body)
+            except ASTErr:
+                raise ASTErr('Invalid left-hand side of For loop') from None
+        return result
     
     def visit_While(self, node):
         if len(node.orelse) > 0:
@@ -199,7 +200,7 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
                     isinstance(iter.args[0], L.Name)):
                 raise ASTErr('Invalid REL clause')
             rel = iter.args[0].id
-            vars = self.match_vars(node.target)
+            vars = self.match_store_vars(node.target)
             member = L.RelMember(vars, rel)
         
         # General case.
@@ -396,24 +397,16 @@ class IncLangNodeExporter(NodeMapper):
         """Turn an identifier string into a Name in Load context."""
         return P.Name(name, P.Load())
     
-    def vars_helper(self, vars):
-        """Turn a list of variables into a Name node or a Tuple
-        of Name nodes, all in Load context.
-        """
-        assert len(vars) > 0
-        if len(vars) == 1:
-            node = P.Name(vars[0], P.Load())
-        else:
-            node = P.Tuple([P.Name(var, P.Load()) for var in vars],
-                           P.Load())
-        return node
-    
-    def tuple_helper(self, vars):
+    def tuple_store_helper(self, vars):
         """Turn a list of variables into a Tuple of Name nodes,
-        all in Load context.
+        all in Load context. An empty list is turned into a unit
+        List node ([]).
         """
-        return P.Tuple([P.Name(var, P.Load()) for var in vars],
-                       P.Load())
+        if len(vars) == 0:
+            return P.List([], P.Load())
+        else:
+            return P.Tuple([P.Name(var, P.Load()) for var in vars],
+                           P.Load())
     
     # Visitors for trivial nodes are auto-generated below
     # the class definition.
@@ -438,7 +431,7 @@ class IncLangNodeExporter(NodeMapper):
                      self.visit(node.body), [])
     
     def visit_DecompFor(self, node):
-        target = self.tuple_helper(node.vars)
+        target = self.tuple_store_helper(node.vars)
         return P.For(target, self.visit(node.iter),
                      self.visit(node.body), [])
     
@@ -451,7 +444,7 @@ class IncLangNodeExporter(NodeMapper):
         return P.Assign([target], self.visit(node.value))
     
     def visit_DecompAssign(self, node):
-        target = self.tuple_helper(node.vars)
+        target = self.tuple_store_helper(node.vars)
         return P.Assign([target], self.visit(node.value))
     
     def visit_DictAssign(self, node):
@@ -540,7 +533,7 @@ class IncLangNodeExporter(NodeMapper):
                                self.visit(node.iter), [])
     
     def visit_RelMember(self, node):
-        return P.comprehension(self.tuple_helper(node.vars),
+        return P.comprehension(self.tuple_store_helper(node.vars),
                                P.Call(P.Name('REL', P.Load()),
                                       [self.name_helper(node.rel)],
                                       [], None, None), [])

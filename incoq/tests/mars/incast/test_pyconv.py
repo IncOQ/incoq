@@ -312,6 +312,20 @@ class RoundTripCase(unittest.TestCase):
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')
         self.trip.pe('{x for (x, y) in REL(R)}')
+    
+    def test_unparse_arity(self):
+        self.trip.p('''
+            def main():
+                for (x,) in S:
+                    (y,) = x
+                    {z for (z,) in S}
+            ''')
+        self.trip.p('''
+            def main():
+                for [] in S:
+                    [] = x
+                    {None for [] in S}
+            ''')
 
 
 if __name__ == '__main__':
