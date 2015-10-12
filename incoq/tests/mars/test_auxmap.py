@@ -83,13 +83,13 @@ class AuxmapCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
     
-    def test_imgset_finder(self):
+    def test_imglookup_finder(self):
         tree = L.Parser.p('''
             def f():
-                R.imgset('bu', (x,))
-                R.imgset('bu', (x,))
-                R.imgset('ub', (y,))
-                S.imgset('bu', (x,))
+                R.imglookup('bu', (x,))
+                R.imglookup('bu', (x,))
+                R.imglookup('ub', (y,))
+                S.imglookup('bu', (x,))
             ''')
         auxmaps = AuxmapFinder.run(tree)
         exp_auxmaps = [
@@ -107,9 +107,9 @@ class AuxmapCase(unittest.TestCase):
             def f():
                 elem = (1, 2)
                 R.reladd(elem)
-                print(R.imgset('bu', (x,)))
+                print(R.imglookup('bu', (x,)))
                 S.reladd(elem)
-                print(S.imgset('bu', (x,)))
+                print(S.imglookup('bu', (x,)))
             ''')
         tree = AuxmapTransformer.run(tree, N.fresh_var_generator(), auxmaps)
         exp_tree = L.Parser.p('''
@@ -136,7 +136,7 @@ class AuxmapCase(unittest.TestCase):
                 _maint_R_bu_for_R_add(elem)
                 print(R_bu.get((x,), set()))
                 S.reladd(elem)
-                print(S.imgset('bu', (x,)))
+                print(S.imglookup('bu', (x,)))
             ''')
         self.assertEqual(tree, exp_tree)
     

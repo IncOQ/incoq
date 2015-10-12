@@ -53,11 +53,11 @@ class IncOQType:
     __ne__ = object.__ne__
 
 
-class ImgSetMixin:
+class ImgLookupMixin:
     
-    """Mixin for giving a set-like class an imgset() operation."""
+    """Mixin for giving a set-like class an imglookup() operation."""
     
-    def imgset(self, mask, bounds):
+    def imglookup(self, mask, bounds):
         """Given a mask and values for the bound components, return
         a set of tuples of values for the unbound components.
         
@@ -81,7 +81,7 @@ class ImgSetMixin:
         return result
 
 
-class Set(IncOQType, set, ImgSetMixin):
+class Set(IncOQType, set, ImgLookupMixin):
     
     """IncOQ Set. This differs from Python sets in that it has identity
     semantics and can therefore be hashed.
@@ -111,7 +111,7 @@ class Set(IncOQType, set, ImgSetMixin):
             self.update(other)
 
 
-class RCSet(IncOQType, Counter, ImgSetMixin):
+class RCSet(IncOQType, Counter, ImgLookupMixin):
     
     """Reference-counted set. Supports element-wise operations but
     not all of the bulk operations that Set has.

@@ -300,25 +300,25 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_me_get(self, _func, dict, key, default):
         return L.DictLookup(dict, key, default)
     
-    def handle_me_imgset(self, _func, rel, maskstr, bounds):
+    def handle_me_imglookup(self, _func, rel, maskstr, bounds):
         if not isinstance(rel, L.Name):
-            raise ASTErr('Cannot apply imgset operation to '
+            raise ASTErr('Cannot apply imglookup operation to '
                          '{} node'.format(rel.__class__.__name__))
         rel = rel.id
         if not isinstance(maskstr, L.Str):
-            raise ASTErr('imgset operation requires string literal '
+            raise ASTErr('imglookup operation requires string literal '
                          'for mask')
         maskstr = maskstr.s
         try:
             mask = L.mask(maskstr)
         except ValueError:
-            raise ASTErr('invalid mask string for imgset operation')
+            raise ASTErr('invalid mask string for imglookup operation')
         if not (isinstance(bounds, L.Tuple) and
                 all(isinstance(item, L.Name) for item in bounds.elts)):
-            raise ASTErr('imgset operation requires tuple of bound '
+            raise ASTErr('imglookup operation requires tuple of bound '
                          'variable identifiers')
         bounds = [item.id for item in bounds.elts]
-        return L.Imgset(rel, mask, bounds)
+        return L.ImgLookup(rel, mask, bounds)
 
 
 class CallSimplifier(L.NodeTransformer):
@@ -368,12 +368,12 @@ class IncLangSpecialExporter(L.NodeTransformer):
         func = L.Attribute(L.Name(node.map), 'mapdelete')
         return L.Expr(L.GeneralCall(func, [L.Name(node.key)]))
     
-    def visit_Imgset(self, node):
+    def visit_ImgLookup(self, node):
         node = self.generic_visit(node)
         
         maskstr = L.Str(node.mask.m)
         idents = L.Tuple([L.Name(item) for item in node.bounds])
-        return L.GeneralCall(L.Attribute(L.Name(node.rel), 'imgset'),
+        return L.GeneralCall(L.Attribute(L.Name(node.rel), 'imglookup'),
                              [maskstr, idents])
 
 

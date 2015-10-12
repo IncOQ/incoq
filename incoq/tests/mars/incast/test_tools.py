@@ -79,7 +79,7 @@ class TemplaterCase(unittest.TestCase):
                     a.mapdelete(a)
                     a(a.a)
                     a.get(a, a)
-                    a.imgset('bu', (a,))
+                    a.imglookup('bu', (a,))
                     {a for a in a if a}
             ''')
         tree = Templater.run(tree, subst={'a': 'c'})
@@ -96,7 +96,7 @@ class TemplaterCase(unittest.TestCase):
                     c.mapdelete(c)
                     c(c.c)
                     c.get(c, c)
-                    c.imgset('bu', (c,))
+                    c.imglookup('bu', (c,))
                     {c for c in c if c}
             ''')
         self.assertEqual(tree, exp_tree)

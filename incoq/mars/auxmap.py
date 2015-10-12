@@ -138,7 +138,7 @@ class AuxmapFinder(L.NodeVisitor):
         
         return auxmaps
     
-    def visit_Imgset(self, node):
+    def visit_ImgLookup(self, node):
         self.uses.add((node.rel, node.mask))
 
 
@@ -180,7 +180,7 @@ class AuxmapTransformer(L.NodeTransformer):
             code = insert_rel_maint(code, call_code, node.op)
         return code
     
-    def visit_Imgset(self, node):
+    def visit_ImgLookup(self, node):
         auxmap = self.auxmaps_by_relmask.get((node.rel, node.mask), None)
         if auxmap is None:
             return node

@@ -220,9 +220,9 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.DictLookup(L.Name('M'), L.Name('k'), None)
         self.assertEqual(tree, exp_tree)
     
-    def test_imgset(self):
-        tree = Parser.pe("R.imgset('bu', (x,))")
-        exp_tree = L.Imgset('R', L.mask('bu'), ['x'])
+    def test_imglookup(self):
+        tree = Parser.pe("R.imglookup('bu', (x,))")
+        exp_tree = L.ImgLookup('R', L.mask('bu'), ['x'])
         self.assertEqual(tree, exp_tree)
     
     def test_clauses(self):
@@ -306,8 +306,8 @@ class RoundTripCase(unittest.TestCase):
         self.trip.pe('M[k]')
         self.trip.pe('M.get(k, d)')
     
-    def test_imgset(self):
-        self.trip.pe("R.imgset('bu', (x,))")
+    def test_imglookup(self):
+        self.trip.pe("R.imglookup('bu', (x,))")
     
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')

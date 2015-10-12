@@ -73,19 +73,19 @@ class BuiltinsCase(unittest.TestCase):
         s2 = pickle.loads(b)
         self.assertEqual(set(s1), set(s2))
     
-    def test_set_imgset(self):
+    def test_set_imglookup(self):
         s = Set({(1, 2), (1, 3), (2, 3), (2, 4)})
-        img = s.imgset('bu', (1,))
+        img = s.imglookup('bu', (1,))
         exp_img = {(2,), (3,)}
         self.assertCountEqual(img, exp_img)
         
         # Degenerate cases.
         s = Set({})
-        img = s.imgset('', ())
+        img = s.imglookup('', ())
         exp_img = {}
         self.assertCountEqual(img, exp_img)
         s = Set({()})
-        img = s.imgset('', ())
+        img = s.imglookup('', ())
         exp_img = {()}
         self.assertCountEqual(img, exp_img)
     
@@ -139,11 +139,11 @@ class BuiltinsCase(unittest.TestCase):
         s2 = pickle.loads(b)
         self.assertEqual(dict(s1), dict(s2))
     
-    def test_rcset_imgset(self):
+    def test_rcset_imglookup(self):
         # Throw in some reference counts for the heck of it.
         # No effect on result.
         s = RCSet({(1, 2): 3, (1, 3): 2, (2, 3) : 2, (2, 4) :1})
-        img = s.imgset('bu', (1,))
+        img = s.imglookup('bu', (1,))
         exp_img = {(2,), (3,)}
         self.assertCountEqual(img, exp_img)
     
