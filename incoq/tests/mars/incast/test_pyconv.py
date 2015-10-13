@@ -225,6 +225,11 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.ImgLookup('R', L.mask('bu'), ['x'])
         self.assertEqual(tree, exp_tree)
     
+    def test_query(self):
+        tree = Parser.pe("QUERY('A', 5)")
+        exp_tree = L.Query('A', L.Num(5))
+        self.assertEqual(tree, exp_tree)
+    
     def test_clauses(self):
         N = L.Name
         
@@ -308,6 +313,9 @@ class RoundTripCase(unittest.TestCase):
     
     def test_imglookup(self):
         self.trip.pe("R.imglookup('bu', (x,))")
+    
+    def test_query(self):
+        self.trip.pe("QUERY('A', 5)")
     
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')

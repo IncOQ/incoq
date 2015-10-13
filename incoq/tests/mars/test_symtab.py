@@ -49,6 +49,12 @@ class SymbolCase(unittest.TestCase):
         s = str(v)
         exp_s = 'Var v (type: {Top})'
         self.assertEqual(s, exp_s)
+    
+    def test_query(self):
+        q = QuerySymbol('Q', node=L.Num(5))
+        s = str(q)
+        exp_s = 'Query Q (5)'
+        self.assertEqual(s, exp_s)
 
 
 class SymbolTableCase(unittest.TestCase):

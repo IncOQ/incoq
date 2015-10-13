@@ -68,7 +68,11 @@ module IncAST
            -- Utility expressions.
          | ImgLookup(identifier rel, mask mask, identifier* bounds)
          
-           -- Query expression.
+           -- Queries.
+         
+           -- Named query expression.
+         | Query(identifier name, expr query)
+         
            -- Comprehension clauses are flattened compared to Python's
            -- format, where conditions are nested underneath memberships.
          | Comp(expr resexp, clause* clauses)

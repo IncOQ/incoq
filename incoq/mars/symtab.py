@@ -8,6 +8,7 @@ __all__ = [
     'RelationSymbol',
     'MapSymbol',
     'VarSymbol',
+    'QuerySymbol',
     
     'SymbolTable',
 ]
@@ -144,6 +145,19 @@ class VarSymbol(TypedSymbolMixin, Symbol):
         return s
 
 
+class QuerySymbol(Symbol):
+    
+    node = SymbolAttribute('node', None,
+            'Expression AST node corresponding to (all occurrences of) '
+            'the query')
+    
+    def __str__(self):
+        s = 'Query {}'.format(self.name)
+        if self.node is not None:
+            s += ' ({})'.format(L.Parser.ts(self.node))
+        return s
+
+
 class SymbolTable:
     
     def __init__(self):
@@ -168,6 +182,9 @@ class SymbolTable:
     def define_var(self, name, **kargs):
         self.define_symbol(name, VarSymbol, **kargs)
     
+    def define_query(self, name, **kargs):
+        self.define_symbol(name, QuerySymbol, **kargs)
+    
     def get_symbols(self, kind=None):
         """Return an OrderedDict of symbols of the requested kind.
         If kind is None, all symbols are returned.
@@ -187,6 +204,9 @@ class SymbolTable:
     
     def get_vars(self):
         return self.get_symbols(VarSymbol)
+    
+    def get_queries(self):
+        return self.get_symbols(QuerySymbol)
     
     def apply_symconfig(self, name, info):
         """Given a symbol name and a key-value dictionary of symbol

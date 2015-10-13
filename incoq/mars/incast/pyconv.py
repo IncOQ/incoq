@@ -9,6 +9,8 @@ __all__ = [
 ]
 
 
+import keyword
+
 from incoq.util.misc import new_namespace
 
 from . import nodes as _nodes
@@ -22,6 +24,10 @@ class IncASTConversionError(Exception):
     pass
 # Alias.
 ASTErr = IncASTConversionError
+
+
+def is_valid_identifier(s):
+    return s.isidentifier() and not keyword.iskeyword(s)
 
 
 # Trivial nodes are nodes that exist in both languages and whose
@@ -319,6 +325,13 @@ class IncLangSpecialImporter(L.MacroExpander):
                          'variable identifiers')
         bounds = [item.id for item in bounds.elts]
         return L.ImgLookup(rel, mask, bounds)
+    
+    def handle_fe_QUERY(self, _func, name, query):
+        if not (isinstance(name, L.Str) and
+                is_valid_identifier(name.s)):
+            raise ASTErr('QUERY annotation first argument must be a '
+                         'string literal containing a valid identifier')
+        return L.Query(name.s, query)
 
 
 class CallSimplifier(L.NodeTransformer):
@@ -507,6 +520,12 @@ class IncLangNodeExporter(NodeMapper):
                           [self.visit(node.key),
                            self.visit(node.default)],
                           [], None, None)
+    
+    def visit_Query(self, node):
+        return P.Call(self.name_helper('QUERY'),
+                      [P.Str(node.name),
+                       self.visit(node.query)],
+                      [], None, None)
     
     def visit_Comp(self, node):
         generators = []
