@@ -9,6 +9,19 @@ from incoq.mars.symtab import N, RelationSymbol, MapSymbol
 from incoq.mars.transform.py_rewritings import *
 
 
+class QueryDirectiveRewriterCase(unittest.TestCase):
+    
+    def test_preprocess(self):
+        tree = P.Parser.p('''
+            QUERY('1 + 2', a=3, b=4)
+            ''')
+        tree = QueryDirectiveRewriter.run(tree)
+        exp_tree = P.Parser.p('''
+            QUERY(1 + 2, a=3, b=4)
+            ''')
+        self.assertEqual(tree, exp_tree)
+
+
 class ConstructPreprocessorCase(unittest.TestCase):
     
     def setUp(self):
@@ -201,17 +214,20 @@ class DirectiveCase(unittest.TestCase):
             CONFIG(a=1, b=2)
             SYMCONFIG(R, a=1)
             SYMCONFIG(S)
+            QUERY(1 + 2, a=3, b=4)
             pass
             ''')
-        tree, options, syminfo = DirectiveImporter.run(tree)
+        tree, info = DirectiveImporter.run(tree)
         exp_tree = P.Parser.p('''
             pass
             ''')
-        exp_options = [{'a': 1}, {'a': 1, 'b': 2}]
-        exp_syminfo = [('R', {'a': 1}), ('S', {})]
+        exp_config_info = [{'a': 1}, {'a': 1, 'b': 2}]
+        exp_symconfig_info = [('R', {'a': 1}), ('S', {})]
+        exp_query_info = [(P.Parser.pe('1 + 2'), {'a': 3, 'b': 4})]
         self.assertEqual(tree, exp_tree)
-        self.assertEqual(options, exp_options)
-        self.assertEqual(syminfo, exp_syminfo)
+        self.assertEqual(info.config_info, exp_config_info)
+        self.assertEqual(info.symconfig_info, exp_symconfig_info)
+        self.assertEqual(info.query_info, exp_query_info)
 
 
 if __name__ == '__main__':

@@ -5,6 +5,8 @@ __all__ = [
     # Preprocessings are paired with their postprocessings,
     # and listed in order of their application, outermost-first.
     
+    'QueryDirectiveRewriter',
+    
     'ConstructPreprocessor',
     
     'PassPostprocessor',
@@ -26,6 +28,8 @@ __all__ = [
 ]
 
 
+from types import SimpleNamespace
+
 from incoq.util.seq import pairs
 from incoq.util.type import typechecked
 from incoq.util.collections import OrderedSet
@@ -37,6 +41,29 @@ main_boilerplate_stmt = P.Parser.ps('''
     if __name__ == '__main__':
         main()
     ''')
+
+
+class QueryDirectiveRewriter(P.NodeTransformer):
+    
+    """Take QUERY(<source>, **<kargs>) directives and replace the
+    first argument with the corresponding parsed Python AST.
+    """
+    
+    # We'll use NodeTransformer rather than MacroProcessor because
+    # MacroProcessor makes it hard to reconstruct the node.
+    
+    pat = P.Expr(P.Call(P.Name('QUERY', P.Load()),
+                        [P.Str(P.PatVar('_source'))],
+                        P.PatVar('_keywords'),
+                        None, None))
+    
+    def visit_Expr(self, node):
+        match = P.match(self.pat, node)
+        if match is not None:
+            query = P.Parser.pe(node.value.args[0].s)
+            call = node.value._replace(args=[query])
+            node = node._replace(value=call)
+        return node
 
 
 class ConstructPreprocessor(P.NodeTransformer):
@@ -259,36 +286,66 @@ class DirectiveImporter(P.MacroProcessor):
     
         CONFIG(<key>=<value>, ...)
         SYMCONFIG(<sym>, <key>=<value>, ...)
+        QUERY(<source>, <key>=<value>, ...)
     
-    Return 1) a list of dictionaries (one per CONFIG), and 2) a list
-    of pairs of symbol names and dictionaries (one pair per SYMCONFIG).
+    Return a pair of the modified tree and an object with fields
+    corresponding to each kind of directive. Each field holds a list
+    of objects representing the parsed information for an occurrence
+    of the corresponding kind of directive.
+    
+        Directive   Field            Element type
+        CONFIG      config_info      dictionary
+        SYMCONFIG   symconfig_info   pair of symbol name and dictionary
+        QUERY       query_info       pair of query expression (Python AST)
+                                       and dictionary
     """
     
+    # Caution: QUERY is overloaded as both an in-line expression
+    # annotation and as a top-level directive statement. The in-line
+    # form is taken care of by the importing to IncAST that comes after
+    # these Python rewriters. The directive statement is handled here
+    # and not handled by the usual L.Parser.p*() functions.
+    
     def process(self, tree):
-        self.config_info = []
-        self.symconfig_info = []
+        self.info = SimpleNamespace(config_info=[],
+                                    symconfig_info=[],
+                                    query_info=[])
         tree = super().process(tree)
-        return tree, self.config_info, self.symconfig_info
+        return tree, self.info
     
     @typechecked
     def handle_fs_CONFIG(self, _func, **kargs):
-        info = {}
+        d = {}
         for k, v in kargs.items():
-            info[k] = P.LiteralEvaluator.run(v)
-        self.config_info.append(info)
+            d[k] = P.LiteralEvaluator.run(v)
+        self.info.config_info.append(d)
         return ()
     
     @typechecked
     def handle_fs_SYMCONFIG(self, _func, symbol:P.Name, **kargs):
         name = symbol.id
-        info = {}
+        d = {}
         for k, v in kargs.items():
-            info[k] = P.LiteralEvaluator.run(v)
-        self.symconfig_info.append((name, info))
+            d[k] = P.LiteralEvaluator.run(v)
+        self.info.symconfig_info.append((name, d))
+        return ()
+    
+    @typechecked
+    def handle_fs_QUERY(self, _func, query, **kargs):
+        d = {}
+        for k, v in kargs.items():
+            d[k] = P.LiteralEvaluator.run(v)
+        self.info.query_info.append((query, d))
         return ()
 
 
-def py_preprocess(tree, symtab, config):
+def py_preprocess(tree):
+    # Rewrite QUERY directives to replace their source strings with
+    # the corresponding parsed Python ASTs. This ensures that subsequent
+    # preprocessing steps will rewrite both occurrences equally, so that
+    # the parsed query syntax in the QUERY directive continues to
+    # exactly match the syntax at the actual occurrence of the query.
+    tree = QueryDirectiveRewriter.run(tree)
     # Admit some constructs as syntactic sugar that would otherwise
     # be excluded from IncAST.
     tree = ConstructPreprocessor.run(tree)
@@ -299,15 +356,9 @@ def py_preprocess(tree, symtab, config):
     tree = MainCallRemover.run(tree)
     # Get relation declarations.
     tree, rels = preprocess_vardecls(tree)
-    for rel in rels:
-        symtab.define_relation(rel)
     # Get symbol info.
-    tree, config_info, symconfig_info = DirectiveImporter.run(tree)
-    for info in config_info:
-        config.update(**info)
-    for name, info in symconfig_info:
-        symtab.apply_symconfig(name, info)
-    return tree
+    tree, info = DirectiveImporter.run(tree)
+    return tree, rels, info
 
 
 def py_postprocess(tree, symtab):

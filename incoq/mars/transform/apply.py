@@ -10,7 +10,6 @@ __all__ = [
 
 
 from incoq.mars.incast import L, P
-from incoq.mars.types import Bottom
 from incoq.mars.type_analysis import analyze_types
 from incoq.mars.config import Config
 from incoq.mars.symtab import SymbolTable
@@ -36,7 +35,24 @@ def preprocess_tree(tree, symtab, config):
     """Return a preprocessed tree. Store symbol declarations
     in the symbol table.
     """
-    tree = py_preprocess(tree, symtab, config)
+    # Preprocess at the Python level. Obtain parsed information
+    # about symbols and directives.
+    tree, rels, info = py_preprocess(tree)
+    
+    # Define relations for which a declaration was detected.
+    for rel in rels:
+        symtab.define_relation(rel)
+    
+    # Use parsed directive info to update config, symbol config,
+    # and query info.
+    for d in info.config_info:
+        config.update(**d)
+    for name, d in info.symconfig_info:
+        symtab.apply_symconfig(name, d)
+    ### TODO: Query updating. Query expressions need to be
+    ### imported as IncAST.
+    
+    # Bring into IncAST and continue preprocessing.
     tree = L.import_incast(tree)
     tree = incast_preprocess(tree, symtab)
     return tree
