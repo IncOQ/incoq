@@ -144,13 +144,6 @@ class VarSymbol(TypedSymbolMixin, Symbol):
         return s
 
 
-symbol_kindmap = {
-    'Set': RelationSymbol,
-    'Map': MapSymbol,
-    'Var': VarSymbol,
-}
-
-
 class SymbolTable:
     
     def __init__(self):
@@ -161,20 +154,19 @@ class SymbolTable:
     
     def define_symbol(self, name, kind, **kargs):
         """Define a new symbol of the given kind."""
-        symcls = symbol_kindmap[kind]
         if name in self.symbols:
             raise L.ProgramError('Symbol "{}" already defined'.format(name))
-        sym = symcls(name, **kargs)
+        sym = kind(name, **kargs)
         self.symbols[name] = sym
     
     def define_relation(self, name, **kargs):
-        self.define_symbol(name, 'Set', **kargs)
+        self.define_symbol(name, RelationSymbol, **kargs)
     
     def define_map(self, name, **kargs):
-        self.define_symbol(name, 'Map', **kargs)
+        self.define_symbol(name, MapSymbol, **kargs)
     
     def define_var(self, name, **kargs):
-        self.define_symbol(name, 'Var', **kargs)
+        self.define_symbol(name, VarSymbol, **kargs)
     
     def get_symbols(self, kind=None):
         """Return an OrderedDict of symbols of the requested kind.
@@ -182,20 +174,19 @@ class SymbolTable:
         """
         result = OrderedDict(self.symbols)
         if kind is not None:
-            symcls = symbol_kindmap[kind]
             for name, sym in self.symbols.items():
-                if not isinstance(sym, symcls):
+                if not isinstance(sym, kind):
                     result.pop(name)
         return result
     
     def get_relations(self):
-        return self.get_symbols('Set')
+        return self.get_symbols(RelationSymbol)
     
     def get_maps(self):
-        return self.get_symbols('Map')
+        return self.get_symbols(MapSymbol)
     
     def get_vars(self):
-        return self.get_symbols('Var')
+        return self.get_symbols(VarSymbol)
     
     def apply_symconfig(self, name, info):
         """Given a symbol name and a key-value dictionary of symbol
