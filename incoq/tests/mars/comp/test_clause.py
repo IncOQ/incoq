@@ -38,7 +38,7 @@ class ClauseCase(unittest.TestCase):
     
     def test_factory(self):
         cl_ast = L.RelMember(['x', 'y', 'z'], 'R')
-        cl_info = ClauseInfoFactory().make_info(cl_ast)
+        cl_info = ClauseInfoFactory().make_clause_info(cl_ast)
         self.assertEqual(cl_info, RelMemberInfo(cl_ast))
 
 

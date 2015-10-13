@@ -77,7 +77,7 @@ class ClauseInfoFactory:
     appropriate type to wrap it.
     """
     
-    def make_info(self, node):
+    def make_clause_info(self, node):
         handler_name = 'handle_' + node.__class__.__name__
         handler = getattr(self, handler_name, None)
         if handler is None:
