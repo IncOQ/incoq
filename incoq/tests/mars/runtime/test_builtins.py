@@ -12,6 +12,8 @@ class BuiltinsCase(unittest.TestCase):
     def test_noops(self):
         CONFIG(1, 2, a=3)
         SYMCONFIG(1, a=2, b=3)
+        QUERY(1, a=2, b=3)
+        self.assertEqual(QUERY('Q', 5), 5)
     
     def test_set_identity(self):
         s1 = Set()

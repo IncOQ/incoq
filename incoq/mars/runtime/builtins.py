@@ -4,6 +4,7 @@
 __all__ = [
     'CONFIG',
     'SYMCONFIG',
+    'QUERY',
     
     'IncOQType',
     'Set',
@@ -24,6 +25,17 @@ def CONFIG(*args, **kargs):
 
 def SYMCONFIG(*args, **kargs):
     pass
+
+def QUERY(*args, **kargs):
+    # QUERY is overloaded as both an expression annotation and a
+    # top-level directive. First check for the annotation case,
+    # where we have two positional arguments, the first of which
+    # is a string (query name). In that case, return the wrapped
+    # expression (second argument). Otherwise, no-op.
+    if len(args) == 2 and isinstance(args[0], str):
+        return args[1]
+    else:
+        pass
 
 
 class IncOQType:
