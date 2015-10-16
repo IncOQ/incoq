@@ -201,20 +201,17 @@ class GeneralCallDisallower(L.NodeVisitor):
                         'by function name')
 
 
-def incast_preprocess(tree, symtab):
-    rels = list(symtab.get_relations().keys())
-    maps = list(symtab.get_maps().keys())
+def incast_preprocess(tree, symtab, query_name_map):
+    # Mark query occurrences.
+    tree = mark_queries(tree, query_name_map)
     # Recognize relation updates.
-    tree = SetMapImporter.run(tree, symtab.fresh_vars, rels, maps)
+    tree = SetMapImporter.run(tree, symtab.fresh_vars,
+                              symtab.get_relations().keys(),
+                              symtab.get_maps().keys())
     # Check to make sure certain general-case IncAST nodes
     # aren't used.
     AttributeDisallower.run(tree)
     GeneralCallDisallower.run(tree)
-    # Make symbols for non-relation, non-map variables.
-    names = L.IdentFinder.find_vars(tree)
-    names.difference_update(rels, maps)
-    for name in names:
-        symtab.define_var(name)
     return tree
 
 

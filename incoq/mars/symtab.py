@@ -165,6 +165,8 @@ class SymbolTable:
         """Global symbols, in declaration order."""
         self.fresh_vars = N.fresh_name_generator()
         """Fresh variable name generator."""
+        self.fresh_query_names = N.fresh_name_generator('Query{}')
+        """Fresh name generator for queries."""
     
     def define_symbol(self, name, kind, **kargs):
         """Define a new symbol of the given kind."""

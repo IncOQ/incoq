@@ -304,7 +304,7 @@ class DirectiveImporter(P.MacroProcessor):
     # annotation and as a top-level directive statement. The in-line
     # form is taken care of by the importing to IncAST that comes after
     # these Python rewriters. The directive statement is handled here
-    # and not handled by the usual L.Parser.p*() functions.
+    # and not by the usual L.Parser.p*() functions.
     
     def process(self, tree):
         self.info = SimpleNamespace(config_info=[],
@@ -340,6 +340,9 @@ class DirectiveImporter(P.MacroProcessor):
 
 
 def py_preprocess(tree):
+    """Take in a Python AST tree, partially preprocess it, and return
+    the corresponding IncAST tree along with parsed information.
+    """
     # Rewrite QUERY directives to replace their source strings with
     # the corresponding parsed Python ASTs. This ensures that subsequent
     # preprocessing steps will rewrite both occurrences equally, so that
@@ -358,6 +361,12 @@ def py_preprocess(tree):
     tree, rels = preprocess_vardecls(tree)
     # Get symbol info.
     tree, info = DirectiveImporter.run(tree)
+    
+    # Convert the tree and parsed query info to IncAST.
+    tree = L.import_incast(tree)
+    info.query_info = [(L.import_incast(query), value)
+                       for query, value in info.query_info]
+    
     return tree, rels, info
 
 

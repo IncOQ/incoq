@@ -32,8 +32,9 @@ def debug_symbols(symtab, illtyped, badsyms):
 
 
 def preprocess_tree(tree, symtab, config):
-    """Return a preprocessed tree. Store symbol declarations
-    in the symbol table.
+    """Take in a Python AST tree, as well as a symbol table and global
+    configuration. Populate the symbol table and configuration, and
+    return the preprocessed IncAST tree.
     """
     # Preprocess at the Python level. Obtain parsed information
     # about symbols and directives.
@@ -43,18 +44,27 @@ def preprocess_tree(tree, symtab, config):
     for rel in rels:
         symtab.define_relation(rel)
     
-    # Use parsed directive info to update config, symbol config,
-    # and query info.
+    # Use parsed directive info to update the global config and
+    # symbol-specific config.
     for d in info.config_info:
         config.update(**d)
     for name, d in info.symconfig_info:
         symtab.apply_symconfig(name, d)
-    ### TODO: Query updating. Query expressions need to be
-    ### imported as IncAST.
     
-    # Bring into IncAST and continue preprocessing.
-    tree = L.import_incast(tree)
-    tree = incast_preprocess(tree, symtab)
+    # Create query names for parsed query info.
+    query_name_map = {q: next(symtab.fresh_query_names)
+                      for q, _ in info.query_info}
+    
+    # Continue preprocessing.
+    tree = incast_preprocess(tree, symtab, query_name_map)
+    
+    # Make symbols for non-relation, non-map variables.
+    names = L.IdentFinder.find_vars(tree)
+    names.difference_update(symtab.get_relations().keys(),
+                            symtab.get_maps().keys())
+    for name in names:
+        symtab.define_var(name)
+    
     return tree
 
 
