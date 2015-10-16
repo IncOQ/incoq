@@ -9,20 +9,20 @@ from incoq.mars.symtab import N, RelationSymbol, MapSymbol
 from incoq.mars.transform.py_rewritings import *
 
 
-class QueryDirectiveRewriterCase(unittest.TestCase):
+class QueryDirectiveCase(unittest.TestCase):
     
     def test_preprocess(self):
         tree = P.Parser.p('''
             QUERY('1 + 2', a=3, b=4)
             ''')
-        tree = QueryDirectiveRewriter.run(tree)
+        tree = preprocess_query_directives(tree)
         exp_tree = P.Parser.p('''
             QUERY(1 + 2, a=3, b=4)
             ''')
         self.assertEqual(tree, exp_tree)
 
 
-class ConstructPreprocessorCase(unittest.TestCase):
+class ConstructCase(unittest.TestCase):
     
     def setUp(self):
         class check(P.ExtractMixin):
@@ -34,7 +34,7 @@ class ConstructPreprocessorCase(unittest.TestCase):
                 if exp_source is None:
                     exp_source = source
                 tree = P.Parser.action(source, mode=mode)
-                tree = ConstructPreprocessor.run(tree)
+                tree = preprocess_constructs(tree)
                 exp_tree = P.Parser.action(exp_source, mode=mode)
                 self.assertEqual(tree, exp_tree)
         
@@ -50,11 +50,11 @@ class ConstructPreprocessorCase(unittest.TestCase):
         self.check.pe('a < b < c', 'a < b and b < c')
 
 
-class PassPostprocessorCase(unittest.TestCase):
+class PassCase(unittest.TestCase):
     
     def test_postprocess(self):
         # Make a tree by parsing syntactically valid code, then
-        # scrubbing out all the occurrences of Pass. The processor
+        # scrubbing out all the occurrences of Pass. The postprocessor
         # should add them back.
         class PassScrubber(P.NodeTransformer):
             def visit_Pass(self, node):
@@ -73,7 +73,7 @@ class PassPostprocessorCase(unittest.TestCase):
                 x = 1
             ''')
         tree = PassScrubber.run(orig_tree)
-        tree = PassPostprocessor.run(tree)
+        tree = postprocess_pass(tree)
         self.assertEqual(tree, orig_tree)
 
 
@@ -86,20 +86,24 @@ class RuntimeImportCase(unittest.TestCase):
             import incoq.mars.runtime as bar
             from incoq.mars.runtime import *
             import baz
+            from baz import Set
             from baz import *
             Q = incoq.mars.runtime.Set()
             R = foo.Set()
             S = bar.Set()
             T = Set()
+            U = baz.Set()
             ''')
-        tree = RuntimeImportPreprocessor.run(tree)
+        tree = preprocess_runtime_import(tree)
         exp_tree = P.Parser.p('''
             import baz
+            from baz import Set
             from baz import *
             Q = Set()
             R = Set()
             S = Set()
             T = Set()
+            U = baz.Set()
             ''')
         self.assertEqual(tree, exp_tree)
     
@@ -107,7 +111,7 @@ class RuntimeImportCase(unittest.TestCase):
         tree = P.Parser.p('''
             R = Set()
             ''')
-        tree = RuntimeImportPostprocessor.run(tree)
+        tree = postprocess_runtime_import(tree)
         exp_tree = P.Parser.p('''
             from incoq.mars.runtime import *
             R = Set()
@@ -124,7 +128,7 @@ class MainCallCase(unittest.TestCase):
                 main()
             y = 2
             ''')
-        tree = MainCallRemover.run(tree)
+        tree = preprocess_main_call(tree)
         exp_tree = P.Parser.p('''
             x = 1
             y = 2
@@ -137,7 +141,7 @@ class MainCallCase(unittest.TestCase):
             def main():
                 pass
             ''')
-        tree = MainCallAdder.run(tree)
+        tree = postprocess_main_call(tree)
         exp_tree = P.Parser.p('''
             x = 1
             def main():
@@ -150,14 +154,14 @@ class MainCallCase(unittest.TestCase):
         tree = P.Parser.p('''
             x = 1
             ''')
-        tree = MainCallAdder.run(tree)
+        tree = postprocess_main_call(tree)
         exp_tree = P.Parser.p('''
             x = 1
             ''')
         self.assertEqual(tree, exp_tree)
 
 
-class VardeclCase(unittest.TestCase):
+class VarDeclCase(unittest.TestCase):
     
     def test_preprocess(self):
         tree = P.Parser.p('''
@@ -168,7 +172,7 @@ class VardeclCase(unittest.TestCase):
             def main():
                 T = Set()
             ''')
-        tree, rels = preprocess_vardecls(tree)
+        tree, rels = preprocess_var_decls(tree)
         exp_tree = P.Parser.p('''
             x = 1
             def main():
@@ -187,7 +191,7 @@ class VardeclCase(unittest.TestCase):
             def main():
                 print(S, T)
             ''')
-        tree = postprocess_vardecls(tree, [S_sym, T_sym], [S_bu_sym])
+        tree = postprocess_var_decls(tree, [S_sym, T_sym], [S_bu_sym])
         exp_tree = P.Parser.p('''
             COMMENT('S : {Top}')
             S = Set()
@@ -201,7 +205,7 @@ class VardeclCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         
         tree = P.Parser.p('pass')
-        tree = postprocess_vardecls(tree, [], [])
+        tree = postprocess_var_decls(tree, [], [])
         exp_tree = P.Parser.p('pass')
         self.assertEqual(tree, exp_tree)
 
@@ -217,7 +221,7 @@ class DirectiveCase(unittest.TestCase):
             QUERY(1 + 2, a=3, b=4)
             pass
             ''')
-        tree, info = DirectiveImporter.run(tree)
+        tree, info = preprocess_directives(tree)
         exp_tree = P.Parser.p('''
             pass
             ''')

@@ -71,7 +71,6 @@ def preprocess_tree(tree, symtab, config):
 def postprocess_tree(tree, symtab):
     """Return a post-processed tree."""
     tree = incast_postprocess(tree)
-    tree = L.export_incast(tree)
     tree = py_postprocess(tree, symtab)
     return tree
 

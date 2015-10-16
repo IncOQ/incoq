@@ -5,14 +5,12 @@ __all__ = [
     # Preprocessings are paired with their postprocessings,
     # and listed in order of their application, outermost-first.
     
-    'QueryMarker',
-    'mark_queries',
+    'preprocess_query_markings',
     
-    'SetMapImporter',
-    'SetMapExporter',
+    'preprocess_rels_and_maps',
+    'postprocess_rels_and_maps',
     
-    'AttributeDisallower',
-    'GeneralCallDisallower',
+    'disallow_features',
     
     # Main exports.
     'incast_preprocess',
@@ -92,7 +90,7 @@ class QueryMarker(L.NodeTransformer):
         return node
 
 
-def mark_queries(tree, query_name_map):
+def preprocess_query_markings(tree, query_name_map):
     """Apply QueryMarker, taking care of the case where some of the
     given queries can be nested inside other ones.
     """
@@ -112,7 +110,7 @@ def mark_queries(tree, query_name_map):
     return QueryMarker.run(tree, new_map, strict=True)
 
 
-class SetMapImporter(L.NodeTransformer):
+class RelMapImporter(L.NodeTransformer):
     
     """Rewrite nodes for sets and dicts as nodes for relations and maps,
     where possible.
@@ -166,7 +164,7 @@ class SetMapImporter(L.NodeTransformer):
         return node
 
 
-class SetMapExporter(L.NodeTransformer):
+class RelMapExporter(L.NodeTransformer):
     
     """Rewrite nodes for relations and maps as nodes for sets and dicts."""
     
@@ -184,38 +182,46 @@ class SetMapExporter(L.NodeTransformer):
         return L.Member(L.tuplify(node.vars), L.Name(node.rel))
 
 
-class AttributeDisallower(L.NodeVisitor):
+preprocess_rels_and_maps = RelMapImporter.run
+postprocess_rels_and_maps = RelMapExporter.run
+
+
+class FeatureDisallower(L.NodeVisitor):
     
-    """Fail if there are any Attribute nodes in the tree."""
+    """Fail if there are any Attribute or GeneralCall nodes in the
+    tree.
+    """
     
     def visit_Attribute(self, node):
         raise TypeError('IncAST does not allow attributes')
-
-
-class GeneralCallDisallower(L.NodeVisitor):
-    
-    """Fail if there are any GeneralCall nodes in the tree."""
-    
+        
     def visit_GeneralCall(self, node):
         raise TypeError('IncAST function calls must be directly '
                         'by function name')
 
+disallow_features = FeatureDisallower.run
+
 
 def incast_preprocess(tree, symtab, query_name_map):
+    """Preprocess an IncAST tree, returning the new tree."""
     # Mark query occurrences.
-    tree = mark_queries(tree, query_name_map)
+    tree = preprocess_query_markings(tree, query_name_map)
+    
     # Recognize relation updates.
-    tree = SetMapImporter.run(tree, symtab.fresh_vars,
-                              symtab.get_relations().keys(),
-                              symtab.get_maps().keys())
+    tree = preprocess_rels_and_maps(tree, symtab.fresh_vars,
+                                    symtab.get_relations().keys(),
+                                    symtab.get_maps().keys())
+    
     # Check to make sure certain general-case IncAST nodes
     # aren't used.
-    AttributeDisallower.run(tree)
-    GeneralCallDisallower.run(tree)
+    disallow_features(tree)
+    
     return tree
 
 
 def incast_postprocess(tree):
+    """Postprocess an IncAST tree, returning the new tree."""
     # Turn relation updates back into set updates.
-    tree = SetMapExporter.run(tree)
+    tree = postprocess_rels_and_maps(tree)
+    
     return tree

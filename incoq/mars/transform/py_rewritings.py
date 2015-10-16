@@ -5,22 +5,22 @@ __all__ = [
     # Preprocessings are paired with their postprocessings,
     # and listed in order of their application, outermost-first.
     
-    'QueryDirectiveRewriter',
+    'preprocess_query_directives',
     
-    'ConstructPreprocessor',
+    'preprocess_constructs',
     
-    'PassPostprocessor',
+    'postprocess_pass',
     
-    'RuntimeImportPreprocessor',
-    'RuntimeImportPostprocessor',
+    'preprocess_runtime_import',
+    'postprocess_runtime_import',
     
-    'MainCallRemover',
-    'MainCallAdder',
+    'preprocess_main_call',
+    'postprocess_main_call',
     
-    'preprocess_vardecls',
-    'postprocess_vardecls',
+    'preprocess_var_decls',
+    'postprocess_var_decls',
     
-    'DirectiveImporter',
+    'preprocess_directives',
     
     # Main exports.
     'py_preprocess',
@@ -35,12 +35,6 @@ from incoq.util.type import typechecked
 from incoq.util.collections import OrderedSet
 
 from incoq.mars.incast import P, L
-
-
-main_boilerplate_stmt = P.Parser.ps('''
-    if __name__ == '__main__':
-        main()
-    ''')
 
 
 class QueryDirectiveRewriter(P.NodeTransformer):
@@ -65,11 +59,13 @@ class QueryDirectiveRewriter(P.NodeTransformer):
             node = node._replace(value=call)
         return node
 
+preprocess_query_directives = QueryDirectiveRewriter.run
 
-class ConstructPreprocessor(P.NodeTransformer):
+
+class ConstructRewriter(P.NodeTransformer):
     
-    """Preprocessor for Python code that eliminates some syntactic
-    constructs that can't be directly expressed in IncAST.
+    """Rewrite some syntactic constructs that can't be directly
+    expressed in IncAST.
     """
     
     def visit_Assign(self, node):
@@ -103,8 +99,10 @@ class ConstructPreprocessor(P.NodeTransformer):
         
         return node
 
+preprocess_constructs = ConstructRewriter.run
 
-class PassPostprocessor(P.NodeTransformer):
+
+class PassAdder(P.NodeTransformer):
     
     """Add a Pass statement to any empty suite."""
     
@@ -124,8 +122,10 @@ class PassPostprocessor(P.NodeTransformer):
     visit_While = suite_helper
     visit_If = suite_helper
 
+postprocess_pass = PassAdder.run
 
-class RuntimeImportPreprocessor(P.NodeTransformer):
+
+class RuntimeImportRemover(P.NodeTransformer):
     
     """Eliminate the runtime import statement and turn qualified
     names from the runtime into unqualified names, e.g.,
@@ -144,7 +144,11 @@ class RuntimeImportPreprocessor(P.NodeTransformer):
     
     def __init__(self):
         super().__init__()
-        self.aliases = set()
+    
+    def process(self, tree):
+        self.quals = set()
+        self.quals.add(P.Parser.pe('incoq.mars.runtime'))
+        return super().process(tree)
     
     def visit_Import(self, node):
         pat = P.Import([P.alias('incoq.mars.runtime', P.PatVar('_ALIAS'))])
@@ -152,8 +156,10 @@ class RuntimeImportPreprocessor(P.NodeTransformer):
         if match is None:
             return node
         
+        # Remove the import. Record the alias to remove its uses.
         if match['_ALIAS'] is not None:
-            self.aliases.add(match['_ALIAS'])
+            qual = P.Name(match['_ALIAS'], P.Load())
+            self.quals.add(qual)
         return []
     
     def visit_ImportFrom(self, node):
@@ -164,14 +170,17 @@ class RuntimeImportPreprocessor(P.NodeTransformer):
         return []
     
     def visit_Attribute(self, node):
+        # Note: As written, this will remove all aliases, not just the
+        # prefix alias. That is, if A is an alias for the runtime in
+        # quals, this will rewrite A.A...A.foo as foo. This shouldn't
+        # be a problem because we shouldn't see aliases chained in this
+        # manner. 
+        
         node = self.generic_visit(node)
         
-        quals = []
-        quals.append(P.Parser.pe('incoq.mars.runtime'))
-        for alias in self.aliases:
-            quals.append(P.Name(alias, P.Load()))
-        
-        for qual in quals:
+        # Check prefix against each alias and the fully qualified path.
+        # If none match, no change.
+        for qual in self.quals:
             pat = P.Attribute(qual, P.PatVar('_ATTR'), P.Load())
             match = P.match(pat, node)
             if match is not None:
@@ -182,13 +191,23 @@ class RuntimeImportPreprocessor(P.NodeTransformer):
         return P.Name(match['_ATTR'], P.Load())
 
 
-class RuntimeImportPostprocessor(P.NodeTransformer):
+class RuntimeImportAdder(P.NodeTransformer):
     
     """Add a line to import the runtime library."""
     
     def visit_Module(self, node):
         import_stmt = P.Parser.ps('from incoq.mars.runtime import *')
         return node._replace(body=(import_stmt,) + node.body)
+
+
+preprocess_runtime_import = RuntimeImportRemover.run
+postprocess_runtime_import = RuntimeImportAdder.run
+
+
+main_boilerplate_stmt = P.Parser.ps('''
+    if __name__ == '__main__':
+        main()
+    ''')
 
 
 class MainCallRemover(P.NodeTransformer):
@@ -214,6 +233,10 @@ class MainCallAdder(P.NodeTransformer):
     
     """Add boilerplate to call main(), if this function is present."""
     
+    # TODO: Instead of checking for main() to be defined syntactically,
+    # refactor so that we get this info passed in from the symbol table.
+    # Has to wait until we track function definitions in symbol table.
+    
     def process(self, tree):
         self.has_main = False
         tree = super().process(tree)
@@ -231,7 +254,11 @@ class MainCallAdder(P.NodeTransformer):
             self.has_main = True
 
 
-def preprocess_vardecls(tree):
+preprocess_main_call = MainCallRemover.run
+postprocess_main_call = MainCallAdder.run
+
+
+def preprocess_var_decls(tree):
     """Eliminate global variable declarations of the form
     
         R = Set()
@@ -258,7 +285,7 @@ def preprocess_vardecls(tree):
     return tree, rels
 
 
-def postprocess_vardecls(tree, rels, maps):
+def postprocess_var_decls(tree, rels, maps):
     """Prepend global variable declarations for the given relation
     names.
     """
@@ -280,7 +307,7 @@ def postprocess_vardecls(tree, rels, maps):
     return tree
 
 
-class DirectiveImporter(P.MacroProcessor):
+class DirectiveReader(P.MacroProcessor):
     
     """Parse and remove directives of the forms:
     
@@ -338,29 +365,37 @@ class DirectiveImporter(P.MacroProcessor):
         self.info.query_info.append((query, d))
         return ()
 
+preprocess_directives = DirectiveReader.run
+
 
 def py_preprocess(tree):
     """Take in a Python AST tree, partially preprocess it, and return
     the corresponding IncAST tree along with parsed information.
     """
     # Rewrite QUERY directives to replace their source strings with
-    # the corresponding parsed Python ASTs. This ensures that subsequent
-    # preprocessing steps will rewrite both occurrences equally, so that
-    # the parsed query syntax in the QUERY directive continues to
-    # exactly match the syntax at the actual occurrence of the query.
-    tree = QueryDirectiveRewriter.run(tree)
+    # the corresponding parsed Python ASTs. Provided that the other
+    # preprocessing steps are functional (i.e., apply equally to
+    # multiple occurrences of the same AST), this ensures that any
+    # subsequent steps that modify occurrences of a query will also
+    # modify its occurrence in the QUERY directive.
+    tree = preprocess_query_directives(tree)
+    
     # Admit some constructs as syntactic sugar that would otherwise
     # be excluded from IncAST.
-    tree = ConstructPreprocessor.run(tree)
+    tree = preprocess_constructs(tree)
+    
     # Get rid of import statement and qualifiers for the runtime
     # library.
-    tree = RuntimeImportPreprocessor.run(tree)
+    tree = preprocess_runtime_import(tree)
+    
     # Get rid of main boilerplate.
-    tree = MainCallRemover.run(tree)
+    tree = preprocess_main_call(tree)
+    
     # Get relation declarations.
-    tree, rels = preprocess_vardecls(tree)
+    tree, rels = preprocess_var_decls(tree)
+    
     # Get symbol info.
-    tree, info = DirectiveImporter.run(tree)
+    tree, info = preprocess_directives(tree)
     
     # Convert the tree and parsed query info to IncAST.
     tree = L.import_incast(tree)
@@ -371,14 +406,24 @@ def py_preprocess(tree):
 
 
 def py_postprocess(tree, symtab):
+    """Take in an IncAST tree, postprocess it, and return the
+    corresponding Python AST tree.
+    """
+    # Convert to Python AST.
+    tree = L.export_incast(tree)
+    
+    # Add in declarations for relations.
     rels = list(symtab.get_relations().values())
     maps = list(symtab.get_maps().values())
-    # Add in declarations for relations.
-    tree = postprocess_vardecls(tree, rels, maps)
+    tree = postprocess_var_decls(tree, rels, maps)
+    
     # Add in main boilerplate, if main() is defined.
-    tree = MainCallAdder.run(tree)
+    tree = postprocess_main_call(tree)
+    
     # Add the runtime import statement.
-    tree = RuntimeImportPostprocessor.run(tree)
+    tree = postprocess_runtime_import(tree)
+    
     # Correct any missing Pass statements.
-    tree = PassPostprocessor.run(tree)
+    tree = postprocess_pass(tree)
+    
     return tree

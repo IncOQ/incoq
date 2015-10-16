@@ -6,6 +6,7 @@ import unittest
 from incoq.mars.incast import L
 from incoq.mars.symtab import N
 from incoq.mars.transform.incast_rewritings import *
+from incoq.mars.transform.incast_rewritings import QueryMarker
 
 
 class QueryMarkerCase(unittest.TestCase):
@@ -47,7 +48,7 @@ class QueryMarkerCase(unittest.TestCase):
             ''')
         query_name_map = {L.Parser.pe('(2 + 3)'): 'Q1',
                           L.Parser.pe('1 + (2 + 3)'): 'Q2'}
-        tree = mark_queries(tree, query_name_map)
+        tree = preprocess_query_markings(tree, query_name_map)
         exp_tree = L.Parser.p('''
             def main():
                 print(QUERY('Q2', (1 + QUERY('Q1', (2 + 3)))))
@@ -55,9 +56,9 @@ class QueryMarkerCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
 
 
-class SetMapCase(unittest.TestCase):
+class RelMapCase(unittest.TestCase):
     
-    def test_preprocess(self):
+    def test_preprocess_postprocess(self):
         orig_tree = L.Parser.p('''
             def main():
                 S.add(x)
@@ -69,8 +70,8 @@ class SetMapCase(unittest.TestCase):
                 N[k] = v
                 {x for (x, y) in S}
             ''')
-        tree = SetMapImporter.run(orig_tree, N.fresh_name_generator(),
-                                  ['S'], ['M'])
+        tree = preprocess_rels_and_maps(orig_tree, N.fresh_name_generator(),
+                                        ['S'], ['M'])
         exp_tree = L.Parser.p('''
             def main():
                 S.reladd(x)
@@ -85,7 +86,7 @@ class SetMapCase(unittest.TestCase):
             ''')
         self.assertEqual(tree, exp_tree)
         
-        tree = SetMapExporter.run(tree)
+        tree = postprocess_rels_and_maps(tree)
         exp_tree = L.Parser.p('''
             def main():
                 S.add(x)
@@ -101,18 +102,18 @@ class SetMapCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
 
 
-class DisallowerCase(unittest.TestCase):
+class DisallowCase(unittest.TestCase):
     
     def test_disallower_attr(self):
         with self.assertRaises(TypeError):
-            AttributeDisallower.run(L.Parser.pc('o.f'))
+            disallow_features(L.Parser.pc('o.f'))
     
     def test_disallower_generalcall(self):
         # Call nodes good.
-        GeneralCallDisallower.run(L.Parser.pc('f(a)'))
+        disallow_features(L.Parser.pc('f(a)'))
         # GeneralCall nodes bad.
         with self.assertRaises(TypeError):
-            GeneralCallDisallower.run(L.Parser.pc('o.f(a)'))
+            disallow_features(L.Parser.pc('o.f(a)'))
 
 
 if __name__ == '__main__':
