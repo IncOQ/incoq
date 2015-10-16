@@ -10,6 +10,12 @@ from incoq.mars.symtab import *
 
 class NamingCase(unittest.TestCase):
     
+    def test_fresh_name_generator(self):
+        gen = N.fresh_name_generator('x{}')
+        names = [next(gen) for _ in range(3)]
+        exp_names = ['x1', 'x2', 'x3']
+        self.assertEqual(names, exp_names)
+    
     def test_subnames(self):
         names = N.get_subnames('x', 3)
         exp_names = ['x_v1', 'x_v2', 'x_v3']

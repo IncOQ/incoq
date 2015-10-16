@@ -34,7 +34,7 @@ class AuxmapCase(unittest.TestCase):
         self.assertEqual(code, exp_code)
     
     def test_make_imgadd(self):
-        code = make_imgadd(N.fresh_var_generator(), 'm', 'k', 'v')
+        code = make_imgadd(N.fresh_name_generator(), 'm', 'k', 'v')
         exp_code = L.Parser.pc('''
             if k not in m:
                 _v1 = set()
@@ -44,7 +44,7 @@ class AuxmapCase(unittest.TestCase):
         self.assertEqual(code, exp_code)
     
     def test_make_imgremove(self):
-        code = make_imgremove(N.fresh_var_generator(), 'm', 'k', 'v')
+        code = make_imgremove(N.fresh_name_generator(), 'm', 'k', 'v')
         exp_code = L.Parser.pc('''
             m[k].remove(v)
             if len(m[k]) == 0:
@@ -54,7 +54,7 @@ class AuxmapCase(unittest.TestCase):
     
     def test_maint_add(self):
         auxmap = AuxmapInvariant('m', 'R', L.mask('bu'))
-        func = make_auxmap_maint_func(N.fresh_var_generator(),
+        func = make_auxmap_maint_func(N.fresh_name_generator(),
                                       auxmap, L.SetAdd())
         exp_func = L.Parser.ps('''
             def _maint_m_for_R_add(_elem):
@@ -70,7 +70,7 @@ class AuxmapCase(unittest.TestCase):
     
     def test_maint_remove(self):
         auxmap = AuxmapInvariant('m', 'R', L.mask('bu'))
-        func = make_auxmap_maint_func(N.fresh_var_generator(),
+        func = make_auxmap_maint_func(N.fresh_name_generator(),
                                       auxmap, L.SetRemove())
         exp_func = L.Parser.ps('''
             def _maint_m_for_R_remove(_elem):
@@ -111,7 +111,7 @@ class AuxmapCase(unittest.TestCase):
                 S.reladd(elem)
                 print(S.imglookup('bu', (x,)))
             ''')
-        tree = AuxmapTransformer.run(tree, N.fresh_var_generator(), auxmaps)
+        tree = AuxmapTransformer.run(tree, N.fresh_name_generator(), auxmaps)
         exp_tree = L.Parser.p('''
             def _maint_R_bu_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem

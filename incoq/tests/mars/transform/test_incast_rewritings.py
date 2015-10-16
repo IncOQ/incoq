@@ -69,7 +69,7 @@ class SetMapCase(unittest.TestCase):
                 N[k] = v
                 {x for (x, y) in S}
             ''')
-        tree = SetMapImporter.run(orig_tree, N.fresh_var_generator(),
+        tree = SetMapImporter.run(orig_tree, N.fresh_name_generator(),
                                   ['S'], ['M'])
         exp_tree = L.Parser.p('''
             def main():
