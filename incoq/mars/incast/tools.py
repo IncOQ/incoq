@@ -8,6 +8,7 @@ __all__ = [
     'IdentFinder',
     'Templater',
     'MacroExpander',
+    'tree_size',
 ]
 
 
@@ -275,3 +276,19 @@ class MacroExpander(L.PatternTransformer):
             (self.meth_stmt_pattern,
              partial(self.dispatch, prefix='handle_ms_')),
         ]
+
+
+class Counter(L.NodeVisitor):
+    
+    def process(self, tree):
+        self.count = 0
+        super().process(tree)
+        return self.count
+    
+    def generic_visit(self, node):
+        super().generic_visit(node)
+        self.count += 1
+
+def tree_size(tree):
+    """Return the number of nodes in an AST."""
+    return Counter.run(tree)

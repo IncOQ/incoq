@@ -7,6 +7,7 @@
 
 import unittest
 import string
+from random import shuffle
 
 from incoq.mars.incast import nodes as L
 from incoq.mars.incast.tools import *
@@ -133,6 +134,44 @@ class MacroExpanderCase(unittest.TestCase):
         tree = A.run(tree)
         exp_tree = L.Num(5)
         self.assertEqual(tree, exp_tree)
+
+
+class TreeCase(unittest.TestCase):
+    
+    def test_tree_size(self):
+        tree = Parser.pe('1 + 2')
+        self.assertEqual(tree_size(tree), 4)
+        
+        tree = Parser.ps('A')
+        self.assertEqual(tree_size(tree), 2)
+    
+    def test_tree_topsort(self):
+        # Create some trees.
+        pe = Parser.pe
+        t1223 = pe('(1 + 2) + (2 + 3)')
+        t12 = pe('1 + 2')
+        t23 = pe('2 + 3')
+        t1 = pe('1')
+        t2 = pe('2')
+        trees = [t1223, t12, t23, t1, t2]
+        # Partial order of containment.
+        exp_order = [
+            (t1, t12),
+            (t1, t1223),
+            (t2, t12),
+            (t2, t23),
+            (t2, t1223),
+            (t12, t1223),
+            (t23, t1223),
+        ]
+        
+        # Shuffle randomly, topsort, and confirm the partial order.
+        # Repeat 10 times.
+        for _ in range(10):
+            shuffle(trees)
+            result = sorted(trees, key=tree_size)
+            for tleft, tright in exp_order:
+                self.assertTrue(result.index(tleft) < result.index(tright))
 
 
 if __name__ == '__main__':
