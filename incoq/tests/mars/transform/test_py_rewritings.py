@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import P, L
 from incoq.mars.types import Top, Set, Map
-from incoq.mars.symtab import N, RelationSymbol, MapSymbol
+from incoq.mars.symtab import N
 from incoq.mars.transform.py_rewritings import *
 
 
@@ -183,15 +183,15 @@ class VarDeclCase(unittest.TestCase):
         self.assertSequenceEqual(rels, exp_rels)
     
     def test_postprocess(self):
-        S_sym = RelationSymbol('S', type=Set(Top))
-        T_sym = RelationSymbol('T')
-        S_bu_sym = MapSymbol('S_bu', type=Map(Top, Top))
-        
+        decls = [
+            ('S', 'Set', 'S : {Top}'),
+            ('T', 'Set', 'T : {Bottom}'),
+            ('S_bu', 'Map', 'S_bu : {Top: Top}')]
         tree = P.Parser.p('''
             def main():
                 print(S, T)
             ''')
-        tree = postprocess_var_decls(tree, [S_sym, T_sym], [S_bu_sym])
+        tree = postprocess_var_decls(tree, decls)
         exp_tree = P.Parser.p('''
             COMMENT('S : {Top}')
             S = Set()
@@ -205,7 +205,7 @@ class VarDeclCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         
         tree = P.Parser.p('pass')
-        tree = postprocess_var_decls(tree, [], [])
+        tree = postprocess_var_decls(tree, [])
         exp_tree = P.Parser.p('pass')
         self.assertEqual(tree, exp_tree)
 

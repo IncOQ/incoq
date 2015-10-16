@@ -40,7 +40,7 @@ class SymbolCase(unittest.TestCase):
         exp_s = 'Relation R (type: {Top})'
         self.assertEqual(s, exp_s)
         
-        s = r.decl_comment()
+        s = r.decl_comment
         exp_s = 'R : {Top}'
         self.assertEqual(s, exp_s)
     

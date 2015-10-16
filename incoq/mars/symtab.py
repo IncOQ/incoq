@@ -101,6 +101,7 @@ class TypedSymbolMixin(Symbol):
     parse_min_type = type_helper
     parse_max_type = type_helper
     
+    @property
     def decl_comment(self):
         return self.name + ' : ' + str(self.type)
 
@@ -121,6 +122,8 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
         if len(opts) > 0:
             s += ' (' + ', '.join(opts) + ')'
         return s
+    
+    decl_constr = 'Set'
 
 
 class MapSymbol(TypedSymbolMixin, Symbol):
@@ -134,6 +137,8 @@ class MapSymbol(TypedSymbolMixin, Symbol):
         if self.type is not None:
             s += ' (type: {})'.format(self.type)
         return s
+    
+    decl_constr = 'Map'
 
 
 class VarSymbol(TypedSymbolMixin, Symbol):

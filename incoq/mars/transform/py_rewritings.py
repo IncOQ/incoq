@@ -285,24 +285,20 @@ def preprocess_var_decls(tree):
     return tree, rels
 
 
-def postprocess_var_decls(tree, rels, maps):
-    """Prepend global variable declarations for the given relation
-    names.
+def postprocess_var_decls(tree, decls):
+    """Prepend global variable declarations to the program. Each given
+    declaration is a triple of a variable name, type name (e.g., 'Set'
+    or 'Map'), and a declaration comment string.
     """
     assert isinstance(tree, P.Module)
     header = ()
-    for rel in rels:
+    for var_name, type_name, comment in decls:
         header += P.Parser.pc('''
             COMMENT(_S)
-            _REL = Set()
-            ''', subst={'_S': P.Str(rel.decl_comment()),
-                        '_REL': rel.name})
-    for map in maps:
-        header += P.Parser.pc('''
-            COMMENT(_S)
-            _MAP = Map()
-            ''', subst={'_S': P.Str(map.decl_comment()),
-                        '_MAP': map.name})
+            _VAR = _TYPE()
+            ''', subst={'_S': P.Str(comment),
+                        '_VAR': var_name,
+                        '_TYPE': type_name})
     tree = tree._replace(body=header + tree.body)
     return tree
 
@@ -405,17 +401,16 @@ def py_preprocess(tree):
     return tree, rels, info
 
 
-def py_postprocess(tree, symtab):
+def py_postprocess(tree, *, decls):
     """Take in an IncAST tree, postprocess it, and return the
-    corresponding Python AST tree.
+    corresponding Python AST tree. See postprocess_var_decls()
+    for the format of decls.
     """
     # Convert to Python AST.
     tree = L.export_incast(tree)
     
     # Add in declarations for relations.
-    rels = list(symtab.get_relations().values())
-    maps = list(symtab.get_maps().values())
-    tree = postprocess_var_decls(tree, rels, maps)
+    tree = postprocess_var_decls(tree, decls)
     
     # Add in main boilerplate, if main() is defined.
     tree = postprocess_main_call(tree)

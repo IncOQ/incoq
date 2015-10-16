@@ -202,15 +202,13 @@ class FeatureDisallower(L.NodeVisitor):
 disallow_features = FeatureDisallower.run
 
 
-def incast_preprocess(tree, symtab, query_name_map):
+def incast_preprocess(tree, *, fresh_vars, rels, maps, query_name_map):
     """Preprocess an IncAST tree, returning the new tree."""
     # Mark query occurrences.
     tree = preprocess_query_markings(tree, query_name_map)
     
     # Recognize relation updates.
-    tree = preprocess_rels_and_maps(tree, symtab.fresh_vars,
-                                    symtab.get_relations().keys(),
-                                    symtab.get_maps().keys())
+    tree = preprocess_rels_and_maps(tree, fresh_vars, rels, maps)
     
     # Check to make sure certain general-case IncAST nodes
     # aren't used.

@@ -9,6 +9,8 @@ __all__ = [
 ]
 
 
+from itertools import chain
+
 from incoq.mars.incast import L, P
 from incoq.mars.type_analysis import analyze_types
 from incoq.mars.config import Config
@@ -40,7 +42,17 @@ def preprocess_tree(tree, symtab, config):
     # about symbols and directives.
     tree, rels, info = py_preprocess(tree)
     
-    # Define relations for which a declaration was detected.
+    # Create query names for parsed query info.
+    query_name_map = {q: next(symtab.fresh_query_names)
+                      for q, _ in info.query_info}
+    
+    # Continue preprocessing.
+    # Maps in the input program aren't currently handled.
+    tree = incast_preprocess(tree, fresh_vars=symtab.fresh_vars,
+                             rels=rels, maps=[],
+                             query_name_map=query_name_map)
+    
+    # Define symbols for declared relations.
     for rel in rels:
         symtab.define_relation(rel)
     
@@ -50,13 +62,6 @@ def preprocess_tree(tree, symtab, config):
         config.update(**d)
     for name, d in info.symconfig_info:
         symtab.apply_symconfig(name, d)
-    
-    # Create query names for parsed query info.
-    query_name_map = {q: next(symtab.fresh_query_names)
-                      for q, _ in info.query_info}
-    
-    # Continue preprocessing.
-    tree = incast_preprocess(tree, symtab, query_name_map)
     
     # Make symbols for non-relation, non-map variables.
     names = L.IdentFinder.find_vars(tree)
@@ -70,8 +75,14 @@ def preprocess_tree(tree, symtab, config):
 
 def postprocess_tree(tree, symtab):
     """Return a post-processed tree."""
+    # Get declaration info for relation and map symbols.
+    decls = []
+    for sym in chain(symtab.get_relations().values(),
+                     symtab.get_maps().values()):
+        decls.append((sym.name, sym.decl_constr, sym.decl_comment))
+    
     tree = incast_postprocess(tree)
-    tree = py_postprocess(tree, symtab)
+    tree = py_postprocess(tree, decls=decls)
     return tree
 
 
