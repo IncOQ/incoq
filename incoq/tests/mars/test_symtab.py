@@ -99,5 +99,98 @@ class SymbolTableCase(unittest.TestCase):
         self.assertEqual(s, exp_s)
 
 
+class QueryRewriterCase(unittest.TestCase):
+    
+    def test_basic(self):
+        class Doubler(L.NodeTransformer):
+            def visit_Num(self, node):
+                return node._replace(n=node.n * 2)
+        
+        class DoublerRewriter(QueryRewriter):
+            def rewrite(self, symbol, name, expr):
+                return Doubler.run(expr)
+        
+        symtab = SymbolTable()
+        symtab.define_query('Q1', node=L.Parser.pe('1 + 2'))
+        symtab.define_query('Q2', node=L.Parser.pe('3 + 4'))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', 1 + 2))
+                print(QUERY('Q1', 1 + 2))
+                print(QUERY('Q2', 3 + 4))
+            ''')
+        tree = DoublerRewriter.run(tree, symtab)
+        
+        exp_tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', 2 + 4))
+                print(QUERY('Q1', 2 + 4))
+                print(QUERY('Q2', 6 + 8))
+            ''')
+        self.assertEqual(tree, exp_tree)
+        self.assertEqual(symtab.get_symbols()['Q1'].node,
+                         L.Parser.pe('2 + 4'))
+        self.assertEqual(symtab.get_symbols()['Q2'].node,
+                         L.Parser.pe('6 + 8'))
+    
+    def test_called_once(self):
+        # rewrite() shouldn't be called multiple times for multiple
+        # occurrences.
+        
+        class Counter(QueryRewriter):
+            def process(self, tree):
+                self.called = {}
+                return super().process(tree)
+            def rewrite(self, symbol, name, expr):
+                self.called.setdefault(name, 0)
+                self.called[name] += 1
+                return expr
+        
+        symtab = SymbolTable()
+        symtab.define_query('Q1', node=L.Parser.pe('1 + 2'))
+        symtab.define_query('Q2', node=L.Parser.pe('3 + 4'))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', 1 + 2))
+                print(QUERY('Q1', 1 + 2))
+                print(QUERY('Q2', 3 + 4))
+            ''')
+        counter = Counter(symtab)
+        counter.process(tree)
+        self.assertEqual(counter.called['Q1'], 1)
+        self.assertEqual(counter.called['Q2'], 1)
+    
+    def test_inconsistent(self):
+        # No symbol.
+        symtab = SymbolTable()
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', 1 + 2))
+            ''')
+        with self.assertRaises(L.TransformationError):
+            QueryRewriter.run(tree, symtab)
+        
+        # Symbol / occurrence mismatch.
+        symtab = SymbolTable()
+        symtab.define_query('Q1', node=L.Parser.pe('1 + 2'))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', 3 + 4))
+            ''')
+        with self.assertRaises(L.TransformationError):
+            QueryRewriter.run(tree, symtab)
+        
+        # Multiple symbol mismatch.
+        symtab = SymbolTable()
+        symtab.define_query('Q1', node=L.Parser.pe('1 + 2'))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', 1 + 2))
+                print(QUERY('Q1', 3 + 4))
+            ''')
+        with self.assertRaises(L.TransformationError):
+            QueryRewriter.run(tree, symtab)
+
+
 if __name__ == '__main__':
     unittest.main()

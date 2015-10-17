@@ -11,6 +11,8 @@ __all__ = [
     'QuerySymbol',
     
     'SymbolTable',
+    
+    'QueryRewriter',
 ]
 
 
@@ -238,3 +240,87 @@ class SymbolTable:
         for sym in self.symbols.values():
             entries.append(str(sym))
         return '\n'.join(entries)
+
+
+class QueryRewriter(L.NodeTransformer):
+    
+    """Base class for a transformer that rewrites occurrences of queries
+    in a consistent way.
+    
+    For each unique query in the tree, the method rewrite() is called on
+    that query, and the resulting expression AST is used to replace all
+    of its occurrences. The corresponding entry in the symbol table is
+    also updated with the new AST as well.
+    
+    This preserves the invariant that all Query nodes for a given name
+    agree with the corresponding symbol on the actual AST for the query
+    expression. Furthermore, if we detect that this invariant has
+    already been violated by a previous transformation, we raise
+    TransformationError.
+    
+    When queries are nested, the innermost ones are processed first.
+    In all cases, rewrite is called only once per query (name) appearing
+    in the program.
+    """
+    
+    def __init__(self, symtab):
+        super().__init__()
+        self.symtab = symtab
+    
+    def process(self, tree):
+        # Keep maps from each seen query name to its original expression
+        # and its rewritten expression.
+        self.queries_before = {}
+        self.queries_after = {}
+        tree = super().process(tree)
+        return tree
+    
+    def visit_Query(self, node):
+        node = super().generic_visit(node)
+        
+        name = node.name
+        this_occ = node.query
+        
+        # The first time we see a query, obtain the symbol, check
+        # for consistency with the symbol, call the rewriter, and
+        # update the symbol.
+        if name not in self.queries_before:
+            sym = self.symtab.get_queries().get(name, None)
+            if sym is None:
+                raise L.TransformationError('No symbol for query name "{}"'
+                                            .format(name))
+            if this_occ != sym.node:
+                raise L.TransformationError(
+                    'Inconsistent symbol and occurrence for query '
+                    '"{}": {}, {}'.format(name, sym.node, this_occ))
+            
+            replacement = self.rewrite(sym, name, this_occ)
+            self.queries_before[name] = this_occ
+            self.queries_after[name] = replacement
+            sym.node = replacement
+        
+        # Each subsequent time, check for consistency with the previous
+        # occurrences, and reuse the replacement that was determined the
+        # first time.
+        else:
+            prev_occ = self.queries_before[name]
+            # Check for consistency with previous occurrences.
+            if this_occ != prev_occ:
+                raise L.TransformationError(
+                    'Inconsistent occurrences for query "{}": {}, {}'
+                    .format(name, prev_occ, this_occ))
+            replacement = self.queries_after[name]
+        
+        if replacement is not None:
+            node = node._replace(query=replacement)
+        return node
+    
+    def rewrite(self, symbol, name, expr):
+        """Called once for each unique query name that occurs in the
+        tree. Arguments are the query symbol, the query's name, and
+        the expression of the query (which all occurrences of the query,
+        as well as the symbol itself, should agree on). The return value
+        is a new expression AST for the query, or None to indicate no
+        change.
+        """
+        pass
