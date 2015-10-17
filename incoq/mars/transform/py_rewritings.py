@@ -345,8 +345,8 @@ class DirectiveReader(P.MacroProcessor):
         return ()
     
     @typechecked
-    def handle_fs_SYMCONFIG(self, _func, symbol:P.Name, **kargs):
-        name = symbol.id
+    def handle_fs_SYMCONFIG(self, _func, symbol:P.Str, **kargs):
+        name = symbol.s
         d = {}
         for k, v in kargs.items():
             d[k] = P.LiteralEvaluator.run(v)

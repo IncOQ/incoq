@@ -66,6 +66,7 @@ class IdentFinder(L.NodeVisitor):
     """
     
     fun_ctxs = ('fun.name', 'Call.func')
+    query_ctxs = ('Query.name',)
     
     @classmethod
     def find_functions(cls, tree):
@@ -73,7 +74,8 @@ class IdentFinder(L.NodeVisitor):
     
     @classmethod
     def find_vars(cls, tree):
-        return cls().run(tree, contexts=cls.fun_ctxs, invert=True)
+        return cls().run(tree, contexts=(cls.fun_ctxs + cls.query_ctxs),
+                         invert=True)
     
     def __init__(self, contexts=None, invert=False):
         if contexts is not None:

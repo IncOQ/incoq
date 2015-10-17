@@ -33,6 +33,26 @@ def debug_symbols(symtab, illtyped, badsyms):
                              if sym in badsyms))
 
 
+class QueryFinder(L.NodeVisitor):
+    
+    """Return a mapping from query name to query expression."""
+    
+    def process(self, tree):
+        self.queries = {}
+        super().process(tree)
+        return self.queries
+    
+    def visit_Query(self, node):
+        self.generic_visit(node)
+        
+        if node.name in self.queries:
+            if node.query != self.queries[node.name]:
+                raise L.ProgramError('Multiple inconsistent expressions for '
+                                     'query {}'.format(node.name))
+        else:
+            self.queries[node.name] = node.query
+
+
 def preprocess_tree(tree, symtab, config):
     """Take in a Python AST tree, as well as a symbol table and global
     configuration. Populate the symbol table and configuration, and
@@ -55,6 +75,11 @@ def preprocess_tree(tree, symtab, config):
     # Define symbols for declared relations.
     for rel in rels:
         symtab.define_relation(rel)
+    
+    # Define symbols for queries.
+    queries = QueryFinder.run(tree)
+    for name, query in queries.items():
+        symtab.define_query(name, node=query)
     
     # Use parsed directive info to update the global config and
     # symbol-specific config.
@@ -92,8 +117,9 @@ def do_typeinference(tree, symtab):
     and a list of variables where their max type is exceeded.
     """
     # Retrieve current type information (the type store).
-    store = {name: sym.min_type if sym.type is None else sym.type 
-             for name, sym in symtab.symbols.items()}
+    store = {name: sym.min_type.join(sym.type) 
+             for name, sym in symtab.symbols.items()
+             if hasattr(sym, 'type')}
     
     # Apply analysis, update saved type info.
     store, illtyped = analyze_types(tree, store)

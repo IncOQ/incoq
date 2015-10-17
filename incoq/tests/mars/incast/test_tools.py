@@ -39,7 +39,8 @@ class MaskCase(unittest.TestCase):
 class IdentFinderCase(unittest.TestCase):
     
     def test_identfinder(self):
-        # Exclude function name main and updated relation R.
+        # Exclude function name main, updated relation R,
+        # and query Q.
         tree = Parser.p('''
             def main():
                 a = b
@@ -47,10 +48,10 @@ class IdentFinderCase(unittest.TestCase):
                 for f in g:
                     {h for i in j}
                 R.reladd(a)
+                QUERY('Q', a)
             ''')
-        vars = sorted(IdentFinder.run(
-                        tree, contexts=['RelUpdate.rel', 'fun.name'],
-                        invert=True))
+        contexts = ['RelUpdate.rel', 'fun.name', 'Query.name']
+        vars = sorted(IdentFinder.run(tree, contexts=contexts, invert=True))
         exp_vars = list(string.ascii_lowercase)[:10]
         self.assertEqual(vars, exp_vars)
 

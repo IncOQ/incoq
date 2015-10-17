@@ -224,11 +224,13 @@ class SymbolTable:
         sym = self.symbols[name]
         # Hook into a parse_*()  method, if one exists for that
         # attr key on the symbol.
+        new_info = {}
         for k, v in info.items():
             parse_method = getattr(sym, 'parse_' + k, None)
             if parse_method is not None:
                 v = parse_method(v)
-            setattr(sym, k, v)
+            new_info[k] = v
+        sym.update(**new_info)
     
     def dump_symbols(self):
         """Return a string describing the defined global symbols."""

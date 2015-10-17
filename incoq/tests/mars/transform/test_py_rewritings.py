@@ -216,8 +216,8 @@ class DirectiveCase(unittest.TestCase):
         tree = P.Parser.p('''
             CONFIG(a=1)
             CONFIG(a=1, b=2)
-            SYMCONFIG(R, a=1)
-            SYMCONFIG(S)
+            SYMCONFIG('R', a=1)
+            SYMCONFIG('S')
             QUERY(1 + 2, a=3, b=4)
             pass
             ''')
