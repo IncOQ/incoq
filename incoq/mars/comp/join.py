@@ -10,6 +10,8 @@ an essential part of the incremental transformation.
 __all__ = [
     'CompInfoFactory',
     'CompInfo',
+    
+    'JoinExpander',
 ]
 
 
@@ -117,3 +119,46 @@ class CompInfo(Struct):
             code = cl_info.get_code(bindenv, code)
         
         return code
+
+
+class JoinExpander(L.NodeTransformer):
+    
+    """Rewrites DecompFor loops over joins by expanding the join into
+    its nested clauses.
+    
+    A DecompFor loop is rewritable if the right-hand side is a Query
+    node wrapping a Comp node that is a join, and if the target of
+    the loop consists of the same variables (in the same order) as
+    those returned by the join.
+    
+    A rewritable DecompFor loop is rewritten if the query name matches
+    one of the given names. Other occurrences of the query are ignored.
+    """
+    
+    def __init__(self, comp_info_map, queries):
+        super().__init__()
+        self.comp_info_map = comp_info_map
+        """Mapping from query names to CompInfo objects."""
+        self.queries = queries
+        """Names of queries that wrap joins that are to be expanded.
+        If None, expand all rewritable joins.
+        """
+    
+    def visit_DecompFor(self, node):
+        node = super().generic_visit(node)
+        
+        # Check that the RHS is a query that is in the comp_info_map
+        # and in queries.
+        if not isinstance(node.iter, L.Query):
+            return node
+        comp_info = self.comp_info_map.get(node.iter.name, None)
+        if comp_info is None:
+            return node
+        if node.iter.name not in self.queries:
+            return node
+        
+        # Check that it's a join and the variables match the loop target.
+        if not (comp_info.is_join and comp_info.lhs_vars == node.vars):
+            return node
+        
+        return comp_info.get_clause_code(node.body)

@@ -86,6 +86,37 @@ class JoinCase(unittest.TestCase):
                     pass
             ''')
         self.assertEqual(code, exp_code)
+    
+    def test_join_expander(self):
+        Q1 = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
+                                       for (y, z) in REL(S)}''')
+        Q2 = L.Parser.pe('{(x,) for (x,) in REL(R)}')
+        Q3 = L.Parser.pe('{True for (x,) in REL(R)}')
+        comp_info1 = self.factory.make_comp_info(Q1, [])
+        comp_info2 = self.factory.make_comp_info(Q2, [])
+        comp_info3 = self.factory.make_comp_info(Q3, [])
+        tree = L.Parser.p('''
+            def main():
+                for (x, y, z) in QUERY('Q1', _Q1):
+                    pass
+                for z in QUERY('Q2', _Q2):
+                    pass
+                for z in QUERY('Q3', _Q3):
+                    pass
+            ''', subst={'_Q1': Q1, '_Q2': Q2, '_Q3': Q3})
+        comp_info_map = {'Q1': comp_info1, 'Q2': comp_info2, 'Q3': comp_info3}
+        tree = JoinExpander.run(tree, comp_info_map, ['Q1', 'Q2', 'Q3'])
+        exp_tree = L.Parser.p('''
+            def main():
+                for (x, y) in R.imglookup('uu', ()):
+                    for (z,) in S.imglookup('bu', (y,)):
+                        pass
+                for z in QUERY('Q2', {(x,) for (x,) in REL(R)}):
+                    pass
+                for z in QUERY('Q3', {True for (x,) in REL(R)}):
+                    pass
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':
