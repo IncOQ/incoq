@@ -3,6 +3,7 @@
 
 __all__ = [
     'tuplify',
+    'detuplify',
     'mask_from_bounds',
     'split_by_mask',
     'IdentFinder',
@@ -20,8 +21,17 @@ from . import nodes as L
 
 
 def tuplify(names):
-    """Return a tuple of Names for the given identifiers."""
+    """Return a Tuple node of Name nodes for the given identifiers."""
     return L.Tuple([L.Name(n) for n in names])
+
+def detuplify(tup):
+    """Given a Tuple node of Name nodes, return a tuple of the
+    identifiers.
+    """
+    if not (isinstance(tup, L.Tuple) and
+            all(isinstance(elt, L.Name) for elt in tup.elts)):
+        raise ValueError('Bad value to detuplify: {}'.format(tup))
+    return tuple(elt.id for elt in tup.elts)
 
 
 def mask_from_bounds(items, bound_items):

@@ -22,6 +22,17 @@ class MaskCase(unittest.TestCase):
         exp_tree = L.Tuple([L.Name('x'), L.Name('y')])
         self.assertEqual(tree, exp_tree)
     
+    def test_detuplify(self):
+        tree = L.Tuple([L.Name('x'), L.Name('y')])
+        vars = detuplify(tree)
+        exp_vars = ['x', 'y']
+        self.assertSequenceEqual(vars, exp_vars)
+        
+        with self.assertRaises(ValueError):
+            detuplify(L.Name('x'))
+        with self.assertRaises(ValueError):
+            detuplify(L.Tuple([L.Tuple([L.Name('x')])]))
+    
     def test_from_bounds(self):
         mask = mask_from_bounds(['x', 'y', 'z'], ['x', 'z'])
         exp_mask = L.mask('bub')
