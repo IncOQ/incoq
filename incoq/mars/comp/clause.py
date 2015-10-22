@@ -25,7 +25,7 @@ class ClauseInfo(Struct):
     """AST of clause wrapped by this object."""
     
     @property
-    def lhsvars(self):
+    def lhs_vars(self):
         """For membership clauses, left-hand side of the clause. For
         condition clauses, the empty sequence.
         """
@@ -45,7 +45,7 @@ class RelMemberInfo(ClauseInfo):
         return self.cl.rel
     
     @property
-    def lhsvars(self):
+    def lhs_vars(self):
         return self.vars
     
     def get_code(self, bindenv, body):
@@ -64,7 +64,7 @@ class CondInfo(ClauseInfo):
         return self.cl.cond
     
     @property
-    def lhsvars(self):
+    def lhs_vars(self):
         return ()
     
     def get_code(self, bindenv, body):

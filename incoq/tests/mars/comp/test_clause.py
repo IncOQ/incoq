@@ -14,7 +14,7 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(cl_info.vars, ['x', 'y', 'z'])
         self.assertEqual(cl_info.rel, 'R')
         
-        self.assertSequenceEqual(cl_info.lhsvars, ['x', 'y', 'z'])
+        self.assertSequenceEqual(cl_info.lhs_vars, ['x', 'y', 'z'])
         
         code = cl_info.get_code(['a', 'x'], [L.Pass()])
         exp_code = L.Parser.pc('''
@@ -27,7 +27,7 @@ class ClauseCase(unittest.TestCase):
         cl_info = CondInfo(L.Cond(L.Parser.pe('x == y')))
         self.assertEqual(cl_info.cond, L.Parser.pe('x == y'))
         
-        self.assertSequenceEqual(cl_info.lhsvars, [])
+        self.assertSequenceEqual(cl_info.lhs_vars, [])
         
         code = cl_info.get_code(['a', 'x', 'y'], [L.Pass()])
         exp_code = L.Parser.pc('''
