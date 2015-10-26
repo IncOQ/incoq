@@ -193,10 +193,11 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
             clauses.extend(self.visit(gen))
         return L.Comp(self.visit(node.elt), clauses)
     
-    def visit_comprehension(self, node):
-        # Switch on iter to determine what kind of membership clause
-        # to produce.
-        iter = self.visit(node.iter)
+    def member_clause_helper(self, target, iter):
+        # target is already converted to IncAST nodes, but iter is not.
+        # This facilitates recursion (for clause types that wrap other
+        # clauses) without assuming anything about the structure of the
+        # lhs.
         
         # for x1, ..., xn in REL(R)
         if (isinstance(iter, L.GeneralCall) and
@@ -206,14 +207,41 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
                     isinstance(iter.args[0], L.Name)):
                 raise ASTErr('Invalid REL clause')
             rel = iter.args[0].id
-            vars = self.match_store_vars(node.target)
+            vars = self.match_store_vars(target)
             member = L.RelMember(vars, rel)
+        
+        # for x1, ..., xn in SING(e)
+        elif (isinstance(iter, L.GeneralCall) and
+            isinstance(iter.func, L.Name) and
+            iter.func.id == 'SING'):
+            if not len(iter.args) == 1:
+                raise ASTErr('Invalid SING clause')
+            value = iter.args[0]
+            vars = self.match_store_vars(target)
+            member = L.SingMember(vars, value)
+        
+        # for x1, ..., xn in WITHOUT(R, e)
+        elif (isinstance(iter, L.GeneralCall) and
+            isinstance(iter.func, L.Name) and
+            iter.func.id == 'WITHOUT'):
+            if not len(iter.args) == 2:
+                raise ASTErr('Invalid WITHOUT clause')
+            value = iter.args[1]
+            cl = self.member_clause_helper(target, iter.args[0])
+            member = L.WithoutMember(cl, value)
         
         # General case.
         else:
-            target = self.visit(node.target)
+            target = self.visit(target)
             member = L.Member(target, iter)
         
+        return member
+    
+    def visit_comprehension(self, node):
+        # Switch on iter to determine what kind of membership clause
+        # to produce.
+        iter = self.visit(node.iter)
+        member = self.member_clause_helper(node.target, iter)
         conds = [L.Cond(self.visit(c)) for c in node.ifs]
         return [member] + conds
     
@@ -556,6 +584,20 @@ class IncLangNodeExporter(NodeMapper):
                                P.Call(P.Name('REL', P.Load()),
                                       [self.name_helper(node.rel)],
                                       [], None, None), [])
+    
+    def visit_SingMember(self, node):
+        return P.comprehension(self.tuple_store_helper(node.vars),
+                               P.Call(P.Name('SING', P.Load()),
+                                      [self.visit(node.value)],
+                                      [], None, None), [])
+    
+    def visit_WithoutMember(self, node):
+        cl = self.visit(node.cl)
+        value = self.visit(node.value)
+        iter = P.Call(P.Name('WITHOUT', P.Load()),
+                      [cl.iter, value],
+                      [], None, None)
+        return P.comprehension(cl.target, iter, [])
     
     def visit_Cond(self, node):
         return self.visit(node.cond)

@@ -425,6 +425,34 @@ class TypeAnalysisCase(unittest.TestCase):
             {'R': Set(Top), 'x': Bottom, 'y': Bottom},
             {'R': Set(Top), 'x': Top, 'y': Top},
             True)
+        
+        # SingMember.
+        self.check('''
+            def main():
+                print({x for x, y in SING(R)})
+            ''',
+            {'R': Tuple([String, Number]), 'x': Bottom, 'y': Bottom},
+            {'R': Tuple([String, Number]), 'x': String, 'y': Number},
+            False)
+        # SingMember, bad tuple type.
+        self.check('''
+            def main():
+                print({x for x, y in SING(R)})
+            ''',
+            {'R': Top, 'x': Bottom, 'y': Bottom},
+            {'R': Top, 'x': Top, 'y': Top},
+            True)
+        
+        # WithoutMember.
+        self.check('''
+            def main():
+                print({x for x, y in WITHOUT(REL(R), e)})
+            ''',
+            {'R': Set(Tuple([String, Number])), 'e': Tuple([String, Number]),
+             'x': Bottom, 'y': Bottom},
+            {'R': Set(Tuple([String, Number])), 'e': Tuple([String, Number]),
+             'x': String, 'y': Number},
+            False)
     
     # Clauses are taken care of by Comp's tests.
     

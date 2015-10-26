@@ -457,7 +457,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     @readonly
     def visit_RelMember(self, node, *, type=None):
-        # If join(rel, Set<Tuple<Bottom, ..., Bottom>) ==
+        # If join(rel, Set<Tuple<Bottom, ..., Bottom>>) ==
         #    Set<Tuple<T1, ..., Tn>>, n == len(vars):
         #   vars_i := T_i for each i
         # Else:
@@ -470,6 +470,30 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         t_vars = self.get_tuple_elts(node, t_target, n)
         for v, t in zip(node.vars, t_vars):
             self.update_store(v, t)
+    
+    @readonly
+    def visit_SingMember(self, node, *, type=None):
+        # If join(value, Tuple<Bottom, ..., Bottom>) ==
+        #    Tuple<T1, ..., Tn>, n == len(vars):
+        #   vars_i := T_i for each i
+        # Else:
+        #   vars_i := Top for each i
+        #
+        # Check value <= Tuple<Top, ..., Top>
+        n = len(node.vars)
+        t_value = self.visit(node.value)
+        t_vars = self.get_tuple_elts(node, t_value, n)
+        for v, t in zip(node.vars, t_vars):
+            self.update_store(v, t)
+    
+    @readonly
+    def visit_WithoutMember(self, node, *, type=None):
+        # We don't have an easy way to propagate information into
+        # the nested clause, or else we'd flow type information from
+        # value to cl.target. Could fix by using the type parameter,
+        # with the convention that for membership clauses, type is the
+        # type of the element.
+        self.generic_visit(node)
     
     @readonly
     def visit_Cond(self, node, *, type=None):

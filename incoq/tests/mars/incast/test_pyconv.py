@@ -241,7 +241,18 @@ class ParseImportCase(unittest.TestCase):
         
         # RelMember.
         tree = Parser.pe('{x for (x, y) in REL(R)}')
-        exp_tree =L.Comp(N('x'), [L.RelMember(['x', 'y'], 'R')])
+        exp_tree = L.Comp(N('x'), [L.RelMember(['x', 'y'], 'R')])
+        self.assertEqual(tree, exp_tree)
+        
+        # SingMember.
+        tree = Parser.pe('{x for (x, y) in SING(e)}')
+        exp_tree = L.Comp(N('x'), [L.SingMember(['x', 'y'], N('e'))])
+        self.assertEqual(tree, exp_tree)
+        
+        # WithoutMember.
+        tree = Parser.pe('{x for (x, y) in WITHOUT(REL(R), e)}')
+        exp_tree = L.Comp(N('x'),
+            [L.WithoutMember(L.RelMember(['x', 'y'], 'R'), N('e'))])
         self.assertEqual(tree, exp_tree)
 
 
@@ -320,6 +331,8 @@ class RoundTripCase(unittest.TestCase):
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')
         self.trip.pe('{x for (x, y) in REL(R)}')
+        self.trip.pe('{x for (x, y) in SING(E)}')
+        self.trip.pe('{x for (x, y) in WITHOUT(REL(R), e)}')
     
     def test_unparse_arity(self):
         self.trip.p('''
