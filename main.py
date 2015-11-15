@@ -177,12 +177,11 @@ class DEM_CORERBAC_CA(COM):
 #    INC,
 #    DEM,
 #    DEM_SINGLE_TAG,
-#    DEM_NORCELIM_NODRELIM,
+#    DEM_NONATIVE_NORCELIM_NODRELIM,
+#    DEM_INLINE_NONATIVE_NORCELIM_NODRELIM,
 #    DEM_INLINE_NONATIVE_NODRELIM,
-#    DEM_INLINE_NORCELIM_NODRELIM,
-#    DEM_INLINE_NODRELIM,
-#    DEM_INLINE,
-#    DEM_INLINE_NOTYPECHECK,
+#    DEM_INLINE_NONATIVE,
+#    DEM_INLINE_NONATIVE_NOTYPECHECK,
 #])
 #
 #add_impls('Auth', 'experiments/django/django', [
@@ -196,10 +195,11 @@ class DEM_CORERBAC_CA(COM):
 #
 #add_impls('Wifi', 'experiments/wifi/wifi', [
 #    INC,
-#    INC_NORCELIM_NODRELIM,
+#    INC_UNOPT,
+#    INC_OPT,
 #    DEM,
-#    DEM_NORCELIM_NODRELIM,
-#    DEM_NOTYPECHECK,
+#    DEM_UNOPT,
+#    DEM_OPT,
 #])
 #
 #for level in [
@@ -212,6 +212,8 @@ class DEM_CORERBAC_CA(COM):
 #        INC,
 #        DEM,
 ##        DEM_NO_TAG_CHECK,
+#        DEM_UNOPT,
+#        DEM_OPT,
 #    ])
 #
 #add_impls('Constr. RBAC', 'experiments/rbac/constrainedrbac/crbac', [

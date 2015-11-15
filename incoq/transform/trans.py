@@ -25,7 +25,6 @@ __all__ = [
     'DEM_NORCELIM_NODRELIM',
     'DEM_LRU_NORCELIM_NODRELIM',
     'DEM_INLINE_NORCELIM_NODRELIM',
-    'DEM_INLINE_NONATIVE_NODRELIM',
     'DEM_INLINE_NODRELIM',
     'DEM_NOTYPECHECK',
     'DEM_INLINE_NOTYPECHECK',
@@ -33,6 +32,16 @@ __all__ = [
     'DEM_SUBDEM',
     'DEM_OBJ_NS',
     'DEM_OBJ_NS_NORCELIM_NODRELIM',
+    'INC_UNOPT',
+    'INC_OPT',
+    'DEM_UNOPT',
+    'DEM_OPT',
+    'DEM_NONATIVE_NORCELIM_NODRELIM',
+    'DEM_INLINE_NONATIVE_NORCELIM_NODRELIM',
+    'DEM_INLINE_NONATIVE_NODRELIM',
+    'DEM_INLINE_NONATIVE',
+    'DEM_INLINE_NONATIVE_NOTYPECHECK',
+    'DEM_INLINE_NATIVE_NOTYPECHECK',
 ]
 
 
@@ -240,13 +249,6 @@ class DEM_INLINE_NORCELIM_NODRELIM(DEM):
                    'rc_elim': False,
                    'deadcode_elim': False}
 
-class DEM_INLINE_NONATIVE_NODRELIM(DEM):
-    output_suffix = 'dem_inline_nonative_nodrelim'
-    display_suffix = 'Filtered (inline; no native+dr elim.)'
-    extra_nopts = {'maint_inline': True,
-                   'native_sets': False,
-                   'deadcode_elim': False}
-
 class DEM_INLINE_NODRELIM(DEM):
     output_suffix = 'dem_inline_nodrelim'
     display_suffix = 'Filtered (inline; no dr elim.)'
@@ -283,3 +285,48 @@ class DEM_OBJ_NS_NORCELIM_NODRELIM(DEM_OBJ_NS):
     display_suffix = 'Filtered (no rc+dr elim.)'
     extra_nopts = {'rc_elim': False,
                    'deadcode_elim': False}
+
+class INC_UNOPT(INC):
+    output_suffix = 'inc_unopt'
+    display_suffix = 'Unoptimized'
+    extra_nopts = {'rc_elim': False,
+                   'deadcode_elim': False}
+
+class INC_OPT(INC):
+    output_suffix = 'inc_opt'
+    display_suffix = 'Optimized'
+    extra_nopts = {'maint_inline': True}
+
+class DEM_UNOPT(DEM):
+    output_suffix = 'dem_unopt'
+    display_suffix = 'Unoptimized'
+    extra_nopts = {'rc_elim': False,
+                   'deadcode_elim': False}
+
+class DEM_OPT(DEM):
+    output_suffix = 'dem_opt'
+    display_suffix = 'Optimized'
+    extra_nopts = {'maint_inline': True,
+                   'maint_emit_typechecks': False}
+
+class NONATIVE_MIXIN(TaskTemplate):
+    extra_nopts = {'native_sets': False}
+
+class DEM_NONATIVE_NORCELIM_NODRELIM(DEM_NORCELIM_NODRELIM, NONATIVE_MIXIN):
+    pass
+
+class DEM_INLINE_NONATIVE_NORCELIM_NODRELIM(
+    DEM_INLINE_NORCELIM_NODRELIM, NONATIVE_MIXIN):
+    pass
+
+class DEM_INLINE_NONATIVE_NODRELIM(DEM_INLINE_NODRELIM, NONATIVE_MIXIN):
+    pass
+
+class DEM_INLINE_NONATIVE(DEM_INLINE, NONATIVE_MIXIN):
+    pass
+
+class DEM_INLINE_NONATIVE_NOTYPECHECK(DEM_INLINE_NOTYPECHECK, NONATIVE_MIXIN):
+    pass
+
+class DEM_INLINE_NATIVE_NOTYPECHECK(DEM_INLINE_NOTYPECHECK):
+    output_suffix = 'dem_inline_notypecheck_native'

@@ -223,10 +223,10 @@ class WifiOpt(Wifi):
     class ExpDatagen(WifiDatagen):
         
         progs = [
-            'wifi_inc',
-            'wifi_inc_norcelim_nodrelim',
-            'wifi_dem_notypecheck_maintelim',
-            'wifi_dem_norcelim_nodrelim',
+            'wifi_inc_unopt',
+            'wifi_inc_opt',
+            'wifi_dem_unopt',
+            'wifi_dem_opt_maintelim',
         ]
         
         def get_dsparams_list(self):
@@ -245,16 +245,25 @@ class WifiOpt(Wifi):
     
     class ExpExtractor(MetricExtractor, SmallExtractor):
         
-        series = [
-            ('wifi_inc_norcelim_nodrelim', 'Unfiltered',
-             'blue', '-- _o poly1'),
-            ('wifi_inc', 'Unfiltered opt',
-             'blue', '- o poly1'),
-            ('wifi_dem_norcelim_nodrelim', 'Filtered',
+        texttt = True
+        
+        series_template = [
+            ('wifi_dem_unopt', 'Filtered unopt.',
              'green', '-- _^ poly1'),
-            ('wifi_dem_notypecheck_maintelim', 'Filtered opt',
+            ('wifi_dem_opt_maintelim', 'Filtered opt.',
              'green', '- ^ poly1'),
+            ('wifi_inc_unopt', 'Unfiltered unopt.',
+             'blue', '-- _o poly1'),
+            ('wifi_inc_opt', 'Unfiltered opt.',
+             'blue', '- o poly1'),
         ]
+        @property
+        def series(self):
+            if self.texttt:
+                return [(sid, '\\texttt{' + label + '}', series, color)
+                        for sid, label, series, color in self.series_template]
+            else:
+                return self.series_template
         
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of queries and updates (in thousands)'
@@ -264,10 +273,14 @@ class WifiOpt(Wifi):
         
         metric = 'time_cpu'
         
-        xmin = 5
+        xmin = 15
         xmax = 105
+        ymax = 2
 
 class WifiOptTable(WifiOpt):
+    
+    class ExpExtractor(WifiOpt.ExpExtractor):
+        texttt = False
     
     class ExpViewer(Task):
         
@@ -281,11 +294,13 @@ class WifiOptTable(WifiOpt):
             
             print('Average overhead of filtering')
             print(round(means['Filtered'] / means['Unfiltered'], 1))
-            print('Average overhead of filtering with optimization')
-            print(round(means['Filtered opt'] / means['Unfiltered'], 1))
+            print('Average overhead of opt filtered vs unopt unfiltered')
+            print(round(means['Filtered opt.'] / means['Unfiltered'], 1))
+            print('Average overhead of opt filtered vs opt unfiltered')
+            print(round(means['Filtered opt.'] / means['Unfiltered opt.'], 1))
             print('Average improvement of opt for filtered')
-            print(round((means['Filtered'] - means['Filtered opt']) /
+            print(round((means['Filtered'] - means['Filtered opt.']) /
                   means['Filtered'], 1))
             print('Average improvement of opt for unfiltered')
-            print(round((means['Unfiltered'] - means['Unfiltered opt']) /
+            print(round((means['Unfiltered'] - means['Unfiltered opt.']) /
                         means['Unfiltered'], 1))

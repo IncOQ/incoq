@@ -25,6 +25,8 @@ factor1a = twitter.Factor1ATimeNorm()
 factor1b = twitter.Factor1BTimeNorm()
 factor1c = twitter.Factor1CTimeNorm()
 factor1d = twitter.Factor1DTimeNorm()
+factor1e = twitter.Factor1ETimeNorm()
+factor1f = twitter.Factor1FTimeNorm()
 factor2a = twitter.Factor2ATimeNorm()
 factor2b = twitter.Factor2BTimeNorm()
 factor2c = twitter.Factor2CTimeNorm()
@@ -42,11 +44,16 @@ densitycelebnormtable = twitter.DensityCelebNormTable()
 tag = twitter.TagTime()
 
 jqlratio1 = jql.Ratio1()
+jqlratio1opt = jql.Ratio1Opt()
 jqlratio2 = jql.Ratio2()
+jqlratio2opt = jql.Ratio2Opt()
 jqlratio3 = jql.Ratio3()
 jqlscale1 = jql.Scale1()
+jqlscale1opt = jql.Scale1Opt()
 jqlscale2 = jql.Scale2()
 jqlscale2bigger = jql.Scale2Bigger()
+jqlscale2opt = jql.Scale2Opt()
+jqlscale2opttable = jql.Scale2OptTable()
 jqlscale3 = jql.Scale3()
 jqlscale3bigger = jql.Scale3Bigger()
 
@@ -103,6 +110,8 @@ def main():
 #        factor1b,
 #        factor1c,
 #        factor1d,
+#        factor1e,
+#        factor1f,
 #        factor2a,
 #        factor2b,
 #        factor2c,
@@ -173,7 +182,12 @@ def main():
 #        wifiopt,
 #        wifiopttable,
 #        sets,
-        setstable,
+#        setstable,
+#        jqlratio1opt,
+#        jqlratio2opt,
+#        jqlscale1opt,
+#        jqlscale2opt,
+#        jqlscale2opttable,
     ]
     
     # Change to directory of this file so we can find the

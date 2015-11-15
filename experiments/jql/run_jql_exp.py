@@ -27,7 +27,7 @@ from operator import itemgetter
 import numpy as np
 
 from frexp import (ExpWorkflow, Datagen, Runner, Verifier,
-                   SimpleExtractor, MetricExtractor)
+                   SimpleExtractor, MetricExtractor, Task)
 
 from .java_bridge import get_config, spawn_java
 
@@ -226,7 +226,9 @@ class JQLDriver:
                     return False
             
             if op is Q:
-                do_query(course0)
+                # Make a copy of the result set, because
+                # that's what JQL does.
+                set(do_query(course0))
             elif op is UP:
                 i, s, c = data
                 old_att = attends[i]
@@ -418,6 +420,8 @@ class JQLExtractor(SimpleExtractor, SmallExtractor):
     jqlcache_format = 'normal'
     jqlnocache_format = 'normal'
     
+    texttt = False
+    
     @property
     def series(self):
         # Post-process to copy 3 times for the 3 levels.
@@ -425,16 +429,23 @@ class JQLExtractor(SimpleExtractor, SmallExtractor):
             ('jql_{}_java_nocache', 'JQL no caching',
              'purple', '-- s ' + self.jqlnocache_format),
             ('jql_{}_java_cache', 'JQL always caching',
-             'teal', '-- o ' + self.jqlcache_format),
+             'teal', ': v ' + self.jqlcache_format),
             ('jql_{}_orig', 'original',
              'red', '- s ' + self.orig_format),
             ('jql_{}_inc', 'incremental',
              'blue', '- o poly1'),
             ('jql_{}_dem', 'filtered',
              'green', '- ^ poly1'),
+            ('jql_{}_dem_unopt', 'IncOQ unoptimized',
+             'blue', '-- o poly1'),
+            ('jql_{}_dem_opt', 'IncOQ optimized',
+             'green', '- ^ poly1'),
         ]
         
-        return [(sid.format(level), name.format(level), color, style)
+        return [(sid.format(level),
+                 '\\texttt{' + name.format(level) + '}' if self.texttt
+                 else name.format(level),
+                 color, style)
                 for level in ['1', '2', '3']
                 for sid, name, color, style in template_list]
     
@@ -485,9 +496,9 @@ class JQLWorkflow(ExpWorkflow):
         pass
         # Comment out below for paper submission figure that
         # omits the title.
-        @property
-        def title(self):
-            return 'Query ' + str(self.level)
+#        @property
+#        def title(self):
+#            return 'Query ' + str(self.level)
     
     ExpRunner = JQLRunner
     ExpVerifier = JQLVerifier
@@ -535,6 +546,17 @@ class Ratio(JQLWorkflow):
         xmin = -.05
         xmax = 1.05
 
+class RatioOpt(Ratio):
+    
+    class ExpDatagen(Ratio.ExpDatagen):
+        prog_suffixes = [
+            '_orig',
+            '_dem_unopt',
+            '_dem_opt',
+            '_java_nocache',
+            '_java_cache',
+        ]
+
 class Ratio1(Ratio):
     
     prefix = 'results/jql_ratio_1'
@@ -543,6 +565,21 @@ class Ratio1(Ratio):
         level = '1'
     
     class ExpExtractor(Ratio.ExpExtractor):
+        level = '1'
+        ymax = .5
+
+class Ratio1Opt(RatioOpt):
+    
+    prefix = 'results/jql_ratio_opt_1'
+    
+    class ExpDatagen(RatioOpt.ExpDatagen):
+        level = '1'
+    
+    stddev_window = .1
+    min_repeats = 1#50
+    max_repeats = 1#50
+    
+    class ExpExtractor(RatioOpt.ExpExtractor):
         level = '1'
         ymax = .5
 
@@ -576,6 +613,21 @@ class Ratio2(Ratio):
         
         ymax = 2
         legend_loc = 'upper center'
+
+class Ratio2Opt(RatioOpt):
+    
+    prefix = 'results/jql_ratio_opt_2'
+    
+    class ExpDatagen(RatioOpt.ExpDatagen):
+        level = '2'
+    
+    stddev_window = .1
+    min_repeats = 1#50
+    max_repeats = 1#50
+    
+    class ExpExtractor(RatioOpt.ExpExtractor):
+        level = '2'
+        ymax = .5
 
 class Ratio3(Ratio):
     prefix = 'results/jql_ratio_3'
@@ -640,6 +692,17 @@ class Scale(JQLWorkflow):
 #        x_ticklocs = [0, 4, 8, 12, 16, 20]
         x_ticklocs = [0, 5, 10, 15, 20, 25, 30]
 
+class ScaleOpt(Scale):
+    
+    class ExpDatagen(Scale.ExpDatagen):
+        prog_suffixes = [
+            '_orig',
+            '_dem_unopt',
+            '_dem_opt',
+            '_java_nocache',
+            '_java_cache',
+        ]
+
 class Scale1(Scale):
     
     prefix = 'results/jql_scale_1'
@@ -662,6 +725,59 @@ class Scale1(Scale):
 #            'jql_1_orig': .5,
             'jql_1_inc':  50,
             'jql_1_dem':  50,
+#            'jql_1_java_nocache':  1e-2,
+            'jql_1_java_cache':    50,
+        }
+        
+        @property
+        def series(self):
+            s = super().series
+            new_s = []
+            for sid, name, color, style in s:
+                mult = self.multipliers.get(sid, None)
+                if mult is not None:
+                    op = ' $\\times$ ' if mult >= 1 else ' / '
+                    if mult < 1:
+                        mult = 1 / mult
+                    if round(mult, 3) == round(mult):
+                        mult = round(mult)
+                    else:
+                        mult = round(mult, 3)
+                    name += op + str(mult)
+                new_s.append((sid, name, color, style))
+            return new_s
+        
+        def project_y(self, p):
+            y = super().project_y(p)
+            if p['prog'] in self.multipliers:
+                return y * self.multipliers[p['prog']]
+            else:
+                return y
+
+class Scale1Opt(ScaleOpt):
+    
+    prefix = 'results/jql_scale_opt_1'
+    
+    class ExpDatagen(ScaleOpt.ExpDatagen):
+        level = '1'
+        
+        points = list(range(2000, 30000 + 1, 2000))
+    
+    stddev_window = .1
+    min_repeats = 1#50
+    max_repeats = 1#50
+    
+    class ExpExtractor(ScaleOpt.ExpExtractor):
+        
+        level = '1'
+        orig_format = 'poly1'
+        jqlcache_format = 'poly1'
+        jqlnocache_format = 'poly1'
+        
+        multipliers = {
+#            'jql_1_orig': .5,
+            'jql_1_dem_unopt':  50,
+            'jql_1_dem_opt':  50,
 #            'jql_1_java_nocache':  1e-2,
             'jql_1_java_cache':    50,
         }
@@ -770,6 +886,91 @@ class Scale2Bigger(Scale2):
         xmin = 0
         xmax = 105
         x_ticklocs = [0, 20, 40, 60, 80, 100]
+
+class Scale2Opt(ScaleOpt):
+    
+    prefix = 'results/jql_scale_opt_2'
+    
+    class ExpDatagen(Scale.ExpDatagen):
+        level = '2'
+        
+        # Don't run orig, which takes forever even before
+        # reaching the 100 step timeout checkpoint.
+        prog_suffixes = [
+            '_dem_opt',
+            '_dem_unopt',
+            '_java_nocache',
+            '_java_cache',
+        ]
+        
+        points = list(range(3000, 30000 + 1, 3000))
+    
+    stddev_window = .1
+    min_repeats = 50
+    max_repeats = 50
+    
+    class ExpExtractor(Scale.ExpExtractor):
+        
+        texttt = True
+        
+        level = '2'
+        jqlcache_format = 'poly1'
+        jqlnocache_format = 'poly1'
+        
+        multipliers = {
+            # Mind the scale for the Scale2OptTable below;
+            # if unopt and opt are given different scaling factors
+            # it will skew that calculation.
+            'jql_2_dem_unopt':  50,
+            'jql_2_dem_opt':  50,
+        }
+        
+        @property
+        def series(self):
+            s = super().series
+            new_s = []
+            for sid, name, color, style in s:
+                mult = self.multipliers.get(sid, None)
+                if mult is not None:
+                    op = ' $\\times$ ' if mult >= 1 else ' / '
+                    if mult < 1:
+                        mult = 1 / mult
+                    if round(mult, 3) == round(mult):
+                        mult = round(mult)
+                    else:
+                        mult = round(mult, 3)
+                    name += op + str(mult)
+                new_s.append((sid, name, color, style))
+            return new_s
+        
+        def project_y(self, p):
+            y = super().project_y(p)
+            if p['prog'] in self.multipliers:
+                return y * self.multipliers[p['prog']]
+            else:
+                return y
+        
+        max_yitvl = 4
+        ymax = 20
+
+class Scale2OptTable(Scale2Opt):
+    
+    class ExpExtractor(Scale2Opt.ExpExtractor):
+        texttt = False
+    
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            means = df.mean()
+            unopt = means['IncOQ unoptimized $\\times$ 50']
+            opt = means['IncOQ optimized $\\times$ 50']
+            print('Average improvement of optimized over unoptimized')
+            print(round((unopt - opt) / unopt * 100))
 
 class Scale3(Scale):
     

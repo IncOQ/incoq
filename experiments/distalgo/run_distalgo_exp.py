@@ -94,6 +94,8 @@ class DistalgoWorkflow(ExpWorkflow):
         # Doesn't work since we have multiple metrics to output.
         generate_csv = False
         
+        texttt = False
+        
         series_template = [
             (('in', 'time_cpu'), 'original (total cpu time)',
              'red', '- s normal'),
@@ -144,6 +146,10 @@ class DistalgoWorkflow(ExpWorkflow):
                     new_prog = self.name + '_opt_inc_' + prog[4:]
                 else:
                     new_prog = self.name + '_inc_' + prog
+                
+                if self.texttt:
+                    label = '\\texttt{' + label + '}'
+                
                 series[i] = (new_prog, metric), label, color, format
             return series
         
@@ -169,17 +175,17 @@ class OptExtractorMixin:
     
     series_template = [
         (('inc_norcelim_nodrelim', 'time_cpu'),
-         'Inc. w/o opt.',
+         'Unoptimized',
          'red', '-- ^ normal'),
         (('inc', 'time_cpu'),
-         'Inc. w/ opt.',
+         'Optimized',
          'green', '- o normal'),
         
         (('dem_norcelim_nodrelim', 'time_cpu'),
-         'Inc. w/o opt.',
+         'Unoptimized',
          'red', '-- ^ normal'),
         (('dem', 'time_cpu'),
-         'Inc. w/ opt.',
+         'Optimized',
          'green', '- o normal'),
     ]
     
@@ -575,6 +581,8 @@ class LAMutexOrigProcs(LAMutexOrigWorkflow):
         xlabel = 'Number of processes'
         xmin = 10
         xmax = 80
+        
+        texttt = True
     
     min_repeats = 10
     max_repeats = 50
@@ -703,6 +711,12 @@ class RAMutex(DistalgoWorkflow):
     class ExpExtractor(OptExtractorMixin, DistalgoWorkflow.ExpExtractor):
         
         name = 'ramutex'
+        
+        texttt = True
+        
+        x_ticklocs = [0, 4, 8, 12, 16, 20]
+        xmin = 3
+        xmax = 21
 
 
 class RATokenDriver(DistalgoDriver):
@@ -826,6 +840,8 @@ class SKToken(DistalgoWorkflow):
     class ExpExtractor(OptExtractorMixin, DistalgoWorkflow.ExpExtractor):
         
         name = 'sktoken'
+        
+        texttt = True
     
     min_repeats = 10
     max_repeats = 50

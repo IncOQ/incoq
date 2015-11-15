@@ -846,17 +846,21 @@ class Factor(TwitterWorkflow):
     class ExpDatagen(TwitterWorkflow.ExpDatagen):
         
         progs = [
-            'twitter_dem',
+#            'twitter_dem',
             
 #            'twitter_dem_aug',
 #            'twitter_dem_das',
             
 #            'twitter_dem_noninline',
-            'twitter_dem_norcelim',
-            'twitter_dem_notypecheck',
+#            'twitter_dem_norcelim',
+#            'twitter_dem_notypecheck',
 #            'twitter_dem_handopt',
 #            'twitter_dem_noalias',
 #            'twitter_dem_notypecheck_noalias',
+            
+            'twitter_dem_inline_norcelim_nodrelim',
+            'twitter_dem_inline',
+            'twitter_dem_inline_notypecheck_maintelim',
         ]
     
     stddev_window = .1
@@ -866,6 +870,18 @@ class Factor(TwitterWorkflow):
     class ExpExtractor(TwitterWorkflow.ExpExtractor):
         
         xlabel = 'x'
+        
+        series = [
+            (('twitter_dem_inline_norcelim_nodrelim', 'all'),
+             'No rcelim/drelim',
+             'purple', ': ^ normal'),
+            (('twitter_dem_inline', 'all'),
+             'Normal',
+             'orange', ': _o normal'),
+            (('twitter_dem_inline_notypecheck_maintelim', 'all'),
+             'Type check + Maint case elim',
+             '#00FF00', '1-2 o normal'),
+        ]
     
     ExpViewer = TwitterPrinter
 
@@ -1004,6 +1020,88 @@ class Factor1D(Factor):
                     n_q_celebs =     2000,
                     n_q_groups =     1,
                     n_q_pairs =      2000,
+                    
+                    n_u =            200000,
+                    q_p_u =          1,
+                    reps =           1,
+                    
+                    need_exact =     False,
+                    upkind =         'loc',
+                    celebusertag =   True,
+                    groupusertag =   True,
+                )
+                for x in [1]
+            ]
+
+class Factor1E(Factor):
+    
+    """Extra benchmark like 1B, but like leftmost datapoint of
+    Demand instead of rightmost datapoint.
+    """
+    
+    prefix = 'results/twitter_factor1e'
+    
+    class ExpDatagen(Factor.ExpDatagen):
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =           str(x),
+                    x =              x,
+                    
+                    n_users =        20000,
+                    n_groups =       200,
+                    pad_celeb =      None,
+                    
+                    user_deg =       100,
+                    group_deg =      10,
+                    
+                    n_locs =         20,
+                    
+                    n_q_celebs =     2000,
+                    n_q_groups =     1,
+                    n_q_pairs =      2000,
+                    
+                    n_u =            200000,
+                    q_p_u =          1,
+                    reps =           1,
+                    
+                    need_exact =     False,
+                    upkind =         'loc',
+                    celebusertag =   True,
+                    groupusertag =   True,
+                )
+                for x in [1]
+            ]
+
+class Factor1F(Factor):
+    
+    """Extra benchmark like 1B, but like middle datapoint of
+    Demand instead of rightmost datapoint.
+    """
+    
+    prefix = 'results/twitter_factor1f'
+    
+    class ExpDatagen(Factor.ExpDatagen):
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =           str(x),
+                    x =              x,
+                    
+                    n_users =        20000,
+                    n_groups =       200,
+                    pad_celeb =      None,
+                    
+                    user_deg =       100,
+                    group_deg =      10,
+                    
+                    n_locs =         20,
+                    
+                    n_q_celebs =     10000,
+                    n_q_groups =     1,
+                    n_q_pairs =      10000,
                     
                     n_u =            200000,
                     q_p_u =          1,
@@ -1170,29 +1268,29 @@ class FactorTime(Factor):
     class ExpExtractor(Factor.ExpExtractor,
                        MetricExtractor):
         
-        series = [
-#            (('twitter_dem', 'all'), 'filtered (normal)',
-#             'green', '-- ^ normal'),
-            
-#            (('twitter_dem_aug', 'all'), 'augmented',
-#             'blue', '-- o normal'),
-#            (('twitter_dem_das', 'all'), 'das.',
-#             'cyan', '-- o normal'),
-            
-#            (('twitter_dem_noninline', 'all'), 'non-inlined',
-#             'orange', '-- s normal'),
-            (('twitter_dem_norcelim', 'all'), 'no RC elim',
-             'red', '-- s normal'),
-            (('twitter_dem_notypecheck', 'all'), 'no type checks',
-             'yellow', '-- s normal'),
-#            (('twitter_dem_handopt', 'all'), 'hand-optimized',
-#             'fuchsia', '-- s normal'),
-#            (('twitter_dem_noalias', 'all'), 'alias-optimized',
-#             'purple', '-- s normal'),
-#            (('twitter_dem_notypecheck_noalias', 'all'),
-#             'no type checks + alias-opt',
-#             'lightpurple', '-- s normal'),
-        ]
+#        series = [
+##            (('twitter_dem', 'all'), 'filtered (normal)',
+##             'green', '-- ^ normal'),
+#            
+##            (('twitter_dem_aug', 'all'), 'augmented',
+##             'blue', '-- o normal'),
+##            (('twitter_dem_das', 'all'), 'das.',
+##             'cyan', '-- o normal'),
+#            
+##            (('twitter_dem_noninline', 'all'), 'non-inlined',
+##             'orange', '-- s normal'),
+#            (('twitter_dem_norcelim', 'all'), 'no RC elim',
+#             'red', '-- s normal'),
+#            (('twitter_dem_notypecheck', 'all'), 'no type checks',
+#             'yellow', '-- s normal'),
+##            (('twitter_dem_handopt', 'all'), 'hand-optimized',
+##             'fuchsia', '-- s normal'),
+##            (('twitter_dem_noalias', 'all'), 'alias-optimized',
+##             'purple', '-- s normal'),
+##            (('twitter_dem_notypecheck_noalias', 'all'),
+##             'no type checks + alias-opt',
+##             'lightpurple', '-- s normal'),
+#        ]
         
         metric = 'opstime_cpu'
         
@@ -1206,7 +1304,8 @@ class FactorTimeNorm(FactorTime):
     class ExpExtractor(NormalizedExtractor,
                        FactorTime.ExpExtractor):
         
-        base_sid = ('twitter_dem', 'all')
+#        base_sid = ('twitter_dem', 'all')
+        base_sid = ('twitter_dem_inline', 'all')
         
         def normalize(self, pre_y, base_y):
             return pre_y / base_y
@@ -1218,6 +1317,10 @@ class Factor1BTimeNorm(Factor1B, FactorTimeNorm):
 class Factor1CTimeNorm(Factor1C, FactorTimeNorm):
     pass
 class Factor1DTimeNorm(Factor1D, FactorTimeNorm):
+    pass
+class Factor1ETimeNorm(Factor1E, FactorTimeNorm):
+    pass
+class Factor1FTimeNorm(Factor1F, FactorTimeNorm):
     pass
 class Factor2ATimeNorm(Factor2A, FactorTimeNorm):
     pass
@@ -1246,11 +1349,11 @@ class Density(TwitterWorkflow):
         progs = [
             'twitter_dem_norcelim_nodrelim',
             'twitter_dem_inline_norcelim_nodrelim',
-            'twitter_dem_inline_nonative_nodrelim',
             'twitter_dem_inline_nodrelim',
             'twitter_dem_inline',
             'twitter_dem_inline_notypecheck',
             'twitter_dem_inline_notypecheck_maintelim',
+            'twitter_dem_inline_notypecheck_maintelim_native',
         ]
         
         def get_dsparams_list(self):
@@ -1287,45 +1390,47 @@ class Density(TwitterWorkflow):
     stddev_window = .1
     min_repeats = 10
     max_repeats = 50
-     
+    
     class ExpExtractor(TwitterWorkflow.ExpExtractor, MetricExtractor):
         
-        series = [
+        texttt = False
+        
+        series_unformatted = [
             (('twitter_dem_norcelim_nodrelim', 'all'),
              'Unoptimized',
              'black', '- s normal'),
             (('twitter_dem_inline_norcelim_nodrelim', 'all'),
              'Inlining',
-             'purple', '-- ^ normal'),
-            
-            # For when native set optimization is not included.
-#            (('twitter_dem_inline_nodrelim', 'all'),
-#             'Ref count elim',
-#             'red', '- v normal'),
-            
-            # For when native set optimization is included.
-            (('twitter_dem_inline_nonative_nodrelim', 'all'),
-             'Ref count elim',
-             'red', '- D normal'),
+             'purple', ': ^ normal'),
             (('twitter_dem_inline_nodrelim', 'all'),
-             'Native sets',
-             'yellow', '- v normal'),
-            
+             'Counting elim',
+             'red', '- ^ normal'),
             (('twitter_dem_inline', 'all'),
              'Result set elim',
-             'orange', '- o normal'),
+             'purple', ': _o normal'),
             (('twitter_dem_inline_notypecheck', 'all'),
              'Type check elim',
-             '#00CCFF', '1-2 + normal'),
+             'blue', '-- x normal'),
             (('twitter_dem_inline_notypecheck_maintelim', 'all'),
              'Maint case elim',
-             '#00CC00', '1-2 x normal'),
-            
+             '#00FF00', '1-2 o normal'),
+            (('twitter_dem_inline_notypecheck_maintelim_native', 'all'),
+             'Native sets',
+             'brown', '- v normal'),
             
             (('twitter_inc', 'all'),
              'Unfiltered',
              'black', '- s normal'),
         ]
+        
+        @property
+        def series(self):
+            if self.texttt:
+                return [(sid, '\\texttt{' + name + '}', color, style)
+                        for sid, name, color, style in
+                            self.series_unformatted]
+            else:
+                return self.series_unformatted
         
         metric = 'opstime_cpu'
         
@@ -1352,8 +1457,8 @@ class DensityNorm(Density):
             return pre_y / base_y
         
         ylabel = 'Running time (normalized)'
-        ymin = 0
-        ymax = 1.1
+        ymin = .4
+        ymax = 1
 
 
 class DensityLoc(Density):
@@ -1365,6 +1470,7 @@ class DensityLoc(Density):
     
     class ExpExtractor(Density.ExpExtractor):
         legend_loc = 'upper right'
+        texttt = True
 
 class DensityLocNorm(DensityNorm, DensityLoc):
     
@@ -1404,6 +1510,9 @@ class DensityLocMem(DensityLoc):
 
 class DensityLocMemTable(DensityLocMem):
     
+    class ExpExtractor(DensityLocMem.ExpExtractor):
+        texttt = False
+    
     class ExpViewer(Task):
         
         def run(self):
@@ -1417,9 +1526,19 @@ class DensityLocMemTable(DensityLocMem):
                   int(round(df['Unoptimized'][2])),
                   int(round(df['Unoptimized'][20]))))
             
+            print('Average memory usage (in MB)')
+            means = df.mean()
+            print(means)
+            
             print('Average memory reduction (in MB)')
             means = df.mean()
             red = means.apply(lambda x: round(means['Unoptimized'] - x, 2))
+            print(red)
+            
+            print('Average memory reduction (as a %)')
+            means = df.mean()
+            red = means.apply(lambda x: round((means['Unoptimized'] - x) /
+                                              means['Unoptimized'] * 100, 3))
             print(red)
 
 class DensityCeleb(Density):
