@@ -293,14 +293,17 @@ class WifiOptTable(WifiOpt):
             means = df.mean()
             
             print('Average overhead of filtering')
-            print(round(means['Filtered'] / means['Unfiltered'], 1))
+            print(round(means['Filtered unopt.'] /
+                        means['Unfiltered unopt.'], 1))
             print('Average overhead of opt filtered vs unopt unfiltered')
-            print(round(means['Filtered opt.'] / means['Unfiltered'], 1))
+            print(round(means['Filtered opt.'] /
+                        means['Unfiltered unopt.'], 1))
             print('Average overhead of opt filtered vs opt unfiltered')
             print(round(means['Filtered opt.'] / means['Unfiltered opt.'], 1))
             print('Average improvement of opt for filtered')
-            print(round((means['Filtered'] - means['Filtered opt.']) /
-                  means['Filtered'], 1))
+            print(round((means['Filtered unopt.'] - means['Filtered opt.']) /
+                  means['Filtered unopt.'], 1))
             print('Average improvement of opt for unfiltered')
-            print(round((means['Unfiltered'] - means['Unfiltered opt.']) /
-                        means['Unfiltered'], 1))
+            print(round((means['Unfiltered unopt.'] -
+                         means['Unfiltered opt.']) /
+                        means['Unfiltered unopt.'], 1))

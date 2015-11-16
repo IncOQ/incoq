@@ -5,7 +5,7 @@ import pickle
 import os
 
 from frexp import (ExpWorkflow, Datagen,
-                   Extractor)
+                   Extractor, Task)
 
 from .distalgo_bridge import get_config, launch
 
@@ -587,6 +587,26 @@ class LAMutexOrigProcs(LAMutexOrigWorkflow):
     min_repeats = 10
     max_repeats = 50
 
+class LAMutexOrigProcsTable(LAMutexOrigProcs):
+    
+    class ExpExtractor(LAMutexOrigProcs.ExpExtractor):
+        texttt = False
+    
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            means = df.mean()
+            print('Average running time')
+            print(means.apply(lambda x: round(x, 3)))
+            print('Average % improvement')
+            unopt, opt = means['Unoptimized'], means['Optimized']
+            print(round((unopt - opt) / unopt * 100, 2))
+
 class LAMutexOrigRounds(LAMutexOrigWorkflow):
     
     prefix = 'results/lamutexorig_rounds'
@@ -718,6 +738,26 @@ class RAMutex(DistalgoWorkflow):
         xmin = 3
         xmax = 21
 
+class RAMutexTable(RAMutex):
+    
+    class ExpExtractor(RAMutex.ExpExtractor):
+        texttt = False
+    
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            means = df.mean()
+            print('Average running time')
+            print(means.apply(lambda x: round(x, 3)))
+            print('Average % improvement')
+            unopt, opt = means['Unoptimized'], means['Optimized']
+            print(round((unopt - opt) / unopt * 100, 2))
+
 
 class RATokenDriver(DistalgoDriver):
     dafilename = 'ratoken/ratoken.da'
@@ -845,6 +885,26 @@ class SKToken(DistalgoWorkflow):
     
     min_repeats = 10
     max_repeats = 50
+
+class SKTokenTable(SKToken):
+    
+    class ExpExtractor(SKToken.ExpExtractor):
+        texttt = False
+    
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            means = df.mean()
+            print('Average running time')
+            print(means.apply(lambda x: round(x, 3)))
+            print('Average % improvement')
+            unopt, opt = means['Unoptimized'], means['Optimized']
+            print(round((unopt - opt) / unopt * 100, 2))
 
 
 class TPCommitDriver(DistalgoDriver):

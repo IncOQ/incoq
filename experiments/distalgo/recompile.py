@@ -70,22 +70,22 @@ def do_tasks(tasks):
 
 
 tasks = [
+#    ('lamutex/spec_unopt_relack', 'lamutex/lamutex'),
+#    ('lamutex/spec_unopt_ack', 'lamutex/lamutex_opt1'),
+#    ('lamutex/spec', 'lamutex/lamutex_opt2'),
+#    ('vrpaxos/orig', 'vrpaxos/vrpaxos'),
+#    
+#    # PEPM 2016
 #    ('clpaxos/spec', 'clpaxos/clpaxos'),
 #    ('crleader/orig', 'crleader/crleader'),
 #    ('dscrash/spec', 'dscrash/dscrash'),
 #    ('hsleader/spec', 'hsleader/hsleader'),
-#    
-#    ('lamutex/spec_unopt_relack', 'lamutex/lamutex'),
-#    ('lamutex/spec_unopt_ack', 'lamutex/lamutex_opt1'),
-#    ('lamutex/spec', 'lamutex/lamutex_opt2'),
 #    ('lamutex/orig', 'lamutex/lamutex_orig'),
-#    
 #    ('lapaxos/orig', 'lapaxos/lapaxos'),
 #    ('ramutex/spec', 'ramutex/ramutex'),
 #    ('ratoken/spec', 'ratoken/ratoken'),
 #    ('sktoken/orig', 'sktoken/sktoken'),
 #    ('2pcommit/spec', 'tpcommit/tpcommit'),
-#    ('vrpaxos/orig', 'vrpaxos/vrpaxos'),
 ]
 
 if __name__ == '__main__':

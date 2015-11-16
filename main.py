@@ -177,6 +177,7 @@ class DEM_CORERBAC_CA(COM):
 #    INC,
 #    DEM,
 #    DEM_SINGLE_TAG,
+#    # PEPM 2016:
 #    DEM_NONATIVE_NORCELIM_NODRELIM,
 #    DEM_INLINE_NONATIVE_NORCELIM_NODRELIM,
 #    DEM_INLINE_NONATIVE_NODRELIM,
@@ -195,9 +196,10 @@ class DEM_CORERBAC_CA(COM):
 #
 #add_impls('Wifi', 'experiments/wifi/wifi', [
 #    INC,
+#    DEM,
+#    # PEPM 2016:
 #    INC_UNOPT,
 #    INC_OPT,
-#    DEM,
 #    DEM_UNOPT,
 #    DEM_OPT,
 #])
@@ -212,6 +214,7 @@ class DEM_CORERBAC_CA(COM):
 #        INC,
 #        DEM,
 ##        DEM_NO_TAG_CHECK,
+        # PEPM 2016:
 #        DEM_UNOPT,
 #        DEM_OPT,
 #    ])
@@ -234,23 +237,27 @@ class DEM_CORERBAC_CA(COM):
 #])
 #
 #add_impls('clpaxos', 'experiments/distalgo/clpaxos/clpaxos_inc', [
+#    DEM,
+#    # PEPM 2016:
 #    INC_SUBDEM,
 #    INC_SUBDEM_NORCELIM_NODRELIM,
-#    DEM,
 #])
 #add_impls('crleader', 'experiments/distalgo/crleader/crleader_inc', [
+#    DEM,
+#    # PEPM 2016:
 #    INC_SUBDEM,
 #    INC_SUBDEM_NORCELIM_NODRELIM,
-#    DEM,
 #])
 #add_impls('dscrash', 'experiments/distalgo/dscrash/dscrash_inc', [
+#    # PEPM 2016:
 #    DEM_OBJ_NS,
 #    DEM_OBJ_NS_NORCELIM_NODRELIM,
 #])
 #add_impls('hsleader', 'experiments/distalgo/hsleader/hsleader_inc', [
+#    DEM,
+#    # PEPM 2016:
 #    INC_SUBDEM,
 #    INC_SUBDEM_NORCELIM_NODRELIM,
-#    DEM,
 #])
 #add_impls('lamutex', 'experiments/distalgo/lamutex/lamutex_inc', [
 #    INC_SUBDEM_LAMUTEX,
@@ -265,32 +272,38 @@ class DEM_CORERBAC_CA(COM):
 #    DEM_LRU,
 #])
 #add_impls('lamutex orig', 'experiments/distalgo/lamutex/lamutex_orig_inc', [
+#    DEM_LRU,
+#    # PEPM 2016:
 #    INC_SUBDEM_LAMUTEX_ORIG,
 #    INC_SUBDEM_LAMUTEX_ORIG_NORCELIM_NODRELIM,
-#    DEM_LRU,
 #])
 #add_impls('lapaxos', 'experiments/distalgo/lapaxos/lapaxos_inc', [
+#    DEM,
+#    # PEPM 2016:
 #    INC_SUBDEM,
 #    INC_SUBDEM_NORCELIM_NODRELIM,
-#    DEM,
 #])
 #add_impls('ramutex', 'experiments/distalgo/ramutex/ramutex_inc', [
+#    DEM,
+#    # PEPM 2016:
 #    INC_SUBDEM,
 #    INC_SUBDEM_NORCELIM_NODRELIM,
-#    DEM,
 #])
 #add_impls('ratoken', 'experiments/distalgo/ratoken/ratoken_inc', [
+#    # PEPM 2016:
 #    DEM_OBJ_NS_RATOKEN,
 #    DEM_OBJ_NS_RATOKEN_NORCELIM_NODRELIM,
 #])
 #add_impls('sktoken', 'experiments/distalgo/sktoken/sktoken_inc', [
+#    # PEPM 2016:
 #    DEM_OBJ_NS,
 #    DEM_OBJ_NS_NORCELIM_NODRELIM,
 #])
 #add_impls('2pcommit', 'experiments/distalgo/tpcommit/tpcommit_inc', [
+#    DEM,
+#    # PEPM 2016:
 #    INC_SUBDEM,
 #    INC_SUBDEM_NORCELIM_NODRELIM,
-#    DEM,
 #])
 #add_impls('vrpaxos', 'experiments/distalgo/vrpaxos/vrpaxos_inc', [
 #    DEM,
@@ -627,8 +640,9 @@ lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
 #print(comparison_schema.to_ascii())
 #print(applications_schema.to_ascii())
 #print(distalgo_schema.to_ascii())
-#print(distalgo_rcdr_screma.to_ascii())
 #print(oopsla15_schema.to_ascii())
+# PEPM 2016:
+print(distalgo_rcdr_screma.to_ascii())
 
 #print(runningex_costschema.to_ascii())
 #print(lamutexspec_costschema.to_ascii())

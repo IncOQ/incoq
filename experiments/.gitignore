@@ -5,6 +5,8 @@
 *_dem_needed.py
 *_dem_notagcheck.py
 *_dem_inline.py
+*_opt.py
+*_unopt.py
 
 # Installation-dependent.
 config.txt

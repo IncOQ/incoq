@@ -79,13 +79,16 @@ lamutexspecrounds = experiments.distalgo.LAMutexSpecRounds()
 lamutexspecoptprocs = experiments.distalgo.LAMutexSpecOptProcs()
 lamutexspecoptrounds = experiments.distalgo.LAMutexSpecOptRounds()
 lamutexorigprocs = experiments.distalgo.LAMutexOrigProcs()
+lamutexorigprocstable = experiments.distalgo.LAMutexOrigProcsTable()
 lamutexorigrounds = experiments.distalgo.LAMutexOrigRounds()
 lapaxos = experiments.distalgo.LAPaxos()
 lapaxosexclude = experiments.distalgo.LAPaxosExclude()
 ramutex = experiments.distalgo.RAMutex()
+ramutextable = experiments.distalgo.RAMutexTable()
 ratokenprocs = experiments.distalgo.RATokenProcs()
 ratokenrounds = experiments.distalgo.RATokenRounds()
 sktoken = experiments.distalgo.SKToken()
+sktokentable = experiments.distalgo.SKTokenTable()
 tpcommit = experiments.distalgo.TPCommit()
 vrpaxos = experiments.distalgo.VRPaxos()
 
@@ -167,7 +170,7 @@ def main():
 #        tpcommit,
 #        vrpaxos,
         
-        # PEPM2016 figures:
+        # PEPM 2016 figures:
 #        densityloc,
 #        densitylocnorm,
 #        densitylocnormtable,
@@ -177,15 +180,15 @@ def main():
 #        densitycelebnorm,
 #        densitycelebnormtable,
 #        lamutexorigprocs,
+#        lamutexorigprocstable,
 #        ramutex,
+#        ramutextable,
 #        sktoken,
+#        sktokentable,
 #        wifiopt,
 #        wifiopttable,
 #        sets,
 #        setstable,
-#        jqlratio1opt,
-#        jqlratio2opt,
-#        jqlscale1opt,
 #        jqlscale2opt,
 #        jqlscale2opttable,
     ]
