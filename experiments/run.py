@@ -167,7 +167,7 @@ def main():
 #        tpcommit,
 #        vrpaxos,
         
-        # Optimization paper figures:
+        # PEPM2016 figures:
 #        densityloc,
 #        densitylocnorm,
 #        densitylocnormtable,
