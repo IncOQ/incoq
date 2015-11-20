@@ -102,6 +102,7 @@ class Manager:
         self.stats = {
             'trans time': 0,        # transformation time (process time)
             'lines': 0,             # lines of code, excl. whitespace/comments
+            'nodes': 0,             # number of Python AST nodes in output
             
             'incr queries': 0,      # number of queries incrementalized
             'incr comps': 0,        # number of comps incrementalized

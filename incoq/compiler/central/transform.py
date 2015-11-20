@@ -15,8 +15,9 @@ __all__ = [
 
 
 import time
+import ast
 
-from incoq.util.linecount import get_loc_source
+from incoq.util.linecount import get_loc_source, count_nodes
 from incoq.util.str import quote_items
 import incoq.compiler.incast as L
 from incoq.compiler.set import inc_all_relmatch
@@ -593,6 +594,11 @@ def transform_source(source, *, nopts=None, qopts=None):
     
     result = L.ts(tree)
     manager.stats['lines'] = get_loc_source(result)
+    
+    # Reparse with standard ast to get a true count.
+    reparsed = ast.parse(result)
+    manager.stats['nodes'] = count_nodes(reparsed)
+    
     return result, manager
 
 def transform_file(in_filename, out_filename, *, nopts=None, qopts=None):

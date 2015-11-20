@@ -29,6 +29,7 @@ __all__ = [
     'DEM_NOTYPECHECK',
     'DEM_INLINE_NOTYPECHECK',
     'DEM_OBJ',
+    'DEM_OBJ_ISOLATED',
     'DEM_SUBDEM',
     'DEM_OBJ_NS',
     'DEM_OBJ_NS_NORCELIM_NODRELIM',
@@ -270,6 +271,10 @@ class DEM_OBJ(DEM):
     output_suffix = 'dem'
     display_suffix = 'Filtered'
     extra_nopts = {'obj_domain': True}
+
+class DEM_OBJ_ISOLATED(DEM_OBJ):
+    # For transforming a query irrespective of the program it's in.
+    extra_nopts = {'autodetect_input_rels': False}
 
 class DEM_SUBDEM(DEM):
     output_suffix = 'dem_subdem'

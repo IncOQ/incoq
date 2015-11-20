@@ -6,12 +6,15 @@ __all__ = [
     'get_loc_file',
     'get_counts_for_files',
     'get_counts_for_dir',
+    
+    'count_nodes',
 ]
 
 
 from os import listdir
 from os.path import join, normpath, isdir
 from fnmatch import fnmatch
+import ast
 
 
 def get_loc_source(source,
@@ -83,3 +86,25 @@ def get_counts_for_dir(dir, exclude_pats, **kargs):
         count += subcount
     
     return [(dir, count)] + result
+
+
+def count_nodes(tree):
+    
+    class Counter(ast.NodeVisitor):
+        
+        @classmethod
+        def run(cls, tree):
+            visitor = cls()
+            visitor.visit(tree)
+            return visitor.count
+        
+        def __init__(self):
+            super().__init__()
+            self.count = 0
+        
+        def generic_visit(self, node):
+            assert isinstance(node, ast.AST)
+            self.count += 1
+            super().generic_visit(node)
+    
+    return Counter.run(tree)
