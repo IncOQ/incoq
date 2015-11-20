@@ -602,10 +602,10 @@ class LAMutexOrigProcsTable(LAMutexOrigProcs):
             
             means = df.mean()
             print('Average running time')
-            print(means.apply(lambda x: round(x, 3)))
+            print(means.apply(lambda x: round(x, 2)))
             print('Average % improvement')
             unopt, opt = means['Unoptimized'], means['Optimized']
-            print(round((unopt - opt) / unopt * 100, 2))
+            print(round((unopt - opt) / unopt * 100, 1))
 
 class LAMutexOrigRounds(LAMutexOrigWorkflow):
     
@@ -753,10 +753,10 @@ class RAMutexTable(RAMutex):
             
             means = df.mean()
             print('Average running time')
-            print(means.apply(lambda x: round(x, 3)))
+            print(means.apply(lambda x: round(x, 2)))
             print('Average % improvement')
             unopt, opt = means['Unoptimized'], means['Optimized']
-            print(round((unopt - opt) / unopt * 100, 2))
+            print(round((unopt - opt) / unopt * 100, 1))
 
 
 class RATokenDriver(DistalgoDriver):
@@ -901,10 +901,10 @@ class SKTokenTable(SKToken):
             
             means = df.mean()
             print('Average running time')
-            print(means.apply(lambda x: round(x, 3)))
+            print(means.apply(lambda x: round(x, 2)))
             print('Average % improvement')
             unopt, opt = means['Unoptimized'], means['Optimized']
-            print(round((unopt - opt) / unopt * 100, 2))
+            print(round((unopt - opt) / unopt * 100, 1))
 
 
 class TPCommitDriver(DistalgoDriver):

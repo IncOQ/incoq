@@ -419,13 +419,14 @@ class JQLExtractor(SimpleExtractor, SmallExtractor):
     orig_format = 'poly1'
     jqlcache_format = 'normal'
     jqlnocache_format = 'normal'
+    incremental_format = 'poly1'
+    filtered_format = 'poly1'
     
     texttt = False
     
     @property
-    def series(self):
-        # Post-process to copy 3 times for the 3 levels.
-        template_list = [
+    def series_template_list(self):
+        return [
             ('jql_{}_java_nocache', 'JQL no caching',
              'purple', '-- s ' + self.jqlnocache_format),
             ('jql_{}_java_cache', 'JQL always caching',
@@ -433,21 +434,24 @@ class JQLExtractor(SimpleExtractor, SmallExtractor):
             ('jql_{}_orig', 'original',
              'red', '- s ' + self.orig_format),
             ('jql_{}_inc', 'incremental',
-             'blue', '- o poly1'),
+             'blue', '- o ' + self.incremental_format),
             ('jql_{}_dem', 'filtered',
-             'green', '- ^ poly1'),
+             'green', '- ^ ' + self.filtered_format),
             ('jql_{}_dem_unopt', 'IncOQ unoptimized',
-             'blue', '-- o poly1'),
+             'blue', '-- o ' + self.filtered_format),
             ('jql_{}_dem_opt', 'IncOQ optimized',
-             'green', '- ^ poly1'),
+             'green', '- ^ ' + self.filtered_format),
         ]
-        
+    
+    @property
+    def series(self):
+        # Post-process to copy 3 times for the 3 levels.
         return [(sid.format(level),
                  '\\texttt{' + name.format(level) + '}' if self.texttt
                  else name.format(level),
                  color, style)
                 for level in ['1', '2', '3']
-                for sid, name, color, style in template_list]
+                for sid, name, color, style in self.series_template_list]
     
     def get_series_points(self, datapoints, sid, *,
                           average):
@@ -594,6 +598,12 @@ class Ratio2(Ratio):
         
         level = '2'
         
+        orig_format = 'normal'
+        jqlcache_format = 'normal'
+        jqlnocache_format = 'normal'
+        incremental_format = 'normal'
+        filtered_format = 'normal'
+        
         @property
         def series(self):
             s = super().series
@@ -686,8 +696,9 @@ class Scale(JQLWorkflow):
             return super().project_x(p) / 1e3
         
         ymin = 0
-        xmin = 1
+#        xmin = 1
 #        xmax = 21
+        xmin = 0
         xmax = 31
 #        x_ticklocs = [0, 4, 8, 12, 16, 20]
         x_ticklocs = [0, 5, 10, 15, 20, 25, 30]
@@ -714,8 +725,8 @@ class Scale1(Scale):
         
         level = '1'
         orig_format = 'poly1'
-        jqlcache_format = 'poly1'
-        jqlnocache_format = 'poly1'
+        jqlcache_format = 'normal'
+        jqlnocache_format = 'normal'
 #        orig_format = 'points'
 #        jqlcache_format = 'points'
 #        jqlnocache_format = 'points'
@@ -826,8 +837,8 @@ class Scale2(Scale):
     class ExpExtractor(Scale.ExpExtractor):
         
         level = '2'
-        jqlcache_format = 'poly1'
-        jqlnocache_format = 'poly1'
+        jqlcache_format = 'normal'
+        jqlnocache_format = 'normal'
 #        jqlcache_format = 'points'
 #        jqlnocache_format = 'points'
 #        generate_csv = False
@@ -864,14 +875,35 @@ class Scale2(Scale):
         
         max_yitvl = 4
 
+class Scale2Smaller(Scale2):
+    
+    prefix = 'results/jql_scale_2_smaller'
+    
+    class ExpDatagen(Scale2.ExpDatagen):
+        points = list(range(2000, 20000 + 1, 2000))
+    
+    class ExpExtractor(Scale2.ExpExtractor):
+        
+        incremental_format = 'normal'
+        filtered_format = 'normal'
+        
+        multipliers = {
+            'jql_2_inc':  10,
+            'jql_2_dem':  10,
+        }
+        
+        xmin = 1
+        xmax = 21
+        x_ticklocs = None
+
 class Scale2Bigger(Scale2):
     
     prefix = 'results/jql_scale_2_bigger'
     
     class ExpDatagen(Scale2.ExpDatagen):
         prog_suffixes = [
-            '_inc',
-            '_dem',
+#            '_inc',
+#            '_dem',
             '_java_nocache',
             '_java_cache',
         ]
@@ -914,8 +946,10 @@ class Scale2Opt(ScaleOpt):
         texttt = True
         
         level = '2'
-        jqlcache_format = 'poly1'
-        jqlnocache_format = 'poly1'
+        jqlcache_format = 'normal'
+        jqlnocache_format = 'normal'
+#        jqlcache_format = 'poly1'
+#        jqlnocache_format = 'poly1'
         
         multipliers = {
             # Mind the scale for the Scale2OptTable below;
@@ -997,8 +1031,8 @@ class Scale3(Scale):
     class ExpExtractor(Scale.ExpExtractor):
         
         level = '3'
-        jqlcache_format = 'poly1'
-        jqlnocache_format = 'poly1'
+        jqlcache_format = 'normal'
+        jqlnocache_format = 'normal'
 #        jqlcache_format = 'points'
 #        jqlnocache_format = 'points'
 #        generate_csv = False
@@ -1045,19 +1079,100 @@ class Scale3Bigger(Scale3):
     
     class ExpDatagen(Scale3.ExpDatagen):
         prog_suffixes = [
-            '_inc',
-            '_dem',
+#            '_inc',
+#            '_dem',
             '_java_nocache',
             '_java_cache',
         ]
         
-        points = [1000] + list(range(5000, 30000 + 1, 5000))
+        points = [1000] + list(range(5000, 50000 + 1, 5000))
     
     stddev_window = .1
-    min_repeats = 5
-    max_repeats = 5
+    min_repeats = 10
+    max_repeats = 10
     
     class ExpExtractor(Scale3.ExpExtractor):
+#        jqlcache_format = 'points'
+        generate_csv = False
+        
         xmin = 0
-        xmax = 31
-        x_ticklocs = [0, 5, 10, 15, 20, 25, 30]
+        xmax = 51
+        x_ticklocs = None
+
+
+class Scale2GC(Scale2):
+    
+    prefix = 'results/jql_scale_gc_2'
+    
+    class ExpDatagen(Scale2.ExpDatagen):
+        
+        prog_suffixes = [
+            '_inc',
+            '_dem',
+        ]
+        
+        def get_tparams_list(self, dsparams_list):
+            # Versions with and without gc.
+            base_tparams = super().get_tparams_list(dsparams_list)
+            tparams = []
+            for gc in [False, True]:
+                for tp in base_tparams:
+                    tp = dict(tp)
+                    tp['gc'] = gc
+                    tparams.append(tp)
+            return tparams
+    
+    stddev_window = .1
+    min_repeats = 50
+    max_repeats = 50
+    
+    class ExpExtractor(Scale2.ExpExtractor):
+        
+        series = [
+            (('jql_2_inc', False), 'incremental',
+             'blue', '- o poly1'),
+            (('jql_2_inc', True), 'incremental (gc)',
+             'blue', '-- _o poly1'),
+            (('jql_2_dem', False), 'filtered',
+             'green', '- ^ poly1'),
+            (('jql_2_dem', True), 'filtered (gc)',
+             'green', '-- _^ poly1'),
+        ]
+        
+        def get_series_data(self, datapoints, sid):
+            inner_sid, gc = sid
+            datapoints = super().get_series_data(datapoints, inner_sid)
+            datapoints = [p for p in datapoints
+                            if p['gc'] == gc]
+            return datapoints
+        
+        ymax = 4.5
+        max_yitvls = 5
+
+class Scale2GCTable(Scale2GC):
+    
+    class ExpExtractor(Scale2GC.ExpExtractor):
+        texttt = False
+    
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            def printdiff(withgc, withoutgc):
+                diff = withgc - withoutgc
+                diff = diff.abs()
+                diffper = diff / withoutgc
+                print('  Maximum difference: {}%'.format(
+                      int(diffper.max() * 100)))
+                print('  Average difference: {}%'.format(
+                      int(diffper.mean() * 100)))
+            
+            print('GC differences for incremental:')
+            printdiff(df['incremental (gc)'], df['incremental'])
+            
+            print('GC differences for filtered:')
+            printdiff(df['filtered (gc)'], df['filtered'])

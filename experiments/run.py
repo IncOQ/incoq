@@ -5,6 +5,7 @@ import experiments.twitter as twitter
 import experiments.jql as jql
 import experiments.wifi as wifi
 import experiments.django as django
+import experiments.graddb as graddb
 import experiments.rbac.corerbac as corerbac
 import experiments.rbac.constrainedrbac as crbac
 import experiments.distalgo
@@ -51,11 +52,14 @@ jqlratio3 = jql.Ratio3()
 jqlscale1 = jql.Scale1()
 jqlscale1opt = jql.Scale1Opt()
 jqlscale2 = jql.Scale2()
+jqlscale2smaller = jql.Scale2Smaller()
 jqlscale2bigger = jql.Scale2Bigger()
 jqlscale2opt = jql.Scale2Opt()
 jqlscale2opttable = jql.Scale2OptTable()
 jqlscale3 = jql.Scale3()
 jqlscale3bigger = jql.Scale3Bigger()
+jqlscale2gc = jql.Scale2GC()
+jqlscale2gctable = jql.Scale2GCTable()
 
 wifiscale = wifi.Wifi()
 wifiopt = wifi.WifiOpt()
@@ -64,6 +68,8 @@ wifiopttable = wifi.WifiOptTable()
 djangoscale = django.Scale()
 djangodemand = django.DemandTime()
 djangodemandnorm = django.DemandTimeNorm()
+
+newstu = graddb.newstudents.NewStudentsScale()
 
 coreroles = corerbac.CoreRoles()
 coredemand = corerbac.CoreDemand()
@@ -130,13 +136,16 @@ def main():
 #        densitycelebnormtable,
         
 #        jqlratio1,
-#        jqlratio2,        # jql_ratio
+#        jqlratio2,       # jql_ratio
 #        jqlratio3,
 #        jqlscale1,
-#        jqlscale2,        # jql_asymp
+#        jqlscale2,
+#        jqlscale2smaller, # jql_asymp
 #        jqlscale2bigger,
 #        jqlscale3,
 #        jqlscale3bigger,
+#        jqlscale2gc,
+#        jqlscale2gctable,
         
 #        coreroles,
 #        coredemand,
@@ -150,6 +159,7 @@ def main():
 #        djangoscale,
 #        djangodemand,
 #        djangodemandnorm,
+#        newstu,
         
 #        clpaxos,
 #        crleader,
