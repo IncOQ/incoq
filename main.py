@@ -193,7 +193,39 @@ class DEM_CORERBAC_CA(COM):
 #    INC,
 #    DEM,
 #])
-#
+#add_impls('GradDB New Students', 'experiments/graddb/newstudents/newstu', [
+#    DEM,
+#])
+#add_impls('GradDB Query 1', 'experiments/graddb/queries/cur_stu', [
+#    DEM_OBJ_ISOLATED,
+#])
+#add_impls('GradDB Query 2', 'experiments/graddb/queries/new_stu', [
+#    DEM_OBJ_ISOLATED,
+#])
+#add_impls('GradDB Query 3', 'experiments/graddb/queries/tas_and_instructors', [
+#    DEM_OBJ_ISOLATED,
+#])
+#add_impls('GradDB Query 4', 'experiments/graddb/queries/new_ta_emails', [
+#    DEM_OBJ_ISOLATED,
+#])
+#add_impls('GradDB Query 5', 'experiments/graddb/queries/ta_waitlist', [
+#    DEM_OBJ_ISOLATED,
+#])
+#add_impls('GradDB Query 6', 'experiments/graddb/queries/good_tas', [
+#    DEM_OBJ_ISOLATED,
+#])
+#add_impls('GradDB Query 7', 'experiments/graddb/queries/qual_exam_results', [
+#    DEM_OBJ_ISOLATED,
+#])
+#add_impls('GradDB Query 8', 'experiments/graddb/queries/advisors_by_student', [
+#    DEM_OBJ_ISOLATED,
+#])
+#add_impls('GradDB Query 9', 'experiments/graddb/queries/advisor_overdue', [
+#    DEM_OBJ_ISOLATED,
+#])
+#add_impls('GradDB Query 10', 'experiments/graddb/queries/prelim_exam_overdue', [
+#    DEM_OBJ_ISOLATED,
+#])
 #add_impls('Wifi', 'experiments/wifi/wifi', [
 #    INC,
 #    DEM,
@@ -615,6 +647,26 @@ class OOPSLA15Schema(OrigIncFilterSchema):
         _rowgen('CL Paxos', 'clpaxos'),
     ]
 
+class GradDBSchema(StatkeySchema):
+    
+    cols = [
+        ('lines', 'LOC', None),
+        ('nodes', 'AST nodes', None),
+    ]
+    
+    rows = [
+        ('GradDB Query 1 Filtered', 'Current Students'),
+        ('GradDB Query 2 Filtered', 'New Students'),
+        ('GradDB Query 3 Filtered', 'TAs and Instructors'),
+        ('GradDB Query 4 Filtered', 'New TA Emails'),
+        ('GradDB Query 5 Filtered', 'TA Waitlist'),
+        ('GradDB Query 6 Filtered', 'Good TAs'),
+        ('GradDB Query 7 Filtered', 'Qual Exam Results'),
+        ('GradDB Query 8 Filtered', 'Advisors by Student'),
+        ('GradDB Query 9 Filtered', 'Advisor Overdue'),
+        ('GradDB Query 10 Filtered', 'Prelim Exam Overdue'),
+    ]
+
 stats = StatsDB(STATS_FILE)
 runningex_schema = RunningExSchema(stats.allstats)
 comparison_schema = ComparisonSchema(stats.allstats)
@@ -625,6 +677,7 @@ runningex_costschema = RunningExCostSchema(stats.allstats)
 lamutexspec_costschema = LamutexspecCostSchema(stats.allstats)
 lamutexorig_costschema = LamutexorigCostSchema(stats.allstats)
 oopsla15_schema = OOPSLA15Schema(stats.allstats)
+graddb_schema = GradDBSchema(stats.allstats)
 
 runningex_schema.save_csv(STATS_DIR + 'stats-runningex.csv')
 comparison_schema.save_csv(STATS_DIR + 'stats-comparison.csv')
@@ -632,6 +685,7 @@ applications_schema.save_csv(STATS_DIR + 'stats-applications.csv')
 distalgo_schema.save_csv(STATS_DIR + 'stats-distalgo.csv')
 distalgo_rcdr_screma.save_csv(STATS_DIR + 'stats-distalgo-rcdr.csv')
 oopsla15_schema.save_csv(STATS_DIR + 'stats-oopsla15.csv')
+graddb_schema.save_csv(STATS_DIR + 'stats-graddb.csv')
 runningex_costschema.save_csv(STATS_DIR + 'stats-runninex_cost.csv')
 lamutexspec_costschema.save_csv(STATS_DIR + 'stats-lamutexspec_cost.csv')
 lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
@@ -641,8 +695,9 @@ lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
 #print(applications_schema.to_ascii())
 #print(distalgo_schema.to_ascii())
 #print(oopsla15_schema.to_ascii())
+print(graddb_schema.to_ascii())
 # PEPM 2016:
-print(distalgo_rcdr_screma.to_ascii())
+#print(distalgo_rcdr_screma.to_ascii())
 
 #print(runningex_costschema.to_ascii())
 #print(lamutexspec_costschema.to_ascii())
