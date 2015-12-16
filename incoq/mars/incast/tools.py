@@ -6,6 +6,7 @@ __all__ = [
     'detuplify',
     'mask_from_bounds',
     'split_by_mask',
+    'bind_by_mask',
     'IdentFinder',
     'Templater',
     'MacroExpander',
@@ -67,6 +68,21 @@ def split_by_mask(mask, items):
         else:
             assert()
     return bounds, unbounds
+
+
+def bind_by_mask(mask, lhs, rhs):
+    """Return code to bind the items in lhs that correspond
+    to unbound components, to the corresponding parts of rhs.
+    """
+    vars = []
+    for c, v in zip(mask.m, lhs):
+        if c == 'b':
+            vars.append('_')
+        elif c == 'u':
+            vars.append(v)
+        else:
+            assert()
+    return (L.DecompAssign(vars, rhs),)
 
 
 class IdentFinder(L.NodeVisitor):

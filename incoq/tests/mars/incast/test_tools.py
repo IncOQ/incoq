@@ -45,6 +45,14 @@ class MaskCase(unittest.TestCase):
         exp_unbounds = ['y']
         self.assertEqual(bounds, exp_bounds)
         self.assertEqual(unbounds, exp_unbounds)
+    
+    def test_bind_by_mask(self):
+        mask = L.mask('bubu')
+        code = bind_by_mask(mask, ['w', 'x', 'y', 'z'], L.Name('e'))
+        exp_code = Parser.pc('''
+            _, x, _, z = e
+            ''')
+        self.assertEqual(code, exp_code)
 
 
 class IdentFinderCase(unittest.TestCase):

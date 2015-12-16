@@ -4,6 +4,8 @@
 __all__ = [
     'ClauseInfo',
     'RelMemberInfo',
+    'SingMemberInfo',
+    'WithoutMemberInfo',
     'CondInfo',
     
     'ClauseInfoFactory',
@@ -30,6 +32,13 @@ class ClauseInfo(Struct):
         condition clauses, the empty sequence.
         """
         raise NotImplemented
+    
+    def get_code(self, bindenv, body):
+        """Return code to run body for each combination of values of
+        lhs vars consistent with the values of the bound vars, given
+        by bindenv.
+        """
+        raise NotImplemented
 
 
 class RelMemberInfo(ClauseInfo):
@@ -53,6 +62,52 @@ class RelMemberInfo(ClauseInfo):
         bvars, uvars = L.split_by_mask(mask, self.vars)
         lookup = L.ImgLookup(self.rel, mask, bvars)
         return (L.DecompFor(uvars, lookup, body),)
+
+
+class SingMemberInfo(ClauseInfo):
+    
+    _inherit_fields = True
+    
+    @property
+    def vars(self):
+        return self.cl.vars
+    
+    @property
+    def value(self):
+        return self.cl.value
+    
+    @property
+    def lhs_vars(self):
+        return self.vars
+    
+    def get_code(self, bindenv, body):
+        mask = L.mask_from_bounds(self.vars, bindenv)
+        bindcode = L.bind_by_mask(mask, self.vars, self.value)
+        return bindcode + body
+
+
+class WithoutMemberInfo(ClauseInfo):
+    
+    _inherit_fields = True
+    
+    inner = TypedField(ClauseInfo)
+    
+    @property
+    def value(self):
+        return self.cl.value
+    
+    @property
+    def lhs_vars(self):
+        return self.inner.lhs_vars
+    
+    def get_code(self, bindenv, body):
+        new_body = L.Parser.pc('''
+            if VARS != VALUE:
+                BODY
+            ''', subst={'VARS': L.tuplify(self.lhs_vars),
+                        'VALUE': self.value,
+                        '<c>BODY': body})
+        return self.inner.get_code(bindenv, new_body)
 
 
 class CondInfo(ClauseInfo):
@@ -87,6 +142,13 @@ class ClauseInfoFactory:
     
     def handle_RelMember(self, node):
         return RelMemberInfo(node)
+    
+    def handle_SingMember(self, node):
+        return SingMemberInfo(node)
+    
+    def handle_WithoutMember(self, node):
+        inner = self.make_clause_info(node.cl)
+        return WithoutMemberInfo(node, inner)
     
     def handle_Cond(self, node):
         return CondInfo(node)
