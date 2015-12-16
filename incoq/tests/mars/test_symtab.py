@@ -108,16 +108,21 @@ class QueryRewriterCase(unittest.TestCase):
         
         class DoublerRewriter(QueryRewriter):
             def rewrite(self, symbol, name, expr):
-                return Doubler.run(expr)
+                if isinstance(expr, L.Num) and expr.n == 0:
+                    return None
+                else:
+                    return Doubler.run(expr)
         
         symtab = SymbolTable()
         symtab.define_query('Q1', node=L.Parser.pe('1 + 2'))
         symtab.define_query('Q2', node=L.Parser.pe('3 + 4'))
+        symtab.define_query('Q3', node=L.Parser.pe('0'))
         tree = L.Parser.p('''
             def main():
                 print(QUERY('Q1', 1 + 2))
                 print(QUERY('Q1', 1 + 2))
                 print(QUERY('Q2', 3 + 4))
+                print(QUERY('Q3', 0))
             ''')
         tree = DoublerRewriter.run(tree, symtab)
         
@@ -126,12 +131,15 @@ class QueryRewriterCase(unittest.TestCase):
                 print(QUERY('Q1', 2 + 4))
                 print(QUERY('Q1', 2 + 4))
                 print(QUERY('Q2', 6 + 8))
+                print(QUERY('Q3', 0))
             ''')
         self.assertEqual(tree, exp_tree)
         self.assertEqual(symtab.get_symbols()['Q1'].node,
                          L.Parser.pe('2 + 4'))
         self.assertEqual(symtab.get_symbols()['Q2'].node,
                          L.Parser.pe('6 + 8'))
+        self.assertEqual(symtab.get_symbols()['Q3'].node,
+                         L.Parser.pe('0'))
     
     def test_called_once(self):
         # rewrite() shouldn't be called multiple times for multiple

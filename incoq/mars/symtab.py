@@ -297,7 +297,8 @@ class QueryRewriter(L.NodeTransformer):
             replacement = self.rewrite(sym, name, this_occ)
             self.queries_before[name] = this_occ
             self.queries_after[name] = replacement
-            sym.node = replacement
+            if replacement is not None:
+                sym.node = replacement
         
         # Each subsequent time, check for consistency with the previous
         # occurrences, and reuse the replacement that was determined the
