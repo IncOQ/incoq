@@ -1,3 +1,6 @@
+# Ignore this folder for Mars branch
+*
+
 # Generated files.
 *_aux.py
 *_inc.py
