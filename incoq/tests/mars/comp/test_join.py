@@ -87,6 +87,16 @@ class JoinCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
     
+    def test_bind_clause(self):
+        comp_info = self.make_comp_info('''
+            {(w, x, y, z) for (w, x) in REL(R) for (x, y) in REL(S)
+                          for (y, z) in REL(R)}''', [])
+        comp_info = comp_info.bind_clause(0, L.Name('e'))
+        exp_comp_info = self.make_comp_info('''
+            {(w, x, y, z) for (w, x) in SING(e) for (x, y) in REL(S)
+                          for (y, z) in WITHOUT(REL(R), e)}''', [])
+        self.assertEqual(comp_info, exp_comp_info)
+    
     def test_join_expander(self):
         Q1 = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
                                        for (y, z) in REL(S)}''')

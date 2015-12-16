@@ -15,6 +15,8 @@ __all__ = [
 ]
 
 
+from enum import Enum
+
 from simplestruct import Struct, TypedField
 
 from incoq.util.collections import OrderedSet
@@ -62,6 +64,17 @@ class CompInfo(Struct):
     """Encapsulates a Comp node and provides utilities for
     incrementalization.
     """
+    
+    class SelfJoin(Enum):
+        """Strategies for handling self-joins when binding clauses."""
+        Without = 1
+        """Use WithoutMember for all subsequent clauses over the same
+        relation as the bound clause.
+        """
+        # Other possibilities include adding the element (for running
+        # maintenance before additions / after removals), or doing
+        # nothing at all (for when a differential assignment set is
+        # used).
     
     factory = TypedField(CompInfoFactory)
     """Factory to use for constructing ClauseInfo and other CompInfo
@@ -119,6 +132,35 @@ class CompInfo(Struct):
             code = cl_info.get_code(bindenv, code)
         
         return code
+    
+    def bind_clause(self, i, value, *,
+                    selfjoin=SelfJoin.Without):
+        """Return a join where the clause at index i is bound to value.
+        Self-joins are handled appropriately. This CompInfo must be
+        a join.
+        """
+        assert self.is_join
+        # Other strategies not supported at the moment.
+        assert selfjoin is self.SelfJoin.Without
+        assert 0 <= i < len(self.clauses)
+        
+        rel = self.clauses[i].rhs_rel
+        if rel is None:
+            raise ValueError('Cannot bind clause: ' + str(self.clauses[i]))
+        
+        new_clauses = list(self.clauses[:i])
+        
+        bound_clause = self.clauses[i]
+        bound_clause = self.factory.make_sing(bound_clause, value)
+        new_clauses.append(bound_clause)
+        
+        for cl in self.clauses[i+1:]:
+            if cl.rhs_rel == rel:
+                new_clauses.append(self.factory.make_without(cl, value))
+            else:
+                new_clauses.append(cl)
+        
+        return self.factory.make_join(new_clauses)
 
 
 class JoinExpander(L.NodeTransformer):
