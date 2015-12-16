@@ -15,6 +15,7 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(cl_info.rel, 'R')
         
         self.assertSequenceEqual(cl_info.lhs_vars, ['x', 'y', 'z'])
+        self.assertEqual(cl_info.rhs_rel, 'R')
         
         code = cl_info.get_code(['a', 'x'], [L.Pass()])
         exp_code = L.Parser.pc('''
@@ -29,6 +30,7 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(cl_info.value, L.Name('e'))
         
         self.assertSequenceEqual(cl_info.lhs_vars, ['x', 'y', 'z'])
+        self.assertEqual(cl_info.rhs_rel, None)
         
         code = cl_info.get_code(['x'], (L.Pass(),))
         exp_code = L.Parser.pc('''
@@ -46,6 +48,7 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(cl_info.value, L.Name('e'))
         
         self.assertSequenceEqual(cl_info.lhs_vars, ['x', 'y', 'z'])
+        self.assertEqual(cl_info.rhs_rel, 'R')
         
         code = cl_info.get_code(['x'], (L.Pass(),))
         exp_code = L.Parser.pc('''
@@ -60,6 +63,7 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(cl_info.cond, L.Parser.pe('x == y'))
         
         self.assertSequenceEqual(cl_info.lhs_vars, [])
+        self.assertEqual(cl_info.rhs_rel, None)
         
         code = cl_info.get_code(['a', 'x', 'y'], [L.Pass()])
         exp_code = L.Parser.pc('''
@@ -69,17 +73,48 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(code, exp_code)
     
     def test_factory(self):
+        factory = ClauseInfoFactory()
+        
         # Basic case.
         cl_ast = L.RelMember(['x', 'y', 'z'], 'R')
-        cl_info = ClauseInfoFactory().make_clause_info(cl_ast)
+        cl_info = factory.make_clause_info(cl_ast)
         self.assertEqual(cl_info, RelMemberInfo(cl_ast))
         
         # Nested clause case (WithoutMember).
         inner_cl_ast = L.RelMember(['x', 'y', 'z'], 'R')
         cl_ast = L.WithoutMember(inner_cl_ast, L.Name('e'))
-        cl_info = ClauseInfoFactory().make_clause_info(cl_ast)
+        cl_info = factory.make_clause_info(cl_ast)
         exp_inner_cl_info = RelMemberInfo(inner_cl_ast)
         exp_cl_info = WithoutMemberInfo(cl_ast, exp_inner_cl_info)
+        self.assertEqual(cl_info, exp_cl_info)
+        
+        # Test clause info transformations.
+        
+        # Basic case.
+        cl_ast = L.RelMember(['x', 'y', 'z'], 'R')
+        cl_info = factory.make_clause_info(cl_ast)
+        cl_info = factory.make_sing(cl_info, L.Name('e'))
+        exp_cl_info = SingMemberInfo(L.SingMember(['x', 'y', 'z'],
+                                                  L.Name('e')))
+        self.assertEqual(cl_info, exp_cl_info)
+        
+        # Nested case.
+        cl_ast = L.WithoutMember(L.RelMember(['x', 'y', 'z'], 'R'),
+                                 L.Name('f'))
+        cl_info = factory.make_clause_info(cl_ast)
+        cl_info = factory.make_sing(cl_info, L.Name('e'))
+        exp_cl_ast = L.WithoutMember(
+                L.SingMember(['x', 'y', 'z'], L.Name('e')),
+                L.Name('f'))
+        exp_cl_info = factory.make_clause_info(exp_cl_ast)
+        self.assertEqual(cl_info, exp_cl_info)
+        
+        # Without.
+        cl_ast = L.RelMember(['x', 'y', 'z'], 'R')
+        cl_info = factory.make_clause_info(cl_ast)
+        cl_info = factory.make_without(cl_info, L.Name('e'))
+        exp_cl_ast = L.WithoutMember(cl_ast, L.Name('e'))
+        exp_cl_info = factory.make_clause_info(exp_cl_ast)
         self.assertEqual(cl_info, exp_cl_info)
 
 
