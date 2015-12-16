@@ -85,7 +85,7 @@ module IncAST
     
     mask = (string m)
     
-    boolop = And | Or 
+    boolop = And | Or
     
     operator = Add | Sub | Mult | Div | Mod | Pow | LShift 
              | RShift | BitOr | BitXor | BitAnd | FloorDiv

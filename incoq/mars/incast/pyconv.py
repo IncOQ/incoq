@@ -194,7 +194,7 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         return L.Comp(self.visit(node.elt), clauses)
     
     def member_clause_helper(self, target, iter):
-        # target is already converted to IncAST nodes, but iter is not.
+        # iter is already converted to IncAST nodes, but target is not.
         # This facilitates recursion (for clause types that wrap other
         # clauses) without assuming anything about the structure of the
         # lhs.
