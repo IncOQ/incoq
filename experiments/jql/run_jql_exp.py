@@ -428,7 +428,7 @@ class JQLExtractor(SimpleExtractor, SmallExtractor):
     def series_template_list(self):
         return [
             ('jql_{}_java_nocache', 'JQL no caching',
-             'purple', '-- s ' + self.jqlnocache_format),
+             'purple', '-- _s ' + self.jqlnocache_format),
             ('jql_{}_java_cache', 'JQL always caching',
              'teal', ': v ' + self.jqlcache_format),
             ('jql_{}_orig', 'original',
@@ -570,6 +570,7 @@ class Ratio1(Ratio):
     
     class ExpExtractor(Ratio.ExpExtractor):
         level = '1'
+        ymin = -0.02
         ymax = .5
 
 class Ratio1Opt(RatioOpt):
@@ -621,6 +622,7 @@ class Ratio2(Ratio):
             else:
                 return y
         
+        ymin = -0.1
         ymax = 2
         legend_loc = 'upper center'
 
@@ -654,6 +656,7 @@ class Ratio3(Ratio):
     
     class ExpExtractor(Ratio.ExpExtractor):
         level = '3'
+        ymin = -0.1
         ymax = 2
         legend_loc = 'upper center'
 
@@ -724,7 +727,7 @@ class Scale1(Scale):
     class ExpExtractor(Scale.ExpExtractor):
         
         level = '1'
-        orig_format = 'poly1'
+        orig_format = 'normal'
         jqlcache_format = 'normal'
         jqlnocache_format = 'normal'
 #        orig_format = 'points'
