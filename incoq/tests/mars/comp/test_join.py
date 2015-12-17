@@ -11,75 +11,47 @@ from incoq.mars.comp.join import *
 class JoinCase(unittest.TestCase):
     
     def setUp(self):
-        self.factory = CompInfoFactory()
-    
-    def make_comp_info(self, source, params):
-        comp = L.Parser.pe(source)
-        return self.factory.make_comp_info(comp, params)
-    
-    def test_construction(self):
-        # Construct manually.
-        cl_info1 = RelMemberInfo(L.RelMember(['x', 'y'], 'R'))
-        cl_info2 = RelMemberInfo(L.RelMember(['y', 'z'], 'S'))
-        resexp = L.Parser.pe('z')
-        clauses = [cl_info1, cl_info2]
-        comp_info = CompInfo(self.factory, clauses, ['x'], resexp)
-        
-        # Check fields.
-        self.assertSequenceEqual(comp_info.clauses, clauses)
-        self.assertSequenceEqual(comp_info.boundvars, ['x'])
-        self.assertEqual(comp_info.resexp, resexp)
-        
-        # Compare with construction via factory.
-        comp_info2 = self.make_comp_info('''{z for (x, y) in REL(R)
-                                               for (y, z) in REL(S)}''',
-                                         ['x'])
-        self.assertEqual(comp_info, comp_info2)
-    
-    def test_make_join(self):
-        cl_info1 = RelMemberInfo(L.RelMember(['x', 'y'], 'R'))
-        cl_info2 = RelMemberInfo(L.RelMember(['y', 'z'], 'S'))
-        comp_info = self.factory.make_join([cl_info1, cl_info2])
-        exp_comp_info = self.make_comp_info(
-            '{(x, y, z) for (x, y) in REL(R) for (y, z) in REL(S)}', [])
-        self.assertEqual(comp_info, exp_comp_info)
+        self.ct = CoreClauseTools()
     
     def test_lhs_vars(self):
-        comp_info = self.make_comp_info('''{z for (x, y) in REL(R)
-                                               for (y, z) in REL(S)}''',
-                                        ['x'])
-        self.assertSequenceEqual(comp_info.lhs_vars, ['x', 'y', 'z'])
+        comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
+                                         for (y, z) in REL(S)}''')
+        lhs_vars = self.ct.lhs_vars_from_clauses(comp.clauses)
+        self.assertSequenceEqual(lhs_vars, ['x', 'y', 'z'])
+        
+        lhs_vars = self.ct.lhs_vars_from_comp(comp)
+        self.assertSequenceEqual(lhs_vars, ['x', 'y', 'z'])
+    
+    def test_make_join(self):
+        comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
+                                         for (y, z) in REL(S)}''')
+        comp2 = self.ct.make_join_from_clauses(comp.clauses)
+        self.assertEqual(comp2, comp)
+        
+        comp3 = L.Parser.pe('''{None for (x, y) in REL(R)
+                                     for (y, z) in REL(S)}''')
+        comp4 = self.ct.make_join_from_comp(comp3)
+        self.assertEqual(comp4, comp)
     
     def test_is_join(self):
-        # Is a join.
         comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
                                          for (y, z) in REL(S)}''')
-        comp_info = self.factory.make_comp_info(comp, [])
-        self.assertTrue(comp_info.is_join)
+        self.assertTrue(self.ct.is_join(comp))
         
-        # Not a join because of bound variable.
-        comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
+        # Wrong order.
+        comp = L.Parser.pe('''{(x, z, y) for (x, y) in REL(R)
                                          for (y, z) in REL(S)}''')
-        comp_info = self.factory.make_comp_info(comp, ['x'])
-        self.assertFalse(comp_info.is_join)
+        self.assertFalse(self.ct.is_join(comp))
         
-        # Not a join because of result expression.
+        # Not a tuple.
         comp = L.Parser.pe('''{x for (x, y) in REL(R)
                                  for (y, z) in REL(S)}''')
-        comp_info = self.factory.make_comp_info(comp, [])
-        self.assertFalse(comp_info.is_join)
-        
-        # Not a join because some variables are missing.
-        comp = L.Parser.pe('''{(x, y) for (x, y) in REL(R)
-                                      for (y, z) in REL(S)}''')
-        comp_info = self.factory.make_comp_info(comp, [])
-        self.assertFalse(comp_info.is_join)
+        self.assertFalse(self.ct.is_join(comp))
     
-    def test_get_clause_code(self):
-        comp_info = self.make_comp_info('''{z for (x, y) in REL(R)
-                                              for (y, z) in REL(S)}''',
-                                        ['x'])
-        code = comp_info.get_clause_code([L.Pass()])
+    def test_get_code_for_clauses(self):
+        comp = L.Parser.pe('''{z for (x, y) in REL(R)
+                                 for (y, z) in REL(S)}''')
+        code = self.ct.get_code_for_clauses(comp.clauses, ['x'], (L.Pass(),))
         exp_code = L.Parser.pc('''
             for (y,) in R.imglookup('bu', (x,)):
                 for (z,) in S.imglookup('bu', (y,)):
@@ -87,24 +59,24 @@ class JoinCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
     
-    def test_bind_clause(self):
-        comp_info = self.make_comp_info('''
-            {(w, x, y, z) for (w, x) in REL(R) for (x, y) in REL(S)
-                          for (y, z) in REL(R)}''', [])
-        comp_info = comp_info.bind_clause(0, L.Name('e'))
-        exp_comp_info = self.make_comp_info('''
-            {(w, x, y, z) for (w, x) in SING(e) for (x, y) in REL(S)
-                          for (y, z) in WITHOUT(REL(R), e)}''', [])
-        self.assertEqual(comp_info, exp_comp_info)
-    
+    def test_get_maint_join(self):
+        comp = L.Parser.pe('''
+            {(w, x, y ,z) for (w, x) in REL(R) for (x, y) in REL(S)
+                          for (y, z) in REL(R)}''')
+        join = self.ct.get_maint_join(comp, 0, L.Name('e'),
+                                      selfjoin=SelfJoin.Without)
+        exp_join = L.Parser.pe('''
+            {(w, x, y ,z) for (w, x) in SING(e) for (x, y) in REL(S)
+                          for (y, z) in WITHOUT(REL(R), e)}''')
+        self.assertEqual(join, exp_join)
+     
     def test_join_expander(self):
         Q1 = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
                                        for (y, z) in REL(S)}''')
         Q2 = L.Parser.pe('{(x,) for (x,) in REL(R)}')
         Q3 = L.Parser.pe('{True for (x,) in REL(R)}')
-        comp_info1 = self.factory.make_comp_info(Q1, [])
-        comp_info2 = self.factory.make_comp_info(Q2, [])
-        comp_info3 = self.factory.make_comp_info(Q3, [])
+        query_params = {'Q1': ('x',), 'Q2': (), 'Q3': ()}
+        
         tree = L.Parser.p('''
             def main():
                 for (x, y, z) in QUERY('Q1', _Q1):
@@ -114,11 +86,12 @@ class JoinCase(unittest.TestCase):
                 for z in QUERY('Q3', _Q3):
                     pass
             ''', subst={'_Q1': Q1, '_Q2': Q2, '_Q3': Q3})
-        comp_info_map = {'Q1': comp_info1, 'Q2': comp_info2, 'Q3': comp_info3}
-        tree = JoinExpander.run(tree, comp_info_map, ['Q1', 'Q2', 'Q3'])
+        
+        tree = JoinExpander.run(tree, self.ct, ['Q1', 'Q2', 'Q3'],
+                                query_params)
         exp_tree = L.Parser.p('''
             def main():
-                for (x, y) in R.imglookup('uu', ()):
+                for (y,) in R.imglookup('bu', (x,)):
                     for (z,) in S.imglookup('bu', (y,)):
                         pass
                 for z in QUERY('Q2', {(x,) for (x,) in REL(R)}):

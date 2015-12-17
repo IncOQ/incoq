@@ -21,8 +21,6 @@ __all__ = [
 from enum import Enum
 from functools import partialmethod
 
-from simplestruct import Struct, TypedField
-
 from incoq.mars.incast import L
 
 
@@ -87,7 +85,7 @@ class ClauseHandler(BaseClauseHandler):
         raise NotImplementedError
     
     def get_code(self, cl, bindenv, body):
-        """Return code to run the body for all combination of lhs vars
+        """Return code to run the body for all combination of LHS vars
         that satisfy the clause and that match the values of the bound
         variables (variables listed in bindenv).
         """
