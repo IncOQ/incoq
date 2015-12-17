@@ -2,231 +2,224 @@
 
 
 __all__ = [
-    'ClauseInfo',
-    'RelMemberInfo',
-    'SingMemberInfo',
-    'WithoutMemberInfo',
-    'CondInfo',
+    'Kind',
     
-    'ClauseInfoFactory',
+    'BaseClauseVisitor',
+    'BaseClauseHandler',
+    'ClauseVisitor',
+    'ClauseHandler',
+    
+    'RelMemberHandler',
+    'SingMemberHandler',
+    'WithoutMemberHandler',
+    'CondHandler',
+    
+    'CoreClauseVisitor',
 ]
 
 
 from enum import Enum
+from functools import partialmethod
 
 from simplestruct import Struct, TypedField
 
 from incoq.mars.incast import L
 
 
-class ClauseInfo(Struct):
+class Kind(Enum):
+    Member = 1
+    Cond = 2
+
+
+class BaseClauseVisitor:
     
-    """This is the base class for objects that encapsulate a clause and
-    provide features relevant for incrementalization.
+    """Provides a visitor/transformer framework over clauses.
+    
+    The ClauseVisitor framework is different from node visitors in that
+    its cases are spread throughout ClauseHandler subclasses. Instead of
+    having one class define a visitor or transformer, with one method
+    for each kind of node, there is one ClauseHandler for each kind of
+    node, with one method for each visit or transform operation. This
+    allows us to group all the application logic for one kind of clause
+    in one spot, at the expense of having to centrally define the same
+    set of common operations across all classes in the visitor
+    hierarchy.
     """
     
-    class Kind(Enum):
-        Member = 1
-        Cond = 2
+    def visit(self, operation, cl, *args, **kargs):
+        clsname = cl.__class__.__name__
+        handler = getattr(self, 'handle_' + clsname)
+        method = getattr(handler, operation)
+        return method(cl, *args, **kargs)
     
-    kind = None
-    
-    cl = TypedField(L.clause)
-    """AST of clause wrapped by this object."""
-    
-    @property
-    def lhs_vars(self):
-        """For membership clauses, left-hand side of the clause. For
-        condition clauses, the empty sequence.
-        """
-        raise NotImplemented
-    
-    @property
-    def rhs_rel(self):
-        """For membership clauses over relations (including those that
-        use it in a modified way, e.g. WithoutMember), the relation
-        name. For all other clauses, None.
-        """
-        raise NotImplemented
-    
-    def get_code(self, bindenv, body):
-        """Return code to run body for each combination of values of
-        lhs vars consistent with the values of the bound vars, given
-        by bindenv.
-        """
-        raise NotImplemented
-    
-    # Transformations. Each of these methods returns the AST for a
-    # transformed clause, which is processed into a ClauseInfo object
-    # by ClauseInfoFactory.
-    
-    def make_sing(self, value):
-        """For clauses with non-None rhs_rel, return a version of the
-        clause with the relation membership replaced by a singleton
-        membership clause. For other clauses raise an error.
-        """
-        raise NotImplemented
-    
-    def make_without(self, value):
-        """For membership clauses, return the clause wrapped in a
-        without membership clause. For conditions raise an error.
-        """
-        assert self.kind is self.Kind.Member
-        return L.WithoutMember(self.cl, value)
+    # Individual dispatchers for each operation are defined as
+    #     <op_name> = partialmethod('<op_name>')
 
 
-class RelMemberInfo(ClauseInfo):
+class BaseClauseHandler:
     
-    kind = ClauseInfo.Kind.Member
+    def __init__(self, visitor):
+        self.visitor = visitor
+        """Used to dispatch to children."""
+
+
+class ClauseHandler(BaseClauseHandler):
     
-    _inherit_fields = True
+    """Base class for clause handlers."""
     
-    @property
-    def vars(self):
-        return self.cl.vars
+    def kind(self, cl):
+        """Return the kind of clause this is."""
+        raise NotImplementedError
     
-    @property
-    def rel(self):
-        return self.cl.rel
+    def lhs_vars(self, cl):
+        """For a membership clause, return a tuple of the variables on
+        the left-hand side. For condition clauses, return the empty
+        tuple.
+        """
+        raise NotImplementedError
     
-    @property
-    def lhs_vars(self):
-        return self.vars
+    def rhs_rel(self, cl):
+        """For a membership clause over a relation (including clauses
+        that qualify their use of the relation, e.g. WithoutMember),
+        return the name of the relation. For all other clauses, return
+        None.
+        """
+        raise NotImplementedError
     
-    @property
-    def rhs_rel(self):
-        return self.rel
+    def get_code(self, cl, bindenv, body):
+        """Return code to run the body for all combination of lhs vars
+        that satisfy the clause and that match the values of the bound
+        variables (variables listed in bindenv).
+        """
+        raise NotImplementedError
     
-    def get_code(self, bindenv, body):
-        mask = L.mask_from_bounds(self.vars, bindenv)
-        bvars, uvars = L.split_by_mask(mask, self.vars)
-        lookup = L.ImgLookup(self.rel, mask, bvars)
+    def singletonize(self, cl, value):
+        """For a membership clause over a relation, return a clause that
+        has the same structure but whose right-hand side is a singleton
+        set of value. For all other clauses raise an error.
+        """
+        raise NotImplementedError
+    
+    def subtract(self, cl, value):
+        """For a membership clause, return a modified clause that does
+        not run for the given value. For condition clauses, raise an
+        error.
+        """
+        if self.visitor.kind(cl) is not Kind.Member:
+            raise NotImplementedError
+        return L.WithoutMember(cl, value)
+
+
+class ClauseVisitor(BaseClauseVisitor):
+    
+    # Node types.
+    
+    handlercls_Member = ClauseHandler
+    handlercls_RelMember = ClauseHandler
+    handlercls_SingMember = ClauseHandler
+    handlercls_WithoutMember = ClauseHandler
+    handlercls_Cond = ClauseHandler
+    
+    def __init__(self):
+        super().__init__()
+        self.handle_Member = self.handlercls_Member(self)
+        self.handle_RelMember = self.handlercls_RelMember(self)
+        self.handle_SingMember = self.handlercls_SingMember(self)
+        self.handle_WithoutMember = self.handlercls_WithoutMember(self)
+        self.handle_Cond = self.handlercls_Cond(self)
+    
+    # Operations.
+    
+    kind = partialmethod(BaseClauseVisitor.visit, 'kind')
+    lhs_vars = partialmethod(BaseClauseVisitor.visit, 'lhs_vars')
+    rhs_rel = partialmethod(BaseClauseVisitor.visit, 'rhs_rel')
+    get_code = partialmethod(BaseClauseVisitor.visit, 'get_code')
+    singletonize = partialmethod(BaseClauseVisitor.visit, 'singletonize')
+    subtract = partialmethod(BaseClauseVisitor.visit, 'subtract')
+
+
+class RelMemberHandler(ClauseHandler):
+    
+    def kind(self, cl):
+        return Kind.Member
+    
+    def lhs_vars(self, cl):
+        return cl.vars
+    
+    def rhs_rel(self, cl):
+        return cl.rel
+    
+    def get_code(self, cl, bindenv, body):
+        mask = L.mask_from_bounds(cl.vars, bindenv)
+        bvars, uvars = L.split_by_mask(mask, cl.vars)
+        lookup = L.ImgLookup(cl.rel, mask, bvars)
         return (L.DecompFor(uvars, lookup, body),)
     
-    def make_sing(self, value):
-        return L.SingMember(self.vars, value)
+    def singletonize(self, cl, value):
+        return L.SingMember(cl.vars, value)
 
 
-class SingMemberInfo(ClauseInfo):
+class SingMemberHandler(ClauseHandler):
     
-    kind = ClauseInfo.Kind.Member
+    def kind(self, cl):
+        return Kind.Member
     
-    _inherit_fields = True
+    def lhs_vars(self, cl):
+        return cl.vars
     
-    @property
-    def vars(self):
-        return self.cl.vars
-    
-    @property
-    def value(self):
-        return self.cl.value
-    
-    @property
-    def lhs_vars(self):
-        return self.vars
-    
-    @property
-    def rhs_rel(self):
+    def rhs_rel(self, cl):
         return None
     
-    def get_code(self, bindenv, body):
-        mask = L.mask_from_bounds(self.vars, bindenv)
-        bindcode = L.bind_by_mask(mask, self.vars, self.value)
+    def get_code(self, cl, bindenv, body):
+        mask = L.mask_from_bounds(cl.vars, bindenv)
+        bindcode = L.bind_by_mask(mask, cl.vars, cl.value)
         return bindcode + body
 
 
-class WithoutMemberInfo(ClauseInfo):
+class WithoutMemberHandler(ClauseHandler):
     
-    kind = ClauseInfo.Kind.Member
+    def kind(self, cl):
+        return Kind.Member
     
-    _inherit_fields = True
+    def lhs_vars(self, cl):
+        return self.visitor.lhs_vars(cl.cl)
     
-    inner = TypedField(ClauseInfo)
+    def rhs_rel(self, cl):
+        return self.visitor.rhs_rel(cl.cl)
     
-    @property
-    def value(self):
-        return self.cl.value
-    
-    @property
-    def lhs_vars(self):
-        return self.inner.lhs_vars
-    
-    @property
-    def rhs_rel(self):
-        return self.inner.rhs_rel
-    
-    def get_code(self, bindenv, body):
+    def get_code(self, cl, bindenv, body):
+        lhs_vars = self.visitor.lhs_vars(cl)
         new_body = L.Parser.pc('''
             if VARS != VALUE:
                 BODY
-            ''', subst={'VARS': L.tuplify(self.lhs_vars),
-                        'VALUE': self.value,
+            ''', subst={'VARS': L.tuplify(lhs_vars),
+                        'VALUE': cl.value,
                         '<c>BODY': body})
-        return self.inner.get_code(bindenv, new_body)
+        return self.visitor.get_code(cl.cl, bindenv, new_body)
     
-    def make_sing(self, value):
-        new_inner_cl_ast = self.inner.make_sing(value)
-        return L.WithoutMember(new_inner_cl_ast, self.value)
+    def singletonize(self, cl, value):
+        new_inner = self.visitor.singletonize(cl.cl, value)
+        return cl._replace(cl=new_inner)
 
 
-class CondInfo(ClauseInfo):
+class CondHandler(ClauseHandler):
     
-    kind = ClauseInfo.Kind.Cond
+    def kind(self, cl):
+        return Kind.Cond
     
-    _inherit_fields = True
-    
-    @property
-    def cond(self):
-        return self.cl.cond
-    
-    @property
-    def lhs_vars(self):
+    def lhs_vars(self, cl):
         return ()
     
-    @property
-    def rhs_rel(self):
+    def rhs_rel(self, cl):
         return None
     
-    def get_code(self, bindenv, body):
-        return (L.If(self.cond, body, []),)
+    def get_code(self, cl, bindenv, body):
+        return (L.If(cl.cond, body, []),)
 
 
-class ClauseInfoFactory:
+class CoreClauseVisitor(ClauseVisitor):
     
-    """Factor for producing ClauseInfo objects, both from Clause ASTs
-    and other ClauseInfo objects.
-    """
-    
-    # Visitor style dispatch approach to generating ClauseInfos from
-    # clause nodes.
-    
-    def make_clause_info(self, node):
-        handler_name = 'handle_' + node.__class__.__name__
-        handler = getattr(self, handler_name, None)
-        if handler is None:
-            raise ValueError('No handler for unknown clause {}'.format(
-                             node.__class__.__name__))
-        return handler(node)
-    
-    def handle_RelMember(self, node):
-        return RelMemberInfo(node)
-    
-    def handle_SingMember(self, node):
-        return SingMemberInfo(node)
-    
-    def handle_WithoutMember(self, node):
-        inner = self.make_clause_info(node.cl)
-        return WithoutMemberInfo(node, inner)
-    
-    def handle_Cond(self, node):
-        return CondInfo(node)
-    
-    # Transformations.
-    
-    def make_sing(self, cl, value):
-        cl_ast = cl.make_sing(value)
-        return self.make_clause_info(cl_ast)
-    
-    def make_without(self, cl, value):
-        cl_ast = cl.make_without(value)
-        return self.make_clause_info(cl_ast)
+    handlercls_RelMember = RelMemberHandler
+    handlercls_SingMember = SingMemberHandler
+    handlercls_WithoutMember = WithoutMemberHandler
+    handlercls_Cond = CondHandler
