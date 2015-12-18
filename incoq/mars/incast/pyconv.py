@@ -312,6 +312,12 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_ms_remove(self, _func, set_, elem):
         return L.SetUpdate(set_, L.SetRemove(), elem)
     
+    def handle_ms_inccount(self, _func, set_, elem):
+        return L.SetUpdate(set_, L.IncCount(), elem)
+    
+    def handle_ms_deccount(self, _func, set_, elem):
+        return L.SetUpdate(set_, L.DecCount(), elem)
+    
     def handle_ms_reladd(self, _func, rel, elem):
         self.assert_isname([rel, elem], 'reladd')
         return L.RelUpdate(rel.id, L.SetAdd(), elem.id)
@@ -319,6 +325,14 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_ms_relremove(self, _func, rel, elem):
         self.assert_isname([rel, elem], 'relremove')
         return L.RelUpdate(rel.id, L.SetRemove(), elem.id)
+    
+    def handle_ms_relinccount(self, _func, rel, elem):
+        self.assert_isname([rel, elem], 'relinccount')
+        return L.RelUpdate(rel.id, L.IncCount(), elem.id)
+    
+    def handle_ms_reldeccount(self, _func, rel, elem):
+        self.assert_isname([rel, elem], 'reldeccount')
+        return L.RelUpdate(rel.id, L.DecCount(), elem.id)
     
     def handle_ms_mapassign(self, _func, map, key, value):
         self.assert_isname([map, key, value], 'mapassign')
@@ -353,6 +367,9 @@ class IncLangSpecialImporter(L.MacroExpander):
                          'variable identifiers')
         bounds = [item.id for item in bounds.elts]
         return L.ImgLookup(rel, mask, bounds)
+    
+    def handle_me_getcount(self, _func, set_, elem):
+        return L.BinOp(set_, L.GetCount(), elem)
     
     def handle_fe_QUERY(self, _func, name, query):
         if not (isinstance(name, L.Str) and
@@ -390,15 +407,27 @@ class IncLangSpecialExporter(L.NodeTransformer):
         node = self.generic_visit(node)
         
         op = {L.SetAdd: 'add',
-              L.SetRemove: 'remove'}[node.op.__class__]
+              L.SetRemove: 'remove',
+              L.IncCount: 'inccount',
+              L.DecCount: 'deccount'}[node.op.__class__]
         return L.Expr(L.GeneralCall(L.Attribute(node.target, op),
                                     [node.value]))
     
     def visit_RelUpdate(self, node):
         op = {L.SetAdd: 'reladd',
-              L.SetRemove: 'relremove'}[node.op.__class__]
+              L.SetRemove: 'relremove',
+              L.IncCount: 'relinccount',
+              L.DecCount: 'reldeccount'}[node.op.__class__]
         return L.Expr(L.GeneralCall(L.Attribute(L.Name(node.rel), op),
                                     [L.Name(node.elem)]))
+    
+    def visit_BinOp(self, node):
+        node = self.generic_visit(node)
+        
+        if isinstance(node.op, L.GetCount):
+            return L.GeneralCall(L.Attribute(node.left, 'getcount'),
+                                 [node.right])
+        return node
     
     def visit_MapAssign(self, node):
         func = L.Attribute(L.Name(node.map), 'mapassign')

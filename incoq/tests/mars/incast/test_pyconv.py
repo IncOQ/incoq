@@ -174,10 +174,20 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.RelUpdate('S', L.SetAdd(), 'x')
         self.assertEqual(tree, exp_tree)
         
+        tree = Parser.ps('S.inccount(x)')
+        exp_tree = L.SetUpdate(L.Name('S'), L.IncCount(), L.Name('x'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.ps('S.relinccount(x)')
+        exp_tree = L.RelUpdate('S', L.IncCount(), 'x')
+        self.assertEqual(tree, exp_tree)
+        
         with self.assertRaises(IncASTConversionError):
             Parser.ps('(a + b).reladd(x)')
         with self.assertRaises(IncASTConversionError):
             Parser.ps('S.reladd(x + y)')
+        with self.assertRaises(IncASTConversionError):
+            Parser.ps('(a + b).relinccount(x)')
     
     def test_calls(self):
         tree = Parser.pe('f(a)')
@@ -223,6 +233,11 @@ class ParseImportCase(unittest.TestCase):
     def test_imglookup(self):
         tree = Parser.pe("R.imglookup('bu', (x,))")
         exp_tree = L.ImgLookup('R', L.mask('bu'), ['x'])
+        self.assertEqual(tree, exp_tree)
+    
+    def test_getcount(self):
+        tree = Parser.pe('R.getcount(e)')
+        exp_tree = L.BinOp(L.Name('R'), L.GetCount(), L.Name('e'))
         self.assertEqual(tree, exp_tree)
     
     def test_query(self):
@@ -304,12 +319,17 @@ class RoundTripCase(unittest.TestCase):
     def test_setupdates(self):
         self.trip.ps('S.add(x)')
         self.trip.ps('S.reladd(x)')
+        self.trip.ps('S.inccount(x)')
+        self.trip.ps('S.relinccount(x)')
     
     def test_dictupdates(self):
         self.trip.ps('M[k] = v')
         self.trip.ps('del M[k]')
         self.trip.ps('M.mapassign(k, v)')
         self.trip.ps('M.mapdelete(k)')
+    
+    def test_getcount(self):
+        self.trip.pe('S.getcount(x)')
     
     def test_listssets(self):
         self.trip.pe('[1, 2]')

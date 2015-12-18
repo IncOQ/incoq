@@ -89,6 +89,8 @@ module IncAST
     
     operator = Add | Sub | Mult | Div | Mod | Pow | LShift 
              | RShift | BitOr | BitXor | BitAnd | FloorDiv
+               -- New operations.
+             | GetCount
     
     unaryop = Invert | Not | UAdd | USub
     
@@ -96,4 +98,5 @@ module IncAST
     
     -- New operations.
     setupop = SetAdd | SetRemove
+            | IncCount | DecCount
 }
