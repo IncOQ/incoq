@@ -1,4 +1,4 @@
-"""Unit tests for test_join.py."""
+"""Unit tests for join.py."""
 
 
 import unittest

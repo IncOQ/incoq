@@ -3,10 +3,13 @@
 
 __all__ = [
     'JoinExpander',
+    'make_comp_maint_func',
+    'CompTransformer',
 ]
 
 
 from incoq.mars.incast import L
+from incoq.mars.symtab import N
 
 
 class JoinExpander(L.NodeTransformer):
@@ -54,3 +57,72 @@ class JoinExpander(L.NodeTransformer):
         
         params = self.query_params[node.iter.name]
         return ct.get_code_for_clauses(comp.clauses, params, node.body)
+
+
+def make_comp_maint_func(clausetools, fresh_vars, comp, result_var,
+                         rel, op, *,
+                         counted):
+    """Make maintenance function for a comprehension."""
+    assert isinstance(op, (L.SetAdd, L.SetRemove))
+    
+    op_name = L.set_update_name(op)
+    func_name = N.get_maint_func_name(result_var, rel, op_name)
+    
+    update = L.RelUpdate(rel, op, '_elem')
+    code = clausetools.get_maint_code(fresh_vars, comp, result_var, update,
+                                      counted=counted)
+    func = L.Parser.ps('''
+        def _FUNC(_elem):
+            _CODE
+        ''', subst={'_FUNC': func_name,
+                    '<c>_CODE': code})
+    
+    return func
+
+
+class CompTransformer(L.NodeTransformer):
+    
+    """Insert comprehension maintenance functions, calls to these
+    functions at relevant updates, and replace all uses of the query
+    with uses of the stored result variable.
+    """
+    
+    def __init__(self, clausetools, fresh_vars, comp, result_var, *,
+                 counted):
+        super().__init__()
+        self.clausetools = clausetools
+        self.fresh_vars = fresh_vars
+        self.comp = comp
+        self.result_var = result_var
+        self.counted = counted
+        
+        self.rels = self.clausetools.rhs_rels_from_comp(self.comp)
+    
+    def visit_Module(self, node):
+        ct = self.clausetools
+        
+        node = self.generic_visit(node)
+        
+        funcs = []
+        for rel in self.rels:
+            for op in [L.SetAdd(), L.SetRemove()]:
+                    func = make_comp_maint_func(
+                            ct, self.fresh_vars, self.comp, self.result_var,
+                            rel, op,
+                            counted=self.counted)
+                    funcs.append(func)
+        
+        node = node._replace(decls=tuple(funcs) + node.decls)
+        return node
+    
+    def visit_RelUpdate(self, node):
+        if not isinstance(node.op, (L.SetAdd, L.SetRemove)):
+            return node
+        
+        op_name = L.set_update_name(node.op)
+        func_name = N.get_maint_func_name(self.result_var, node.rel, op_name)
+        
+        code = (node,)
+        call_code = (L.Expr(L.Call(func_name, [L.Name(node.elem)])),)
+        code = L.insert_rel_maint(code, call_code, node.op)
+        return code
