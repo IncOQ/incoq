@@ -55,6 +55,28 @@ class MaskCase(unittest.TestCase):
         self.assertEqual(code, exp_code)
 
 
+class MiscCase(unittest.TestCase):
+    
+    def test_insert_rel_maint(self):
+        update_code = Parser.pc('R.reladd(x)')
+        maint_code = Parser.pc('pass')
+        code = insert_rel_maint(update_code, maint_code, L.SetAdd())
+        exp_code = Parser.pc('''
+            R.reladd(x)
+            pass
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        update_code = Parser.pc('R.relremove(x)')
+        maint_code = Parser.pc('pass')
+        code = insert_rel_maint(update_code, maint_code, L.SetRemove())
+        exp_code = Parser.pc('''
+            pass
+            R.relremove(x)
+            ''')
+        self.assertEqual(code, exp_code)
+
+
 class IdentFinderCase(unittest.TestCase):
     
     def test_identfinder(self):

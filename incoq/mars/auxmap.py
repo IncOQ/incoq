@@ -20,18 +20,6 @@ import incoq.mars.types as T
 from incoq.mars.symtab import N
 
 
-def insert_rel_maint(update_code, maint_code, op):
-    """Insert maintenance code around update code. The maintenance
-    goes afterwards for additions and before for removals.
-    """
-    if isinstance(op, L.SetAdd):
-        return update_code + maint_code
-    elif isinstance(op, L.SetRemove):
-        return maint_code + update_code
-    else:
-        assert()
-
-
 class AuxmapInvariant(Struct):
     
     """Auxiliary map invariant."""
@@ -143,9 +131,10 @@ class AuxmapFinder(L.NodeVisitor):
 
 
 class AuxmapTransformer(L.NodeTransformer):
+    
     """Insert auxmap maintenance functions, insert calls to maintenance
-    functions around updates, and replace image-set expressions with
-    uses of auxmaps.
+    functions around SetAdd and SetRemove updates, and replace image-set
+    expressions with uses of auxmaps.
     """
     
     def __init__(self, fresh_vars, auxmaps):
@@ -177,7 +166,7 @@ class AuxmapTransformer(L.NodeTransformer):
         for auxmap in auxmaps:
             func_name = auxmap.get_maint_func_name(node.op)
             call_code = (L.Expr(L.Call(func_name, [L.Name(node.elem)])),)
-            code = insert_rel_maint(code, call_code, node.op)
+            code = L.insert_rel_maint(code, call_code, node.op)
         return code
     
     def visit_ImgLookup(self, node):

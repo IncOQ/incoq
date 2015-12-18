@@ -7,6 +7,7 @@ __all__ = [
     'mask_from_bounds',
     'split_by_mask',
     'bind_by_mask',
+    'insert_rel_maint',
     'IdentFinder',
     'Templater',
     'MacroExpander',
@@ -83,6 +84,18 @@ def bind_by_mask(mask, lhs, rhs):
         else:
             assert()
     return (L.DecompAssign(vars, rhs),)
+
+
+def insert_rel_maint(update_code, maint_code, op):
+    """Insert maintenance code around update code. The maintenance
+    goes afterwards for additions and before for removals.
+    """
+    if isinstance(op, L.SetAdd):
+        return update_code + maint_code
+    elif isinstance(op, L.SetRemove):
+        return maint_code + update_code
+    else:
+        assert()
 
 
 class IdentFinder(L.NodeVisitor):

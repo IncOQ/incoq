@@ -7,31 +7,11 @@ from incoq.mars.incast import L
 import incoq.mars.types as T
 from incoq.mars.symtab import N, SymbolTable
 from incoq.mars.auxmap import *
-from incoq.mars.auxmap import (insert_rel_maint,
-                               make_imgadd, make_imgremove,
+from incoq.mars.auxmap import (make_imgadd, make_imgremove,
                                make_auxmap_maint_func)
 
 
 class AuxmapCase(unittest.TestCase):
-    
-    def test_insert_rel_maint(self):
-        update_code = L.Parser.pc('R.reladd(x)')
-        maint_code = L.Parser.pc('pass')
-        code = insert_rel_maint(update_code, maint_code, L.SetAdd())
-        exp_code = L.Parser.pc('''
-            R.reladd(x)
-            pass
-            ''')
-        self.assertEqual(code, exp_code)
-        
-        update_code = L.Parser.pc('R.relremove(x)')
-        maint_code = L.Parser.pc('pass')
-        code = insert_rel_maint(update_code, maint_code, L.SetRemove())
-        exp_code = L.Parser.pc('''
-            pass
-            R.relremove(x)
-            ''')
-        self.assertEqual(code, exp_code)
     
     def test_make_imgadd(self):
         code = make_imgadd(N.fresh_name_generator(), 'm', 'k', 'v')
