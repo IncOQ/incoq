@@ -32,12 +32,7 @@ class AuxmapInvariant(Struct):
     """Mask for the indexing."""
     
     def get_maint_func_name(self, op):
-        if isinstance(op, L.SetAdd):
-            op_name = 'add'
-        elif isinstance(op, L.SetRemove):
-            op_name = 'remove'
-        else:
-            assert()
+        op_name = L.set_update_name(op)
         return N.get_maint_func_name(self.map, self.rel, op_name)
 
 

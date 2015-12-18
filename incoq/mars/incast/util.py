@@ -10,6 +10,7 @@ __all__ = [
     'set_update',
     'rel_update',
     'insert_rel_maint',
+    'set_update_name',
 ]
 
 
@@ -81,18 +82,6 @@ def bind_by_mask(mask, lhs, rhs):
     return (L.DecompAssign(vars, rhs),)
 
 
-def insert_rel_maint(update_code, maint_code, op):
-    """Insert maintenance code around update code. The maintenance
-    goes afterwards for additions and before for removals.
-    """
-    if isinstance(op, L.SetAdd):
-        return update_code + maint_code
-    elif isinstance(op, L.SetRemove):
-        return maint_code + update_code
-    else:
-        assert()
-
-
 _add_template = '''
 if _ELEM not in _SET:
     _SET.{REL}add(_ELEM)
@@ -124,3 +113,22 @@ def set_update(set_, op, elem, *, counted, rel=False):
 def rel_update(rel, op, elem, *, counted):
     return set_update(rel, op, elem,
                       counted=counted, rel=True)
+
+
+def insert_rel_maint(update_code, maint_code, op):
+    """Insert maintenance code around update code. The maintenance
+    goes afterwards for additions and before for removals.
+    """
+    if isinstance(op, L.SetAdd):
+        return update_code + maint_code
+    elif isinstance(op, L.SetRemove):
+        return maint_code + update_code
+    else:
+        assert()
+
+
+def set_update_name(op):
+    return {L.SetAdd: 'add',
+            L.SetRemove: 'remove',
+            L.IncCount: 'inccount',
+            L.DecCount: 'deccount'}[op.__class__]

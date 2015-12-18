@@ -129,4 +129,9 @@ class MiscCase(unittest.TestCase):
             R.relremove(x)
             ''')
         self.assertEqual(code, exp_code)
-
+    
+    def test_set_update_name(self):
+        self.assertEqual(set_update_name(L.SetAdd()), 'add')
+        self.assertEqual(set_update_name(L.SetRemove()), 'remove')
+        self.assertEqual(set_update_name(L.IncCount()), 'inccount')
+        self.assertEqual(set_update_name(L.DecCount()), 'deccount')
