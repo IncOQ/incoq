@@ -68,6 +68,18 @@ class ClauseTools(ClauseVisitor):
             return False
         return res_vars == lhs_vars
     
+    def comp_rename_lhs_vars(self, comp, renamer):
+        class Renamer(L.NodeTransformer):
+            def visit_Name(self, node):
+                return node._replace(id=renamer(node.id))
+        
+        new_clauses = [self.rename_lhs_vars(cl, renamer)
+                       for cl in comp.clauses]
+        new_resexp = Renamer.run(comp.resexp)
+        
+        return comp._replace(resexp=new_resexp,
+                             clauses=new_clauses)
+    
     def get_code_for_clauses(self, clauses, bindenv, body):
         """Produce code for running body once for each combination of
         variables for all clauses that match the values of the bound
@@ -139,6 +151,42 @@ class ClauseTools(ClauseVisitor):
                                            selfjoin=selfjoin)
                 joins.append(join)
         return tuple(joins)
+    
+    def get_maint_code(self, fresh_vars, comp, result_var, update, *,
+                       selfjoin=SelfJoin.Without,
+                       counted=True):
+        """Given a comprehension (not necessarily a join) and an
+        update to a relation, return the maintenance code -- i.e.,
+        the update to the stored result variable looped for each
+        maintenance join.
+        
+        If counted is False, generate non-counted set updates.
+        """
+        assert isinstance(update, L.RelUpdate)
+        assert isinstance(update.op, (L.SetAdd, L.SetRemove))
+        
+        fresh_var_prefix = next(fresh_vars)
+        result_elem_var = fresh_var_prefix + '_result'
+        # Prefix LHS vars in the comp to guarantee fresh names for their
+        # use in maintenance code.
+        renamer = lambda x: fresh_var_prefix + '_' + x
+        comp = self.comp_rename_lhs_vars(comp, renamer)
+        
+        body = ()
+        body += (L.Assign(result_elem_var, comp.resexp),)
+        body += L.rel_update(result_var, update.op, result_elem_var,
+                             counted=counted)
+        
+        join = self.make_join_from_comp(comp)
+        maint_joins = self.get_maint_join_union(
+                        join, update.rel, L.Name(update.elem),
+                        selfjoin=selfjoin)
+        
+        code = ()
+        for maint_join in maint_joins:
+            code += self.get_loop_for_join(maint_join, body)
+        
+        return code
 
 
 class CoreClauseTools(ClauseTools, CoreClauseVisitor):

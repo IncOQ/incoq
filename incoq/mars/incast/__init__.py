@@ -10,4 +10,4 @@ from . import error
 from . import util
 
 
-L = new_namespace(nodes, tools, pyconv, error)
+L = new_namespace(nodes, tools, pyconv, error, util)
