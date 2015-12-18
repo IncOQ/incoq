@@ -22,6 +22,12 @@ class JoinCase(unittest.TestCase):
         lhs_vars = self.ct.lhs_vars_from_comp(comp)
         self.assertSequenceEqual(lhs_vars, ['x', 'y', 'z'])
     
+    def test_rhs_rels_from_comp(self):
+        comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
+                                         for (y, z) in REL(S)}''')
+        rels = self.ct.rhs_rels_from_comp(comp)
+        self.assertSequenceEqual(rels, ['R', 'S'])
+    
     def test_make_join(self):
         comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
                                          for (y, z) in REL(S)}''')

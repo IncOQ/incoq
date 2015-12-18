@@ -51,6 +51,12 @@ class ClauseTools(ClauseVisitor):
     def lhs_vars_from_comp(self, comp):
         return self.lhs_vars_from_clauses(comp.clauses)
     
+    def rhs_rels_from_comp(self, comp):
+        rels = OrderedSet()
+        for cl in comp.clauses:
+            rels.add(self.rhs_rel(cl))
+        return tuple(rels)
+    
     def make_join_from_clauses(self, clauses):
         """Create a join from the given clauses."""
         lhs_vars = self.lhs_vars_from_clauses(clauses)
@@ -154,7 +160,7 @@ class ClauseTools(ClauseVisitor):
     
     def get_maint_code(self, fresh_vars, comp, result_var, update, *,
                        selfjoin=SelfJoin.Without,
-                       counted=True):
+                       counted):
         """Given a comprehension (not necessarily a join) and an
         update to a relation, return the maintenance code -- i.e.,
         the update to the stored result variable looped for each
