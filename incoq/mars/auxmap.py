@@ -161,6 +161,9 @@ class AuxmapTransformer(L.NodeTransformer):
         return node
     
     def visit_RelUpdate(self, node):
+        if not isinstance(node.op, (L.SetAdd, L.SetRemove)):
+            return node
+        
         auxmaps = self.auxmaps_by_rel.get(node.rel, set())
         code = (node,)
         for auxmap in auxmaps:
