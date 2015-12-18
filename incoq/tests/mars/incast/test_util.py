@@ -49,6 +49,68 @@ class MaskCase(unittest.TestCase):
 
 class MiscCase(unittest.TestCase):
     
+    def test_uncounted_set_rel_update(self):
+        # Set update.
+        code = set_update(L.Name('S'), L.SetAdd(), L.Name('x'),
+                          counted=False)
+        exp_code = Parser.pc('S.add(x)')
+        self.assertEqual(code, exp_code)
+        code = set_update(L.Name('S'), L.SetRemove(), L.Name('x'),
+                          counted=False)
+        exp_code = Parser.pc('S.remove(x)')
+        self.assertEqual(code, exp_code)
+        
+        # Rel update.
+        code = rel_update('S', L.SetAdd(), 'x',
+                          counted=False)
+        exp_code = Parser.pc('S.reladd(x)')
+        self.assertEqual(code, exp_code)
+        code = rel_update('S', L.SetRemove(), 'x',
+                          counted=False)
+        exp_code = Parser.pc('S.relremove(x)')
+        self.assertEqual(code, exp_code)
+    
+    def test_counted_set_rel_update(self):
+        # Set update.
+        code = set_update(L.Name('S'), L.SetAdd(), L.Name('x'),
+                          counted=True)
+        exp_code = Parser.pc('''
+            if x not in S:
+                S.add(x)
+            else:
+                S.inccount(x)
+            ''')
+        self.assertEqual(code, exp_code)
+        code = set_update(L.Name('S'), L.SetRemove(), L.Name('x'),
+                          counted=True)
+        exp_code = Parser.pc('''
+            if S.getcount(x) == 1:
+                S.remove(x)
+            else:
+                S.deccount(x)
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        # Rel update.
+        code = rel_update('S', L.SetAdd(), 'x',
+                          counted=True)
+        exp_code = Parser.pc('''
+            if x not in S:
+                S.reladd(x)
+            else:
+                S.relinccount(x)
+            ''')
+        self.assertEqual(code, exp_code)
+        code = rel_update('S', L.SetRemove(), 'x',
+                          counted=True)
+        exp_code = Parser.pc('''
+            if S.getcount(x) == 1:
+                S.relremove(x)
+            else:
+                S.reldeccount(x)
+            ''')
+        self.assertEqual(code, exp_code)
+    
     def test_insert_rel_maint(self):
         update_code = Parser.pc('R.reladd(x)')
         maint_code = Parser.pc('pass')

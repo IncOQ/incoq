@@ -7,11 +7,14 @@ __all__ = [
     'mask_from_bounds',
     'split_by_mask',
     'bind_by_mask',
+    'set_update',
+    'rel_update',
     'insert_rel_maint',
 ]
 
 
 from . import nodes as L
+from .pyconv import Parser
 
 
 def tuplify(names):
@@ -88,3 +91,36 @@ def insert_rel_maint(update_code, maint_code, op):
         return maint_code + update_code
     else:
         assert()
+
+
+_add_template = '''
+if _ELEM not in _SET:
+    _SET.{REL}add(_ELEM)
+else:
+    _SET.{REL}inccount(_ELEM)
+'''
+_remove_template = '''
+if _SET.getcount(_ELEM) == 1:
+    _SET.{REL}remove(_ELEM)
+else:
+    _SET.{REL}deccount(_ELEM)
+'''
+
+def set_update(set_, op, elem, *, counted, rel=False):
+    """Make a counted or uncounted set add or remove operation."""
+    assert isinstance(op, (L.SetAdd, L.SetRemove))
+    
+    if counted:
+        subst = {'_SET': set_, '_ELEM': elem}
+        template = {L.SetAdd: _add_template,
+                    L.SetRemove: _remove_template}[op.__class__]
+        template = template.format(REL='rel' if rel else '')
+        code = Parser.pc(template, subst=subst)
+    else:
+        nodecls = L.RelUpdate if rel else L.SetUpdate
+        code = (nodecls(set_, op, elem),)
+    return code
+
+def rel_update(rel, op, elem, *, counted):
+    return set_update(rel, op, elem,
+                      counted=counted, rel=True)
