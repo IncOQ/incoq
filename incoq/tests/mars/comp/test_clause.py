@@ -12,6 +12,14 @@ class ClauseCase(unittest.TestCase):
     def setUp(self):
         self.visitor = CoreClauseVisitor()
     
+    def check_rename_lhs_vars(self, cl):
+        v = self.visitor
+        
+        init_vars = v.lhs_vars(cl)
+        cl2 = v.rename_lhs_vars(cl, lambda x: '_' + x)
+        exp_vars = tuple('_' + x for x in init_vars)
+        self.assertSequenceEqual(v.lhs_vars(cl2), exp_vars)
+    
     def test_handler(self):
         self.assertIsInstance(self.visitor.handle_RelMember,
                               RelMemberHandler)
@@ -44,6 +52,8 @@ class ClauseCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
         
+        self.check_rename_lhs_vars(cl)
+        
         cl2 = v.singletonize(cl, L.Name('e'))
         exp_cl2 = L.SingMember(['x', 'y', 'z'], L.Name('e'))
         self.assertEqual(cl2, exp_cl2)
@@ -63,6 +73,8 @@ class ClauseCase(unittest.TestCase):
             pass
             ''')
         self.assertEqual(code, exp_code)
+        
+        self.check_rename_lhs_vars(cl)
         
         with self.assertRaises(NotImplementedError):
             v.singletonize(cl, L.Name('f'))
@@ -85,6 +97,8 @@ class ClauseCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
         
+        self.check_rename_lhs_vars(cl)
+        
         cl2 = v.singletonize(cl, L.Name('f'))
         exp_cl2 = L.WithoutMember(L.SingMember(['x', 'y', 'z'], L.Name('f')),
                                   L.Name('e'))
@@ -105,6 +119,8 @@ class ClauseCase(unittest.TestCase):
                 pass
             ''')
         self.assertEqual(code, exp_code)
+        
+        self.check_rename_lhs_vars(cl)
         
         with self.assertRaises(NotImplementedError):
             v.singletonize(cl, L.Name('e'))

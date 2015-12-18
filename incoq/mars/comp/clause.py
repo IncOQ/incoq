@@ -91,6 +91,13 @@ class ClauseHandler(BaseClauseHandler):
         """
         raise NotImplementedError
     
+    def rename_lhs_vars(self, cl, renamer):
+        """For a membership clause, apply a renamer function to each
+        LHS var and return the new clause. For condition clauses, no
+        effect.
+        """
+        raise NotImplementedError
+    
     def singletonize(self, cl, value):
         """For a membership clause over a relation, return a clause that
         has the same structure but whose right-hand side is a singleton
@@ -132,6 +139,8 @@ class ClauseVisitor(BaseClauseVisitor):
     lhs_vars = partialmethod(BaseClauseVisitor.visit, 'lhs_vars')
     rhs_rel = partialmethod(BaseClauseVisitor.visit, 'rhs_rel')
     get_code = partialmethod(BaseClauseVisitor.visit, 'get_code')
+    rename_lhs_vars = partialmethod(BaseClauseVisitor.visit,
+                                    'rename_lhs_vars')
     singletonize = partialmethod(BaseClauseVisitor.visit, 'singletonize')
     subtract = partialmethod(BaseClauseVisitor.visit, 'subtract')
 
@@ -153,6 +162,10 @@ class RelMemberHandler(ClauseHandler):
         lookup = L.ImgLookup(cl.rel, mask, bvars)
         return (L.DecompFor(uvars, lookup, body),)
     
+    def rename_lhs_vars(self, cl, renamer):
+        new_vars = tuple(renamer(v) for v in cl.vars)
+        return cl._replace(vars=new_vars)
+    
     def singletonize(self, cl, value):
         return L.SingMember(cl.vars, value)
 
@@ -172,6 +185,10 @@ class SingMemberHandler(ClauseHandler):
         mask = L.mask_from_bounds(cl.vars, bindenv)
         bindcode = L.bind_by_mask(mask, cl.vars, cl.value)
         return bindcode + body
+    
+    def rename_lhs_vars(self, cl, renamer):
+        new_vars = tuple(renamer(v) for v in cl.vars)
+        return cl._replace(vars=new_vars)
 
 
 class WithoutMemberHandler(ClauseHandler):
@@ -188,12 +205,16 @@ class WithoutMemberHandler(ClauseHandler):
     def get_code(self, cl, bindenv, body):
         lhs_vars = self.visitor.lhs_vars(cl)
         new_body = L.Parser.pc('''
-            if VARS != VALUE:
-                BODY
-            ''', subst={'VARS': L.tuplify(lhs_vars),
-                        'VALUE': cl.value,
-                        '<c>BODY': body})
+            if _VARS != _VALUE:
+                _BODY
+            ''', subst={'_VARS': L.tuplify(lhs_vars),
+                        '_VALUE': cl.value,
+                        '<c>_BODY': body})
         return self.visitor.get_code(cl.cl, bindenv, new_body)
+    
+    def rename_lhs_vars(self, cl, renamer):
+        new_inner = self.visitor.rename_lhs_vars(cl.cl, renamer)
+        return cl._replace(cl=new_inner)
     
     def singletonize(self, cl, value):
         new_inner = self.visitor.singletonize(cl.cl, value)
@@ -213,6 +234,9 @@ class CondHandler(ClauseHandler):
     
     def get_code(self, cl, bindenv, body):
         return (L.If(cl.cond, body, []),)
+    
+    def rename_lhs_vars(self, cl, renamer):
+        return cl
 
 
 class CoreClauseVisitor(ClauseVisitor):
