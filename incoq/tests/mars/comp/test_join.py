@@ -59,6 +59,17 @@ class JoinCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
     
+    def test_get_loop_for_join(self):
+        comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
+                                         for (y, z) in REL(S)}''')
+        code = self.ct.get_loop_for_join(comp, (L.Pass(),))
+        exp_code = L.Parser.pc('''
+            for (x, y, z) in {(x, y, z) for (x, y) in REL(R)
+                                        for (y, z) in REL(S)}:
+                pass
+            ''')
+        self.assertEqual(code, exp_code)
+    
     def test_get_maint_join(self):
         comp = L.Parser.pe('''
             {(w, x, y ,z) for (w, x) in REL(R) for (x, y) in REL(S)
@@ -69,7 +80,23 @@ class JoinCase(unittest.TestCase):
             {(w, x, y ,z) for (w, x) in SING(e) for (x, y) in REL(S)
                           for (y, z) in WITHOUT(REL(R), e)}''')
         self.assertEqual(join, exp_join)
-     
+    
+    def test_get_maint_join_union(self):
+        comp = L.Parser.pe('''
+            {(w, x, y ,z) for (w, x) in REL(R) for (x, y) in REL(S)
+                          for (y, z) in REL(R)}''')
+        joins = self.ct.get_maint_join_union(comp, 'R', L.Name('e'),
+                                             selfjoin=SelfJoin.Without)
+        exp_joins = [
+            L.Parser.pe('''
+                {(w, x, y ,z) for (w, x) in SING(e) for (x, y) in REL(S)
+                              for (y, z) in WITHOUT(REL(R), e)}'''),
+            L.Parser.pe('''
+                {(w, x, y, z) for (w, x) in REL(R) for (x, y) in REL(S)
+                              for (y, z) in SING(e)}'''),
+        ]
+        self.assertSequenceEqual(joins, exp_joins)
+    
     def test_join_expander(self):
         Q1 = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
                                        for (y, z) in REL(S)}''')

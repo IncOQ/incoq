@@ -92,6 +92,14 @@ class ClauseTools(ClauseVisitor):
         
         return code
     
+    def get_loop_for_join(self, comp, body):
+        """Given a join, create code for iterating over it and running
+        body.
+        """
+        assert self.is_join(comp)
+        vars = self.lhs_vars_from_comp(comp)
+        return (L.DecompFor(vars, comp, body),)
+    
     def get_maint_join(self, comp, i, value, *,
                        selfjoin=SelfJoin.Without):
         """Given a join, produce a maintenance join for the clause at
@@ -119,6 +127,20 @@ class ClauseTools(ClauseVisitor):
                 new_clauses.append(cl)
         
         return comp._replace(clauses=new_clauses)
+    
+    def get_maint_join_union(self, comp, rel, value, *,
+                             selfjoin=SelfJoin.Without):
+        """Given a join and an update to a relation, return the
+        maintenance joins whose union forms the complete set of
+        changes.
+        """
+        joins = []
+        for i, cl in enumerate(comp.clauses):
+            if self.rhs_rel(cl) == rel:
+                join = self.get_maint_join(comp, i, value,
+                                           selfjoin=selfjoin)
+                joins.append(join)
+        return tuple(joins)
 
 
 class CoreClauseTools(ClauseTools, CoreClauseVisitor):
