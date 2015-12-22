@@ -77,13 +77,9 @@ class ClauseTools(ClauseVisitor):
         return res_vars == lhs_vars
     
     def comp_rename_lhs_vars(self, comp, renamer):
-        class Renamer(L.NodeTransformer):
-            def visit_Name(self, node):
-                return node._replace(id=renamer(node.id))
-        
         new_clauses = [self.rename_lhs_vars(cl, renamer)
                        for cl in comp.clauses]
-        new_resexp = Renamer.run(comp.resexp)
+        new_resexp = L.apply_renamer(comp.resexp, renamer)
         
         return comp._replace(resexp=new_resexp,
                              clauses=new_clauses)

@@ -144,3 +144,9 @@ class MiscCase(unittest.TestCase):
         self.assertEqual(set_update_name(L.SetRemove()), 'remove')
         self.assertEqual(set_update_name(L.IncCount()), 'inccount')
         self.assertEqual(set_update_name(L.DecCount()), 'deccount')
+    
+    def test_apply_renamer(self):
+        tree = Parser.pc('a + b')
+        tree = apply_renamer(tree, lambda x: '_' + x)
+        exp_tree = Parser.pc('_a + _b')
+        self.assertEqual(tree, exp_tree)

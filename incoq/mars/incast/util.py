@@ -12,6 +12,7 @@ __all__ = [
     'rel_update',
     'insert_rel_maint',
     'set_update_name',
+    'apply_renamer',
 ]
 
 
@@ -136,3 +137,12 @@ def set_update_name(op):
             L.SetRemove: 'remove',
             L.IncCount: 'inccount',
             L.DecCount: 'deccount'}[op.__class__]
+
+
+def apply_renamer(tree, renamer):
+    """Apply a renamer function to each Name node."""
+    class Trans(L.NodeTransformer):
+        def visit_Name(self, node):
+            new_id = renamer(node.id)
+            return node._replace(id=new_id)
+    return Trans.run(tree)
