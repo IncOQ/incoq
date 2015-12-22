@@ -54,7 +54,9 @@ class ClauseTools(ClauseVisitor):
     def rhs_rels_from_comp(self, comp):
         rels = OrderedSet()
         for cl in comp.clauses:
-            rels.add(self.rhs_rel(cl))
+            rel = self.rhs_rel(cl)
+            if rel is not None:
+                rels.add(rel)
         return tuple(rels)
     
     def make_join_from_clauses(self, clauses):

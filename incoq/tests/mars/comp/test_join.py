@@ -24,7 +24,8 @@ class JoinCase(unittest.TestCase):
     
     def test_rhs_rels_from_comp(self):
         comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
-                                         for (y, z) in REL(S)}''')
+                                         for (y, z) in REL(S)
+                                         for (z, z) in SING(e)}''')
         rels = self.ct.rhs_rels_from_comp(comp)
         self.assertSequenceEqual(rels, ['R', 'S'])
     
