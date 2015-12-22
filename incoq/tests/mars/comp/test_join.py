@@ -56,11 +56,13 @@ class JoinCase(unittest.TestCase):
         self.assertFalse(self.ct.is_join(comp))
     
     def test_comp_rename_lhs_vars(self):
-        comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
-                                         for (y, z) in REL(S)}''')
+        comp = L.Parser.pe('''{(a, x, y, z) for (x, y) in REL(R)
+                                            for (y, z) in REL(S)
+                                            if a}''')
         comp = self.ct.comp_rename_lhs_vars(comp, lambda x: '_' + x)
-        exp_comp = L.Parser.pe('''{(_x, _y, _z) for (_x, _y) in REL(R)
-                                                for (_y, _z) in REL(S)}''')
+        exp_comp = L.Parser.pe('''{(a, _x, _y, _z) for (_x, _y) in REL(R)
+                                                   for (_y, _z) in REL(S)
+                                                   if a}''')
         self.assertEqual(comp, exp_comp) 
     
     def test_get_code_for_clauses(self):

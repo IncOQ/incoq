@@ -77,9 +77,14 @@ class ClauseTools(ClauseVisitor):
         return res_vars == lhs_vars
     
     def comp_rename_lhs_vars(self, comp, renamer):
-        new_clauses = [self.rename_lhs_vars(cl, renamer)
+        # Don't apply to non-lhs vars in condition and result
+        # expressions.
+        lhs_vars = self.lhs_vars_from_comp(comp)
+        lhsonly_renamer = lambda x: renamer(x) if x in lhs_vars else x
+        
+        new_clauses = [self.rename_lhs_vars(cl, lhsonly_renamer)
                        for cl in comp.clauses]
-        new_resexp = L.apply_renamer(comp.resexp, renamer)
+        new_resexp = L.apply_renamer(comp.resexp, lhsonly_renamer)
         
         return comp._replace(resexp=new_resexp,
                              clauses=new_clauses)

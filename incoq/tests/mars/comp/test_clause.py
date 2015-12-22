@@ -120,7 +120,9 @@ class ClauseCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
         
-        self.check_rename_lhs_vars(cl)
+        cl2 = v.rename_lhs_vars(cl, lambda x: '_' + x)
+        exp_cl2 = L.Cond(L.Parser.pe('_x == _y'))
+        self.assertEqual(cl2, exp_cl2)
         
         with self.assertRaises(NotImplementedError):
             v.singletonize(cl, L.Name('e'))

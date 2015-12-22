@@ -93,8 +93,8 @@ class ClauseHandler(BaseClauseHandler):
     
     def rename_lhs_vars(self, cl, renamer):
         """For a membership clause, apply a renamer function to each
-        LHS var and return the new clause. For condition clauses, no
-        effect.
+        LHS var and return the new clause. For condition clauses,
+        perform a name substitution like for any other AST.
         """
         raise NotImplementedError
     
@@ -236,7 +236,8 @@ class CondHandler(ClauseHandler):
         return (L.If(cl.cond, body, []),)
     
     def rename_lhs_vars(self, cl, renamer):
-        return cl
+        new_cond = L.apply_renamer(cl.cond, renamer)
+        return cl._replace(cond=new_cond)
 
 
 class CoreClauseVisitor(ClauseVisitor):
