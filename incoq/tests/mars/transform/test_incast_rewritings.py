@@ -56,6 +56,26 @@ class QueryMarkerCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
 
 
+class ClauseCase(unittest.TestCase):
+    
+    def test_preprocess_postprocess(self):
+        orig_tree = L.Parser.p('''
+            def main():
+                {x for (x, y) in S for (x, y) in REL(R)
+                   for (x, y) in {e} for (x, y) in R - {e}}
+            ''')
+        tree = preprocess_clauses(orig_tree)
+        exp_tree = L.Parser.p('''
+            def main():
+                {x for (x, y) in S for (x, y) in REL(R)
+                   for (x, y) in SING(e) for (x, y) in WITHOUT(R, e)}
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        tree = postprocess_clauses(tree)
+        self.assertEqual(tree, orig_tree)
+
+
 class RelMapCase(unittest.TestCase):
     
     def test_preprocess_postprocess(self):

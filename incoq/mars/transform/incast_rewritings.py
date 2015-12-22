@@ -7,6 +7,9 @@ __all__ = [
     
     'preprocess_query_markings',
     
+    'preprocess_clauses',
+    'postprocess_clauses',
+    
     'preprocess_rels_and_maps',
     'postprocess_rels_and_maps',
     
@@ -110,6 +113,63 @@ def preprocess_query_markings(tree, query_name_map):
     return QueryMarker.run(tree, new_map, strict=True)
 
 
+class ClauseImporter(L.NodeTransformer):
+    
+    """Rewrite Member clauses as SingMember and WithoutMember when
+    applicable.
+    """
+    
+    def visit_Member(self, node):
+        # For clauses that wrap around another clause, like
+        # WithoutMember, reorient the target and iter before recursing.
+        handled = False
+        
+        # <target> in <expr> - {<elem>}
+        if (isinstance(node.iter, L.BinOp) and
+            isinstance(node.iter.op, L.Sub) and
+            isinstance(node.iter.right, L.Set) and
+            len(node.iter.right.elts) == 1):
+            inner_clause = L.Member(node.target, node.iter.left)
+            node = L.WithoutMember(inner_clause, node.iter.right.elts[0])
+            handled = True
+        
+        node = self.generic_visit(node)
+        if handled:
+            return node
+        
+        # <vars> in {<elem>}
+        if (L.is_tuple_of_names(node.target) and
+            isinstance(node.iter, L.Set) and
+            len(node.iter.elts) == 1):
+            return L.SingMember(L.detuplify(node.target),
+                                node.iter.elts[0])
+        
+        return node
+
+
+class ClauseExporter(L.NodeTransformer):
+    
+    """Convert SingMember and WithoutMember into equivalent ordinary
+    Member clauses.
+    """
+    
+    def visit_SingMember(self, node):
+        node = self.generic_visit(node)
+        
+        return L.Member(L.tuplify(node.vars),
+                        L.Set([node.value]))
+    
+    def visit_WithoutMember(self, node):
+        node = self.generic_visit(node)
+        
+        new_iter = L.BinOp(node.cl.iter, L.Sub(), L.Set([node.value]))
+        return L.Member(node.cl.target, new_iter)
+
+
+preprocess_clauses = ClauseImporter.run
+postprocess_clauses = ClauseExporter.run
+
+
 class RelMapImporter(L.NodeTransformer):
     
     """Rewrite nodes for sets and dicts as nodes for relations and maps,
@@ -206,6 +266,9 @@ def incast_preprocess(tree, *, fresh_vars, rels, maps, query_name_map):
     # Mark query occurrences.
     tree = preprocess_query_markings(tree, query_name_map)
     
+    # Import special clause forms besides relation clauses.
+    tree = preprocess_clauses(tree)
+    
     # Recognize relation updates.
     tree = preprocess_rels_and_maps(tree, fresh_vars, rels, maps)
     
@@ -220,5 +283,8 @@ def incast_postprocess(tree):
     """Postprocess an IncAST tree, returning the new tree."""
     # Turn relation updates back into set updates.
     tree = postprocess_rels_and_maps(tree)
+    
+    # Postprocess special clauses.
+    tree = postprocess_clauses(tree)
     
     return tree
