@@ -9,6 +9,15 @@ from incoq.mars.incast.pyconv import Parser
 
 class MaskCase(unittest.TestCase):
     
+    def test_is_tuple_of_names(self):
+        tree = L.Tuple([L.Name('x'), L.Name('y')])
+        self.assertTrue(is_tuple_of_names(tree))
+        
+        tree = L.Name('x')
+        self.assertFalse(is_tuple_of_names(tree))
+        tree = L.Tuple([L.Tuple([L.Name('x')])])
+        self.assertFalse(is_tuple_of_names(tree))
+    
     def test_tuplify(self):
         tree = tuplify(['x', 'y'])
         exp_tree = L.Tuple([L.Name('x'), L.Name('y')])

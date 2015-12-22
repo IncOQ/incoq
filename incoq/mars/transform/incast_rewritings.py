@@ -157,9 +157,8 @@ class RelMapImporter(L.NodeTransformer):
     def visit_Member(self, node):
         if (isinstance(node.iter, L.Name) and
             node.iter.id in self.rels and
-            isinstance(node.target, L.Tuple) and
-            all(isinstance(elt, L.Name) for elt in node.target.elts)):
-            return L.RelMember([elt.id for elt in node.target.elts],
+            L.is_tuple_of_names(node.target)):
+            return L.RelMember(L.detuplify(node.target),
                                node.iter.id)
         return node
 

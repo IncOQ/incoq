@@ -2,6 +2,7 @@
 
 
 __all__ = [
+    'is_tuple_of_names',
     'tuplify',
     'detuplify',
     'mask_from_bounds',
@@ -18,6 +19,10 @@ from . import nodes as L
 from .pyconv import Parser
 
 
+def is_tuple_of_names(node):
+    return (isinstance(node, L.Tuple) and
+            all(isinstance(elt, L.Name) for elt in node.elts))
+
 def tuplify(names):
     """Return a Tuple node of Name nodes for the given identifiers."""
     return L.Tuple([L.Name(n) for n in names])
@@ -26,8 +31,7 @@ def detuplify(tup):
     """Given a Tuple node of Name nodes, return a tuple of the
     identifiers.
     """
-    if not (isinstance(tup, L.Tuple) and
-            all(isinstance(elt, L.Name) for elt in tup.elts)):
+    if not is_tuple_of_names(tup):
         raise ValueError('Bad value to detuplify: {}'.format(tup))
     return tuple(elt.id for elt in tup.elts)
 
