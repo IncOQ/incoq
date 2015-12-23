@@ -118,6 +118,8 @@ class CompTransformer(L.NodeTransformer):
     def visit_RelUpdate(self, node):
         if not isinstance(node.op, (L.SetAdd, L.SetRemove)):
             return node
+        if node.rel not in self.rels:
+            return node
         
         op_name = L.set_update_name(node.op)
         func_name = N.get_maint_func_name(self.result_var, node.rel, op_name)

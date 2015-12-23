@@ -70,6 +70,7 @@ class TransCase(unittest.TestCase):
         tree = L.Parser.p('''
             def main():
                 R.reladd(e)
+                S.reladd(e)
             ''')
         tree = CompTransformer.run(tree, self.ct, N.fresh_name_generator(),
                                    comp, 'Q', counted=True)
@@ -95,6 +96,7 @@ class TransCase(unittest.TestCase):
             def main():
                 R.reladd(e)
                 _maint_Q_for_R_add(e)
+                S.reladd(e)
             ''')
         self.assertEqual(tree, exp_tree)
 
