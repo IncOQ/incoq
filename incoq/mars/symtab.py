@@ -244,24 +244,27 @@ class SymbolTable:
 
 class QueryRewriter(L.NodeTransformer):
     
-    """Base class for a transformer that rewrites occurrences of queries
-    in a consistent way.
+    """Base class for a transformer that rewrites queries in a
+    consistent way.
     
-    For each unique query in the tree, the method rewrite() is called on
-    that query, and the resulting expression AST is used to replace all
-    of its occurrences. The corresponding entry in the symbol table is
-    also updated with the new AST as well.
+    The consistency condition is defined over a program AST and a set of
+    query symbols. It states that for each query symbol, the definition
+    for that symbol agrees with all of its Query node occurrences, in
+    both the program and in other query symbol definitions.
     
-    This preserves the invariant that all Query nodes for a given name
-    agree with the corresponding symbol on the actual AST for the query
-    expression. Furthermore, if we detect that this invariant has
-    already been violated by a previous transformation, we raise
-    TransformationError.
+    For each unique Query node, the method rewrite() is called on that
+    query, and the resulting expression AST is used to replace all of
+    its occurrences and to update the corresponding symbol. The AST
+    returned by rewrite() is not recursively processed. Provided that
+    the AST returned by rewrite() does not contain occurrences of other
+    queries, this transformer preserves the consistency condition, and
+    furthermore raises TransformationError if a violation is detected.
+    rewrite() is called only once per unique query appearing in the
+    program.
     
-    When queries are nested, the innermost ones are processed first.
-    The AST returned by rewrite() is *not* recursively processed. In all
-    cases, rewrite() is called only once per query (name) appearing in
-    the program.
+    When queries are nested, the innermost ones are processed first,
+    and the outer query definitions are rewritten to reflect the new
+    inner query.
     """
     
     def __init__(self, symtab):
@@ -273,7 +276,21 @@ class QueryRewriter(L.NodeTransformer):
         # and its rewritten expression.
         self.queries_before = {}
         self.queries_after = {}
+        
+        # A query's symbol definition has to be updated before we
+        # discover any of its occurrences, or it will be incorrectly
+        # interpreted as a consistency error. For this reason, process
+        # all query definitions before the tree, and process these
+        # definitions in order of increasing size so that inner queries
+        # come first.
+        queries = list(self.symtab.get_queries().values())
+        queries.sort(key=lambda q: L.tree_size(q.node))
+        for query in queries:
+            query.node = super().process(query.node)
+        
+        # Process tree.
         tree = super().process(tree)
+        
         return tree
     
     def visit_Query(self, node):

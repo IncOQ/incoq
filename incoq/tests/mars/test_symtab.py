@@ -101,18 +101,22 @@ class SymbolTableCase(unittest.TestCase):
 
 class QueryRewriterCase(unittest.TestCase):
     
-    def test_basic(self):
+    class DoublerRewriter(QueryRewriter):
+        
         class Doubler(L.NodeTransformer):
             def visit_Num(self, node):
                 return node._replace(n=node.n * 2)
+            def visit_Query(self, node):
+                # Don't double-process nested queries.
+                return
         
-        class DoublerRewriter(QueryRewriter):
-            def rewrite(self, symbol, name, expr):
-                if isinstance(expr, L.Num) and expr.n == 0:
-                    return None
-                else:
-                    return Doubler.run(expr)
-        
+        def rewrite(self, symbol, name, expr):
+            if isinstance(expr, L.Num) and expr.n == 0:
+                return None
+            else:
+                return self.Doubler.run(expr)
+    
+    def test_basic(self):
         symtab = SymbolTable()
         symtab.define_query('Q1', node=L.Parser.pe('1 + 2'))
         symtab.define_query('Q2', node=L.Parser.pe('3 + 4'))
@@ -124,7 +128,7 @@ class QueryRewriterCase(unittest.TestCase):
                 print(QUERY('Q2', 3 + 4))
                 print(QUERY('Q3', 0))
             ''')
-        tree = DoublerRewriter.run(tree, symtab)
+        tree = self.DoublerRewriter.run(tree, symtab)
         
         exp_tree = L.Parser.p('''
             def main():
@@ -223,6 +227,37 @@ class QueryRewriterCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         self.assertEqual(symtab.get_symbols()['Q1'].node,
                          L.Parser.pe("QUERY('Q2', 2)"))
+    
+    def test_nested(self):
+        symtab = SymbolTable()
+        # Define in reverse order to test proper ordering of
+        # symbol processing.
+        symtab.define_query('Q3', node=L.Parser.pe(
+                                  "4 + QUERY('Q2', 3 + QUERY('Q1', 1 + 2))"))
+        symtab.define_query('Q2', node=L.Parser.pe("3 + QUERY('Q1', 1 + 2)"))
+        symtab.define_query('Q1', node=L.Parser.pe('1 + 2'))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', 1 + 2))
+                print(QUERY('Q2', 3 + QUERY('Q1', 1 + 2)))
+                print(QUERY('Q3', 4 + QUERY('Q2', 3 + QUERY('Q1', 1 + 2))))
+            ''')
+        tree = self.DoublerRewriter.run(tree, symtab)
+        
+        exp_tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', 2 + 4))
+                print(QUERY('Q2', 6 + QUERY('Q1', 2 + 4)))
+                print(QUERY('Q3', 8 + QUERY('Q2', 6 + QUERY('Q1', 2 + 4))))
+            ''')
+        self.assertEqual(tree, exp_tree)
+        self.assertEqual(symtab.get_symbols()['Q1'].node,
+                         L.Parser.pe('2 + 4'))
+        self.assertEqual(symtab.get_symbols()['Q2'].node,
+                         L.Parser.pe("6 + QUERY('Q1', 2 + 4)"))
+        self.assertEqual(symtab.get_symbols()['Q3'].node,
+                         L.Parser.pe("8 + QUERY('Q2', 6 + "
+                                     "QUERY('Q1', 2 + 4))"))
 
 
 if __name__ == '__main__':
