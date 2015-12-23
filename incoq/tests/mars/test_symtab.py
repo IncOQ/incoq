@@ -258,6 +258,27 @@ class QueryRewriterCase(unittest.TestCase):
         self.assertEqual(symtab.get_symbols()['Q3'].node,
                          L.Parser.pe("8 + QUERY('Q2', 6 + "
                                      "QUERY('Q1', 2 + 4))"))
+    
+    def test_expand(self):
+        class ZeroRewriter(QueryRewriter):
+            def rewrite(self, symbol, name, expr):
+                return L.Num(0)
+        
+        symtab = SymbolTable()
+        symtab.define_query('Q1', node=L.Parser.pe('1'))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', 1))
+            ''')
+        tree = ZeroRewriter.run(tree, symtab, expand=True)
+        
+        exp_tree = L.Parser.p('''
+            def main():
+                print(0)
+            ''')
+        self.assertEqual(tree, exp_tree)
+        self.assertEqual(symtab.get_symbols()['Q1'].node,
+                         L.Parser.pe('1'))
 
 
 if __name__ == '__main__':

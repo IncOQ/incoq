@@ -265,11 +265,17 @@ class QueryRewriter(L.NodeTransformer):
     When queries are nested, the innermost ones are processed first,
     and the outer query definitions are rewritten to reflect the new
     inner query.
+    
+    If expand is True, the symbol for the query is not changed, and all
+    occurrences of the query in the tree and in other query definitions
+    are replaced with the result of rewrite(), not wrapped in a Query
+    node.
     """
     
-    def __init__(self, symtab):
+    def __init__(self, symtab, *, expand=False):
         super().__init__()
         self.symtab = symtab
+        self.expand = expand
     
     def process(self, tree):
         # Keep maps from each seen query name to its original expression
@@ -315,7 +321,7 @@ class QueryRewriter(L.NodeTransformer):
             replacement = self.rewrite(sym, name, this_occ)
             self.queries_before[name] = this_occ
             self.queries_after[name] = replacement
-            if replacement is not None:
+            if replacement is not None and not self.expand:
                 sym.node = replacement
         
         # Each subsequent time, check for consistency with the previous
@@ -331,7 +337,10 @@ class QueryRewriter(L.NodeTransformer):
             replacement = self.queries_after[name]
         
         if replacement is not None:
-            node = node._replace(query=replacement)
+            if self.expand:
+                node = replacement
+            else:
+                node = node._replace(query=replacement)
         return node
     
     def rewrite(self, symbol, name, expr):
