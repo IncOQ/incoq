@@ -259,8 +259,9 @@ class QueryRewriter(L.NodeTransformer):
     TransformationError.
     
     When queries are nested, the innermost ones are processed first.
-    In all cases, rewrite is called only once per query (name) appearing
-    in the program.
+    The AST returned by rewrite() is *not* recursively processed. In all
+    cases, rewrite() is called only once per query (name) appearing in
+    the program.
     """
     
     def __init__(self, symtab):

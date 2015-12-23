@@ -198,6 +198,31 @@ class QueryRewriterCase(unittest.TestCase):
             ''')
         with self.assertRaises(L.TransformationError):
             QueryRewriter.run(tree, symtab)
+    
+    def test_nonrecursive(self):
+        class Rewriter(QueryRewriter):
+            def rewrite(self, symbol, name, expr):
+                if name == 'Q1':
+                    return L.Query('Q2', L.Parser.pe('2'))
+        
+        symtab = SymbolTable()
+        symtab.define_query('Q1', node=L.Parser.pe('1'))
+        symtab.define_query('Q2', node=L.Parser.pe('2'))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', 1))
+                print(QUERY('Q2', 2))
+            ''')
+        tree = Rewriter.run(tree, symtab)
+        
+        exp_tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', QUERY('Q2', 2)))
+                print(QUERY('Q2', 2))
+            ''')
+        self.assertEqual(tree, exp_tree)
+        self.assertEqual(symtab.get_symbols()['Q1'].node,
+                         L.Parser.pe("QUERY('Q2', 2)"))
 
 
 if __name__ == '__main__':
