@@ -176,23 +176,24 @@ class SymbolTable:
         """Fresh name generator for queries."""
     
     def define_symbol(self, name, kind, **kargs):
-        """Define a new symbol of the given kind."""
+        """Define a new symbol of the given kind. Return the symbol."""
         if name in self.symbols:
             raise L.ProgramError('Symbol "{}" already defined'.format(name))
         sym = kind(name, **kargs)
         self.symbols[name] = sym
+        return sym
     
     def define_relation(self, name, **kargs):
-        self.define_symbol(name, RelationSymbol, **kargs)
+        return self.define_symbol(name, RelationSymbol, **kargs)
     
     def define_map(self, name, **kargs):
-        self.define_symbol(name, MapSymbol, **kargs)
+        return self.define_symbol(name, MapSymbol, **kargs)
     
     def define_var(self, name, **kargs):
-        self.define_symbol(name, VarSymbol, **kargs)
+        return self.define_symbol(name, VarSymbol, **kargs)
     
     def define_query(self, name, **kargs):
-        self.define_symbol(name, QuerySymbol, **kargs)
+        return self.define_symbol(name, QuerySymbol, **kargs)
     
     def get_symbols(self, kind=None):
         """Return an OrderedDict of symbols of the requested kind.
