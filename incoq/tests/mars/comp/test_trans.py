@@ -4,7 +4,7 @@
 import unittest
 
 from incoq.mars.incast import L
-from incoq.mars.symtab import N
+from incoq.mars.symtab import N, SymbolTable
 from incoq.mars.comp.join import CoreClauseTools
 from incoq.mars.comp.trans import *
 
@@ -72,8 +72,8 @@ class TransCase(unittest.TestCase):
                 R.reladd(e)
                 S.reladd(e)
             ''')
-        tree = CompTransformer.run(tree, self.ct, N.fresh_name_generator(),
-                                   comp, 'Q', counted=True)
+        tree = CompMaintainer.run(tree, self.ct, N.fresh_name_generator(),
+                                  comp, 'Q', counted=True)
         exp_tree = L.Parser.p('''
             def _maint_Q_for_R_add(_elem):
                 for (_v1_x, _v1_y) in \
@@ -99,6 +99,30 @@ class TransCase(unittest.TestCase):
                 S.reladd(e)
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_incrementalize_comp(self):
+        comp = L.Parser.pe('{x for (x,) in REL(R)}')
+        symtab = SymbolTable()
+        symtab.clausetools = CoreClauseTools()
+        query = symtab.define_query('Q', node=comp)
+        
+        tree = L.Parser.p('''
+            def main():
+                R.reladd(e)
+                print(QUERY('Q', {x for (x,) in REL(R)}))
+            ''')
+        tree = incrementalize_comp(tree, symtab, query, 'R_Q')
+        for decl in tree.decls:
+            if decl.name == 'main':
+                func = decl
+                break
+        exp_func = L.Parser.ps('''
+            def main():
+                R.reladd(e)
+                _maint_R_Q_for_R_add(e)
+                print(R_Q)
+            ''')
+        self.assertEqual(func, exp_func)
 
 
 if __name__ == '__main__':

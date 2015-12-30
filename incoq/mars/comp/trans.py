@@ -4,12 +4,13 @@
 __all__ = [
     'JoinExpander',
     'make_comp_maint_func',
-    'CompTransformer',
+    'CompMaintainer',
+    'incrementalize_comp',
 ]
 
 
 from incoq.mars.incast import L
-from incoq.mars.symtab import N
+from incoq.mars.symtab import N, QueryRewriter
 
 
 class JoinExpander(L.NodeTransformer):
@@ -80,11 +81,10 @@ def make_comp_maint_func(clausetools, fresh_vars, comp, result_var,
     return func
 
 
-class CompTransformer(L.NodeTransformer):
+class CompMaintainer(L.NodeTransformer):
     
-    """Insert comprehension maintenance functions, calls to these
-    functions at relevant updates, and replace all uses of the query
-    with uses of the stored result variable.
+    """Insert comprehension maintenance functions and calls to these
+    functions at relevant updates.
     """
     
     def __init__(self, clausetools, fresh_vars, comp, result_var, *,
@@ -128,3 +128,28 @@ class CompTransformer(L.NodeTransformer):
         call_code = (L.Expr(L.Call(func_name, [L.Name(node.elem)])),)
         code = L.insert_rel_maint(code, call_code, node.op)
         return code
+
+
+def incrementalize_comp(tree, symtab, query, result_var):
+    """Incrementalize the given comprehension query symbol. Insert
+    maintenance functions and calls at updates, and replace all
+    occurrences of the query (including within other queries in the
+    symbol table) with uses of the stored result variable.
+    """
+    clausetools = symtab.clausetools
+    fresh_vars = symtab.fresh_names.vars
+    comp = query.node
+    
+    tree = CompMaintainer.run(tree, clausetools, fresh_vars,
+                              comp, result_var,
+                              counted=True)
+    
+    class CompExpander(QueryRewriter):
+        
+        def rewrite(self, symbol, name, expr):
+            if name == query.name:
+                return L.Name(result_var)
+    
+    tree = CompExpander.run(tree, symtab, expand=True)
+    
+    return tree
