@@ -43,15 +43,18 @@ class QueryNodeFinder(L.NodeVisitor):
     If first is given, return only a tuple of the name and expression of
     the first query found, or None if there is no query. The first query
     is innermost and topmost in the program.
+    
+    If ignore is given, do not include any query in this sequence.
     """
     
     class Done(BaseException):
         def __init__(self, result):
             self.result = result
     
-    def __init__(self, *, first=False):
+    def __init__(self, *, first=False, ignore=None):
         super().__init__()
         self.first = first
+        self.ignore = ignore
     
     def process(self, tree):
         if self.first:
@@ -68,6 +71,9 @@ class QueryNodeFinder(L.NodeVisitor):
     
     def visit_Query(self, node):
         self.generic_visit(node)
+        
+        if self.ignore is not None and node.name in self.ignore:
+            return
         
         if self.first:
             raise self.Done((node.name, node.query))
