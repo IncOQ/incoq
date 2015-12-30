@@ -63,12 +63,12 @@ def preprocess_tree(tree, symtab, config):
     tree, rels, info = py_preprocess(tree)
     
     # Create query names for parsed query info.
-    query_name_map = {q: next(symtab.fresh_query_names)
+    query_name_map = {q: next(symtab.fresh_names.queries)
                       for q, _ in info.query_info}
     
     # Continue preprocessing.
     # Maps in the input program aren't currently handled.
-    tree = incast_preprocess(tree, fresh_vars=symtab.fresh_vars,
+    tree = incast_preprocess(tree, fresh_vars=symtab.fresh_names.vars,
                              rels=rels, maps=[],
                              query_name_map=query_name_map)
     
@@ -141,7 +141,7 @@ def transform_auxmaps(tree, symtab):
                                  .format(auxmap.rel))
     for auxmap in auxmaps:
         define_map(auxmap, symtab)
-    tree = AuxmapTransformer.run(tree, symtab.fresh_vars, auxmaps)
+    tree = AuxmapTransformer.run(tree, symtab.fresh_names.vars, auxmaps)
     return tree
 
 
