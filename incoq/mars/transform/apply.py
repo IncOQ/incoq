@@ -2,6 +2,8 @@
 
 
 __all__ = [
+    'QueryNodeFinder',
+    
     'transform_ast',
     'transform_source',
     'transform_file',
@@ -10,6 +12,7 @@ __all__ = [
 
 
 from itertools import chain
+from collections import OrderedDict
 
 from incoq.mars.incast import L, P
 from incoq.mars.type_analysis import analyze_types
@@ -33,18 +36,43 @@ def debug_symbols(symtab, illtyped, badsyms):
                              if sym in badsyms))
 
 
-class QueryFinder(L.NodeVisitor):
+class QueryNodeFinder(L.NodeVisitor):
     
-    """Return a mapping from query name to query expression."""
+    """Return a mapping from query name to query expression.
+    
+    If first is given, return only a tuple of the name and expression of
+    the first query found, or None if there is no query. The first query
+    is innermost and topmost in the program.
+    """
+    
+    class Done(BaseException):
+        def __init__(self, result):
+            self.result = result
+    
+    def __init__(self, *, first=False):
+        super().__init__()
+        self.first = first
     
     def process(self, tree):
-        self.queries = {}
-        super().process(tree)
-        return self.queries
+        if self.first:
+            try:
+                super().process(tree)
+            except self.Done as e:
+                return e.result
+            else:
+                return None
+        else:
+            self.queries = OrderedDict()
+            super().process(tree)
+            return self.queries
     
     def visit_Query(self, node):
         self.generic_visit(node)
         
+        if self.first:
+            raise self.Done((node.name, node.query))
+        
+        # Otherwise...
         if node.name in self.queries:
             if node.query != self.queries[node.name]:
                 raise L.ProgramError('Multiple inconsistent expressions for '
@@ -77,7 +105,7 @@ def preprocess_tree(tree, symtab, config):
         symtab.define_relation(rel)
     
     # Define symbols for queries.
-    queries = QueryFinder.run(tree)
+    queries = QueryNodeFinder.run(tree)
     for name, query in queries.items():
         symtab.define_query(name, node=query)
     
