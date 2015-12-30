@@ -19,6 +19,7 @@ from incoq.mars.type_analysis import analyze_types
 from incoq.mars.config import Config
 from incoq.mars.symtab import SymbolTable
 from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer, define_map
+from incoq.mars.comp import CoreClauseTools, incrementalize_comp
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
@@ -166,6 +167,36 @@ def do_typeinference(tree, symtab):
     return illtyped, badsyms
 
 
+def transform_query(tree, symtab, query):
+    if isinstance(query.node, L.Comp):
+        if query.impl == 'normal':
+            success = False
+        elif query.impl == 'inc':
+            result_var = 'R_' + query.name
+            tree = incrementalize_comp(tree, symtab, query, result_var)
+            symtab.define_relation(result_var)
+            success = True
+    else:
+        success = False
+    return tree, success
+
+
+def transform_queries(tree, symtab):
+    def findnext():
+        return QueryNodeFinder.run(tree, first=True,
+                                   ignore=symtab.ignored_queries)
+    
+    result = findnext()
+    while result is not None:
+        query_name, _query_node = result
+        query = symtab.get_queries()[query_name]
+        tree, success = transform_query(tree, symtab, query)
+        if not success:
+            symtab.ignored_queries.add(query_name)
+        result = findnext()
+    return tree
+
+
 def transform_auxmaps(tree, symtab):
     auxmaps = AuxmapFinder.run(tree)
     for auxmap in auxmaps:
@@ -189,12 +220,23 @@ def transform_ast(input_ast, *, options=None):
     config.update(**options)
     
     symtab = SymbolTable()
+    symtab.clausetools = CoreClauseTools()
     tree = preprocess_tree(tree, symtab, config)
     
     illtyped, badsyms = do_typeinference(tree, symtab)
     
     if config.verbose:
         debug_symbols(symtab, illtyped, badsyms)
+    
+    # Incrementalize queries.
+    tree = transform_queries(tree, symtab)
+    
+    if config.verbose:
+        print('---- Ignored queries ----')
+        for sym in symtab.get_queries().values():
+            if sym.name in symtab.ignored_queries:
+                print('{:<10} {}'.format(sym.name + ':',
+                                        L.Parser.ts(sym.node)))
     
     # Incrementalize image-set lookups with auxiliary maps.
     tree = transform_auxmaps(tree, symtab)

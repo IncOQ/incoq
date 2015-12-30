@@ -21,6 +21,7 @@ from itertools import count
 from types import SimpleNamespace
 from simplestruct import Struct, Field
 
+from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
 import incoq.mars.types as T
 
@@ -55,6 +56,9 @@ class SymbolAttribute(Struct):
     default = Field()
     docstring = Field()
     
+    allowed_values = None
+    """If not None, must be a sequence of enumerated allowed values."""
+    
     def __get__(self, inst, owner):
         if inst is None:
             return self
@@ -62,6 +66,11 @@ class SymbolAttribute(Struct):
             return getattr(inst, '_' + self.name, self.default)
     
     def __set__(self, inst, value):
+        if self.allowed_values is not None:
+            if value not in self.allowed_values:
+                raise ValueError('Value for attribute {} must be one of: {}'
+                                 .format(self.name,
+                                         ', '.join(self.allowed_values)))
         setattr(inst, '_' + self.name, value)
 
 
@@ -159,6 +168,10 @@ class QuerySymbol(Symbol):
             'Expression AST node corresponding to (all occurrences of) '
             'the query')
     
+    impl = SymbolAttribute('impl', 'normal',
+            'Implementation strategy, one of: normal, inc')
+    impl.allowed_values = ['normal', 'inc']
+    
     def __str__(self):
         s = 'Query {}'.format(self.name)
         if self.node is not None:
@@ -175,6 +188,9 @@ class SymbolTable:
         self.fresh_names = SimpleNamespace()
         self.fresh_names.vars = N.fresh_name_generator()
         self.fresh_names.queries = N.fresh_name_generator('Query{}')
+        
+        self.ignored_queries = OrderedSet()
+        """Names of queries that cannot or should not be processed."""
     
     def define_symbol(self, name, kind, **kargs):
         """Define a new symbol of the given kind. Return the symbol."""
