@@ -3,7 +3,7 @@
 
 __all__ = [
     'invoke',
-    'main',
+    'run',
 ]
 
 
@@ -46,7 +46,7 @@ def invoke(in_filename, out_filename, *, options=None):
             out_file.close()
 
 
-def main(args):
+def run(args):
     """Entry point for incoq.mars."""
     parser = argparse.ArgumentParser(prog='incoq.mars')
     parser.add_argument('in_file')
@@ -71,4 +71,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    run(sys.argv[1:])

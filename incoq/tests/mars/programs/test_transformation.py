@@ -73,7 +73,7 @@ def make_behavior_test(base_name, in_name, outpy_name, outtxt_name):
     return template
 
 
-def get_test_entries(dirfiles):
+def get_test_entries_for_filenames(dirfiles):
     """Given a list of pairs of directories and files, return a set of
     tuples (dir, base_name, in_name, outpy_name, outtxt_name)
     representing a group of test files. base_name is the common prefix
@@ -100,19 +100,24 @@ def get_test_entries(dirfiles):
     return test_entries
 
 
+def get_test_entries():
+    """Return a set of test entry tuples for all tests in this
+    test directory.
+    """
+    walk_entries = list(os.walk(test_directory))
+    dirfiles = [(dirpath, filenames)
+                for dirpath, _, filenames in walk_entries]
+    test_entries = get_test_entries_for_filenames(dirfiles)
+    return test_entries
+
+
 def get_tests():
     """Find runnable tests by searching this directory for input files.
     Return a pair of a list of transformation tests and a list of
     behavior tests.
     """
     
-    # Walk the directory to find all files.
-    walk_entries = list(os.walk(test_directory))
-    dirfiles = [(dirpath, filenames)
-                for dirpath, _, filenames in walk_entries]
-    
-    # Group files by test.
-    test_entries = get_test_entries(dirfiles)
+    test_entries = get_test_entries()
     
     # Create test functions. Omit the transformation test if there's no
     # outpy file. Omit the behavior test if there's no outtxt file.
