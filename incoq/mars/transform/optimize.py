@@ -77,7 +77,8 @@ def unwrap_singletons(tree, symtab):
             sing_rels.add(relsym)
     
     sing_rel_names = {rel.name for rel in sing_rels}
-    tree = SingletonUnwrapper.run(tree, symtab.fresh_vars, sing_rel_names)
+    tree = SingletonUnwrapper.run(tree, symtab.fresh_names.vars,
+                                  sing_rel_names)
     
     for rel in sing_rels:
         rel.type = T.Set(rel.type.elt.elts[0])

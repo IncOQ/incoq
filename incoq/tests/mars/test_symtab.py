@@ -67,10 +67,10 @@ class SymbolTableCase(unittest.TestCase):
     
     def test_fresh_vars(self):
         symtab = SymbolTable()
-        v = next(symtab.fresh_vars)
+        v = next(symtab.fresh_names.vars)
         exp_v = '_v1'
         self.assertEqual(v, exp_v)
-        v = next(symtab.fresh_vars)
+        v = next(symtab.fresh_names.vars)
         exp_v = '_v2'
         self.assertEqual(v, exp_v)
     

@@ -21,7 +21,7 @@ class UnwrapSingletonsCase(unittest.TestCase):
                 v = 2
                 T.reladd(v)
             ''')
-        tree = SingletonUnwrapper.run(tree, symtab.fresh_vars, ['S'])
+        tree = SingletonUnwrapper.run(tree, symtab.fresh_names.vars, ['S'])
         exp_tree = L.Parser.p('''
             def main():
                 v = (1,)
@@ -46,7 +46,7 @@ class UnwrapSingletonsCase(unittest.TestCase):
                 for (z2,) in T:
                     pass
             ''')
-        tree = SingletonUnwrapper.run(tree, symtab.fresh_vars, ['S'])
+        tree = SingletonUnwrapper.run(tree, symtab.fresh_names.vars, ['S'])
         exp_tree = L.Parser.p('''
             def main():
                 for _v1 in S:
