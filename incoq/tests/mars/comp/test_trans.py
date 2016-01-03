@@ -49,14 +49,15 @@ class TransCase(unittest.TestCase):
         comp = L.Parser.pe('''{x + z for (x, y) in REL(R)
                                      for (y, z) in REL(S)}''')
         func = make_comp_maint_func(self.ct, N.fresh_name_generator(),
+                                    iter(['J']),
                                     comp, 'Q', 'R', L.SetAdd(),
                                     counted=True)
         exp_func = L.Parser.ps('''
             def _maint_Q_for_R_add(_elem):
-                for (_v1_x, _v1_y, _v1_z) in \
+                for (_v1_x, _v1_y, _v1_z) in QUERY('J',
                         {(_v1_x, _v1_y, _v1_z)
                          for (_v1_x, _v1_y) in SING(_elem)
-                         for (_v1_y, _v1_z) in REL(S)}:
+                         for (_v1_y, _v1_z) in REL(S)}):
                     _v1_result = (_v1_x + _v1_z)
                     if (_v1_result not in Q):
                         Q.reladd(_v1_result)
@@ -73,29 +74,30 @@ class TransCase(unittest.TestCase):
                 S.reladd(e)
             ''')
         tree = CompMaintainer.run(tree, self.ct, N.fresh_name_generator(),
-                                  comp, 'Q', counted=True)
+                                  iter(['J1', 'J2']),
+                                  comp, 'RQ', counted=True)
         exp_tree = L.Parser.p('''
-            def _maint_Q_for_R_add(_elem):
-                for (_v1_x, _v1_y) in \
-                        {(_v1_x, _v1_y) for (_v1_x, _v1_y) in SING(_elem)}:
+            def _maint_RQ_for_R_add(_elem):
+                for (_v1_x, _v1_y) in QUERY('J1',
+                        {(_v1_x, _v1_y) for (_v1_x, _v1_y) in SING(_elem)}):
                     _v1_result = (_v1_x + _v1_y)
-                    if (_v1_result not in Q):
-                        Q.reladd(_v1_result)
+                    if (_v1_result not in RQ):
+                        RQ.reladd(_v1_result)
                     else:
-                        Q.relinccount(_v1_result)
+                        RQ.relinccount(_v1_result)
             
-            def _maint_Q_for_R_remove(_elem):
-                for (_v2_x, _v2_y) in \
-                        {(_v2_x, _v2_y) for (_v2_x, _v2_y) in SING(_elem)}:
+            def _maint_RQ_for_R_remove(_elem):
+                for (_v2_x, _v2_y) in QUERY('J2',
+                        {(_v2_x, _v2_y) for (_v2_x, _v2_y) in SING(_elem)}):
                     _v2_result = (_v2_x + _v2_y)
-                    if (Q.getcount(_v2_result) == 1):
-                        Q.relremove(_v2_result)
+                    if (RQ.getcount(_v2_result) == 1):
+                        RQ.relremove(_v2_result)
                     else:
-                        Q.reldeccount(_v2_result)
+                        RQ.reldeccount(_v2_result)
             
             def main():
                 R.reladd(e)
-                _maint_Q_for_R_add(e)
+                _maint_RQ_for_R_add(e)
                 S.reladd(e)
             ''')
         self.assertEqual(tree, exp_tree)

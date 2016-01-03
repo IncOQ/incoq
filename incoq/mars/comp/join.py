@@ -111,13 +111,13 @@ class ClauseTools(ClauseVisitor):
         
         return code
     
-    def get_loop_for_join(self, comp, body):
+    def get_loop_for_join(self, comp, body, query_name):
         """Given a join, create code for iterating over it and running
-        body.
+        body. The join is wrapped in a Query node with the given name.
         """
         assert self.is_join(comp)
         vars = self.lhs_vars_from_comp(comp)
-        return (L.DecompFor(vars, comp, body),)
+        return (L.DecompFor(vars, L.Query(query_name, comp), body),)
     
     def get_maint_join(self, comp, i, value, *,
                        selfjoin=SelfJoin.Without):
@@ -161,7 +161,8 @@ class ClauseTools(ClauseVisitor):
                 joins.append(join)
         return tuple(joins)
     
-    def get_maint_code(self, fresh_vars, comp, result_var, update, *,
+    def get_maint_code(self, fresh_vars, fresh_join_names,
+                       comp, result_var, update, *,
                        selfjoin=SelfJoin.Without,
                        counted):
         """Given a comprehension (not necessarily a join) and an
@@ -193,7 +194,8 @@ class ClauseTools(ClauseVisitor):
         
         code = ()
         for maint_join in maint_joins:
-            code += self.get_loop_for_join(maint_join, body)
+            join_name = next(fresh_join_names)
+            code += self.get_loop_for_join(maint_join, body, join_name)
         
         return code
 

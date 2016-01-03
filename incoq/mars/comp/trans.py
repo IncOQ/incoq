@@ -60,8 +60,8 @@ class JoinExpander(L.NodeTransformer):
         return ct.get_code_for_clauses(comp.clauses, params, node.body)
 
 
-def make_comp_maint_func(clausetools, fresh_vars, comp, result_var,
-                         rel, op, *,
+def make_comp_maint_func(clausetools, fresh_vars, fresh_join_names,
+                         comp, result_var, rel, op, *,
                          counted):
     """Make maintenance function for a comprehension."""
     assert isinstance(op, (L.SetAdd, L.SetRemove))
@@ -70,7 +70,8 @@ def make_comp_maint_func(clausetools, fresh_vars, comp, result_var,
     func_name = N.get_maint_func_name(result_var, rel, op_name)
     
     update = L.RelUpdate(rel, op, '_elem')
-    code = clausetools.get_maint_code(fresh_vars, comp, result_var, update,
+    code = clausetools.get_maint_code(fresh_vars, fresh_join_names,
+                                      comp, result_var, update,
                                       counted=counted)
     func = L.Parser.ps('''
         def _FUNC(_elem):
@@ -87,11 +88,13 @@ class CompMaintainer(L.NodeTransformer):
     functions at relevant updates.
     """
     
-    def __init__(self, clausetools, fresh_vars, comp, result_var, *,
+    def __init__(self, clausetools, fresh_vars, fresh_join_names,
+                 comp, result_var, *,
                  counted):
         super().__init__()
         self.clausetools = clausetools
         self.fresh_vars = fresh_vars
+        self.fresh_join_names = fresh_join_names
         self.comp = comp
         self.result_var = result_var
         self.counted = counted
@@ -107,8 +110,8 @@ class CompMaintainer(L.NodeTransformer):
         for rel in self.rels:
             for op in [L.SetAdd(), L.SetRemove()]:
                     func = make_comp_maint_func(
-                            ct, self.fresh_vars, self.comp, self.result_var,
-                            rel, op,
+                            ct, self.fresh_vars, self.fresh_join_names,
+                            self.comp, self.result_var, rel, op,
                             counted=self.counted)
                     funcs.append(func)
         
@@ -140,9 +143,28 @@ def incrementalize_comp(tree, symtab, query, result_var):
     fresh_vars = symtab.fresh_names.vars
     comp = query.node
     
+    used_join_names = []
+    
+    def fresh_join_names():
+        for join_name in N.fresh_name_generator(query.name + '_J{}'):
+            used_join_names.append(join_name)
+            yield join_name
+    
     tree = CompMaintainer.run(tree, clausetools, fresh_vars,
+                              fresh_join_names(),
                               comp, result_var,
                               counted=True)
+    
+    # Define symbols for each maintenance join introduced.
+    class MaintJoinDefiner(L.NodeVisitor):
+        def visit_Query(self, node):
+            self.generic_visit(node)
+            
+            if (node.name in used_join_names and
+                node.name not in symtab.get_symbols()):
+                symtab.define_query(node.name, node=node.query)
+    
+    MaintJoinDefiner.run(tree)
     
     class CompExpander(QueryRewriter):
         

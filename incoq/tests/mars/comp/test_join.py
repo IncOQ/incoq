@@ -79,10 +79,10 @@ class JoinCase(unittest.TestCase):
     def test_get_loop_for_join(self):
         comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
                                          for (y, z) in REL(S)}''')
-        code = self.ct.get_loop_for_join(comp, (L.Pass(),))
+        code = self.ct.get_loop_for_join(comp, (L.Pass(),), 'J')
         exp_code = L.Parser.pc('''
-            for (x, y, z) in {(x, y, z) for (x, y) in REL(R)
-                                        for (y, z) in REL(S)}:
+            for (x, y, z) in QUERY('J', {(x, y, z) for (x, y) in REL(R)
+                                                   for (y, z) in REL(S)}):
                 pass
             ''')
         self.assertEqual(code, exp_code)
@@ -118,25 +118,27 @@ class JoinCase(unittest.TestCase):
         comp = L.Parser.pe('''
             {w + z for (w, x) in REL(R) for (x, y) in REL(S)
                    for (y, z) in REL(R)}''')
-        code = self.ct.get_maint_code(N.fresh_name_generator(), comp,
-                                      'Q', L.RelUpdate('R', L.SetAdd(), 'e'),
+        code = self.ct.get_maint_code(N.fresh_name_generator(),
+                                      N.fresh_name_generator('J{}'),
+                                      comp, 'Q',
+                                      L.RelUpdate('R', L.SetAdd(), 'e'),
                                       counted=True)
         exp_code = L.Parser.pc('''
             for (_v1_w, _v1_x, _v1_y, _v1_z) in \
-                    {(_v1_w, _v1_x, _v1_y, _v1_z)
-                     for (_v1_w, _v1_x) in SING(e)
-                     for (_v1_x, _v1_y) in REL(S)
-                     for (_v1_y, _v1_z) in WITHOUT(REL(R), e)}:
+                    QUERY('J1', {(_v1_w, _v1_x, _v1_y, _v1_z)
+                                 for (_v1_w, _v1_x) in SING(e)
+                                 for (_v1_x, _v1_y) in REL(S)
+                                 for (_v1_y, _v1_z) in WITHOUT(REL(R), e)}):
                 _v1_result = (_v1_w + _v1_z)
                 if (_v1_result not in Q):
                     Q.reladd(_v1_result)
                 else:
                     Q.relinccount(_v1_result)
             for (_v1_w, _v1_x, _v1_y, _v1_z) in \
-                    {(_v1_w, _v1_x, _v1_y, _v1_z)
-                     for (_v1_w, _v1_x) in REL(R)
-                     for (_v1_x, _v1_y) in REL(S)
-                     for (_v1_y, _v1_z) in SING(e)}:
+                    QUERY('J2', {(_v1_w, _v1_x, _v1_y, _v1_z)
+                                 for (_v1_w, _v1_x) in REL(R)
+                                 for (_v1_x, _v1_y) in REL(S)
+                                 for (_v1_y, _v1_z) in SING(e)}):
                 _v1_result = (_v1_w + _v1_z)
                 if (_v1_result not in Q):
                     Q.reladd(_v1_result)
