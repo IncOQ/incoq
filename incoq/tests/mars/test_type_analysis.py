@@ -488,6 +488,19 @@ class TypeAnalysisCase(unittest.TestCase):
         # of widening.)
         self.assertTrue(isinstance(store['S'], Set))
         self.assertTrue(len(illtyped) == 0)
+    
+    def test_analyze_expr_type(self):
+        comp = L.Parser.pe('{x for (x,) in REL(S)}')
+        tree = L.Parser.p('''
+            def main():
+                S.add((5,))
+                print({x for (x,) in REL(S)})
+            ''')
+        store = {}
+        store, _illtyped = analyze_types(tree, store)
+        type = analyze_expr_type(comp, store)
+        exp_type = Set(Number)
+        self.assertEqual(type, exp_type)
 
 
 if __name__ == '__main__':

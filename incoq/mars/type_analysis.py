@@ -29,6 +29,7 @@ programs to be well-typed.
 __all__ = [
     'TypeAnalysisStepper',
     'analyze_types',
+    'analyze_expr_type',
 ]
 
 
@@ -178,6 +179,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         t_vars = self.get_tuple_elts(node, t_target, n)
         for v, t in zip(node.vars, t_vars):
             self.update_store(v, t)
+        self.visit(node.body)
     
     def visit_While(self, node):
         # Check test <= Bool
@@ -525,3 +527,19 @@ def analyze_types(tree, store):
         steps += 1
     
     return store, analyzer.illtyped
+
+
+def analyze_expr_type(tree, store):
+    """Given an expression node, return its type evaluation under the
+    given type store.
+    """
+    store = dict(store)
+    height_limit = 5
+    
+    # Bypass TypeAnalysisStepper's process() method since it discards
+    # type info. The given tree should not be a statement node.
+    class Analyzer(TypeAnalysisStepper):
+        process = L.AdvNodeVisitor.process
+    
+    type = Analyzer.run(tree, store, height_limit)
+    return type
