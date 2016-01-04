@@ -18,7 +18,7 @@ test_root_path = join(dirname(__file__), '../tests/mars/programs')
 test_root_path = normpath(test_root_path)
 
 
-def regenerate_test(test_name):
+def regenerate_test(test_name, *, verbose=None):
     """Regenerate the *_out.py file for the given test. Tests are
     specified by the path to their *_in.py file, omitting the _in.py
     suffix, and relative to the incoq/tests/mars/programs directory.
@@ -36,7 +36,10 @@ def regenerate_test(test_name):
     out_path = normpath(out_path)
     
     print('Regenerating {}...'.format(test_name), flush=True)
-    main.invoke(in_path, out_path)
+    options = {}
+    if verbose is not None:
+        options['verbose'] = verbose
+    main.invoke(in_path, out_path, options=options)
 
 
 def regenerate_all():
@@ -53,13 +56,14 @@ def regenerate_all():
 def run(args):
     parser = argparse.ArgumentParser(prog='incoq.mars.regenerate_tests')
     parser.add_argument('test_name', nargs='?', default=None)
+    parser.add_argument('--verbose', action='store_true', default=None)
     
     ns = parser.parse_args(args)
     
     if ns.test_name is None:
         regenerate_all()
     else:
-        regenerate_test(ns.test_name)
+        regenerate_test(ns.test_name, verbose=ns.verbose)
 
 
 if __name__ == '__main__':
