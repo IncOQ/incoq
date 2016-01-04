@@ -6,6 +6,8 @@ __all__ = [
     'tuplify',
     'detuplify',
     'mask_from_bounds',
+    'mask_is_allbound',
+    'mask_is_allunbound',
     'split_by_mask',
     'bind_by_mask',
     'set_update',
@@ -51,6 +53,15 @@ def mask_from_bounds(items, bound_items):
         else:
             maskstr += 'u'
     return L.mask(maskstr)
+
+
+def mask_is_allbound(mask):
+    """Return True if a mask contains only bound components."""
+    return all(c == 'b' for c in mask.m)
+
+def mask_is_allunbound(mask):
+    """Return True if a mask contains only unbound components."""
+    return all(c == 'u' for c in mask.m)
 
 
 def split_by_mask(mask, items):

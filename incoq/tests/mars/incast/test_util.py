@@ -39,6 +39,19 @@ class MaskCase(unittest.TestCase):
         exp_mask = L.mask('bub')
         self.assertEqual(mask, exp_mask)
     
+    def test_allboundunbound(self):
+        mask1 = L.mask('bub')
+        mask2 = L.mask('bb')
+        mask3 = L.mask('uu')
+        
+        self.assertFalse(mask_is_allbound(mask1))
+        self.assertTrue(mask_is_allbound(mask2))
+        self.assertFalse(mask_is_allbound(mask3))
+        
+        self.assertFalse(mask_is_allunbound(mask1))
+        self.assertFalse(mask_is_allunbound(mask2))
+        self.assertTrue(mask_is_allunbound(mask3))
+    
     def test_split(self):
         mask = L.mask('bub')
         bounds, unbounds = split_by_mask(mask, ['x', 'y', 'z'])
