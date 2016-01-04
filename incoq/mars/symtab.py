@@ -162,7 +162,7 @@ class VarSymbol(TypedSymbolMixin, Symbol):
         return s
 
 
-class QuerySymbol(Symbol):
+class QuerySymbol(TypedSymbolMixin, Symbol):
     
     node = SymbolAttribute('node', None,
             'Expression AST node corresponding to (all occurrences of) '

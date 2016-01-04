@@ -15,7 +15,7 @@ from itertools import chain
 from collections import OrderedDict
 
 from incoq.mars.incast import L, P
-from incoq.mars.type_analysis import analyze_types
+from incoq.mars.type_analysis import analyze_types, analyze_expr_type
 from incoq.mars.config import Config
 from incoq.mars.symtab import SymbolTable
 from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer, define_map
@@ -159,12 +159,18 @@ def do_typeinference(tree, symtab):
     
     # Apply analysis, update saved type info.
     store, illtyped = analyze_types(tree, store)
+    # Symbol types.
     badsyms = set()
     for name, type in store.items():
         sym = symtab.symbols[name]
         sym.type = type
         if not type.issmaller(sym.max_type):
             badsyms.add(sym)
+    # Query symbol types.
+    for sym in symtab.get_queries().values():
+        type = analyze_expr_type(sym.node, store)
+        sym.type = type
+    
     return illtyped, badsyms
 
 
@@ -178,7 +184,7 @@ def transform_query(tree, symtab, query):
             # Incrementalize the query.
             result_var = 'R_' + query.name
             tree = incrementalize_comp(tree, symtab, query, result_var)
-            symtab.define_relation(result_var)
+            symtab.define_relation(result_var, type=query.type)
             
             # Expand the maintenance joins.
             tree = expand_maintjoins(tree, symtab, query)
