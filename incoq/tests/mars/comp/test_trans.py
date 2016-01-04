@@ -19,7 +19,6 @@ class TransCase(unittest.TestCase):
                                        for (y, z) in REL(S)}''')
         Q2 = L.Parser.pe('{(x,) for (x,) in REL(R)}')
         Q3 = L.Parser.pe('{True for (x,) in REL(R)}')
-        query_params = {'Q1': ('x',), 'Q2': (), 'Q3': ()}
         
         tree = L.Parser.p('''
             def main():
@@ -31,11 +30,10 @@ class TransCase(unittest.TestCase):
                     pass
             ''', subst={'_Q1': Q1, '_Q2': Q2, '_Q3': Q3})
         
-        tree = JoinExpander.run(tree, self.ct, ['Q1', 'Q2', 'Q3'],
-                                query_params)
+        tree = JoinExpander.run(tree, self.ct, ['Q1', 'Q2', 'Q3'])
         exp_tree = L.Parser.p('''
             def main():
-                for (y,) in R.imglookup('bu', (x,)):
+                for (x, y) in R:
                     for (z,) in S.imglookup('bu', (y,)):
                         pass
                 for z in QUERY('Q2', {(x,) for (x,) in REL(R)}):
@@ -125,6 +123,28 @@ class TransCase(unittest.TestCase):
                 print(R_Q)
             ''')
         self.assertEqual(func, exp_func)
+    
+    def test_expand_maintjoins(self):
+        comp = L.Parser.pe('{x for (x,) in REL(R)}')
+        maint_comp = L.Parser.pe('{(x,) for (x,) in SING(e)}')
+        symtab = SymbolTable()
+        symtab.clausetools = CoreClauseTools()
+        query = symtab.define_query('Q', node=comp)
+        join = symtab.define_query('J', node=maint_comp)
+        query.maint_joins = [join]
+        
+        tree = L.Parser.p('''
+            def main():
+                for (x,) in QUERY('J', _MAINT_COMP):
+                    pass
+            ''', subst={'_MAINT_COMP': maint_comp})
+        tree = expand_maintjoins(tree, symtab, query)
+        exp_tree = L.Parser.p('''
+            def main():
+                (x,) = e
+                pass
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':

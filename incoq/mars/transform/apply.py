@@ -19,7 +19,8 @@ from incoq.mars.type_analysis import analyze_types
 from incoq.mars.config import Config
 from incoq.mars.symtab import SymbolTable
 from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer, define_map
-from incoq.mars.comp import CoreClauseTools, incrementalize_comp
+from incoq.mars.comp import (CoreClauseTools, incrementalize_comp,
+                             expand_maintjoins)
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
@@ -169,13 +170,21 @@ def do_typeinference(tree, symtab):
 
 def transform_query(tree, symtab, query):
     if isinstance(query.node, L.Comp):
+        
         if query.impl == 'normal':
             success = False
+        
         elif query.impl == 'inc':
+            # Incrementalize the query.
             result_var = 'R_' + query.name
             tree = incrementalize_comp(tree, symtab, query, result_var)
             symtab.define_relation(result_var)
+            
+            # Expand the maintenance joins.
+            tree = expand_maintjoins(tree, symtab, query)
+            
             success = True
+    
     else:
         success = False
     return tree, success

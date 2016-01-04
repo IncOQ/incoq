@@ -6,6 +6,7 @@ __all__ = [
     'make_comp_maint_func',
     'CompMaintainer',
     'incrementalize_comp',
+    'expand_maintjoins',
 ]
 
 
@@ -27,7 +28,7 @@ class JoinExpander(L.NodeTransformer):
     one of the given names. Other occurrences of the query are ignored.
     """
     
-    def __init__(self, clausetools, queries, query_params):
+    def __init__(self, clausetools, queries):
         super().__init__()
         self.clausetools = clausetools
         """ClauseTools instance."""
@@ -35,8 +36,6 @@ class JoinExpander(L.NodeTransformer):
         """Names of queries that wrap joins that are to be expanded.
         If None, expand all rewritable joins.
         """
-        self.query_params = query_params
-        """Mapping from query name to tuple of parameters."""
     
     def visit_DecompFor(self, node):
         ct = self.clausetools
@@ -56,8 +55,7 @@ class JoinExpander(L.NodeTransformer):
                 ct.lhs_vars_from_comp(comp) == node.vars):
             return node
         
-        params = self.query_params[node.iter.name]
-        return ct.get_code_for_clauses(comp.clauses, params, node.body)
+        return ct.get_code_for_clauses(comp.clauses, (), node.body)
 
 
 def make_comp_maint_func(clausetools, fresh_vars, fresh_join_names,
@@ -143,6 +141,8 @@ def incrementalize_comp(tree, symtab, query, result_var):
     fresh_vars = symtab.fresh_names.vars
     comp = query.node
     
+    query.maint_joins = []
+    
     used_join_names = []
     
     def fresh_join_names():
@@ -162,7 +162,8 @@ def incrementalize_comp(tree, symtab, query, result_var):
             
             if (node.name in used_join_names and
                 node.name not in symtab.get_symbols()):
-                symtab.define_query(node.name, node=node.query)
+                sym = symtab.define_query(node.name, node=node.query)
+                query.maint_joins.append(sym)
     
     MaintJoinDefiner.run(tree)
     
@@ -174,4 +175,11 @@ def incrementalize_comp(tree, symtab, query, result_var):
     
     tree = CompExpander.run(tree, symtab, expand=True)
     
+    return tree
+
+
+def expand_maintjoins(tree, symtab, query):
+    """Expand the maintenance joins for the given query symbol."""
+    join_names = [join.name for join in query.maint_joins]
+    tree = JoinExpander.run(tree, symtab.clausetools, join_names)
     return tree
