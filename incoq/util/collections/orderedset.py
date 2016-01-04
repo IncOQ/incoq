@@ -83,7 +83,13 @@ class OrderedSet(collections.MutableSet):
     def __eq__(self, other):
         if isinstance(other, OrderedSet):
             return len(self) == len(other) and list(self) == list(other)
-        return set(self) == set(other)
+        # Note by Jon: Fixed bug for when other object is not iterable
+        # or has non-hashable elements. Changed semantics so that we do
+        # not compare equal with non-set iterables.
+        elif isinstance(other, set):
+            return set(self) == other
+        else:
+            return False
 
     def __del__(self):
         # Note by Jon: I've observed error conditions that seem to
