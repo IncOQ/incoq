@@ -282,7 +282,7 @@ def preprocess_var_decls(tree):
     
     if changed:
         tree = tree._replace(body=body)
-    return tree, rels
+    return tree, list(rels)
 
 
 def postprocess_var_decls(tree, decls):
