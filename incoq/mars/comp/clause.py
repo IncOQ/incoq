@@ -158,9 +158,18 @@ class RelMemberHandler(ClauseHandler):
     
     def get_code(self, cl, bindenv, body):
         mask = L.mask_from_bounds(cl.vars, bindenv)
-        bvars, uvars = L.split_by_mask(mask, cl.vars)
-        lookup = L.ImgLookup(cl.rel, mask, bvars)
-        return (L.DecompFor(uvars, lookup, body),)
+        
+        if L.mask_is_allbound(mask):
+            comparison = L.Compare(L.tuplify(cl.vars), L.In(), L.Name(cl.rel))
+            return (L.If(comparison, body, ()),)
+        
+        elif L.mask_is_allunbound(mask):
+            return (L.DecompFor(cl.vars, L.Name(cl.rel), body),)
+        
+        else:
+            bvars, uvars = L.split_by_mask(mask, cl.vars)
+            lookup = L.ImgLookup(cl.rel, mask, bvars)
+            return (L.DecompFor(uvars, lookup, body),)
     
     def rename_lhs_vars(self, cl, renamer):
         new_vars = tuple(renamer(v) for v in cl.vars)

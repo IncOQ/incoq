@@ -45,6 +45,23 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), 'R')
         
+        # All bound.
+        code = v.get_code(cl, ['a', 'x', 'y', 'z'], (L.Pass(),))
+        exp_code = L.Parser.pc('''
+            if (x, y, z) in R:
+                pass
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        # All unbound.
+        code = v.get_code(cl, ['a'], (L.Pass(),))
+        exp_code = L.Parser.pc('''
+            for (x, y, z) in R:
+                pass
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        # Mixed.
         code = v.get_code(cl, ['a', 'x'], (L.Pass(),))
         exp_code = L.Parser.pc('''
             for (y, z) in R.imglookup('buu', (x,)):
