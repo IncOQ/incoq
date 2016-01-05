@@ -34,6 +34,17 @@ class NamingCase(unittest.TestCase):
 
 class SymbolCase(unittest.TestCase):
     
+    def test_metasymbol(self):
+        self.assertEqual(Symbol._symbol_attrs, (Symbol.name,))
+        
+        TS = TypedSymbolMixin
+        self.assertEqual(TS._symbol_attrs,
+                         (Symbol.name, TS.type, TS.min_type, TS.max_type))
+    
+    def test_symbol(self):
+        r = RelationSymbol('R', type=Set(Top))
+        self.assertEqual(r.clone_attrs(), {'type': Set(Top)})
+    
     def test_rel(self):
         r = RelationSymbol('R', type=Set(Top))
         s = str(r)

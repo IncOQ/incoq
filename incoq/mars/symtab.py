@@ -5,6 +5,7 @@ __all__ = [
     'N',
     
     'Symbol',
+    'TypedSymbolMixin',
     'RelationSymbol',
     'MapSymbol',
     'VarSymbol',
@@ -72,9 +73,37 @@ class SymbolAttribute(Struct):
                                  .format(self.name,
                                          ', '.join(self.allowed_values)))
         setattr(inst, '_' + self.name, value)
+    
+    def defined(self, inst):
+        return hasattr(inst, '_' + self.name)
 
 
-class Symbol:
+class MetaSymbol(type):
+    
+    """Metaclass for symbols."""
+    
+    # Manage a _symbol_attrs field for programmatically dealing with
+    # symbol attributes.
+    
+    @classmethod
+    def __prepare__(mcls, name, bases):
+        return OrderedDict()
+    
+    def __new__(mcls, clsname, bases, namespace):
+        symbol_attrs = []
+        for b in bases:
+            if isinstance(b, MetaSymbol):
+                symbol_attrs += b._symbol_attrs
+        for sym_attr in namespace.values():
+            if isinstance(sym_attr, SymbolAttribute):
+                symbol_attrs.append(sym_attr)
+        
+        cls = super().__new__(mcls, clsname, bases, dict(namespace))
+        cls._symbol_attrs = tuple(symbol_attrs)
+        return cls
+
+
+class Symbol(metaclass=MetaSymbol):
     
     name = SymbolAttribute('name', None,
             'Name of the symbol')
@@ -88,6 +117,18 @@ class Symbol:
                               SymbolAttribute):
                 raise KeyError('Unknown symbol attribute "{}"'.format(name))
             setattr(self, name, value)
+    
+    def clone_attrs(self):
+        """Return a dictionary of attributes for this symbol, not
+        including name, suitable for passing to SymbolTable.define_*().
+        """
+        d = {}
+        for attr in self._symbol_attrs:
+            if attr.name == 'name':
+                continue
+            if attr.defined(self):
+                d[attr.name] = getattr(self, attr.name)
+        return d
 
 
 class TypedSymbolMixin(Symbol):
