@@ -3,6 +3,7 @@
 
 __all__ = [
     'ScopeBuilder',
+    'ParamAnalyzer',
 ]
 
 
@@ -120,3 +121,31 @@ class ScopeBuilder(L.NodeVisitor):
         for v in node.vars:
             self.bind(v)
         self.generic_visit(node)
+
+
+class ParamAnalyzer(L.NodeTransformer):
+    
+    """Add parameter information to query symbols based on the given
+    scope information.
+    """
+    
+    def __init__(self, symtab, scope_info):
+        super().__init__()
+        self.symtab = symtab
+        self.scope_info = scope_info
+    
+    def visit_Query(self, node):
+        # Lookup scope info before we do any recursive transformation.
+        _node, scope = self.scope_info[id(node)]
+        
+        # Get variables used in this query, including subqueries.
+        # Parameters are listed in the order found by IdentFinder.
+        vars = L.IdentFinder.find_vars(node.query)
+        params = tuple(vars.intersection(scope))
+        
+        # Update symbol info.
+        sym = self.symtab.get_queries()[node.name]
+        sym.params = params
+        
+        # Recurse.
+        node = self.generic_visit(node)

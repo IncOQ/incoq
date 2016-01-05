@@ -209,6 +209,9 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
             'Expression AST node corresponding to (all occurrences of) '
             'the query')
     
+    params = SymbolAttribute('params', (),
+            'Tuple of parameter identifiers for this query')
+    
     impl = SymbolAttribute('impl', 'normal',
             'Implementation strategy, one of: normal, inc')
     impl.allowed_values = ['normal', 'inc']
