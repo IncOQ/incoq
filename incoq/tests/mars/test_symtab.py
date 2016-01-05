@@ -30,6 +30,11 @@ class NamingCase(unittest.TestCase):
         name = N.get_maint_func_name('Q', 'R', 'add')
         exp_name = '_maint_Q_for_R_add'
         self.assertEqual(name, exp_name)
+    
+    def test_queryinst(self):
+        name = N.get_query_inst_name('Q', '2')
+        exp_name = 'Q_ctx2'
+        self.assertEqual(name, exp_name)
 
 
 class SymbolCase(unittest.TestCase):

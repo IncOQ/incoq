@@ -42,9 +42,35 @@ class ParamAnalysisCase(unittest.TestCase):
                 print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
             ''')
         scope_info = ScopeBuilder.run(tree)
+        
         tree = ParamAnalyzer.run(tree, symtab, scope_info)
         self.assertEqual(query_sym.params, ('x',))
+    
+    def test_param_analyzer_inst(self):
+        comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
+        symtab = SymbolTable()
+        query_sym = symtab.define_query('Q', node=comp)
+        tree = L.Parser.p('''
+            def main():
+                x = 1
+                print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
+            def test1():
+                x = 1
+                y = 2
+                print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
+            def test2():
+                x = 1
+                print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
+            ''')
+        scope_info = ScopeBuilder.run(tree)
         
+        tree = ParamAnalyzer.run(tree, symtab, scope_info)
+        
+        queries = symtab.get_queries()
+        self.assertEqual(queries.keys(), {'Q', 'Q_ctx2'})
+        self.assertEqual(query_sym.params, ('x',))
+        inst_query_sym = queries['Q_ctx2']
+        self.assertEqual(inst_query_sym.params, ('x', 'y'))
 
 
 if __name__ == '__main__':

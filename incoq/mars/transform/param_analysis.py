@@ -10,6 +10,7 @@ __all__ = [
 from itertools import chain
 
 from incoq.util.collections import OrderedSet
+from incoq.mars.symtab import N
 from incoq.mars.incast import L
 
 
@@ -126,26 +127,66 @@ class ScopeBuilder(L.NodeVisitor):
 class ParamAnalyzer(L.NodeTransformer):
     
     """Add parameter information to query symbols based on the given
-    scope information.
+    scope information. Instantiate multiple occurrences of the same query
+    if the occurrences have distinct parameter information.
     """
+    
+    # We keep a map whose keys are query names and whose values are
+    # query context maps. Each query context map goes from the name
+    # of an instantiated version of the query to the context for which
+    # it was made.
+    #
+    # At an occurrence of a query, we compare the context of the
+    # occurrence with each entry in the context map for that query name
+    # and pick the instantiated version having the same context. If none
+    # exists, we create a new instantiated query (including a new
+    # symbol) and add the entry to the map.
+    #
+    # Context information is determined by what tuple of parameters the
+    # query occurrence has.
     
     def __init__(self, symtab, scope_info):
         super().__init__()
         self.symtab = symtab
         self.scope_info = scope_info
+        self.query_contexts = {}
     
     def visit_Query(self, node):
-        # Lookup scope info before we do any recursive transformation.
+        query_sym = self.symtab.get_queries()[node.name]
+        
+        # Lookup scope info before we do any transformation.
         _node, scope = self.scope_info[id(node)]
         
         # Get variables used in this query, including subqueries.
         # Parameters are listed in the order found by IdentFinder.
         vars = L.IdentFinder.find_vars(node.query)
         params = tuple(vars.intersection(scope))
+        context = params
         
-        # Update symbol info.
-        sym = self.symtab.get_queries()[node.name]
-        sym.params = params
+        # Rewrite as per context map.
+        context_map = self.query_contexts.setdefault(node.name, {})
+        for inst_name, ctx in context_map.items():
+            if context == ctx:
+                # Found an existing instantiation.
+                # Rewrite to use its name.
+                node = node._replace(name=inst_name)
+                break
+        else:
+            if len(context_map) == 0:
+                # No instantiations so far, use the original query name
+                # but update its parameter info.
+                context_map[node.name] = context
+                query_sym.params = params
+            else:
+                # Create a new query instantiation entry.
+                num = len(context_map) + 1
+                inst_name = N.get_query_inst_name(node.name, str(num))
+                context_map[inst_name] = context
+                
+                # Create its symbol.
+                attrs = query_sym.clone_attrs()
+                attrs['params'] = params
+                self.symtab.define_query(inst_name, **attrs)
         
         # Recurse.
         node = self.generic_visit(node)

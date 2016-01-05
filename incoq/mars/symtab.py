@@ -49,6 +49,10 @@ class N:
     @classmethod
     def get_maint_func_name(cls, inv, param, op):
         return '_maint_{}_for_{}_{}'.format(inv, param, op)
+    
+    @classmethod
+    def get_query_inst_name(cls, query, inststr):
+        return query + '_ctx' + inststr
 
 
 class SymbolAttribute(Struct):
