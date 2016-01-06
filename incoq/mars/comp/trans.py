@@ -141,6 +141,8 @@ def incrementalize_comp(tree, symtab, query, result_var):
     fresh_vars = symtab.fresh_names.vars
     comp = query.node
     
+    comp = clausetools.rewrite_with_patterns(comp, set())
+    
     query.maint_joins = []
     
     used_join_names = []
