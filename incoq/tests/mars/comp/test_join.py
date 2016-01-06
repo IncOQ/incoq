@@ -13,6 +13,30 @@ class JoinCase(unittest.TestCase):
     def setUp(self):
         self.ct = CoreClauseTools()
     
+    def test_match_member_cond(self):
+        cond = L.Cond(L.Parser.pe('(x, y) in R'))
+        result = match_member_cond(cond)
+        exp_result = (('x', 'y'), 'R')
+        self.assertEqual(result, exp_result)
+        
+        cond = L.Cond(L.Parser.pe('x in R'))
+        result = match_member_cond(cond)
+        self.assertIsNone(result)
+        
+        cond = L.Cond(L.Parser.pe('(x, y) in 1 + 1'))
+        result = match_member_cond(cond)
+        self.assertIsNone(result)
+    
+    def test_match_eq_cond(self):
+        cond = L.Cond(L.Parser.pe('x == y'))
+        result = match_eq_cond(cond)
+        exp_result = ('x', 'y')
+        self.assertEqual(result, exp_result)
+        
+        cond = L.Cond(L.Parser.pe('x == y + 1'))
+        result = match_eq_cond(cond)
+        self.assertIsNone(result)
+    
     def test_lhs_vars(self):
         comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
                                          for (y, z) in REL(S)}''')
