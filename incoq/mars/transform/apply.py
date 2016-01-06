@@ -25,6 +25,7 @@ from incoq.mars.comp import (CoreClauseTools, incrementalize_comp,
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
 from .optimize import unwrap_singletons
+from .param_analysis import analyze_parameters
 
 
 def debug_symbols(symtab, illtyped, badsyms):
@@ -242,6 +243,9 @@ def transform_ast(input_ast, *, options=None):
     
     if config.verbose:
         debug_symbols(symtab, illtyped, badsyms)
+    
+    # Infer parameter information, instantiate queries as needed.
+    tree = analyze_parameters(tree, symtab)
     
     # Incrementalize queries.
     tree = transform_queries(tree, symtab)

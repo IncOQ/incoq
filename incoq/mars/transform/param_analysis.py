@@ -4,6 +4,7 @@
 __all__ = [
     'ScopeBuilder',
     'ParamAnalyzer',
+    'analyze_parameters',
 ]
 
 
@@ -190,3 +191,11 @@ class ParamAnalyzer(L.NodeTransformer):
         
         # Recurse.
         node = self.generic_visit(node)
+
+
+def analyze_parameters(tree, symtab):
+    """Assign parameter information to queries and instantiate
+    query occurrences as needed.
+    """
+    scope_info = ScopeBuilder.run(tree)
+    return ParamAnalyzer.run(tree, symtab, scope_info)
