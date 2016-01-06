@@ -186,7 +186,8 @@ def transform_query(tree, symtab, query):
             # Incrementalize the query.
             result_var = 'R_' + query.name
             tree = incrementalize_comp(tree, symtab, query, result_var)
-            symtab.define_relation(result_var, type=query.type)
+            symtab.define_relation(result_var, counted=True,
+                                   type=query.type)
             
             # Expand the maintenance joins.
             tree = expand_maintjoins(tree, symtab, query)

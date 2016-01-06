@@ -2,7 +2,7 @@ from incoq.mars.runtime import *
 # S : {(Number, Number)}
 S = Set()
 # R_Q : {Number}
-R_Q = Set()
+R_Q = RCSet()
 def _maint_R_Q_for_S_add(_elem):
     (_v2_a, _v2_b) = _elem
     for (_v2_b2, _v2_c) in S:

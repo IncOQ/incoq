@@ -167,6 +167,9 @@ TSM = TypedSymbolMixin
 
 class RelationSymbol(TypedSymbolMixin, Symbol):
     
+    counted = SymbolAttribute('counted', False,
+            'Allow duplicates, associate a count with each element')
+    
     type = TSM.type._replace(default=T.Set(T.Bottom))
     min_type = TSM.min_type._replace(default=T.Set(T.Bottom))
     max_type = TSM.max_type._replace(default=T.Set(T.Top))
@@ -180,7 +183,9 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
             s += ' (' + ', '.join(opts) + ')'
         return s
     
-    decl_constr = 'Set'
+    @property
+    def decl_constr(self):
+        return 'RCSet' if self.counted else 'Set'
 
 
 class MapSymbol(TypedSymbolMixin, Symbol):
