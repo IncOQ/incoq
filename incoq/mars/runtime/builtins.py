@@ -169,16 +169,16 @@ class RCSet(IncOQType, Counter, ImgLookupMixin):
         assert self[item] == 1
         del self[item]
     
-    def getref(self, item):
+    def getcount(self, item):
         """Return the reference count of an existing element."""
         return self[item]
     
-    def incref(self, item):
+    def inccount(self, item):
         """Increment the refcount of an existing element."""
         assert item in self
         self[item] += 1
     
-    def decref(self, item):
+    def deccount(self, item):
         """Decrement the refcount of an existing element where the
         refcount is greater than 1."""
         assert self[item] > 1

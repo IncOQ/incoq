@@ -113,11 +113,11 @@ class BuiltinsCase(unittest.TestCase):
     def test_rcset_updates(self):
         s = RCSet({'a': 1, 'b': 2})
         
-        # incref, decref, getref.
-        s.incref('a')
-        s.decref('b')
+        # inccount, deccount, getcount.
+        s.inccount('a')
+        s.deccount('b')
         self.assertCountEqual(dict(s), {'a': 2, 'b': 1})
-        self.assertEqual(s.getref('a'), 2)
+        self.assertEqual(s.getcount('a'), 2)
         
         # add, remove.
         s.add('c')
@@ -137,7 +137,7 @@ class BuiltinsCase(unittest.TestCase):
             s.add('a')
         with self.assertRaises(AssertionError):
             s.remove('b')
-        # Remove at refcount 1 only.
+        # Remove at count 1 only.
         with self.assertRaises(AssertionError):
             s.remove('a')
     
