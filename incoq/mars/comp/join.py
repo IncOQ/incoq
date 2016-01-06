@@ -174,6 +174,19 @@ class ClauseTools(ClauseVisitor):
         comp = self.comp_rename_lhs_vars(comp, lambda x: subst.get(x, x))
         return comp
     
+    def rewrite_resexp_with_params(self, comp, params):
+        """Assuming the result expression is a tuple expression,
+        rewrite it to prepend components for the given parameter
+        variables.
+        """
+        lhs_vars = self.lhs_vars_from_comp(comp)
+        assert set(params).issubset(set(lhs_vars))
+        assert isinstance(comp.resexp, L.Tuple)
+        
+        new_resexp = L.Tuple(tuple(L.Name(p) for p in params) +
+                             comp.resexp.elts)
+        return comp._replace(resexp=new_resexp)
+    
     def get_code_for_clauses(self, clauses, bindenv, body):
         """Produce code for running body once for each combination of
         variables for all clauses that match the values of the bound

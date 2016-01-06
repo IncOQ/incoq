@@ -141,7 +141,12 @@ def incrementalize_comp(tree, symtab, query, result_var):
     fresh_vars = symtab.fresh_names.vars
     comp = query.node
     
-    comp = clausetools.rewrite_with_patterns(comp, set())
+    comp = clausetools.rewrite_with_patterns(comp, query.params)
+    
+    if query.params != ():
+        assert isinstance(comp.resexp, L.Tuple)
+        orig_arity = len(comp.resexp.elts)
+        comp = clausetools.rewrite_resexp_with_params(comp, query.params)
     
     query.maint_joins = []
     
@@ -173,7 +178,11 @@ def incrementalize_comp(tree, symtab, query, result_var):
         
         def rewrite(self, symbol, name, expr):
             if name == query.name:
-                return L.Name(result_var)
+                if query.params == ():
+                    return L.Name(result_var)
+                else:
+                    mask = L.mask('b' * len(query.params) + 'u' * orig_arity)
+                    return L.ImgLookup(result_var, mask, query.params)
     
     tree = CompExpander.run(tree, symtab, expand=True)
     

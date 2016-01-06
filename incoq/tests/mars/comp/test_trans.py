@@ -124,6 +124,30 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
     
+    def test_incrementalize_comp_with_params(self):
+        comp = L.Parser.pe('{(2 * y,) for (x, y) in REL(R)}')
+        symtab = SymbolTable()
+        symtab.clausetools = CoreClauseTools()
+        query = symtab.define_query('Q', node=comp, params=('x',))
+        
+        tree = L.Parser.p('''
+            def main():
+                R.reladd(e)
+                print(QUERY('Q', {(2 * y,) for (x, y) in REL(R)}))
+            ''')
+        tree = incrementalize_comp(tree, symtab, query, 'R_Q')
+        for decl in tree.decls:
+            if decl.name == 'main':
+                func = decl
+                break
+        exp_func = L.Parser.ps('''
+            def main():
+                R.reladd(e)
+                _maint_R_Q_for_R_add(e)
+                print(R_Q.imglookup('bu', (x,)))
+            ''')
+        self.assertEqual(func, exp_func)
+    
     def test_expand_maintjoins(self):
         comp = L.Parser.pe('{x for (x,) in REL(R)}')
         maint_comp = L.Parser.pe('{(x,) for (x,) in SING(e)}')

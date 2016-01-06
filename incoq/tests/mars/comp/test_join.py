@@ -109,6 +109,16 @@ class JoinCase(unittest.TestCase):
         comp = self.ct.rewrite_with_patterns(orig_comp, {'a', 'b'})
         self.assertEqual(comp, orig_comp)
     
+    def test_rewrite_resexp_with_params(self):
+        comp = L.Parser.pe('''{(2 * y,) for (x, y) in REL(R)}''')
+        comp = self.ct.rewrite_resexp_with_params(comp, ('x',))
+        exp_comp = L.Parser.pe('''{(x, 2 * y) for (x, y) in REL(R)}''')
+        self.assertEqual(comp, exp_comp)
+        
+        comp = L.Parser.pe('''{y for (x, y) in REL(R)}''')
+        with self.assertRaises(AssertionError):
+            self.ct.rewrite_resexp_with_params(comp, ('x',))
+    
     def test_get_code_for_clauses(self):
         comp = L.Parser.pe('''{z for (x, y) in REL(R)
                                  for (y, z) in REL(S)}''')
