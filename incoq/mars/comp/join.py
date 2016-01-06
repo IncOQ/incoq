@@ -20,7 +20,7 @@ __all__ = [
 
 from enum import Enum
 
-from incoq.util.collections import OrderedSet
+from incoq.util.collections import OrderedSet, Partitioning
 from incoq.mars.incast import L
 
 from .clause import ClauseVisitor, CoreClauseVisitor
@@ -122,6 +122,57 @@ class ClauseTools(ClauseVisitor):
         
         return comp._replace(resexp=new_resexp,
                              clauses=new_clauses)
+    
+    def rewrite_with_patterns(self, comp, keepvars):
+        """Produce an optimized comprehension that is equivalent under
+        pattern matching semantics. Eliminate conditions of the form
+        x == y, replacing all occurrences of y with x. Also for each
+        condition clause that tests for membership, replace it with
+        a proper membership clause.
+        
+        keepvars is a set of variable identifiers that are not to be
+        eliminated. When exactly one variable of an equality condition
+        is in keepvars, the other variable is eliminated. When both
+        variables are in keepvars, the condition is left alone and
+        neither variable is eliminated.
+        """
+        # We use a union-find data structure, where the partitions
+        # are equality classes of the LHS variables. The representative
+        # element of each partition is the one that survives.
+        part = Partitioning()
+        new_clauses = []
+        for cl in comp.clauses:
+            # Convert conditions expressing membership to the
+            # appropriate clause type.
+            result = match_member_cond(cl)
+            if result is not None:
+                vars, rel = result
+                cl = L.RelEnum(vars, rel)
+            
+            # If it's not an equation condition, emit it to new_clauses
+            # and skip.
+            result = match_eq_cond(cl)
+            if result is None:
+                new_clauses.append(cl)
+                continue
+            left, right = result
+            
+            # If both are in keepvars, emit and skip.
+            if left in keepvars and right in keepvars:
+                new_clauses.append(cl)
+                continue
+            
+            # Flip if necessary due to keepvars.
+            if right in keepvars and left not in keepvars:
+                left, right = right, left
+            
+            # Refine partitioning, do not emit to new_clauses.
+            part.equate(left, right)
+        
+        subst = part.to_subst()
+        comp = comp._replace(clauses=new_clauses)
+        comp = self.comp_rename_lhs_vars(comp, lambda x: subst.get(x, x))
+        return comp
     
     def get_code_for_clauses(self, clauses, bindenv, body):
         """Produce code for running body once for each combination of

@@ -89,6 +89,26 @@ class JoinCase(unittest.TestCase):
                                                    if a}''')
         self.assertEqual(comp, exp_comp) 
     
+    def test_rewrite_with_patterns(self):
+        orig_comp = L.Parser.pe('''{a for (a, b) in REL(R)
+                                      for (b, c) in REL(R) if a == b}''')
+        
+        # No keepvars.
+        comp = self.ct.rewrite_with_patterns(orig_comp, set())
+        exp_comp = L.Parser.pe('''{a for (a, a) in REL(R)
+                                     for (a, c) in REL(R)}''')
+        self.assertEqual(comp, exp_comp)
+        
+        # Right side in keepvars.
+        comp = self.ct.rewrite_with_patterns(orig_comp, {'b'})
+        exp_comp = L.Parser.pe('''{b for (b, b) in REL(R)
+                                     for (b, c) in REL(R)}''')
+        self.assertEqual(comp, exp_comp)
+        
+        # Both sides in keepvars.
+        comp = self.ct.rewrite_with_patterns(orig_comp, {'a', 'b'})
+        self.assertEqual(comp, orig_comp)
+    
     def test_get_code_for_clauses(self):
         comp = L.Parser.pe('''{z for (x, y) in REL(R)
                                  for (y, z) in REL(S)}''')
