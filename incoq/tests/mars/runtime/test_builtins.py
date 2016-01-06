@@ -91,6 +91,12 @@ class BuiltinsCase(unittest.TestCase):
         exp_img = {()}
         self.assertCountEqual(img, exp_img)
     
+    def test_set_unwrap(self):
+        s = Set({(1,), (2,)})
+        unwrapped = s.unwrap()
+        exp_unwrapped = {1, 2}
+        self.assertCountEqual(unwrapped, exp_unwrapped)
+    
     def test_rcset_repr(self):
         r = repr(RCSet())
         exp_r = 'RCSet({})'

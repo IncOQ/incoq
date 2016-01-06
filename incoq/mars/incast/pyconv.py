@@ -368,6 +368,9 @@ class IncLangSpecialImporter(L.MacroExpander):
         bounds = [item.id for item in bounds.elts]
         return L.ImgLookup(rel, mask, bounds)
     
+    def handle_me_unwrap(self, _func, set_):
+        return L.Unwrap(set_)
+    
     def handle_me_getcount(self, _func, set_, elem):
         return L.BinOp(set_, L.GetCount(), elem)
     
@@ -445,6 +448,11 @@ class IncLangSpecialExporter(L.NodeTransformer):
         idents = L.Tuple([L.Name(item) for item in node.bounds])
         return L.GeneralCall(L.Attribute(L.Name(node.rel), 'imglookup'),
                              [maskstr, idents])
+    
+    def visit_Unwrap(self, node):
+        node = self.generic_visit(node)
+        
+        return L.GeneralCall(L.Attribute(node.value, 'unwrap'), [])
 
 
 class IncLangNodeExporter(NodeMapper):

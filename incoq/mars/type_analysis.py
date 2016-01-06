@@ -436,6 +436,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         return t_value.value.join(t_default)
     
     visit_ImgLookup = default_expr_handler
+    visit_Unwrap = default_expr_handler
     
     @readonly
     def visit_Comp(self, node, *, type=None):

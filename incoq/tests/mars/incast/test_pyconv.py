@@ -235,6 +235,11 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.ImgLookup('R', L.mask('bu'), ['x'])
         self.assertEqual(tree, exp_tree)
     
+    def test_unwrap(self):
+        tree = Parser.pe('R.unwrap()')
+        exp_tree = L.Unwrap(L.Name('R'))
+        self.assertEqual(tree, exp_tree)
+    
     def test_getcount(self):
         tree = Parser.pe('R.getcount(e)')
         exp_tree = L.BinOp(L.Name('R'), L.GetCount(), L.Name('e'))
@@ -344,6 +349,9 @@ class RoundTripCase(unittest.TestCase):
     
     def test_imglookup(self):
         self.trip.pe("R.imglookup('bu', (x,))")
+    
+    def test_unwrap(self):
+        self.trip.pe('R.unwrap()')
     
     def test_query(self):
         self.trip.pe("QUERY('A', 5)")

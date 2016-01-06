@@ -67,7 +67,10 @@ class IncOQType:
 
 class ImgLookupMixin:
     
-    """Mixin for giving a set-like class an imglookup() operation."""
+    """Mixin for giving a set-like class the imglookup() and unwrap()
+    operations. For RCSets, the underlying count information is
+    discarded.
+    """
     
     def imglookup(self, mask, bounds):
         """Given a mask and values for the bound components, return
@@ -90,6 +93,15 @@ class ImgLookupMixin:
             us = [part for c, part in zip(mask, item) if c == 'u']
             if bs == bounds:
                 result.add(tuple(us))
+        return result
+    
+    def unwrap(self):
+        """Assuming this set consists of singleton tuples (tuples with
+        arity 1), return a new set consisting of the tuples' contents.
+        """
+        result = Set()
+        for elem, in self:
+            result.add(elem)
         return result
 
 

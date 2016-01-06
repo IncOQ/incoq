@@ -67,6 +67,7 @@ module IncAST
          
            -- Utility expressions.
          | ImgLookup(identifier rel, mask mask, identifier* bounds)
+         | Unwrap(expr value)
          
            -- Queries.
          
