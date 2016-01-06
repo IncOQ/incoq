@@ -17,7 +17,7 @@ class AuxmapCase(unittest.TestCase):
         code = make_imgadd(N.fresh_name_generator(), 'm', 'k', 'v')
         exp_code = L.Parser.pc('''
             if k not in m:
-                _v1 = set()
+                _v1 = Set()
                 m.mapassign(k, _v1)
             m[k].add(v)
             ''')
@@ -42,7 +42,7 @@ class AuxmapCase(unittest.TestCase):
                 _v1_key = (_elem_v1,)
                 _v1_value = (_elem_v2,)
                 if (_v1_key not in m):
-                    _v2 = set()
+                    _v2 = Set()
                     m.mapassign(_v1_key, _v2)
                 m[_v1_key].add(_v1_value)
             ''')
@@ -99,7 +99,7 @@ class AuxmapCase(unittest.TestCase):
                 _v1_key = (_elem_v1,)
                 _v1_value = (_elem_v2,)
                 if (_v1_key not in R_bu):
-                    _v2 = set()
+                    _v2 = Set()
                     R_bu.mapassign(_v1_key, _v2)
                 R_bu[_v1_key].add(_v1_value)
             
@@ -115,7 +115,7 @@ class AuxmapCase(unittest.TestCase):
                 elem = (1, 2)
                 R.reladd(elem)
                 _maint_R_bu_for_R_add(elem)
-                print(R_bu.get((x,), set()))
+                print(R_bu.get((x,), Set()))
                 S.reladd(elem)
                 print(S.imglookup('bu', (x,)))
                 R.relinccount(elem)

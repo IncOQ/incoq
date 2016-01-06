@@ -8,7 +8,7 @@ def _maint_S_bu_for_S_add(_elem):
     _v3_key = (_elem_v1,)
     _v3_value = (_elem_v2,)
     if (_v3_key not in S_bu):
-        _v4 = set()
+        _v4 = Set()
         S_bu[_v3_key] = _v4
     S_bu[_v3_key].add(_v3_value)
 
@@ -26,11 +26,11 @@ def main():
         S.add(_v1)
         _maint_S_bu_for_S_add(_v1)
     x = 1
-    print(sorted(S_bu.get((x,), set())))
+    print(sorted(S_bu.get((x,), Set())))
     _v2 = (1, 3)
     _maint_S_bu_for_S_remove(_v2)
     S.remove(_v2)
-    print(sorted(S_bu.get((x,), set())))
+    print(sorted(S_bu.get((x,), Set())))
 
 if (__name__ == '__main__'):
     main()

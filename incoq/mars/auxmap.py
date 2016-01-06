@@ -42,7 +42,7 @@ def make_imgadd(fresh_vars, target: str, key: str, elem: str):
     var = next(fresh_vars)
     return L.Parser.pc('''
         if _KEY not in _TARGET:
-            _VAR = set()
+            _VAR = Set()
             _TARGET.mapassign(_KEY, _VAR)
         _TARGET[_KEY].add(_ELEM)
         ''', subst={'_TARGET': target,
@@ -173,7 +173,7 @@ class AuxmapTransformer(L.NodeTransformer):
             return node
         
         key = L.tuplify(node.bounds)
-        return L.Parser.pe('_MAP.get(_KEY, set())',
+        return L.Parser.pe('_MAP.get(_KEY, Set())',
                            subst={'_MAP': auxmap.map,
                                   '_KEY': key})
 
