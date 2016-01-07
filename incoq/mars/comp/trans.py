@@ -11,6 +11,7 @@ __all__ = [
 
 
 from incoq.mars.incast import L
+import incoq.mars.types as T
 from incoq.mars.symtab import N, QueryRewriter
 
 
@@ -148,6 +149,16 @@ def incrementalize_comp(tree, symtab, query, result_var):
         assert isinstance(comp.resexp, L.Tuple)
         orig_arity = len(comp.resexp.elts)
         comp = clausetools.rewrite_resexp_with_params(comp, query.params)
+        
+        # Update the query symbol type.
+        assert (isinstance(query.type, T.Set) and
+                isinstance(query.type.elt, T.Tuple))
+        t_elts = query.type.elt.elts
+        syms = symtab.get_symbols()
+        param_syms = [syms.get(p, None) for p in query.params]
+        t_params = tuple(s.type if s is not None else T.Top
+                         for s in param_syms)
+        query.type = T.Set(T.Tuple(t_params + t_elts))
     
     query.maint_joins = []
     

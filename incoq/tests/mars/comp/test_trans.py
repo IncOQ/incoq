@@ -4,6 +4,7 @@
 import unittest
 
 from incoq.mars.incast import L
+import incoq.mars.types as T
 from incoq.mars.symtab import N, SymbolTable
 from incoq.mars.comp.join import CoreClauseTools
 from incoq.mars.comp.trans import *
@@ -101,15 +102,16 @@ class TransCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
     
     def test_incrementalize_comp(self):
-        comp = L.Parser.pe('{x for (x,) in REL(R)}')
+        comp = L.Parser.pe('{(x,) for (x,) in REL(R)}')
         symtab = SymbolTable()
         symtab.clausetools = CoreClauseTools()
-        query = symtab.define_query('Q', node=comp)
+        query = symtab.define_query('Q', node=comp,
+                                    type=T.Set(T.Tuple([T.Number])))
         
         tree = L.Parser.p('''
             def main():
                 R.reladd(e)
-                print(QUERY('Q', {x for (x,) in REL(R)}))
+                print(QUERY('Q', {(x,) for (x,) in REL(R)}))
             ''')
         tree = incrementalize_comp(tree, symtab, query, 'R_Q')
         for decl in tree.decls:
@@ -128,7 +130,9 @@ class TransCase(unittest.TestCase):
         comp = L.Parser.pe('{(2 * y,) for (x, y) in REL(R)}')
         symtab = SymbolTable()
         symtab.clausetools = CoreClauseTools()
-        query = symtab.define_query('Q', node=comp, params=('x',))
+        query = symtab.define_query('Q', node=comp, params=('x',),
+                                    type=T.Set(T.Tuple([T.Number])))
+        symtab.define_var('x', type=T.Number)
         
         tree = L.Parser.p('''
             def main():
@@ -147,6 +151,7 @@ class TransCase(unittest.TestCase):
                 print(R_Q.imglookup('bu', (x,)))
             ''')
         self.assertEqual(func, exp_func)
+        self.assertEqual(query.type, T.Set(T.Tuple([T.Number, T.Number])))
     
     def test_expand_maintjoins(self):
         comp = L.Parser.pe('{x for (x,) in REL(R)}')
