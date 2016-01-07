@@ -8,7 +8,7 @@ __all__ = [
     
     'IncOQType',
     'Set',
-    'RCSet',
+    'CSet',
     'Map',
 ]
 
@@ -68,7 +68,7 @@ class IncOQType:
 class ImgLookupMixin:
     
     """Mixin for giving a set-like class the imglookup() and unwrap()
-    operations. For RCSets, the underlying count information is
+    operations. For CSets, the underlying count information is
     discarded.
     """
     
@@ -135,7 +135,7 @@ class Set(IncOQType, set, ImgLookupMixin):
             self.update(other)
 
 
-class RCSet(IncOQType, Counter, ImgLookupMixin):
+class CSet(IncOQType, Counter, ImgLookupMixin):
     
     """Reference-counted set. Supports element-wise operations but
     not all of the bulk operations that Set has.

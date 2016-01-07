@@ -97,21 +97,21 @@ class BuiltinsCase(unittest.TestCase):
         exp_unwrapped = {1, 2}
         self.assertCountEqual(unwrapped, exp_unwrapped)
     
-    def test_rcset_repr(self):
-        r = repr(RCSet())
-        exp_r = 'RCSet({})'
+    def test_cset_repr(self):
+        r = repr(CSet())
+        exp_r = 'CSet({})'
         self.assertEqual(r, exp_r)
         
-        r = repr(RCSet({5}))
-        exp_r = 'RCSet({5: 1})'
+        r = repr(CSet({5}))
+        exp_r = 'CSet({5: 1})'
         self.assertEqual(r, exp_r)
         
-        s = str(RCSet({5, 6}))
+        s = str(CSet({5, 6}))
         exp_s = '{5, 6}'
         self.assertEqual(s, exp_s)
     
-    def test_rcset_updates(self):
-        s = RCSet({'a': 1, 'b': 2})
+    def test_cset_updates(self):
+        s = CSet({'a': 1, 'b': 2})
         
         # inccount, deccount, getcount.
         s.inccount('a')
@@ -141,16 +141,16 @@ class BuiltinsCase(unittest.TestCase):
         with self.assertRaises(AssertionError):
             s.remove('a')
     
-    def test_rcset_pickle(self):
-        s1 = RCSet({1, 2, 3})
+    def test_cset_pickle(self):
+        s1 = CSet({1, 2, 3})
         b = pickle.dumps(s1)
         s2 = pickle.loads(b)
         self.assertEqual(dict(s1), dict(s2))
     
-    def test_rcset_imglookup(self):
+    def test_cset_imglookup(self):
         # Throw in some reference counts for the heck of it.
         # No effect on result.
-        s = RCSet({(1, 2): 3, (1, 3): 2, (2, 3) : 2, (2, 4) :1})
+        s = CSet({(1, 2): 3, (1, 3): 2, (2, 3) : 2, (2, 4) :1})
         img = s.imglookup('bu', (1,))
         exp_img = {(2,), (3,)}
         self.assertCountEqual(img, exp_img)

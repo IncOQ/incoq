@@ -185,7 +185,7 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
     
     @property
     def decl_constr(self):
-        return 'RCSet' if self.counted else 'Set'
+        return 'CSet' if self.counted else 'Set'
 
 
 class MapSymbol(TypedSymbolMixin, Symbol):
