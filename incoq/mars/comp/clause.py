@@ -3,6 +3,7 @@
 
 __all__ = [
     'Kind',
+    'Priority',
     
     'BaseClauseVisitor',
     'BaseClauseHandler',
@@ -18,7 +19,7 @@ __all__ = [
 ]
 
 
-from enum import Enum
+from enum import Enum, IntEnum
 from functools import partialmethod
 
 from incoq.mars.incast import L
@@ -27,6 +28,14 @@ from incoq.mars.incast import L
 class Kind(Enum):
     Member = 1
     Cond = 2
+
+
+class Priority(IntEnum):
+    """Priority for cost heuristic."""
+    First = -1
+    Constant = 1
+    Normal = 10
+    Unpreferred = 100
 
 
 class BaseClauseVisitor:
@@ -84,6 +93,13 @@ class ClauseHandler(BaseClauseHandler):
         """
         raise NotImplementedError
     
+    def get_priority(self, cl, bindenv):
+        """Return a priority for the cost heuristic based on the given
+        binding environment, or None if running the clause in that
+        environment is not allowed.
+        """
+        raise NotImplementedError
+    
     def get_code(self, cl, bindenv, body):
         """Return code to run the body for all combination of LHS vars
         that satisfy the clause and that match the values of the bound
@@ -138,6 +154,7 @@ class ClauseVisitor(BaseClauseVisitor):
     kind = partialmethod(BaseClauseVisitor.visit, 'kind')
     lhs_vars = partialmethod(BaseClauseVisitor.visit, 'lhs_vars')
     rhs_rel = partialmethod(BaseClauseVisitor.visit, 'rhs_rel')
+    get_priority = partialmethod(BaseClauseVisitor.visit, 'get_priority')
     get_code = partialmethod(BaseClauseVisitor.visit, 'get_code')
     rename_lhs_vars = partialmethod(BaseClauseVisitor.visit,
                                     'rename_lhs_vars')
@@ -155,6 +172,16 @@ class RelMemberHandler(ClauseHandler):
     
     def rhs_rel(self, cl):
         return cl.rel
+    
+    def get_priority(self, cl, bindenv):
+        mask = L.mask_from_bounds(cl.vars, bindenv)
+        
+        if L.mask_is_allbound(mask):
+            return Priority.Constant
+        elif L.mask_is_allunbound(mask):
+            return Priority.Unpreferred
+        else:
+            return Priority.Normal
     
     def get_code(self, cl, bindenv, body):
         mask = L.mask_from_bounds(cl.vars, bindenv)
@@ -192,6 +219,9 @@ class SingMemberHandler(ClauseHandler):
     def rhs_rel(self, cl):
         return None
     
+    def get_priority(self, cl, bindenv):
+        return Priority.Constant
+    
     def get_code(self, cl, bindenv, body):
         mask = L.mask_from_bounds(cl.vars, bindenv)
         check_eq = L.Compare(L.tuplify(cl.vars), L.Eq(), cl.value)
@@ -225,6 +255,9 @@ class WithoutMemberHandler(ClauseHandler):
     def rhs_rel(self, cl):
         return self.visitor.rhs_rel(cl.cl)
     
+    def get_priority(self, cl, bindenv):
+        return self.visitor.get_priority(cl.cl, bindenv)
+    
     def get_code(self, cl, bindenv, body):
         lhs_vars = self.visitor.lhs_vars(cl)
         new_body = L.Parser.pc('''
@@ -254,6 +287,13 @@ class CondHandler(ClauseHandler):
     
     def rhs_rel(self, cl):
         return None
+    
+    def get_priority(self, cl, bindenv):
+        vars = L.IdentFinder.find_vars(cl.cond)
+        if set(vars).issubset(set(bindenv)):
+            return Priority.Constant
+        else:
+            return None
     
     def get_code(self, cl, bindenv, body):
         return (L.If(cl.cond, body, []),)

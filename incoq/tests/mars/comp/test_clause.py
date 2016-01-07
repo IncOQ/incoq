@@ -45,6 +45,13 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), 'R')
         
+        pri = v.get_priority(cl, ['a', 'x', 'y', 'z'])
+        self.assertEqual(pri, Priority.Constant)
+        pri = v.get_priority(cl, ['a', 'x'])
+        self.assertEqual(pri, Priority.Normal)
+        pri = v.get_priority(cl, ['a'])
+        self.assertEqual(pri, Priority.Unpreferred)
+        
         # All bound.
         code = v.get_code(cl, ['a', 'x', 'y', 'z'], (L.Pass(),))
         exp_code = L.Parser.pc('''
@@ -83,6 +90,9 @@ class ClauseCase(unittest.TestCase):
         self.assertIs(v.kind(cl), Kind.Member)
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), None)
+        
+        pri = v.get_priority(cl, ['a', 'x', 'y'])
+        self.assertEqual(pri, Priority.Constant)
         
         # All bound.
         code = v.get_code(cl, ['a', 'x', 'y', 'z'], (L.Pass(),))
@@ -124,6 +134,9 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), 'R')
         
+        pri = v.get_priority(cl, ['a', 'x'])
+        self.assertEqual(pri, Priority.Normal)
+        
         code = v.get_code(cl, ['a', 'x'], (L.Pass(),))
         exp_code = L.Parser.pc('''
             for (y, z) in R.imglookup('buu', (x,)):
@@ -147,6 +160,11 @@ class ClauseCase(unittest.TestCase):
         self.assertIs(v.kind(cl), Kind.Cond)
         self.assertSequenceEqual(v.lhs_vars(cl), [])
         self.assertEqual(v.rhs_rel(cl), None)
+        
+        pri = v.get_priority(cl, ['a', 'x', 'y'])
+        self.assertEqual(pri, Priority.Constant)
+        pri = v.get_priority(cl, ['a', 'x'])
+        self.assertEqual(pri, None)
         
         code = v.get_code(cl, ['a', 'x', 'y'], (L.Pass(),))
         exp_code = L.Parser.pc('''
