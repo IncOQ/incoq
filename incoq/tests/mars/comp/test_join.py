@@ -37,6 +37,11 @@ class JoinCase(unittest.TestCase):
         result = match_eq_cond(cond)
         self.assertIsNone(result)
     
+    def test_make_eq_cond(self):
+        cond = make_eq_cond('x', 'y')
+        exp_cond = L.Cond(L.Parser.pe('x == y'))
+        self.assertEqual(cond, exp_cond)
+    
     def test_lhs_vars(self):
         comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
                                          for (y, z) in REL(S)}''')
@@ -108,6 +113,13 @@ class JoinCase(unittest.TestCase):
         # Both sides in keepvars.
         comp = self.ct.rewrite_with_patterns(orig_comp, {'a', 'b'})
         self.assertEqual(comp, orig_comp)
+    
+    def test_elim_sameclause_eqs(self):
+        comp = L.Parser.pe('{x for (x, x) in REL(R) for (x, y, x) in REL(R)}')
+        comp = self.ct.elim_sameclause_eqs(comp)
+        exp_comp = L.Parser.pe('''{x for (x, x_2) in REL(R) if x == x_2
+                                     for (x, y, x_3) in REL(R) if x == x_3}''')
+        self.assertEqual(comp, exp_comp)
     
     def test_rewrite_resexp_with_params(self):
         comp = L.Parser.pe('''{(2 * y,) for (x, y) in REL(R)}''')

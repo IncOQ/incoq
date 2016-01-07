@@ -10,6 +10,7 @@ an essential part of the incremental transformation.
 __all__ = [
     'match_member_cond',
     'match_eq_cond',
+    'make_eq_cond',
     
     'SelfJoin',
     
@@ -54,6 +55,10 @@ def match_eq_cond(tree):
         return None
     else:
         return result['LEFT'], result['RIGHT']
+
+def make_eq_cond(left, right):
+    """Make a condition of form <var> == <var>."""
+    return L.Cond(L.Compare(L.Name(left), L.Eq(), L.Name(right)))
 
 
 
@@ -173,6 +178,48 @@ class ClauseTools(ClauseVisitor):
         comp = comp._replace(clauses=new_clauses)
         comp = self.comp_rename_lhs_vars(comp, lambda x: subst.get(x, x))
         return comp
+    
+    def elim_sameclause_eqs(self, comp):
+        """Rewrite a comprehension so that the same variable does
+        not appear multiple times on the left-hand side of the same
+        membership clause. Introduce fresh variables and equality
+        condition clauses.
+        """
+        # Counter for how many new instances were needed for each LHS var.
+        duplicate_count = {}
+        # Set of LHS vars seen in current clause.
+        seen_here = set()
+        # List of new pairs of equated LHS vars for current clause.
+        eqs = []
+        
+        def renamer(x):
+            if x in seen_here:
+                # Multiple occurrence, rename.
+                duplicate_count.setdefault(x, 1)
+                duplicate_count[x] += 1
+                new_x = x + '_' + str(duplicate_count[x])
+                eqs.append((x, new_x))
+            else:
+                # First time in this clause, leave alone.
+                new_x = x
+            
+            seen_here.add(x)
+            return new_x
+        
+        new_clauses = []
+        for cl in comp.clauses:
+            seen_here = set()
+            eqs = []
+            
+            cl = self.rename_lhs_vars(cl, renamer)
+            new_clauses.append(cl)
+            
+            # Add condition clauses.
+            for left, right in eqs:
+                cond = make_eq_cond(left, right)
+                new_clauses.append(cond)
+        
+        return comp._replace(clauses=new_clauses)
     
     def rewrite_resexp_with_params(self, comp, params):
         """Assuming the result expression is a tuple expression,

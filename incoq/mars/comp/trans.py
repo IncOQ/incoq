@@ -142,6 +142,7 @@ def incrementalize_comp(tree, symtab, query, result_var):
     comp = query.node
     
     comp = clausetools.rewrite_with_patterns(comp, query.params)
+    comp = clausetools.elim_sameclause_eqs(comp)
     
     if query.params != ():
         assert isinstance(comp.resexp, L.Tuple)
