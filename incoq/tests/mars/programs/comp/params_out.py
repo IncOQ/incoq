@@ -1,7 +1,7 @@
 from incoq.mars.runtime import *
 # S : {(Number, Number)}
 S = Set()
-# R_Q : {Number}
+# R_Q : {(Number)}
 R_Q = RCSet()
 # R_Q_bu : {Top: Top}
 R_Q_bu = Map()

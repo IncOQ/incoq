@@ -7,6 +7,7 @@ __all__ = [
 
 
 from incoq.mars.incast import L
+import incoq.mars.types as T
 from incoq.mars.symtab import QueryRewriter
 
 
@@ -25,7 +26,17 @@ def relationalize_comp_queries(tree, symtab):
             
             changed_queries.add(name)
             new_resexp = L.Tuple([expr.resexp])
-            return expr._replace(resexp=new_resexp)
+            expr = expr._replace(resexp=new_resexp)
+            
+            # Retype the query.
+            t = symbol.type.join(T.Set(T.Bottom))
+            if not t.issmaller(T.Set(T.Top)):
+                t = T.Top
+            else:
+                t = T.Set(T.Tuple([t.elt]))
+            symbol.type = t
+            
+            return expr
     
     class UnwrapAdder(QueryRewriter):
         def rewrite(self, symbol, name, expr):
