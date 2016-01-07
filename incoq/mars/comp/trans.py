@@ -13,6 +13,7 @@ __all__ = [
 from incoq.mars.incast import L
 import incoq.mars.types as T
 from incoq.mars.symtab import N, QueryRewriter
+from .order import order_clauses
 
 
 class JoinExpander(L.NodeTransformer):
@@ -55,6 +56,10 @@ class JoinExpander(L.NodeTransformer):
         if not (ct.is_join(comp) and
                 ct.lhs_vars_from_comp(comp) == node.vars):
             return node
+        
+        # Reorder the clauses according to the greedy heuristic.
+        clauses = order_clauses(self.clausetools, comp.clauses)
+        comp = comp._replace(clauses=clauses)
         
         return ct.get_code_for_clauses(comp.clauses, (), node.body)
 
