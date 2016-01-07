@@ -28,7 +28,7 @@ class State:
     
     def succeeds(self):
         """For a final state, return whether this state succeeds."""
-        raise NotImplementedError
+        return True
     
     def get_answer(self):
         """For a successful final state, return the answer. For any
@@ -44,39 +44,42 @@ class Planner:
     """
     
     def process(self, state, first_only=False):
-        """Return a list of accepting states that are reachable from
-        the given state.
+        """Return a pair of a list of accepting states that are
+        reachable from the given state, and a bool indicating whether
+        or not a cut was performed.
         
-        If first_only is True, stop as soon as one answer is found.
+        If first_only is False, then all reachable accepting states
+        are returned, and cuts will never occur. If first_only is True,
+        then as soon as the first accepting state is found, it will be
+        returned and the cut flag will be True; if no accepting state
+        is found then an empty list and False will be returned.
         """
+        if state.final() and state.succeeds():
+            return [state], first_only
+        
         results = []
         succ = state.get_successors()
-        
         for state in succ:
-            if state.final() and state.succeeds():
-                subresults = [state]
-            else:
-                subresults = self.process(state)
-            
-            if first_only:
-                if len(subresults) > 0:
-                    return [subresults[0]]
-            
+            subresults, cut = self.process(state)
+            if cut:
+                # Propagate the lone result and cut flag.
+                return subresults, True
             results.extend(subresults)
         
-        return results
+        return results, False
     
     def get_all_answers(self, init_state):
         """Return all answers obtained from an initial state.
         (No duplicate elimination is performed.)
         """
-        return [s.get_answer() for s in self.process(init_state)]
+        states, _ = self.process(init_state)
+        return [s.get_answer() for s in states]
     
     def get_first_answer(self, init_state):
         """As above, but return the first answer instead of a list,
         or raise ValueError if there is no answer.
         """
-        states = self.process(init_state, first_only=True)
+        states, _ = self.process(init_state, first_only=True)
         if len(states) == 0:
             raise ValueError('No solution found')
         return states[0].get_answer()

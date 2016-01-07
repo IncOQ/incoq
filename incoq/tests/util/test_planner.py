@@ -22,9 +22,6 @@ class FactorState(State):
                 states.append(FactorState(new_n, new_factors))
         return states
     
-    def succeeds(self):
-        return True
-    
     def get_answer(self):
         return tuple(sorted(self.factors))
 
