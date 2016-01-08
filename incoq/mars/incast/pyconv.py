@@ -448,7 +448,7 @@ class IncLangSpecialExporter(L.NodeTransformer):
         node = self.generic_visit(node)
         
         func = L.Name('FIRSTTHEN')
-        return L.GeneralCall(func, [node.first, node.value])
+        return L.GeneralCall(func, [node.first, node.then])
     
     def visit_ImgLookup(self, node):
         node = self.generic_visit(node)

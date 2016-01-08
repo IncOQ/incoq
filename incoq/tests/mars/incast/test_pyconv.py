@@ -353,7 +353,7 @@ class RoundTripCase(unittest.TestCase):
         self.trip.pe('M.get(k, d)')
     
     def test_firstthen(self):
-        self.trip.pe('FIRSTHEN(a, b)')
+        self.trip.pe('FIRSTTHEN(a, b)')
     
     def test_imglookup(self):
         self.trip.pe("R.imglookup('bu', (x,))")
