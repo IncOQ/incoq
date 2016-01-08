@@ -98,6 +98,12 @@ class ClauseTools(ClauseVisitor):
                 rels.add(rel)
         return tuple(rels)
     
+    def constr_lhs_vars_from_comp(self, comp):
+        vars = OrderedSet()
+        for cl in comp.clauses:
+            vars.update(self.constr_lhs_vars(cl))
+        return tuple(vars)
+    
     def make_join_from_clauses(self, clauses):
         """Create a join from the given clauses."""
         lhs_vars = self.lhs_vars_from_clauses(clauses)

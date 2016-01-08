@@ -74,6 +74,10 @@ class ClauseHandler(BaseClauseHandler):
     
     """Base class for clause handlers."""
     
+    # Mask functions like constr_lhs_vars_mask() return sequences of
+    # booleans, one per LHS var, identifying whether or not that
+    # position satisfies a property. 
+    
     def kind(self, cl):
         """Return the kind of clause this is."""
         raise NotImplementedError
@@ -92,6 +96,21 @@ class ClauseHandler(BaseClauseHandler):
         None.
         """
         raise NotImplementedError
+    
+    def constr_lhs_vars(self, cl):
+        """For a membership clause, return a tuple of just those LHS
+        vars that are constrained by this clause (e.g., omitting sets
+        and objects for M and F clauses). For condition clauses return
+        the empty tuple.
+        """
+        return tuple(v for v, m in zip(self.lhs_vars(cl),
+                                       self.constr_lhs_vars_mask(cl))
+                       if m)
+    
+    def constr_lhs_vars_mask(self, cl):
+        """Bool mask identifying positions of constrained LHS vars."""
+        # Default behavior: All LHS vars are constrained.
+        return tuple(True for _ in self.lhs_vars(cl))
     
     def get_priority(self, cl, bindenv):
         """Return a priority for the cost heuristic based on the given
@@ -155,6 +174,8 @@ for op in [
     'kind',
     'lhs_vars',
     'rhs_rel',
+    'constr_lhs_vars',
+    'constr_lhs_vars_mask',
     'get_priority',
     'get_code',
     'rename_lhs_vars',

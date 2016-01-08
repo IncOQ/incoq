@@ -50,6 +50,9 @@ class JoinCase(unittest.TestCase):
         
         lhs_vars = self.ct.lhs_vars_from_comp(comp)
         self.assertSequenceEqual(lhs_vars, ['x', 'y', 'z'])
+        
+        constr_lhs_vars = self.ct.constr_lhs_vars_from_comp(comp)
+        self.assertSequenceEqual(constr_lhs_vars, ['x', 'y', 'z'])
     
     def test_rhs_rels_from_comp(self):
         comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)

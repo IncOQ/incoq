@@ -44,6 +44,7 @@ class ClauseCase(unittest.TestCase):
         self.assertIs(v.kind(cl), Kind.Member)
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), 'R')
+        self.assertSequenceEqual(v.constr_lhs_vars(cl), ['x', 'y', 'z'])
         
         pri = v.get_priority(cl, ['a', 'x', 'y', 'z'])
         self.assertEqual(pri, Priority.Constant)
@@ -90,6 +91,7 @@ class ClauseCase(unittest.TestCase):
         self.assertIs(v.kind(cl), Kind.Member)
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), None)
+        self.assertSequenceEqual(v.constr_lhs_vars(cl), ['x', 'y', 'z'])
         
         pri = v.get_priority(cl, ['a', 'x', 'y'])
         self.assertEqual(pri, Priority.Constant)
@@ -133,6 +135,7 @@ class ClauseCase(unittest.TestCase):
         self.assertIs(v.kind(cl), Kind.Member)
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), 'R')
+        self.assertSequenceEqual(v.constr_lhs_vars(cl), ['x', 'y', 'z'])
         
         pri = v.get_priority(cl, ['a', 'x'])
         self.assertEqual(pri, Priority.Normal)
@@ -160,6 +163,7 @@ class ClauseCase(unittest.TestCase):
         self.assertIs(v.kind(cl), Kind.Cond)
         self.assertSequenceEqual(v.lhs_vars(cl), [])
         self.assertEqual(v.rhs_rel(cl), None)
+        self.assertSequenceEqual(v.constr_lhs_vars(cl), [])
         
         pri = v.get_priority(cl, ['a', 'x', 'y'])
         self.assertEqual(pri, Priority.Constant)
