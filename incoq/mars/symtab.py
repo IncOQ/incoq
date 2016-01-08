@@ -25,6 +25,7 @@ from simplestruct import Struct, Field
 from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
 import incoq.mars.types as T
+from incoq.mars.type_analysis import analyze_types, analyze_expr_type
 
 
 class N:
@@ -315,6 +316,44 @@ class SymbolTable:
         for sym in self.symbols.values():
             entries.append(str(sym))
         return '\n'.join(entries)
+    
+    def get_type_store(self):
+        """Return a type store (mapping from symbol name to type) based
+        on all current symbol type information.
+        """
+        store = {name: sym.min_type.join(sym.type) 
+                 for name, sym in self.symbols.items()
+                 if hasattr(sym, 'type')}
+        return store
+    
+    def run_type_inference(self, tree):
+        """Run type inference over the program, using each symbol's
+        type attribute as a starting point. Return a list of nodes where
+        well-typedness is violated, and a list of variables whose max
+        type is exceeded.
+        """
+        store = self.get_type_store()
+        
+        store, illtyped = analyze_types(tree, store)
+        
+        # Write back non-query symbol types.
+        badsyms = set()
+        for name, type in store.items():
+            sym = self.symbols[name]
+            sym.type = type
+            if not type.issmaller(sym.max_type):
+                badsyms.add(sym)
+        
+        # Write back query symbol types.
+        for sym in self.get_queries().values():
+            type = analyze_expr_type(sym.node, store)
+            sym.type = type
+        
+        return illtyped, badsyms
+    
+    def analyze_expr_type(self, expr):
+        store = self.get_type_store()
+        return analyze_expr_type(expr, store)
 
 
 class QueryRewriter(L.NodeTransformer):

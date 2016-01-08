@@ -158,12 +158,7 @@ def incrementalize_comp(tree, symtab, query, result_var):
         # Update the query symbol type.
         assert (isinstance(query.type, T.Set) and
                 isinstance(query.type.elt, T.Tuple))
-        t_elts = query.type.elt.elts
-        syms = symtab.get_symbols()
-        param_syms = [syms.get(p, None) for p in query.params]
-        t_params = tuple(s.type if s is not None else T.Top
-                         for s in param_syms)
-        query.type = T.Set(T.Tuple(t_params + t_elts))
+        query.type = symtab.analyze_expr_type(comp)
     
     query.maint_joins = []
     

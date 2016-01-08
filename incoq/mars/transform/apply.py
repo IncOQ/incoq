@@ -15,7 +15,6 @@ from itertools import chain
 from collections import OrderedDict
 
 from incoq.mars.incast import L, P
-from incoq.mars.type_analysis import analyze_types, analyze_expr_type
 from incoq.mars.config import Config
 from incoq.mars.symtab import SymbolTable
 from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer, define_map
@@ -149,33 +148,6 @@ def postprocess_tree(tree, symtab):
     return tree
 
 
-def do_typeinference(tree, symtab):
-    """Run type inference, update symbol type info.
-    Return a list of nodes where well-typedness is violated,
-    and a list of variables where their max type is exceeded.
-    """
-    # Retrieve current type information (the type store).
-    store = {name: sym.min_type.join(sym.type) 
-             for name, sym in symtab.symbols.items()
-             if hasattr(sym, 'type')}
-    
-    # Apply analysis, update saved type info.
-    store, illtyped = analyze_types(tree, store)
-    # Symbol types.
-    badsyms = set()
-    for name, type in store.items():
-        sym = symtab.symbols[name]
-        sym.type = type
-        if not type.issmaller(sym.max_type):
-            badsyms.add(sym)
-    # Query symbol types.
-    for sym in symtab.get_queries().values():
-        type = analyze_expr_type(sym.node, store)
-        sym.type = type
-    
-    return illtyped, badsyms
-
-
 def transform_query(tree, symtab, query):
     if isinstance(query.node, L.Comp):
         
@@ -241,7 +213,7 @@ def transform_ast(input_ast, *, options=None):
     symtab.clausetools = CoreClauseTools()
     tree = preprocess_tree(tree, symtab, config)
     
-    illtyped, badsyms = do_typeinference(tree, symtab)
+    illtyped, badsyms = symtab.run_type_inference(tree)
     
     if config.verbose:
         debug_symbols(symtab, illtyped, badsyms)

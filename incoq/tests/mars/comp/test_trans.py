@@ -130,9 +130,11 @@ class TransCase(unittest.TestCase):
         comp = L.Parser.pe('{(2 * y,) for (x, y) in REL(R)}')
         symtab = SymbolTable()
         symtab.clausetools = CoreClauseTools()
+        symtab.define_var('x', type=T.Number)
+        symtab.define_var('y', type=T.Number)
+        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
         query = symtab.define_query('Q', node=comp, params=('x',),
                                     type=T.Set(T.Tuple([T.Number])))
-        symtab.define_var('x', type=T.Number)
         
         tree = L.Parser.p('''
             def main():
