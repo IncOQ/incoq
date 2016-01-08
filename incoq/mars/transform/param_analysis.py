@@ -3,6 +3,7 @@
 
 __all__ = [
     'make_demand_func',
+    'determine_demand_params',
     
     'QueryContextInstantiator',
     
@@ -30,6 +31,35 @@ def make_demand_func(query):
             if _elem not in _U:
                 _U.reladd(_elem)
         ''', subst={'_FUNC': func, '_U': uset})
+
+
+def determine_demand_params(clausetools, query):
+    """Given a query symbol, decide the demand parameters based on
+    the query's params, demand_params, and demand_param_strat
+    attributes. Assign the demand_params field and return its value.
+    """
+    assert isinstance(query.node, L.Comp)
+    comp = query.node
+    params = query.params
+    
+    strat = query.demand_param_strat
+    if strat != 'explicit' and query.demand_params is not None:
+        raise AssertionError('Do not supply demand_params unless '
+                             'demand_param_strat is set to "explicit"')
+    
+    if strat == 'unconstrained':
+        constr_vars = clausetools.constr_lhs_vars_from_comp(comp)
+        demand_params = tuple(p for p in params if p not in constr_vars)
+    elif strat == 'all':
+        demand_params = params
+    elif query.demand_param_strat == 'explicit':
+        assert query.demand_params is not None
+        demand_params = query.demand_params
+    else:
+        assert()
+    
+    query.demand_params = demand_params
+    return demand_params
 
 
 class QueryContextInstantiator(L.NodeTransformer):
@@ -275,25 +305,9 @@ class DemandAnalyzer(ParamAnalyzer):
         if not isinstance(query.node, L.Comp):
             raise AssertionError('No rule for handling demand for {} node'
                                  .format(query.node.__class__.__name__))
-        comp = query.node
         
         # Determine demand parameters.
-        strat = query.demand_param_strat
-        if strat != 'explicit' and query.demand_params is not None:
-            raise AssertionError('Do not supply demand_params unless '
-                                 'demand_param_strat is set to "explicit"')
-        
-        if strat == 'unconstrained':
-            constr_vars = ct.constr_lhs_vars_from_comp(comp)
-            demand_params = tuple(p for p in params if p not in constr_vars)
-        elif strat == 'all':
-            demand_params = params
-        elif query.demand_param_strat == 'explicit':
-            assert query.demand_params is not None
-            demand_params = query.demand_params
-        else:
-            assert()
-        query.demand_params = demand_params
+        demand_params = determine_demand_params(ct, query)
         
         # Add demand set for symbol.
         uset = N.get_query_demand_set_name(query.name)

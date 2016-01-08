@@ -24,6 +24,48 @@ class ParamAnalysisCase(unittest.TestCase):
             ''')
         self.assertEqual(tree, exp_tree)
     
+    def test_determine_demand_params(self):
+        comp = L.Parser.pe('{x for (x, y) in REL(R) if z > 5}')
+        
+        # Strat: all.
+        symtab = SymbolTable()
+        query = symtab.define_query('Q', node=comp, params=('x', 'z'),
+                                    demand_param_strat='all')
+        demand_params = determine_demand_params(self.ct, query)
+        exp_demand_params = ['x', 'z']
+        self.assertSequenceEqual(demand_params, exp_demand_params)
+        
+        # Strat: unconstrained.
+        symtab = SymbolTable()
+        query = symtab.define_query('Q', node=comp, params=('x', 'z'),
+                                    demand_param_strat='unconstrained')
+        demand_params = determine_demand_params(self.ct, query)
+        exp_demand_params = ['z']
+        self.assertSequenceEqual(demand_params, exp_demand_params)
+        
+        # Strat: explicit.
+        symtab = SymbolTable()
+        query = symtab.define_query('Q', node=comp, params=('x', 'z'),
+                                    demand_param_strat='explicit',
+                                    demand_params=['x'])
+        demand_params = determine_demand_params(self.ct, query)
+        exp_demand_params = ['x']
+        self.assertSequenceEqual(demand_params, exp_demand_params)
+        
+        # explicit requires demand_params attribute.
+        symtab = SymbolTable()
+        query = symtab.define_query('Q', node=comp, params=('x', 'z'),
+                                    demand_param_strat='explicit')
+        with self.assertRaises(AssertionError):
+            determine_demand_params(self.ct, query)
+        
+        # Non-explicit requires absence of demand_params attribute.
+        symtab = SymbolTable()
+        query = symtab.define_query('Q', node=comp, params=('x', 'z'),
+                                    demand_params=('x',))
+        with self.assertRaises(AssertionError):
+            determine_demand_params(self.ct, query)
+    
     def test_query_context_instantiator(self):
         ctxs = iter(['a', 'b', 'a', 'b'])
         class Inst(QueryContextInstantiator):
