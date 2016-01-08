@@ -230,6 +230,11 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.DictLookup(L.Name('M'), L.Name('k'), None)
         self.assertEqual(tree, exp_tree)
     
+    def test_firstthen(self):
+        tree = Parser.pe('FIRSTTHEN(a, b)')
+        exp_tree = L.FirstThen(L.Name('a'), L.Name('b'))
+        self.assertEqual(tree, exp_tree)
+    
     def test_imglookup(self):
         tree = Parser.pe("R.imglookup('bu', (x,))")
         exp_tree = L.ImgLookup('R', L.mask('bu'), ['x'])
@@ -346,6 +351,9 @@ class RoundTripCase(unittest.TestCase):
     def test_dictlookup(self):
         self.trip.pe('M[k]')
         self.trip.pe('M.get(k, d)')
+    
+    def test_firstthen(self):
+        self.trip.pe('FIRSTHEN(a, b)')
     
     def test_imglookup(self):
         self.trip.pe("R.imglookup('bu', (x,))")

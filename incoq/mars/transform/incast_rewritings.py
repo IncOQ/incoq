@@ -7,6 +7,8 @@ __all__ = [
     
     'preprocess_query_markings',
     
+    'postprocess_firstthen',
+    
     'preprocess_clauses',
     'postprocess_clauses',
     
@@ -111,6 +113,19 @@ def preprocess_query_markings(tree, query_name_map):
         new_map[new_query] = name
     
     return QueryMarker.run(tree, new_map, strict=True)
+
+
+class FirstThenExporter(L.NodeTransformer):
+    
+    """Expand FirstThen nodes using boolean operators."""
+    
+    def visit_FirstThen(self, node):
+        node = self.generic_visit(node)
+        
+        first = L.BoolOp(L.Or(), [node.first, L.NameConstant(True)])
+        return L.BoolOp(L.And(), [first, node.then])
+
+postprocess_firstthen = FirstThenExporter.run
 
 
 class ClauseImporter(L.NodeTransformer):
@@ -275,6 +290,9 @@ def incast_preprocess(tree, *, fresh_vars, rels, maps, query_name_map):
     # Check to make sure certain general-case IncAST nodes
     # aren't used.
     disallow_features(tree)
+    
+    # Expand FirstThen nodes.
+    tree = postprocess_firstthen(tree)
     
     return tree
 

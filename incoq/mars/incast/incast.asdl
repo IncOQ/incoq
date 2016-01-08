@@ -66,6 +66,7 @@ module IncAST
          | DictLookup(expr value, expr key, expr? default)
          
            -- Utility expressions.
+         | FirstThen(expr first, expr then)
          | ImgLookup(identifier rel, mask mask, identifier* bounds)
          | Unwrap(expr value)
          

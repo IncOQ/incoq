@@ -435,6 +435,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
             return Top
         return t_value.value.join(t_default)
     
+    visit_FirstThen = default_expr_handler
     visit_ImgLookup = default_expr_handler
     visit_Unwrap = default_expr_handler
     

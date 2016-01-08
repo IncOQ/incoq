@@ -348,6 +348,9 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_me_get(self, _func, dict, key, default):
         return L.DictLookup(dict, key, default)
     
+    def handle_fe_FIRSTTHEN(self, _func, first, then):
+        return L.FirstThen(first, then)
+    
     def handle_me_imglookup(self, _func, rel, maskstr, bounds):
         if not isinstance(rel, L.Name):
             raise ASTErr('Cannot apply imglookup operation to '
@@ -440,6 +443,12 @@ class IncLangSpecialExporter(L.NodeTransformer):
     def visit_MapDelete(self, node):
         func = L.Attribute(L.Name(node.map), 'mapdelete')
         return L.Expr(L.GeneralCall(func, [L.Name(node.key)]))
+    
+    def visit_FirstThen(self, node):
+        node = self.generic_visit(node)
+        
+        func = L.Name('FIRSTTHEN')
+        return L.GeneralCall(func, [node.first, node.value])
     
     def visit_ImgLookup(self, node):
         node = self.generic_visit(node)

@@ -56,6 +56,21 @@ class QueryMarkerCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
 
 
+class FirstThenCase(unittest.TestCase):
+    
+    def test_postprocess(self):
+        tree = L.Parser.p('''
+            def main():
+                print(FIRSTTHEN(a, b))
+            ''')
+        tree = postprocess_firstthen(tree)
+        exp_tree = L.Parser.p('''
+            def main():
+                print((a or True) and b)
+            ''')
+        self.assertEqual(tree, exp_tree)
+
+
 class ClauseCase(unittest.TestCase):
     
     def test_preprocess_postprocess(self):
