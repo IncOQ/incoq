@@ -2,6 +2,8 @@
 
 
 __all__ = [
+    'QueryContextInstantiator',
+    
     'ScopeBuilder',
     'ParamAnalyzer',
     'analyze_parameters',
@@ -13,6 +15,88 @@ from itertools import chain
 from incoq.util.collections import OrderedSet
 from incoq.mars.symtab import N
 from incoq.mars.incast import L
+
+
+class QueryContextInstantiator(L.NodeTransformer):
+    
+    """Framework for instantiating multiple occurrences of the same
+    query into different queries whenever they occur in a new context.
+    The exact notion of context (e.g., different bound parameter
+    variables) is defined in a subclass. A new query symbol is created
+    for each new instantiation.
+    """
+    
+    # We keep a map whose keys are query names and whose values are
+    # query context maps. Each query context map goes from the name
+    # of an instantiated version of the query to the context for which
+    # it was made.
+    #
+    # At an occurrence of a query, we compare the context of the
+    # occurrence with each entry in the context map for that query name
+    # and pick the instantiated version having the same context. If none
+    # exists, we create a new instantiated query (including a new
+    # symbol) and add the entry to the map.
+    #
+    # The first instantiation is named the same as the original query
+    # and reuses its query symbol object, although its AST may be
+    # rewritten according to context info.
+    #
+    # The determination of what constitutes context, and how to rewrite
+    # an instantiated query, is made by a subclass.
+    
+    def __init__(self, symtab):
+        super().__init__()
+        self.symtab = symtab
+        self.query_contexts = {}
+        """Map from query name to context map."""
+    
+    def get_context(self, node):
+        """Return a context object for the given Query node."""
+        raise NotImplementedError
+    
+    def apply_context(self, query, context):
+        """Update the attributes (including possibly the AST) of a
+        query symbol to include the given context info.
+        """
+        raise NotImplementedError
+    
+    def visit_Query(self, node):
+        queries = self.symtab.get_queries()
+        name = node.name
+        context = self.get_context(node)
+        
+        # Determine the query instantiation name and symbol, creating
+        # them if necessary.
+        context_map = self.query_contexts.setdefault(name, {})
+        for inst_name, ctx in context_map.items():
+            if context == ctx:
+                # Found an existing instantiation. Reuse it.
+                query_sym = queries[inst_name]
+                break
+        else:
+            if len(context_map) == 0:
+                # No instantiations so far. Create the initial
+                # "instantiation" having the original query's name
+                # and symbol.
+                inst_name = name
+                query_sym = queries[inst_name]
+            else:
+                # Create a new instantiation name.
+                num = len(context_map) + 1
+                inst_name = N.get_query_inst_name(name, str(num))
+                # Create the new symbol.
+                attrs = queries[name].clone_attrs()
+                query_sym = self.symtab.define_query(inst_name, **attrs)
+            
+            # Update the context map and query symbol.
+            context_map[inst_name] = context
+            self.apply_context(query_sym, context)
+        
+        # Rewrite this occurrence.
+        node = query_sym.make_node()
+        # Recurse.
+        node = self.generic_visit(node)
+        return node
 
 
 class ScopeBuilder(L.NodeVisitor):
