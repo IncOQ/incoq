@@ -52,6 +52,14 @@ class N:
         return '_maint_{}_for_{}_{}'.format(inv, param, op)
     
     @classmethod
+    def get_query_demand_func_name(cls, query):
+        return '_demand_{}'.format(query)
+    
+    @classmethod
+    def get_query_demand_set_name(cls, query):
+        return '_U_{}'.format(query)
+    
+    @classmethod
     def get_query_inst_name(cls, query, inststr):
         return query + '_ctx' + inststr
 
@@ -225,6 +233,17 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
     impl = SymbolAttribute('impl', 'normal',
             'Implementation strategy, one of: normal, inc')
     impl.allowed_values = ['normal', 'inc']
+    
+    demand_set = SymbolAttribute('demand_set', None,
+            'Name of demand set, or None if not used')
+    demand_params = SymbolAttribute('demand_params', None,
+            'Tuple of demand parameter identifiers, or None if not used')
+    demand_param_strategy = SymbolAttribute(
+                            'demand_param_strategy', 'unconstrained',
+            'Strategy to use for determining demand parameters, one of: '
+            'unconstrained, all, explicit')
+    demand_param_strategy.allowed_values = ['unconstrained', 'all',
+                                            'explicit']
     
     def __str__(self):
         s = 'Query {}'.format(self.name)

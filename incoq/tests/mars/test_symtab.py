@@ -31,6 +31,16 @@ class NamingCase(unittest.TestCase):
         exp_name = '_maint_Q_for_R_add'
         self.assertEqual(name, exp_name)
     
+    def test_query_demand_func_name(self):
+        name = N.get_query_demand_func_name('Q')
+        exp_name = '_demand_Q'
+        self.assertEqual(name, exp_name)
+    
+    def test_query_demand_set_name(self):
+        name = N.get_query_demand_set_name('Q')
+        exp_name = '_U_Q'
+        self.assertEqual(name, exp_name)
+    
     def test_queryinst(self):
         name = N.get_query_inst_name('Q', '2')
         exp_name = 'Q_ctx2'
