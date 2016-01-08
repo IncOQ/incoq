@@ -48,7 +48,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     information was inferred).
     """
     
-    def __init__(self, store, height_limit=None):
+    def __init__(self, store, height_limit=None, unknown=Top):
         super().__init__()
         self.store = store
         """Mapping from symbol names to inferred types.
@@ -62,6 +62,11 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         """True if the last call to process() updated the store
         (or if there was no call so far).
         """
+        self.unknown = unknown
+        """Type to use for variables not in the store. Should be Bottom,
+        Top, or None. None indicates that an error should be raised for
+        unknown variables.
+        """
     
     def process(self, tree):
         self.changed = False
@@ -69,7 +74,13 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         return self.store
     
     def get_store(self, name):
-        return self.store.get(name, Bottom)
+        try:
+            return self.store[name]
+        except KeyError:
+            if self.unknown is None:
+                raise
+            else:
+                return self.unknown
     
     def update_store(self, name, type):
         old_type = self.get_store(name)
@@ -511,15 +522,15 @@ def analyze_types(tree, store):
     return a modified version of the store that expands types according
     to the requirements of the program. Also return an OrderedSet of
     nodes where well-typedness is violated. Each type may only increase,
-    not decrease. Each variable in the program must appear in the given
-    store mapping.
+    not decrease. Variables not appearing in the store mapping are
+    assumed to be Bottom.
     """
     store = dict(store)
     
     height_limit = 5
     limit = 20
     steps = 0
-    analyzer = TypeAnalysisStepper(store, height_limit)
+    analyzer = TypeAnalysisStepper(store, height_limit, unknown=Bottom)
     while analyzer.changed:
         if steps == limit:
             print('Warning: Type analysis did not converge after '
@@ -543,5 +554,5 @@ def analyze_expr_type(tree, store):
     class Analyzer(TypeAnalysisStepper):
         process = L.AdvNodeVisitor.process
     
-    type = Analyzer.run(tree, store, height_limit)
+    type = Analyzer.run(tree, store, height_limit, unknown=Top)
     return type
