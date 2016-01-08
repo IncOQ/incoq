@@ -4,11 +4,25 @@
 import unittest
 
 from incoq.mars.incast import L
+import incoq.mars.types as T
 from incoq.mars.symtab import SymbolTable
+from incoq.mars.comp import CoreClauseTools
 from incoq.mars.transform.param_analysis import *
 
 
 class ParamAnalysisCase(unittest.TestCase):
+    
+    def setUp(self):
+        self.ct = CoreClauseTools()
+    
+    def test_make_demand_func(self):
+        tree = make_demand_func('Q')
+        exp_tree = L.Parser.ps('''
+            def _demand_Q(_elem):
+                if _elem not in _U_Q:
+                    _U_Q.reladd(_elem)
+            ''')
+        self.assertEqual(tree, exp_tree)
     
     def test_query_context_instantiator(self):
         ctxs = iter(['a', 'b', 'a', 'b'])
@@ -114,6 +128,40 @@ class ParamAnalysisCase(unittest.TestCase):
         self.assertEqual(query_sym.params, ('x',))
         inst_query_sym = queries['Q_ctx2']
         self.assertEqual(inst_query_sym.params, ('x', 'y'))
+    
+    def test_demand_analyzer(self):
+        comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
+        symtab = SymbolTable()
+        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
+        symtab.define_var('x', type=T.Number)
+        symtab.define_var('y', type=T.Number)
+        query_sym = symtab.define_query('Q', node=comp,
+                                        demand_param_strat='explicit',
+                                        demand_params=('x',))
+        tree = L.Parser.p('''
+            def main():
+                x = 1
+                print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
+            ''')
+        scope_info = ScopeBuilder.run(tree)
+        
+        tree = DemandAnalyzer.run(tree, self.ct, symtab, scope_info)
+        exp_tree = L.Parser.p('''
+            def _demand_Q(_elem):
+                if (_elem not in _U_Q):
+                    _U_Q.reladd(_elem)
+            
+            def main():
+                x = 1
+                print(FIRSTTHEN(_demand_Q((x,)), QUERY('Q',
+                    {(x, y) for (x,) in REL(_U_Q) for (x, y) in REL(R)})))
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        self.assertEqual(query_sym.params, ('x',))
+        self.assertEqual(query_sym.demand_params, ('x',))
+        uset_sym = symtab.get_symbols()[query_sym.demand_set]
+        self.assertEqual(uset_sym.type, T.Set(T.Tuple([T.Number])))
 
 
 if __name__ == '__main__':

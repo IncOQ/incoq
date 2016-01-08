@@ -238,12 +238,12 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
             'Name of demand set, or None if not used')
     demand_params = SymbolAttribute('demand_params', None,
             'Tuple of demand parameter identifiers, or None if not used')
-    demand_param_strategy = SymbolAttribute(
-                            'demand_param_strategy', 'unconstrained',
+    demand_param_strat = SymbolAttribute(
+                         'demand_param_strat', 'unconstrained',
             'Strategy to use for determining demand parameters, one of: '
             'unconstrained, all, explicit')
-    demand_param_strategy.allowed_values = ['unconstrained', 'all',
-                                            'explicit']
+    demand_param_strat.allowed_values = ['unconstrained', 'all',
+                                         'explicit']
     
     def __str__(self):
         s = 'Query {}'.format(self.name)

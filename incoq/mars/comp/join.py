@@ -240,6 +240,11 @@ class ClauseTools(ClauseVisitor):
                              comp.resexp.elts)
         return comp._replace(resexp=new_resexp)
     
+    def rewrite_with_uset(self, comp, params, uset):
+        """Prepend a demand set."""
+        uset_clause = L.RelMember(params, uset)
+        return comp._replace(clauses=(uset_clause,) + comp.clauses)
+    
     def get_code_for_clauses(self, clauses, bindenv, body):
         """Produce code for running body once for each combination of
         variables for all clauses that match the values of the bound

@@ -2,19 +2,34 @@
 
 
 __all__ = [
+    'make_demand_func',
+    
     'QueryContextInstantiator',
     
     'ScopeBuilder',
     'ParamAnalyzer',
+    'DemandAnalyzer',
     'analyze_parameters',
+    'analyze_demand',
 ]
 
 
 from itertools import chain
 
 from incoq.util.collections import OrderedSet
+import incoq.mars.types as T
 from incoq.mars.symtab import N
 from incoq.mars.incast import L
+
+
+def make_demand_func(query):
+    func = N.get_query_demand_func_name(query)
+    uset = N.get_query_demand_set_name(query)
+    return L.Parser.ps('''
+        def _FUNC(_elem):
+            if _elem not in _U:
+                _U.reladd(_elem)
+        ''', subst={'_FUNC': func, '_U': uset})
 
 
 class QueryContextInstantiator(L.NodeTransformer):
@@ -43,6 +58,9 @@ class QueryContextInstantiator(L.NodeTransformer):
     #
     # The determination of what constitutes context, and how to rewrite
     # an instantiated query, is made by a subclass.
+    #
+    # Queries occurrences are visited in a top-down order, so the
+    # outermost query will be processed first.
     
     def __init__(self, symtab):
         super().__init__()
@@ -219,15 +237,100 @@ class ParamAnalyzer(QueryContextInstantiator):
         super().__init__(symtab)
         self.scope_info = scope_info
     
-    def get_context(self, node):
+    def get_params(self, node):
+        """Get parameters for the given query node. The node must be
+        indexed in scope_info.
+        """
         _node, scope = self.scope_info[id(node)]
         vars = L.IdentFinder.find_vars(node.query)
         params = tuple(vars.intersection(scope))
-        context = params
-        return context
+        return params
+    
+    def get_context(self, node):
+        return self.get_params(node)
     
     def apply_context(self, query, context):
         query.params = context
+
+
+class DemandAnalyzer(ParamAnalyzer):
+    
+    """Add parameter information as above, but also rewrite queries to
+    use demand sets.
+    """
+    
+    def __init__(self, clausetools, symtab, scope_info):
+        super().__init__(symtab, scope_info)
+        self.clausetools = clausetools
+        self.queries_with_usets = OrderedSet()
+    
+    def apply_context(self, query, context):
+        ct = self.clausetools
+        symtab = self.symtab
+        
+        params = context
+        query.params = params
+        
+        # We can't handle non-Comp queries here.
+        if not isinstance(query.node, L.Comp):
+            raise AssertionError('No rule for handling demand for {} node'
+                                 .format(query.node.__class__.__name__))
+        comp = query.node
+        
+        # Determine demand parameters.
+        strat = query.demand_param_strat
+        if strat != 'explicit' and query.demand_params is not None:
+            raise AssertionError('Do not supply demand_params unless '
+                                 'demand_param_strat is set to "explicit"')
+        
+        if strat == 'unconstrained':
+            constr_vars = ct.constr_lhs_vars_from_comp(comp)
+            demand_params = tuple(p for p in params if p not in constr_vars)
+        elif strat == 'all':
+            demand_params = params
+        elif query.demand_param_strat == 'explicit':
+            assert query.demand_params is not None
+            demand_params = query.demand_params
+        else:
+            assert()
+        query.demand_params = demand_params
+        
+        # Add demand set for symbol.
+        uset = N.get_query_demand_set_name(query.name)
+        uset_type = T.Set(symtab.analyze_expr_type(L.tuplify(demand_params)))
+        symtab.define_relation(uset, type=uset_type)
+        query.demand_set = uset
+        
+        self.queries_with_usets.add(query)
+        
+        # Rewrite AST to use it.
+        if isinstance(query.node, L.Comp):
+            query.node = ct.rewrite_with_uset(query.node, demand_params, uset)
+    
+    def visit_Module(self, node):
+        node = self.generic_visit(node)
+        
+        # Add declarations for demand functions.
+        funcs = []
+        for query in self.queries_with_usets:
+            func = make_demand_func(query.name)
+            funcs.append(func)
+        
+        node = node._replace(decls=tuple(funcs) + node.decls)
+        return node
+    
+    def visit_Query(self, node):
+        # Do all the fancy processing, including recursing.
+        node = super().visit_Query(node)
+        
+        # Then insert a call to the demand function, if needed.
+        query = self.symtab.get_queries()[node.name]
+        if query in self.queries_with_usets:
+            demand_call = L.Call(N.get_query_demand_func_name(query.name),
+                                 [L.tuplify(query.demand_params)])
+            node = L.FirstThen(demand_call, node)
+        
+        return node
 
 
 def analyze_parameters(tree, symtab):
@@ -236,3 +339,11 @@ def analyze_parameters(tree, symtab):
     """
     scope_info = ScopeBuilder.run(tree)
     return ParamAnalyzer.run(tree, symtab, scope_info)
+
+
+def analyze_demand(tree, clausetools, symtab):
+    """As above, but also perform rewriting to add demand sets
+    and corresponding functions.
+    """
+    scope_info = ScopeBuilder.run(tree)
+    return DemandAnalyzer.run(tree, clausetools, symtab, scope_info)
