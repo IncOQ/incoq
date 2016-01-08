@@ -149,17 +149,19 @@ class ClauseVisitor(BaseClauseVisitor):
         self.handle_WithoutMember = self.handlercls_WithoutMember(self)
         self.handle_Cond = self.handlercls_Cond(self)
     
-    # Operations.
-    
-    kind = partialmethod(BaseClauseVisitor.visit, 'kind')
-    lhs_vars = partialmethod(BaseClauseVisitor.visit, 'lhs_vars')
-    rhs_rel = partialmethod(BaseClauseVisitor.visit, 'rhs_rel')
-    get_priority = partialmethod(BaseClauseVisitor.visit, 'get_priority')
-    get_code = partialmethod(BaseClauseVisitor.visit, 'get_code')
-    rename_lhs_vars = partialmethod(BaseClauseVisitor.visit,
-                                    'rename_lhs_vars')
-    singletonize = partialmethod(BaseClauseVisitor.visit, 'singletonize')
-    subtract = partialmethod(BaseClauseVisitor.visit, 'subtract')
+    # Visit operations added programmatically.
+
+for op in [
+    'kind',
+    'lhs_vars',
+    'rhs_rel',
+    'get_priority',
+    'get_code',
+    'rename_lhs_vars',
+    'singletonize',
+    'subtract',
+    ]:
+    setattr(ClauseVisitor, op, partialmethod(ClauseVisitor.visit, op))
 
 
 class RelMemberHandler(ClauseHandler):
