@@ -291,9 +291,6 @@ def incast_preprocess(tree, *, fresh_vars, rels, maps, query_name_map):
     # aren't used.
     disallow_features(tree)
     
-    # Expand FirstThen nodes.
-    tree = postprocess_firstthen(tree)
-    
     return tree
 
 
@@ -304,5 +301,8 @@ def incast_postprocess(tree):
     
     # Postprocess special clauses.
     tree = postprocess_clauses(tree)
+    
+    # Expand FirstThen nodes.
+    tree = postprocess_firstthen(tree)
     
     return tree
