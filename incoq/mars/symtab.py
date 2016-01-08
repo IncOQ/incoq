@@ -230,6 +230,10 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         if self.node is not None:
             s += ' ({})'.format(L.Parser.ts(self.node))
         return s
+    
+    def make_node(self):
+        """Return a Query node for this query symbol."""
+        return L.Query(self.name, self.node)
 
 
 class SymbolTable:
