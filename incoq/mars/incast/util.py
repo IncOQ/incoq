@@ -6,6 +6,9 @@ __all__ = [
     'tuplify',
     'detuplify',
     'mask_from_bounds',
+    'keymask_from_len',
+    'is_keymask',
+    'break_keymask',
     'mask_is_allbound',
     'mask_is_allunbound',
     'split_by_mask',
@@ -53,6 +56,39 @@ def mask_from_bounds(items, bound_items):
         else:
             maskstr += 'u'
     return L.mask(maskstr)
+
+
+# A keymask is a mask where all bound components and unbound
+# components are consecutive to the left and right, respectively,
+# e.g. "bbbuu". Keymasks are used for query result maps.
+
+def keymask_from_len(nb, nu):
+    """Return a keymask with the given number of bound and unbound
+    components.
+    """
+    return L.mask('b' * nb + 'u' * nu)
+
+def is_keymask(mask):
+    """Return True if mask is a keymask."""
+    try:
+        break_keymask(mask)
+    except ValueError:
+        return False
+    return True
+
+def break_keymask(mask):
+    """Given a keymask, return a pair of the number of bound and unbound
+    components.
+    """
+    m = mask.m
+    # i = index of first u = number of 'b's.
+    i = m.find('u')
+    if i == -1:
+        i = len(m)
+    bs, us = m[:i], m[i:]
+    if not (all(c == 'b' for c in bs) and all(c == 'u' for c in us)):
+        raise ValueError('Mask is not keymask')
+    return len(bs), len(us)
 
 
 def mask_is_allbound(mask):

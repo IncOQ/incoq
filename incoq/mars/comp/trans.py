@@ -191,7 +191,7 @@ def incrementalize_comp(tree, symtab, query, result_var):
                 if query.params == ():
                     return L.Name(result_var)
                 else:
-                    mask = L.mask('b' * len(query.params) + 'u' * orig_arity)
+                    mask = L.keymask_from_len(len(query.params), orig_arity)
                     return L.ImgLookup(result_var, mask, query.params)
     
     tree = CompExpander.run(tree, symtab, expand=True)

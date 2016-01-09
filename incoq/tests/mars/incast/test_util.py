@@ -39,6 +39,19 @@ class MaskCase(unittest.TestCase):
         exp_mask = L.mask('bub')
         self.assertEqual(mask, exp_mask)
     
+    def test_keymask(self):
+        mask = keymask_from_len(2, 3)
+        exp_mask = L.mask('bbuuu')
+        self.assertEqual(mask, exp_mask)
+        
+        self.assertTrue(is_keymask(mask))
+        self.assertFalse(is_keymask(L.mask('bub')))
+        
+        result = break_keymask(mask)
+        self.assertEqual(result, (2, 3))
+        with self.assertRaises(ValueError):
+            break_keymask(L.mask('bub'))
+    
     def test_allboundunbound(self):
         mask1 = L.mask('bub')
         mask2 = L.mask('bb')
