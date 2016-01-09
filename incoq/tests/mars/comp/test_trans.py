@@ -44,6 +44,28 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(tree, exp_tree)
     
+    def test_convert_subquery_clause(self):
+        cl = L.VarsMember(['x', 'y'], L.Name('R'))
+        cl = convert_subquery_clause(cl)
+        exp_cl = L.RelMember(['x', 'y'], 'R')
+        self.assertEqual(cl, exp_cl)
+        
+        cl = L.VarsMember(['x', 'y'],
+                          L.Parser.pe("R.imglookup('buu', (a,))"))
+        cl = convert_subquery_clause(cl)
+        exp_cl = L.RelMember(['a', 'x', 'y'], 'R')
+        self.assertEqual(cl, exp_cl)
+    
+    def test_convert_subquery_clauses(self):
+        comp = L.Parser.pe('''
+            {x for (x, y) in WITHOUT(VARS(R.imglookup('buu', (a,))), e)
+               if y > 5}''')
+        comp = convert_subquery_clauses(comp)
+        exp_comp = L.Parser.pe('''
+            {x for (a, x, y) in WITHOUT(REL(R), e)
+               if y > 5}''')
+        self.assertEqual(comp, exp_comp)
+    
     def test_make_comp_maint_func(self):
         comp = L.Parser.pe('''{x + z for (x, y) in REL(R)
                                      for (y, z) in REL(S)}''')

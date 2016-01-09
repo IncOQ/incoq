@@ -3,6 +3,8 @@
 
 __all__ = [
     'JoinExpander',
+    'convert_subquery_clause',
+    'convert_subquery_clauses',
     'make_comp_maint_func',
     'CompMaintainer',
     'incrementalize_comp',
@@ -63,6 +65,50 @@ class JoinExpander(L.NodeTransformer):
         comp = comp._replace(clauses=clauses)
         
         return ct.get_code_for_clauses(comp.clauses, (), node.body)
+
+
+def convert_subquery_clause(clause):
+    """Given a clause, if it is a VarsMember clause for an
+    incrementalized subquery, return an equivalent RelMember clause.
+    For any other clause return the clause unchanged.
+    
+    The two forms recognized are:
+    
+        - right-hand side is a Name node
+        
+        - right-hand side is an ImgLookup node with a keymask
+    """
+    if not isinstance(clause, L.VarsMember):
+        return clause
+    
+    if isinstance(clause.iter, L.Name):
+        return L.RelMember(clause.vars, clause.iter.id)
+    elif (isinstance(clause.iter, L.ImgLookup) and
+          L.is_keymask(clause.iter.mask)):
+        nb, nu = L.break_keymask(clause.iter.mask)
+        assert nb == len(clause.iter.bounds)
+        assert nu == len(clause.vars)
+        return L.RelMember(clause.iter.bounds + clause.vars,
+                           clause.iter.rel)
+    
+    return clause
+
+def convert_subquery_clauses(comp):
+    """Given a Comp node, return a modified node where clauses over
+    incrementalized subqueries are replaced with RelMember.
+    """
+    # We need a visitor in order to handle cases where clauses are
+    # nested inside other clauses. The visitor should not reach into any
+    # non-incrementalized subqueries (although there shouldn't be any
+    # at this stage).
+    class Trans(L.NodeTransformer):
+        def visit_VarsMember(self, node):
+            return convert_subquery_clause(node)
+        def visit_Comp(self, node):
+            return node
+    
+    new_clauses = Trans.run(comp.clauses)
+    return comp._replace(clauses=new_clauses)
 
 
 def make_comp_maint_func(clausetools, fresh_vars, fresh_join_names,
