@@ -289,13 +289,12 @@ class DemandAnalyzer(ParamAnalyzer):
     use demand sets.
     """
     
-    def __init__(self, clausetools, symtab, scope_info):
+    def __init__(self, symtab, scope_info):
         super().__init__(symtab, scope_info)
-        self.clausetools = clausetools
         self.queries_with_usets = OrderedSet()
     
     def apply_context(self, query, context):
-        ct = self.clausetools
+        ct = self.symtab.clausetools
         symtab = self.symtab
         
         params = context
@@ -308,6 +307,10 @@ class DemandAnalyzer(ParamAnalyzer):
         
         # Determine demand parameters.
         demand_params = determine_demand_params(ct, query)
+        
+        # If there aren't any demand parameters, no demand transformation.
+        if len(demand_params) == 0:
+            return
         
         # Add demand set for symbol.
         uset = N.get_query_demand_set_name(query.name)
@@ -355,9 +358,9 @@ def analyze_parameters(tree, symtab):
     return ParamAnalyzer.run(tree, symtab, scope_info)
 
 
-def analyze_demand(tree, clausetools, symtab):
+def analyze_demand(tree, symtab):
     """As above, but also perform rewriting to add demand sets
     and corresponding functions.
     """
     scope_info = ScopeBuilder.run(tree)
-    return DemandAnalyzer.run(tree, clausetools, symtab, scope_info)
+    return DemandAnalyzer.run(tree, symtab, scope_info)

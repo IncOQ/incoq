@@ -24,7 +24,7 @@ from incoq.mars.comp import (CoreClauseTools, incrementalize_comp,
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
 from .optimize import unwrap_singletons
-from .param_analysis import analyze_parameters
+from .param_analysis import analyze_demand
 from .misc_rewritings import relationalize_comp_queries
 
 
@@ -219,7 +219,7 @@ def transform_ast(input_ast, *, options=None):
         debug_symbols(symtab, illtyped, badsyms)
     
     # Infer parameter information, instantiate queries as needed.
-    tree = analyze_parameters(tree, symtab)
+    tree = analyze_demand(tree, symtab)
     
     # Make sure relational queries return tuples.
     tree = relationalize_comp_queries(tree, symtab)

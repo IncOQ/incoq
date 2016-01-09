@@ -174,6 +174,7 @@ class ParamAnalysisCase(unittest.TestCase):
     def test_demand_analyzer(self):
         comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
         symtab = SymbolTable()
+        symtab.clausetools = self.ct
         symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
         symtab.define_var('x', type=T.Number)
         symtab.define_var('y', type=T.Number)
@@ -187,7 +188,7 @@ class ParamAnalysisCase(unittest.TestCase):
             ''')
         scope_info = ScopeBuilder.run(tree)
         
-        tree = DemandAnalyzer.run(tree, self.ct, symtab, scope_info)
+        tree = DemandAnalyzer.run(tree, symtab, scope_info)
         exp_tree = L.Parser.p('''
             def _demand_Q(_elem):
                 if (_elem not in _U_Q):
