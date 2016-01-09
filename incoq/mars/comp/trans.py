@@ -7,6 +7,7 @@ __all__ = [
     'CompMaintainer',
     'incrementalize_comp',
     'expand_maintjoins',
+    'rewrite_all_comps_with_patterns',
 ]
 
 
@@ -147,9 +148,6 @@ def incrementalize_comp(tree, symtab, query, result_var):
     fresh_vars = symtab.fresh_names.vars
     comp = query.node
     
-    comp = clausetools.rewrite_with_patterns(comp, query.params)
-    comp = clausetools.elim_sameclause_eqs(comp)
-    
     if query.params != ():
         assert isinstance(comp.resexp, L.Tuple)
         orig_arity = len(comp.resexp.elts)
@@ -206,3 +204,22 @@ def expand_maintjoins(tree, symtab, query):
     join_names = [join.name for join in query.maint_joins]
     tree = JoinExpander.run(tree, symtab.clausetools, join_names)
     return tree
+
+
+def rewrite_all_comps_with_patterns(tree, symtab):
+    """Perform pattern rewriting for all comprehension queries that
+    are to be incrementalized. Parameter information must be available.
+    """
+    class Rewriter(QueryRewriter):
+        def rewrite(self, symbol, name, expr):
+            if not isinstance(expr, L.Comp):
+                return
+            if symbol.impl == 'normal':
+                return
+            
+            ct = self.symtab.clausetools
+            comp = ct.rewrite_with_patterns(expr, symbol.params)
+            comp = ct.elim_sameclause_eqs(comp)
+            return comp
+    
+    return Rewriter.run(tree, symtab)

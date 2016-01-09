@@ -18,8 +18,9 @@ from incoq.mars.incast import L, P
 from incoq.mars.config import Config
 from incoq.mars.symtab import SymbolTable
 from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer, define_map
-from incoq.mars.comp import (CoreClauseTools, incrementalize_comp,
-                             expand_maintjoins)
+from incoq.mars.comp import (
+    CoreClauseTools, incrementalize_comp, expand_maintjoins,
+    rewrite_all_comps_with_patterns)
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
@@ -217,6 +218,9 @@ def transform_ast(input_ast, *, options=None):
     
     if config.verbose:
         debug_symbols(symtab, illtyped, badsyms)
+    
+    # Rewrite patterns.
+    tree = rewrite_all_comps_with_patterns(tree, symtab)
     
     # Infer parameter information, instantiate queries as needed.
     tree = analyze_demand(tree, symtab)
