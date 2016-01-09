@@ -83,6 +83,7 @@ module IncAST
            | RelMember(identifier* vars, identifier rel)
            | SingMember(identifier* vars, expr value)
            | WithoutMember(clause cl, expr value)
+           | VarsMember(identifier* vars, expr iter)
            | Cond(expr cond)
     
     mask = (string m)

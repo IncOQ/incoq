@@ -279,6 +279,12 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.Comp(N('x'),
             [L.WithoutMember(L.RelMember(['x', 'y'], 'R'), N('e'))])
         self.assertEqual(tree, exp_tree)
+        
+        # VarsMember.
+        tree = Parser.pe('{x for (x, y) in VARS(1 + 1)}')
+        exp_tree = L.Comp(N('x'), [L.VarsMember(['x', 'y'],
+                                                Parser.pe('1 + 1'))])
+        self.assertEqual(tree, exp_tree)
 
 
 class RoundTripCase(unittest.TestCase):
@@ -369,6 +375,7 @@ class RoundTripCase(unittest.TestCase):
         self.trip.pe('{x for (x, y) in REL(R)}')
         self.trip.pe('{x for (x, y) in SING(E)}')
         self.trip.pe('{x for (x, y) in WITHOUT(REL(R), e)}')
+        self.trip.pe('{x for (x, y) in VARS(1 + 1)}')
     
     def test_unparse_arity(self):
         self.trip.p('''

@@ -160,6 +160,27 @@ class ClauseCase(unittest.TestCase):
                                   L.Name('e'))
         self.assertEqual(cl2, exp_cl2)
     
+    def test_varsmember(self):
+        v = self.visitor
+        
+        expr = L.Parser.pe('1 + 1')
+        cl = L.VarsMember(['x', 'y', 'z'], expr)
+        
+        self.assertIs(v.kind(cl), Kind.Member)
+        self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
+        self.assertEqual(v.rhs_rel(cl), None)
+        self.assertSequenceEqual(v.constr_lhs_vars(cl), ['x', 'y', 'z'])
+        
+        with self.assertRaises(NotImplementedError):
+            v.get_priority(cl, [])
+        with self.assertRaises(NotImplementedError):
+            v.get_code(cl, [], (L.Pass(),))
+        
+        self.check_rename_lhs_vars(cl)
+        
+        with self.assertRaises(NotImplementedError):
+            v.singletonize(cl, L.Name('f'))
+    
     def test_cond(self):
         v = self.visitor
         

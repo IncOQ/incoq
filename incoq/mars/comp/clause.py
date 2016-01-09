@@ -15,6 +15,7 @@ __all__ = [
     'RelMemberHandler',
     'SingMemberHandler',
     'WithoutMemberHandler',
+    'VarsMemberHandler',
     'CondHandler',
     
     'CoreClauseVisitor',
@@ -161,6 +162,7 @@ class ClauseVisitor(BaseClauseVisitor):
     handlercls_RelMember = ClauseHandler
     handlercls_SingMember = ClauseHandler
     handlercls_WithoutMember = ClauseHandler
+    handlercls_VarsMember = ClauseHandler
     handlercls_Cond = ClauseHandler
     
     def __init__(self):
@@ -169,6 +171,7 @@ class ClauseVisitor(BaseClauseVisitor):
         self.handle_RelMember = self.handlercls_RelMember(self)
         self.handle_SingMember = self.handlercls_SingMember(self)
         self.handle_WithoutMember = self.handlercls_WithoutMember(self)
+        self.handle_VarsMember = self.handlercls_VarsMember(self)
         self.handle_Cond = self.handlercls_Cond(self)
     
     # Visit operations added programmatically.
@@ -316,6 +319,22 @@ class WithoutMemberHandler(ClauseHandler):
         return cl._replace(cl=new_inner)
 
 
+class VarsMemberHandler(ClauseHandler):
+    
+    def kind(self, cl):
+        return Kind.Member
+    
+    def lhs_vars(self, cl):
+        return cl.vars
+    
+    def rhs_rel(self, cl):
+        return None
+    
+    def rename_lhs_vars(self, cl, renamer):
+        new_vars = tuple(renamer(v) for v in cl.vars)
+        return cl._replace(vars=new_vars)
+
+
 class CondHandler(ClauseHandler):
     
     def kind(self, cl):
@@ -347,4 +366,5 @@ class CoreClauseVisitor(ClauseVisitor):
     handlercls_RelMember = RelMemberHandler
     handlercls_SingMember = SingMemberHandler
     handlercls_WithoutMember = WithoutMemberHandler
+    handlercls_VarsMember = VarsMemberHandler
     handlercls_Cond = CondHandler

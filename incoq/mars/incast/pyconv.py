@@ -212,8 +212,8 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         
         # for x1, ..., xn in SING(e)
         elif (isinstance(iter, L.GeneralCall) and
-            isinstance(iter.func, L.Name) and
-            iter.func.id == 'SING'):
+              isinstance(iter.func, L.Name) and
+              iter.func.id == 'SING'):
             if not len(iter.args) == 1:
                 raise ASTErr('Invalid SING clause')
             value = iter.args[0]
@@ -222,13 +222,23 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         
         # for x1, ..., xn in WITHOUT(R, e)
         elif (isinstance(iter, L.GeneralCall) and
-            isinstance(iter.func, L.Name) and
-            iter.func.id == 'WITHOUT'):
+              isinstance(iter.func, L.Name) and
+              iter.func.id == 'WITHOUT'):
             if not len(iter.args) == 2:
                 raise ASTErr('Invalid WITHOUT clause')
             value = iter.args[1]
             cl = self.member_clause_helper(target, iter.args[0])
             member = L.WithoutMember(cl, value)
+        
+        # for x1, ..., xn in VARS(e)
+        elif (isinstance(iter, L.GeneralCall) and
+              isinstance(iter.func, L.Name) and
+              iter.func.id == 'VARS'):
+            if not len(iter.args) == 1:
+                raise ASTErr('Invalid VARS clause')
+            value = iter.args[0]
+            vars = self.match_store_vars(target)
+            member = L.VarsMember(vars, value)
         
         # General case.
         else:
@@ -644,6 +654,12 @@ class IncLangNodeExporter(NodeMapper):
                       [cl.iter, value],
                       [], None, None)
         return P.comprehension(cl.target, iter, [])
+    
+    def visit_VarsMember(self, node):
+        return P.comprehension(self.tuple_store_helper(node.vars),
+                               P.Call(P.Name('VARS', P.Load()),
+                                      [self.visit(node.iter)],
+                                      [], None, None), [])
     
     def visit_Cond(self, node):
         return self.visit(node.cond)
