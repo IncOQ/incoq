@@ -7,8 +7,10 @@ __all__ = [
     
     'BaseClauseVisitor',
     'BaseClauseHandler',
-    'ClauseVisitor',
     'ClauseHandler',
+    'ClauseVisitor',
+    
+    'assert_unique',
     
     'RelMemberHandler',
     'SingMemberHandler',
@@ -21,6 +23,7 @@ __all__ = [
 
 from enum import Enum, IntEnum
 from functools import partialmethod
+from collections import Counter
 
 from incoq.mars.incast import L
 
@@ -185,6 +188,17 @@ for op in [
     setattr(ClauseVisitor, op, partialmethod(ClauseVisitor.visit, op))
 
 
+def assert_unique(vars):
+    """Given a tuple of LHS vars, raise AssertionError if there are
+    repeated vars (representing an equality pattern).
+    """
+    counts = Counter(vars)
+    if not all(c == 1 for c in counts.values()):
+        dups = [x for x, c in counts.items() if c > 1]
+        raise AssertionError('LHS vars appear multiple times in same '
+                             'clause: ' + ', '.join(dups))
+
+
 class RelMemberHandler(ClauseHandler):
     
     def kind(self, cl):
@@ -207,6 +221,7 @@ class RelMemberHandler(ClauseHandler):
             return Priority.Normal
     
     def get_code(self, cl, bindenv, body):
+        assert_unique(cl.vars)
         mask = L.mask_from_bounds(cl.vars, bindenv)
         
         if L.mask_is_allbound(mask):
@@ -246,6 +261,7 @@ class SingMemberHandler(ClauseHandler):
         return Priority.Constant
     
     def get_code(self, cl, bindenv, body):
+        assert_unique(cl.vars)
         mask = L.mask_from_bounds(cl.vars, bindenv)
         check_eq = L.Compare(L.tuplify(cl.vars), L.Eq(), cl.value)
         

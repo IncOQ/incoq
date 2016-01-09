@@ -36,6 +36,11 @@ class ClauseCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             v.subtract(cl, L.Name('e'))
     
+    def test_assert_unique(self):
+        assert_unique(['x', 'y', 'z'])
+        with self.assertRaises(AssertionError):
+            assert_unique(['x', 'y', 'x'])
+    
     def test_relmember(self):
         v = self.visitor
         
