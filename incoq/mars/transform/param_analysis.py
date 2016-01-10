@@ -208,7 +208,10 @@ class QueryContextInstantiator(L.NodeTransformer):
     # an instantiated query, is made by a subclass.
     #
     # Queries occurrences are visited in a top-down order, so the
-    # outermost query will be processed first.
+    # outermost query will be processed first. It is assumed that
+    # whenever there are two occurrences of an outer query in the same
+    # context, the contexts for their respective inner queries will be
+    # the same.
     
     def __init__(self, symtab):
         super().__init__()
@@ -239,10 +242,12 @@ class QueryContextInstantiator(L.NodeTransformer):
         # Determine the query instantiation name and symbol, creating
         # them if necessary.
         context_map = self.query_contexts.setdefault(name, {})
+        already_instantiated = False
         for inst_name, ctx in context_map.items():
             if context == ctx:
                 # Found an existing instantiation. Reuse it.
                 query_sym = queries[inst_name]
+                already_instantiated = True
                 break
         else:
             if len(context_map) == 0:
@@ -263,7 +268,8 @@ class QueryContextInstantiator(L.NodeTransformer):
             context_map[inst_name] = context
             self.apply_context(query_sym, context)
         
-        # Rewrite this occurrence and recurse.
+        # Rewrite this occurrence. Then recurse, if we haven't already
+        # processed this query in this context.
         #
         # We need to make sure that at the time we recurse, there is
         # up-to-date scope info for this node since it has been
@@ -271,15 +277,28 @@ class QueryContextInstantiator(L.NodeTransformer):
         # apply_context(). (We don't need to update this info after
         # recursing because we assume the visitor needs only the scope
         # info for the present node, not previously visited ones.)
+        #
+        # We also need to ensure that after recursing, we update the
+        # symbol's node for any changes to the subqueries. This does
+        # not cause inconsistency with other occurrences because it
+        # happens only once per instantiated query symbol.
         
-        _node, bindenv = self.scope_info[id(node)]
-        # Rewrite.
-        node = query_sym.make_node()
-        # Update scope info.
-        new_info = ScopeBuilder.run(node, bindenv=bindenv)
-        self.scope_info.update(new_info)
-        # Recurse.
-        node = self.generic_visit(node)
+        if already_instantiated:
+            # Rewrite this occurrence.
+            node = query_sym.make_node()
+        else:
+            # Save old scope info.
+            _node, bindenv = self.scope_info[id(node)]
+            # Rewrite.
+            node = query_sym.make_node()
+            # Determine scope info for rewritten part.
+            new_info = ScopeBuilder.run(node, bindenv=bindenv)
+            self.scope_info.update(new_info)
+            
+            # Recurse.
+            node = self.generic_visit(node)
+            # Update symbol.
+            query_sym.node = node.query
         
         return node
 

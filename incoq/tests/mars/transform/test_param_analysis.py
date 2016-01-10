@@ -118,6 +118,39 @@ class ParamAnalysisCase(unittest.TestCase):
         self.assertEqual(symtab.get_queries()['Q'].ctx, 'a')
         self.assertEqual(symtab.get_queries()['Q_ctx2'].ctx, 'b')
     
+    def test_query_context_instantiator_nested(self):
+        class Doubler(L.NodeTransformer):
+            def visit_Num(self, node):
+                return L.Num(node.n * 2)
+            def visit_Query(self, node):
+                return node
+        
+        class Inst(QueryContextInstantiator):
+            def get_context(self, node):
+                return None
+            def apply_context(self, query, context):
+                query.node = Doubler.run(query.node)
+        
+        symtab = SymbolTable()
+        symtab.define_query('Q1', node=L.Parser.pe('1 + 1'))
+        symtab.define_query('Q2', node=L.Parser.pe(
+                "2 + QUERY('Q1', 1 + 1)"))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q2', 2 + QUERY('Q1', 1 + 1)))
+            ''')
+        tree = Inst.run(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q2', 4 + QUERY('Q1', 2 + 2)))
+            ''')
+        self.assertEqual(tree, exp_tree)
+        # Check that outer query symbol was updated.
+        query_sym2 = symtab.get_queries()['Q2']
+        exp_q2 = L.Parser.pe(
+                "4 + QUERY('Q1', 2 + 2)")
+        self.assertEqual(query_sym2.node, exp_q2)
+    
     def test_param_analyzer_basic(self):
         comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
         symtab = SymbolTable()
