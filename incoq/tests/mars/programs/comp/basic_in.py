@@ -3,7 +3,7 @@
 from incoq.mars.runtime import *
 
 SYMCONFIG('Q',
-    impl='inc',
+    impl = 'inc',
 )
 
 S = Set()

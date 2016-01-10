@@ -3,10 +3,10 @@
 from incoq.mars.runtime import *
 
 SYMCONFIG('Q1',
-    impl='inc',
+    impl = 'inc',
 )
 SYMCONFIG('Q2',
-    impl='inc',
+    impl = 'inc',
 )
 
 S = Set()
