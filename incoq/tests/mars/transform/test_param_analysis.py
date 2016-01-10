@@ -66,6 +66,28 @@ class ParamAnalysisCase(unittest.TestCase):
         with self.assertRaises(AssertionError):
             determine_demand_params(self.ct, query)
     
+    def test_scope_builder(self):
+        query = L.Parser.pe("QUERY('Q', {(x, y) for (x, y) in REL(R)})")
+        tree = L.Parser.p('''
+            def main():
+                x = 1
+                print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
+                z = 2
+            def test():
+                print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
+            ''')
+        scope_info = ScopeBuilder.run(tree)
+        scopes = []
+        for k, (node, scope) in scope_info.items():
+            # Check that the query is listed twice and the ids of the
+            # nodes match the key.
+            self.assertEqual(k, id(node))
+            self.assertEqual(node, query)
+            scopes.append(scope)
+        exp_scopes = [{'main', 'test', 'x', 'z'}, {'main', 'test'}]
+        # Check the contents of the scopes.
+        self.assertCountEqual(scopes, exp_scopes)
+    
     def test_query_context_instantiator(self):
         ctxs = iter(['a', 'b', 'a', 'b'])
         class Inst(QueryContextInstantiator):
@@ -95,28 +117,6 @@ class ParamAnalysisCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         self.assertEqual(symtab.get_queries()['Q'].ctx, 'a')
         self.assertEqual(symtab.get_queries()['Q_ctx2'].ctx, 'b')
-    
-    def test_scope_builder(self):
-        query = L.Parser.pe("QUERY('Q', {(x, y) for (x, y) in REL(R)})")
-        tree = L.Parser.p('''
-            def main():
-                x = 1
-                print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
-                z = 2
-            def test():
-                print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
-            ''')
-        scope_info = ScopeBuilder.run(tree)
-        scopes = []
-        for k, (node, scope) in scope_info.items():
-            # Check that the query is listed twice and the ids of the
-            # nodes match the key.
-            self.assertEqual(k, id(node))
-            self.assertEqual(node, query)
-            scopes.append(scope)
-        exp_scopes = [{'main', 'test', 'x', 'z'}, {'main', 'test'}]
-        # Check the contents of the scopes.
-        self.assertCountEqual(scopes, exp_scopes)
     
     def test_param_analyzer_basic(self):
         comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
