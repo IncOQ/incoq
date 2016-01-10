@@ -240,10 +240,15 @@ class ClauseTools(ClauseVisitor):
                              comp.resexp.elts)
         return comp._replace(resexp=new_resexp)
     
-    def rewrite_with_uset(self, comp, params, uset):
-        """Prepend a demand set."""
-        uset_clause = L.RelMember(params, uset)
+    def rewrite_with_uset(self, comp, demparams, uset):
+        """Prepend a demand set clause."""
+        uset_clause = L.RelMember(demparams, uset)
         return comp._replace(clauses=(uset_clause,) + comp.clauses)
+    
+    def rewrite_with_demand_query(self, comp, demparams, demquery):
+        """Prepend a demand query clause. demquery is a Query node."""
+        demquery_clause = L.VarsMember(demparams, demquery)
+        return comp._replace(clauses=(demquery_clause,) + comp.clauses)
     
     def get_code_for_clauses(self, clauses, bindenv, body):
         """Produce code for running body once for each combination of

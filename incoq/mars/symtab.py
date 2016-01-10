@@ -60,6 +60,10 @@ class N:
         return '_U_{}'.format(query)
     
     @classmethod
+    def get_query_demand_query_name(cls, query):
+        return '_QU_{}'.format(query)
+    
+    @classmethod
     def get_query_inst_name(cls, query, inststr):
         return query + '_ctx' + inststr
 

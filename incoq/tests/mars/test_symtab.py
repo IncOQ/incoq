@@ -41,6 +41,11 @@ class NamingCase(unittest.TestCase):
         exp_name = '_U_Q'
         self.assertEqual(name, exp_name)
     
+    def test_query_demand_query_name(self):
+        name = N.get_query_demand_query_name('Q')
+        exp_name = '_QU_Q'
+        self.assertEqual(name, exp_name)
+    
     def test_queryinst(self):
         name = N.get_query_inst_name('Q', '2')
         exp_name = 'Q_ctx2'

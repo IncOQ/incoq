@@ -140,6 +140,16 @@ class JoinCase(unittest.TestCase):
         exp_comp = L.Parser.pe('{x for (x,) in REL(U) for (x, y) in REL(S)}')
         self.assertEqual(comp, exp_comp)
     
+    def test_rewrite_demand_query(self):
+        comp = L.Parser.pe(
+                '{x for (x, y) in REL(S)}')
+        comp = self.ct.rewrite_with_demand_query(comp, ['x'], L.Parser.pe(
+                "QUERY('Q', {(a,) for (a,) in REL(T)})"))
+        exp_comp = L.Parser.pe(
+              '''{x for (x,) in VARS(QUERY('Q', {(a,) for (a,) in REL(T)}))
+                    for (x, y) in REL(S)}''')
+        self.assertEqual(comp, exp_comp)
+    
     def test_get_code_for_clauses(self):
         comp = L.Parser.pe('''{z for (x, y) in REL(R)
                                  for (y, z) in REL(S)}''')

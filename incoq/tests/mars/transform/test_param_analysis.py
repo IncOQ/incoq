@@ -209,7 +209,7 @@ class ParamAnalysisCase(unittest.TestCase):
         symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
         symtab.define_var('x', type=T.Number)
         symtab.define_var('y', type=T.Number)
-        query_sym = symtab.define_query('Q', node=comp,
+        query_sym = symtab.define_query('Q', node=comp, impl='inc',
                                         demand_param_strat='explicit',
                                         demand_params=('x',))
         tree = L.Parser.p('''
@@ -235,6 +235,43 @@ class ParamAnalysisCase(unittest.TestCase):
         self.assertEqual(query_sym.demand_params, ('x',))
         uset_sym = symtab.get_symbols()[query_sym.demand_set]
         self.assertEqual(uset_sym.type, T.Set(T.Tuple([T.Number])))
+    
+    def test_nested_demand_analyzer(self):
+        comp1 = L.Parser.pe(
+            '{(y,) for (x, y) in REL(R)}')
+        comp2 = L.Parser.pe(
+            "{z for (z,) in VARS(QUERY('Q1', {(y,) for (x, y) in REL(R)}))}")
+        symtab = SymbolTable()
+        symtab.clausetools = self.ct
+        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
+        for v in ['x', 'y', 'z']:
+            symtab.define_var(v, type=T.Number)
+        query_sym1 = symtab.define_query('Q1', node=comp1, impl='inc',
+                                        demand_param_strat='explicit',
+                                        demand_params=('x',))
+        query_sym2 = symtab.define_query('Q2', node=comp2, impl='inc')
+        tree = L.Parser.p('''
+            def main():
+                x = 1
+                print(QUERY('Q2', {z for (z,) in VARS(QUERY('Q1',
+                    {(y,) for (x, y) in REL(R)}))}))
+            ''')
+        tree = NestedDemandAnalyzer.run(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def _demand_Q2(_elem):
+                if (_elem not in _U_Q2):
+                    _U_Q2.reladd(_elem)
+            
+            def main():
+                x = 1
+                print(FIRSTTHEN(_demand_Q2((x,)), QUERY('Q2', {z for (x,) in REL(_U_Q2) for (z,) in VARS(QUERY('Q1', {(y,) for (x,) in VARS(QUERY('_QU_Q1', {(x,) for (x,) in REL(_U_Q2)})) for (x, y) in REL(R)}))})))
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        self.assertEqual(query_sym1.demand_query, '_QU_Q1')
+        self.assertEqual(query_sym2.demand_set, '_U_Q2')
+        demquery_sym = symtab.get_symbols()['_QU_Q1']
+        self.assertEqual(demquery_sym.type, T.Set(T.Tuple([T.Number])))
 
 
 if __name__ == '__main__':

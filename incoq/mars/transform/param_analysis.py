@@ -10,6 +10,7 @@ __all__ = [
     'QueryContextInstantiator',
     'ParamAnalyzer',
     'DemandAnalyzer',
+    'NestedDemandAnalyzer',
     'analyze_demand',
 ]
 
@@ -180,6 +181,27 @@ class ScopeBuilder(L.NodeVisitor):
         self.generic_visit(node)
 
 
+# For ease of specification, the complete logic for rewriting query
+# occurrences based on their context is split across several subclasses,
+# each of which handles more complex cases.
+#
+# QueryContextInstantiator provides the basic behavior of instantiating
+# query occurrences based on some criteria for characterizing contexts.
+#
+# ParamAnalyzer assigns parameter information to query symbols and
+# instantiates occurrences with distinct parameters. It does not deal
+# with demand at all.
+#
+# DemandAnalyzer does the same but also rewrites all queries to have
+# demand sets for their demand parameters. This is generally not correct
+# in the case where queries can be nested.
+#
+# NestedDemandAnalyzer tackles the most general case, instantiating
+# queries based on their parameters and also the clauses of the query
+# in which they appear. Outer queries get demand sets and inner
+# queries get demand queries.
+
+
 class QueryContextInstantiator(L.NodeTransformer):
     
     """Framework for instantiating multiple occurrences of the same
@@ -316,11 +338,18 @@ class ParamAnalyzer(QueryContextInstantiator):
         params = tuple(vars.intersection(scope))
         return params
     
+    # For this visitor and DemandAnalyzer, the context is just a tuple
+    # of parameters for the query occurrence. We abstract this via
+    # params_from_context() for the sake of NestedDemandAnalyzer.
+    
+    def params_from_context(self, context):
+        return context
+    
     def get_context(self, node):
         return self.get_params(node)
     
     def apply_context(self, query, context):
-        query.params = context
+        query.params = self.params_from_context(context)
 
 
 class DemandAnalyzer(ParamAnalyzer):
@@ -353,18 +382,32 @@ class DemandAnalyzer(ParamAnalyzer):
         self.queries_with_usets.add(query)
         
         # Rewrite AST to use it.
-        if isinstance(query.node, L.Comp):
-            query.node = ct.rewrite_with_uset(query.node, demand_params, uset)
+        query.node = ct.rewrite_with_uset(query.node, demand_params, uset)
+    
+    def rewrite_with_demand(self, query, context):
+        return self.rewrite_with_demand_set(query)
     
     def apply_context(self, query, context):
-        query.params = context
+        super().apply_context(query, context)
+        
+        # Don't touch non-incrementalized queries.
+        if query.impl == 'normal':
+            return
         
         # We can't handle non-Comp queries here.
         if not isinstance(query.node, L.Comp):
             raise AssertionError('No rule for handling demand for {} node'
                                  .format(query.node.__class__.__name__))
         
-        self.rewrite_with_demand_set(query)
+        self.rewrite_with_demand(query, context)
+    
+    def add_demand_function_call(self, node):
+        query = self.symtab.get_queries()[node.name]
+        if query not in self.queries_with_usets:
+            return node
+        demand_call = L.Call(N.get_query_demand_func_name(query.name),
+                             [L.tuplify(query.demand_params)])
+        return L.FirstThen(demand_call, node)
     
     def visit_Module(self, node):
         node = self.generic_visit(node)
@@ -381,14 +424,133 @@ class DemandAnalyzer(ParamAnalyzer):
     def visit_Query(self, node):
         # Do all the fancy processing, including recursing.
         node = super().visit_Query(node)
-        
         # Then insert a call to the demand function, if needed.
-        query = self.symtab.get_queries()[node.name]
-        if query in self.queries_with_usets:
-            demand_call = L.Call(N.get_query_demand_func_name(query.name),
-                                 [L.tuplify(query.demand_params)])
-            node = L.FirstThen(demand_call, node)
+        node = self.add_demand_function_call(node)
+        return node
+
+
+class NestedDemandAnalyzer(DemandAnalyzer):
+    
+    """ContextInstantiator based on parameters, demand sets for outer
+    queries, and demand queries for inner queries.
+    """
+    
+    # A context for this visitor is a tuple whose first component
+    # are the query parameters, and whose second component is
+    #
+    #   1) for an outermost query, None, or
+    #
+    #   2) for an inner query, a sequence of clauses appearing to
+    #      the left of this query in the immediate containing query.
+    #
+    # Outermost queries (not counting queries whose impl attribute is
+    # "normal") get demand sets, while inner queries get demand queries.
+    #
+    # We keep track of the clauses of the containing query by
+    # maintaining a stack corresponding to nested queries, where each
+    # stack entry lists the clauses seen so far at that level.
+    
+    def process(self, tree):
+        self.comp_stack = []
+        """Each stack entry corresponds to a level of nesting of a
+        Query node for a comprehension whose impl is not "normal".
+        The value of each entry is a list of the clauses at that
+        level that have already been fully processed.
+        """
+        self.push_next_comp = False
+        """Flag indicating whether the next call to visit_Comp should
+        affect the comp stack. This is set when we see a Query node
+        whose immediate descendant is a Comp. It helps us distinguish
+        proper comprehension queries from stray non-Query Comp nodes.
+        """
+        tree = super().process(tree)
+        return tree
+    
+    def push_comp(self):
+        self.comp_stack.append([])
+    
+    def pop_comp(self):
+        self.comp_stack.pop()
+    
+    def add_clause(self, cl):
+        if len(self.comp_stack) > 0:
+            self.comp_stack[-1].append(cl)
+    
+    def current_left_clauses(self):
+        """Get the list of clauses to the left of the current containing
+        comprehension query, or None if there is no such query.
+        """
+        return self.comp_stack[-1] if len(self.comp_stack) > 0 else None
+    
+    def params_from_context(self, context):
+        params, _clauses = context
+        return params
         
+    def get_context(self, node):
+        return self.get_params(node), self.current_left_clauses()
+    
+    def rewrite_with_demand_query(self, query, context):
+        ct = self.symtab.clausetools
+        symtab = self.symtab
+        
+        # Determine demand parameters. No demand parameters means no
+        # transformation.
+        demand_params = determine_demand_params(ct, query)
+        if len(demand_params) == 0:
+            return
+        
+        # Add demand set for symbol.
+        demquery_name = N.get_query_demand_query_name(query.name)
+        t_demand_params = symtab.analyze_expr_type(L.tuplify(demand_params))
+        demquery_type = T.Set(t_demand_params)
+        demquery_comp = L.Comp(L.tuplify(demand_params),
+                               self.current_left_clauses())
+        demquery_sym = symtab.define_query(demquery_name, type=demquery_type,
+                                           node=demquery_comp, impl=query.impl)
+        query.demand_query = demquery_name
+        
+        # Rewrite AST to use it.
+        demquery_node = L.Query(demquery_name, demquery_comp)
+        query.node = ct.rewrite_with_demand_query(
+                            query.node, demand_params, demquery_node)
+    
+    def rewrite_with_demand(self, query, context):
+        _params, clauses = context
+        
+        if clauses is None:
+            # Outermost, just add a U-set.
+            return self.rewrite_with_demand_set(query)
+        else:
+            return self.rewrite_with_demand_query(query, context)
+    
+    def visit_Query(self, node):
+        # Check for impl == "normal" using the pre-instantiated query
+        # symbol, since that shouldn't change during instantiation
+        # anyway.
+        sym = self.symtab.get_queries()[node.name]
+        if isinstance(node.query, L.Comp) and sym.impl != 'normal':
+            self.push_next_comp = True
+        
+        return super().visit_Query(node)
+    
+    def comp_visit_helper(self, node):
+        """Visit while marking clauses in the comp stack."""
+        clauses = []
+        for cl in node.clauses:
+            cl = self.visit(cl)
+            self.add_clause(cl)
+            clauses.append(cl)
+        resexp = self.visit(node.resexp)
+        return node._replace(resexp=resexp, clauses=clauses)
+    
+    def visit_Comp(self, node):
+        if self.push_next_comp:
+            self.push_next_comp = False
+            self.push_comp()
+            node = self.comp_visit_helper(node)
+            self.pop_comp()
+        else:
+            node = self.generic_visit(node)
         return node
 
 
@@ -397,4 +559,4 @@ def analyze_demand(tree, symtab):
     this information to symbol attributes and rewrite queries to use
     demand sets and demand queries.
     """
-    return DemandAnalyzer.run(tree, symtab)
+    return NestedDemandAnalyzer.run(tree, symtab)

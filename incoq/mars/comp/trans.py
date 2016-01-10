@@ -196,6 +196,11 @@ def incrementalize_comp(tree, symtab, query, result_var):
     
     comp = convert_subquery_clauses(comp)
     
+    # Even though we already ran this in a preprocessing step,
+    # do it again to get any equality patterns introduced by other
+    # rewritings (such as convert_subquery_clauses() above).
+    comp = clausetools.elim_sameclause_eqs(comp)
+    
     if query.params != ():
         assert isinstance(comp.resexp, L.Tuple)
         orig_arity = len(comp.resexp.elts)
