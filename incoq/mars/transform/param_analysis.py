@@ -82,6 +82,9 @@ class ScopeBuilder(L.NodeVisitor):
     of the map does not already have a reference to the node, and to
     prevent the node from being garbage collected (which could lead to
     inconsistency if a new node is later allocated to the same address).
+    
+    If bindenv is given, these variables are assumed to be declared
+    outside the given tree and are included in every scope.
     """
     
     # We maintain a scope stack -- a list of sets of bound variables,
@@ -92,8 +95,14 @@ class ScopeBuilder(L.NodeVisitor):
     # processed. At the end, we flatten the scope stacks into singular
     # sets.
     
+    def __init__(self, *, bindenv=None):
+        super().__init__()
+        if bindenv is None:
+            bindenv = []
+        self.bindenv = OrderedSet(bindenv)
+    
     def flatten_scope_stack(self, stack):
-        return OrderedSet(chain(*stack))
+        return OrderedSet(chain(self.bindenv, *stack))
     
     def enter(self):
         self.current_stack.append(OrderedSet())
@@ -207,6 +216,11 @@ class QueryContextInstantiator(L.NodeTransformer):
         self.query_contexts = {}
         """Map from query name to context map."""
     
+    def process(self, tree):
+        self.scope_info = ScopeBuilder.run(tree)
+        tree = super().process(tree)
+        return tree
+    
     def get_context(self, node):
         """Return a context object for the given Query node."""
         raise NotImplementedError
@@ -249,22 +263,30 @@ class QueryContextInstantiator(L.NodeTransformer):
             context_map[inst_name] = context
             self.apply_context(query_sym, context)
         
-        # Rewrite this occurrence.
+        # Rewrite this occurrence and recurse.
+        #
+        # We need to make sure that at the time we recurse, there is
+        # up-to-date scope info for this node since it has been
+        # rewritten according to the changes to the query symbol made in
+        # apply_context(). (We don't need to update this info after
+        # recursing because we assume the visitor needs only the scope
+        # info for the present node, not previously visited ones.)
+        
+        _node, bindenv = self.scope_info[id(node)]
+        # Rewrite.
         node = query_sym.make_node()
+        # Update scope info.
+        new_info = ScopeBuilder.run(node, bindenv=bindenv)
+        self.scope_info.update(new_info)
         # Recurse.
         node = self.generic_visit(node)
+        
         return node
 
 
 class ParamAnalyzer(QueryContextInstantiator):
     
-    """Add parameter information to query symbols based on the given
-    scope information. Instantiate query occurrences as needed.
-    """
-    
-    def __init__(self, symtab, scope_info):
-        super().__init__(symtab)
-        self.scope_info = scope_info
+    """ContextInstantiator based on parameter information."""
     
     def get_params(self, node):
         """Get parameters for the given query node. The node must be
@@ -284,12 +306,12 @@ class ParamAnalyzer(QueryContextInstantiator):
 
 class DemandAnalyzer(ParamAnalyzer):
     
-    """Add parameter information as above, but also rewrite queries to
-    use demand sets.
+    """ContextInstantiator based on parameter information and demand
+    sets.
     """
     
-    def __init__(self, symtab, scope_info):
-        super().__init__(symtab, scope_info)
+    def __init__(self, symtab):
+        super().__init__(symtab)
         self.queries_with_usets = OrderedSet()
     
     def rewrite_with_demand_set(self, query):
@@ -352,8 +374,8 @@ class DemandAnalyzer(ParamAnalyzer):
 
 
 def analyze_demand(tree, symtab):
-    """As above, but also perform rewriting to add demand sets
-    and corresponding functions.
+    """Analyze parameter and demand information for all queries. Assign
+    this information to symbol attributes and rewrite queries to use
+    demand sets and demand queries.
     """
-    scope_info = ScopeBuilder.run(tree)
-    return DemandAnalyzer.run(tree, symtab, scope_info)
+    return DemandAnalyzer.run(tree, symtab)

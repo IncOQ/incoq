@@ -76,7 +76,7 @@ class ParamAnalysisCase(unittest.TestCase):
             def test():
                 print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
             ''')
-        scope_info = ScopeBuilder.run(tree)
+        scope_info = ScopeBuilder.run(tree, bindenv=['a'])
         scopes = []
         for k, (node, scope) in scope_info.items():
             # Check that the query is listed twice and the ids of the
@@ -84,7 +84,7 @@ class ParamAnalysisCase(unittest.TestCase):
             self.assertEqual(k, id(node))
             self.assertEqual(node, query)
             scopes.append(scope)
-        exp_scopes = [{'main', 'test', 'x', 'z'}, {'main', 'test'}]
+        exp_scopes = [{'a', 'main', 'test', 'x', 'z'}, {'a', 'main', 'test'}]
         # Check the contents of the scopes.
         self.assertCountEqual(scopes, exp_scopes)
     
@@ -127,9 +127,8 @@ class ParamAnalysisCase(unittest.TestCase):
                 x = 1
                 print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
             ''')
-        scope_info = ScopeBuilder.run(tree)
         
-        tree = ParamAnalyzer.run(tree, symtab, scope_info)
+        tree = ParamAnalyzer.run(tree, symtab)
         self.assertEqual(query_sym.params, ('x',))
     
     def test_param_analyzer_inst(self):
@@ -148,9 +147,8 @@ class ParamAnalysisCase(unittest.TestCase):
                 x = 1
                 print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
             ''')
-        scope_info = ScopeBuilder.run(tree)
         
-        tree = ParamAnalyzer.run(tree, symtab, scope_info)
+        tree = ParamAnalyzer.run(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
                 x = 1
@@ -186,9 +184,8 @@ class ParamAnalysisCase(unittest.TestCase):
                 x = 1
                 print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
             ''')
-        scope_info = ScopeBuilder.run(tree)
         
-        tree = DemandAnalyzer.run(tree, symtab, scope_info)
+        tree = DemandAnalyzer.run(tree, symtab)
         exp_tree = L.Parser.p('''
             def _demand_Q(_elem):
                 if (_elem not in _U_Q):
