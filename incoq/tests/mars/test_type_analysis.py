@@ -399,6 +399,15 @@ class TypeAnalysisCase(unittest.TestCase):
              'k1': String, 'k2': Number, 'v': Bool},
             False)
     
+    def test_query(self):
+        self.check('''
+            def main():
+                x = QUERY('Q', 1)
+            ''',
+            {'x': Bottom},
+            {'x': Number},
+            False)
+    
     def test_comp(self):
         # Member and Cond.
         self.check('''
@@ -412,7 +421,7 @@ class TypeAnalysisCase(unittest.TestCase):
         # RelMember.
         self.check('''
             def main():
-                print({x for x, y in REL(R)})
+                print({x for (x, y) in REL(R)})
             ''',
             {'R': Set(Tuple([String, Number])), 'x': Bottom, 'y': Bottom},
             {'R': Set(Tuple([String, Number])), 'x': String, 'y': Number},
@@ -420,7 +429,7 @@ class TypeAnalysisCase(unittest.TestCase):
         # RelMember, bad set type.
         self.check('''
             def main():
-                print({x for x, y in REL(R)})
+                print({x for (x, y) in REL(R)})
             ''',
             {'R': Set(Top), 'x': Bottom, 'y': Bottom},
             {'R': Set(Top), 'x': Top, 'y': Top},
@@ -429,7 +438,7 @@ class TypeAnalysisCase(unittest.TestCase):
         # SingMember.
         self.check('''
             def main():
-                print({x for x, y in SING(R)})
+                print({x for (x, y) in SING(R)})
             ''',
             {'R': Tuple([String, Number]), 'x': Bottom, 'y': Bottom},
             {'R': Tuple([String, Number]), 'x': String, 'y': Number},
@@ -437,7 +446,7 @@ class TypeAnalysisCase(unittest.TestCase):
         # SingMember, bad tuple type.
         self.check('''
             def main():
-                print({x for x, y in SING(R)})
+                print({x for (x, y) in SING(R)})
             ''',
             {'R': Top, 'x': Bottom, 'y': Bottom},
             {'R': Top, 'x': Top, 'y': Top},
@@ -446,13 +455,35 @@ class TypeAnalysisCase(unittest.TestCase):
         # WithoutMember.
         self.check('''
             def main():
-                print({x for x, y in WITHOUT(REL(R), e)})
+                print({x for (x, y) in WITHOUT(REL(R), e)})
             ''',
             {'R': Set(Tuple([String, Number])), 'e': Tuple([String, Number]),
              'x': Bottom, 'y': Bottom},
             {'R': Set(Tuple([String, Number])), 'e': Tuple([String, Number]),
              'x': String, 'y': Number},
             False)
+        
+        # VarsMember.
+        self.check('''
+            def main():
+                print({x for (x, y) in VARS(e)})
+            ''',
+            {'e': Set(Tuple([String, Number])),
+             'x': Bottom, 'y': Bottom},
+            {'e': Set(Tuple([String, Number])),
+             'x': String, 'y': Number},
+            False)
+        
+        # VarsMember, bad set type.
+        self.check('''
+            def main():
+                print({x for (x, y) in VARS(e)})
+            ''',
+            {'e': Top,
+             'x': Bottom, 'y': Bottom},
+            {'e': Top,
+             'x': Top, 'y': Top},
+            True)
     
     # Clauses are taken care of by Comp's tests.
     

@@ -77,13 +77,15 @@ class ClauseCase(unittest.TestCase):
         orig_tree = L.Parser.p('''
             def main():
                 {x for (x, y) in S for (x, y) in REL(R)
-                   for (x, y) in {e} for (x, y) in R - {e}}
+                   for (x, y) in {e} for (x, y) in R - {e}
+                   for (x, y) in QUERY('Q', 1 + 1)}
             ''')
         tree = preprocess_clauses(orig_tree)
         exp_tree = L.Parser.p('''
             def main():
                 {x for (x, y) in S for (x, y) in REL(R)
-                   for (x, y) in SING(e) for (x, y) in WITHOUT(R, e)}
+                   for (x, y) in SING(e) for (x, y) in WITHOUT(R, e)
+                   for (x, y) in VARS(QUERY('Q', 1 + 1))}
             ''')
         self.assertEqual(tree, exp_tree)
         

@@ -451,6 +451,11 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     visit_Unwrap = default_expr_handler
     
     @readonly
+    def visit_Query(self, node, *, type=None):
+        # Return query
+        return self.visit(node.query)
+    
+    @readonly
     def visit_Comp(self, node, *, type=None):
         # Return Set<resexp>
         for cl in node.clauses:
@@ -509,6 +514,22 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         # with the convention that for membership clauses, type is the
         # type of the element.
         self.generic_visit(node)
+    
+    @readonly
+    def visit_VarsMember(self, node, *, type=None):
+        # If join(iter, Set<Tuple<Bottom, ..., Bottom>>) ==
+        #    Set<Tuple<T1, ..., Tn>>, n == len(vars):
+        #   vars_i := T_i for each i
+        # Else:
+        #   vars_i := Top for each i
+        #
+        # Check iter <= Set<Tuple<Top, ..., Top>>
+        n = len(node.vars)
+        t_iter = self.visit(node.iter)
+        t_target = self.get_sequence_elt(node, t_iter, Set)
+        t_vars = self.get_tuple_elts(node, t_target, n)
+        for v, t in zip(node.vars, t_vars):
+            self.update_store(v, t)
     
     @readonly
     def visit_Cond(self, node, *, type=None):

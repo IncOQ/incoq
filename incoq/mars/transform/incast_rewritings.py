@@ -130,8 +130,9 @@ postprocess_firstthen = FirstThenExporter.run
 
 class ClauseImporter(L.NodeTransformer):
     
-    """Rewrite Member clauses as SingMember and WithoutMember when
-    applicable.
+    """Rewrite Member clauses as SingMember, WithoutMember, and
+    VarsMember when applicable. VarsMember is only used when the right-
+    hand side is a Query.
     """
     
     def visit_Member(self, node):
@@ -159,6 +160,11 @@ class ClauseImporter(L.NodeTransformer):
             return L.SingMember(L.detuplify(node.target),
                                 node.iter.elts[0])
         
+        # <vars> in <query>
+        if (L.is_tuple_of_names(node.target) and
+            isinstance(node.iter, L.Query)):
+            return L.VarsMember(L.detuplify(node.target), node.iter)
+        
         return node
 
 
@@ -179,6 +185,11 @@ class ClauseExporter(L.NodeTransformer):
         
         new_iter = L.BinOp(node.cl.iter, L.Sub(), L.Set([node.value]))
         return L.Member(node.cl.target, new_iter)
+    
+    def visit_VarsMember(self, node):
+        node = self.generic_visit(node)
+        
+        return L.Member(L.tuplify(node.vars), node.iter)
 
 
 preprocess_clauses = ClauseImporter.run

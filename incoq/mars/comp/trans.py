@@ -194,6 +194,8 @@ def incrementalize_comp(tree, symtab, query, result_var):
     fresh_vars = symtab.fresh_names.vars
     comp = query.node
     
+    comp = convert_subquery_clauses(comp)
+    
     if query.params != ():
         assert isinstance(comp.resexp, L.Tuple)
         orig_arity = len(comp.resexp.elts)
