@@ -139,8 +139,8 @@ def _maint_R_Q1_for_R__QU_Q1_remove(_elem):
 def _maint_R_Q1_for_S_add(_elem):
     (_v6_a,) = _elem
     for (_v6_k, _v6_j, _v6_k_2) in R__QU_Q1:
-        if (_v6_a >= _v6_k):
-            if (_v6_k == _v6_k_2):
+        if (_v6_k == _v6_k_2):
+            if (_v6_a >= _v6_k):
                 _v6_result = (_v6_k, _v6_a)
                 if (_v6_result not in R_Q1):
                     R_Q1.add(_v6_result)
@@ -152,8 +152,8 @@ def _maint_R_Q1_for_S_add(_elem):
 def _maint_R_Q1_for_S_remove(_elem):
     (_v7_a,) = _elem
     for (_v7_k, _v7_j, _v7_k_2) in R__QU_Q1:
-        if (_v7_a >= _v7_k):
-            if (_v7_k == _v7_k_2):
+        if (_v7_k == _v7_k_2):
+            if (_v7_a >= _v7_k):
                 _v7_result = (_v7_k, _v7_a)
                 if (R_Q1.getcount(_v7_result) == 1):
                     _maint_R_Q2_for_R_Q1_remove(_v7_result)

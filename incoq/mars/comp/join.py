@@ -98,11 +98,28 @@ class ClauseTools(ClauseVisitor):
                 rels.add(rel)
         return tuple(rels)
     
-    def constr_lhs_vars_from_comp(self, comp):
-        vars = OrderedSet()
+    def uncon_lhs_vars_from_comp(self, comp):
+        """Return a tuple of unconstrained variables.
+        
+        An variable is unconstrained if it appears in a clause at a
+        position that is not constrained, and if it appears in no prior
+        clause at a constrained position.
+        
+        For cyclic object queries like
+        
+            {(x, y) for y in x for x in y},
+        
+        after translating into clauses over M, there are two possible
+        sets of unconstrained vars: {x} and {y}. This function processes
+        clauses left-to-right, so {x} will be chosen.
+        """
+        uncon = OrderedSet()
+        supported = set()
         for cl in comp.clauses:
-            vars.update(self.constr_lhs_vars(cl))
-        return tuple(vars)
+            uncon.update(v for v in self.uncon_vars(cl)
+                           if v not in supported)
+            supported.update(self.con_lhs_vars(cl))
+        return tuple(uncon)
     
     def make_join_from_clauses(self, clauses):
         """Create a join from the given clauses."""

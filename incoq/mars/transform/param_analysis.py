@@ -48,8 +48,8 @@ def determine_demand_params(clausetools, query):
                              'demand_param_strat is set to "explicit"')
     
     if strat == 'unconstrained':
-        constr_vars = clausetools.constr_lhs_vars_from_comp(comp)
-        demand_params = tuple(p for p in params if p not in constr_vars)
+        uncon_vars = clausetools.uncon_lhs_vars_from_comp(comp)
+        demand_params = tuple(p for p in params if p in uncon_vars)
     elif strat == 'all':
         demand_params = params
     elif query.demand_param_strat == 'explicit':

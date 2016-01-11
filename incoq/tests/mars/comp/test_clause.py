@@ -12,6 +12,21 @@ class ClauseCase(unittest.TestCase):
     def setUp(self):
         self.visitor = CoreClauseVisitor()
     
+    def test_constrained(self):
+        v = self.visitor
+        
+        # Mock up a handler with a different constrained mask.
+        class DummyHandler(RelMemberHandler):
+            def constrained_mask(self, cl):
+                return [True, False, True]
+        v.handle_RelMember = DummyHandler(v)
+        
+        cl = L.RelMember(['x', 'y', 'z'], 'R')
+        self.assertSequenceEqual(v.constrained_mask(cl), [True, False, True])
+        self.assertSequenceEqual(v.con_lhs_vars(cl), ['x', 'z'])
+        self.assertSequenceEqual(v.uncon_lhs_vars(cl), ['y'])
+        self.assertSequenceEqual(v.uncon_vars(cl), ['y'])
+    
     def check_rename_lhs_vars(self, cl):
         v = self.visitor
         
@@ -49,7 +64,6 @@ class ClauseCase(unittest.TestCase):
         self.assertIs(v.kind(cl), Kind.Member)
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), 'R')
-        self.assertSequenceEqual(v.constr_lhs_vars(cl), ['x', 'y', 'z'])
         
         pri = v.get_priority(cl, ['a', 'x', 'y', 'z'])
         self.assertEqual(pri, Priority.Constant)
@@ -96,7 +110,7 @@ class ClauseCase(unittest.TestCase):
         self.assertIs(v.kind(cl), Kind.Member)
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), None)
-        self.assertSequenceEqual(v.constr_lhs_vars(cl), ['x', 'y', 'z'])
+        self.assertSequenceEqual(v.uncon_vars(cl), ['e'])
         
         pri = v.get_priority(cl, ['a', 'x', 'y'])
         self.assertEqual(pri, Priority.Constant)
@@ -140,7 +154,7 @@ class ClauseCase(unittest.TestCase):
         self.assertIs(v.kind(cl), Kind.Member)
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), 'R')
-        self.assertSequenceEqual(v.constr_lhs_vars(cl), ['x', 'y', 'z'])
+        self.assertSequenceEqual(v.uncon_vars(cl), ['e'])
         
         pri = v.get_priority(cl, ['a', 'x'])
         self.assertEqual(pri, Priority.Normal)
@@ -163,13 +177,13 @@ class ClauseCase(unittest.TestCase):
     def test_varsmember(self):
         v = self.visitor
         
-        expr = L.Parser.pe('1 + 1')
+        expr = L.Parser.pe('1 + a')
         cl = L.VarsMember(['x', 'y', 'z'], expr)
         
         self.assertIs(v.kind(cl), Kind.Member)
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), None)
-        self.assertSequenceEqual(v.constr_lhs_vars(cl), ['x', 'y', 'z'])
+        self.assertSequenceEqual(v.uncon_vars(cl), ['a'])
         
         with self.assertRaises(NotImplementedError):
             v.get_priority(cl, [])
@@ -189,7 +203,7 @@ class ClauseCase(unittest.TestCase):
         self.assertIs(v.kind(cl), Kind.Cond)
         self.assertSequenceEqual(v.lhs_vars(cl), [])
         self.assertEqual(v.rhs_rel(cl), None)
-        self.assertSequenceEqual(v.constr_lhs_vars(cl), [])
+        self.assertSequenceEqual(v.uncon_vars(cl), ['x', 'y'])
         
         pri = v.get_priority(cl, ['a', 'x', 'y'])
         self.assertEqual(pri, Priority.Constant)

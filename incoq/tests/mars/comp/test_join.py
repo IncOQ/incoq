@@ -5,6 +5,7 @@ import unittest
 
 from incoq.mars.incast import L
 from incoq.mars.symtab import N
+from incoq.mars.comp.clause import RelMemberHandler
 from incoq.mars.comp.join import *
 
 
@@ -50,9 +51,25 @@ class JoinCase(unittest.TestCase):
         
         lhs_vars = self.ct.lhs_vars_from_comp(comp)
         self.assertSequenceEqual(lhs_vars, ['x', 'y', 'z'])
+    
+    def test_uncon_lhs_vars_from_comp(self):
+        class DummyHandler(RelMemberHandler):
+            def constrained_mask(self, cl):
+                return [False, True]
+        self.ct.handle_RelMember = DummyHandler(self.ct)
         
-        constr_lhs_vars = self.ct.constr_lhs_vars_from_comp(comp)
-        self.assertSequenceEqual(constr_lhs_vars, ['x', 'y', 'z'])
+        comp = L.Parser.pe('''{None for (x, y) in REL(R)
+                                    for (y, z) in REL(R)
+                                    for (a, z) in REL(R)
+                                    if y > b}''')
+        uncon = self.ct.uncon_lhs_vars_from_comp(comp)
+        self.assertSequenceEqual(uncon, ['x', 'a', 'b'])
+        
+        # Cyclic case.
+        comp = L.Parser.pe('''{None for (x, y) in REL(R)
+                                    for (y, x) in REL(R)}''')
+        uncon = self.ct.uncon_lhs_vars_from_comp(comp)
+        self.assertSequenceEqual(uncon, ['x'])
     
     def test_rhs_rels_from_comp(self):
         comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)

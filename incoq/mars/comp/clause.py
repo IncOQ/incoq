@@ -78,7 +78,7 @@ class ClauseHandler(BaseClauseHandler):
     
     """Base class for clause handlers."""
     
-    # Mask functions like constr_lhs_vars_mask() return sequences of
+    # Mask functions like constrained_mask() return sequences of
     # booleans, one per LHS var, identifying whether or not that
     # position satisfies a property. 
     
@@ -101,20 +101,38 @@ class ClauseHandler(BaseClauseHandler):
         """
         raise NotImplementedError
     
-    def constr_lhs_vars(self, cl):
+    # Note that the same variable can be returned by both con_lhs_vars()
+    # and uncon_lhs_vars() if it appears in both kinds of positions.
+    
+    def con_lhs_vars(self, cl):
         """For a membership clause, return a tuple of just those LHS
-        vars that are constrained by this clause (e.g., omitting sets
-        and objects for M and F clauses). For condition clauses return
-        the empty tuple.
+        vars that are in a position that is constrained by this clause
+        (e.g., omitting sets and objects for M and F clauses). For
+        condition clauses return the empty tuple.
         """
         return tuple(v for v, m in zip(self.lhs_vars(cl),
-                                       self.constr_lhs_vars_mask(cl))
+                                       self.constrained_mask(cl))
                        if m)
     
-    def constr_lhs_vars_mask(self, cl):
+    def uncon_lhs_vars(self, cl):
+        """As above, but return LHS vars that are in a position that is
+        not constrained by this clause.
+        """
+        return tuple(v for v, m in zip(self.lhs_vars(cl),
+                                       self.constrained_mask(cl))
+                       if not m)
+    
+    def constrained_mask(self, cl):
         """Bool mask identifying positions of constrained LHS vars."""
         # Default behavior: All LHS vars are constrained.
         return tuple(True for _ in self.lhs_vars(cl))
+    
+    def uncon_vars(self, cl):
+        """Return a tuple of all variables appearing in the clause,
+        ignoring the constrained LHS var positions (although those
+        variables may still be included due to other occurrences).
+        """
+        return self.uncon_lhs_vars(cl)
     
     def get_priority(self, cl, bindenv):
         """Return a priority for the cost heuristic based on the given
@@ -180,8 +198,10 @@ for op in [
     'kind',
     'lhs_vars',
     'rhs_rel',
-    'constr_lhs_vars',
-    'constr_lhs_vars_mask',
+    'con_lhs_vars',
+    'uncon_lhs_vars',
+    'constrained_mask',
+    'uncon_vars',
     'get_priority',
     'get_code',
     'rename_lhs_vars',
@@ -260,6 +280,9 @@ class SingMemberHandler(ClauseHandler):
     def rhs_rel(self, cl):
         return None
     
+    def uncon_vars(self, cl):
+        return tuple(L.IdentFinder.find_vars(cl.value))
+    
     def get_priority(self, cl, bindenv):
         return Priority.Constant
     
@@ -297,6 +320,11 @@ class WithoutMemberHandler(ClauseHandler):
     def rhs_rel(self, cl):
         return self.visitor.rhs_rel(cl.cl)
     
+    def uncon_vars(self, cl):
+        inner_result = self.visitor.uncon_vars(cl.cl)
+        outer_result = tuple(L.IdentFinder.find_vars(cl.value))
+        return inner_result + outer_result
+    
     def get_priority(self, cl, bindenv):
         return self.visitor.get_priority(cl.cl, bindenv)
     
@@ -330,6 +358,12 @@ class VarsMemberHandler(ClauseHandler):
     def rhs_rel(self, cl):
         return None
     
+    def uncon_vars(self, cl):
+        # Technically, parameters of comprehensions on the right-hand
+        # side may or may not be constrained, but we won't bother with
+        # that distinction here.
+        return tuple(L.IdentFinder.find_vars(cl.iter))
+    
     def rename_lhs_vars(self, cl, renamer):
         new_vars = tuple(renamer(v) for v in cl.vars)
         return cl._replace(vars=new_vars)
@@ -345,6 +379,9 @@ class CondHandler(ClauseHandler):
     
     def rhs_rel(self, cl):
         return None
+    
+    def uncon_vars(self, cl):
+        return tuple(L.IdentFinder.find_vars(cl.cond))
     
     def get_priority(self, cl, bindenv):
         vars = L.IdentFinder.find_vars(cl.cond)
