@@ -510,6 +510,9 @@ class NestedDemandAnalyzer(DemandAnalyzer):
         demquery_type = T.Set(t_demand_params)
         demquery_comp = L.Comp(L.tuplify(demand_params),
                                self.current_left_clauses())
+        prefix = next(symtab.fresh_names.vars)
+        demquery_comp = ct.comp_rename_lhs_vars(
+                            demquery_comp, lambda x: prefix + x)
         demquery_sym = symtab.define_query(demquery_name, type=demquery_type,
                                            node=demquery_comp, impl=query.impl)
         query.demand_query = demquery_name

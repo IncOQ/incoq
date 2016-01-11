@@ -264,7 +264,7 @@ class ParamAnalysisCase(unittest.TestCase):
             
             def main():
                 x = 1
-                print(FIRSTTHEN(_demand_Q2((x,)), QUERY('Q2', {z for (x,) in REL(_U_Q2) for (z,) in VARS(QUERY('Q1', {(y,) for (x,) in VARS(QUERY('_QU_Q1', {(x,) for (x,) in REL(_U_Q2)})) for (x, y) in REL(R)}))})))
+                print(FIRSTTHEN(_demand_Q2((x,)), QUERY('Q2', {z for (x,) in REL(_U_Q2) for (z,) in VARS(QUERY('Q1', {(y,) for (x,) in VARS(QUERY('_QU_Q1', {(_v1x,) for (_v1x,) in REL(_U_Q2)})) for (x, y) in REL(R)}))})))
             ''')
         self.assertEqual(tree, exp_tree)
         
