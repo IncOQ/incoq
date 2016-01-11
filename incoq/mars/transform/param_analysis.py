@@ -179,6 +179,11 @@ class ScopeBuilder(L.NodeVisitor):
         for v in node.vars:
             self.bind(v)
         self.generic_visit(node)
+    
+    def visit_VarsMember(self, node):
+        for v in node.vars:
+            self.bind(v)
+        self.generic_visit(node)
 
 
 # For ease of specification, the complete logic for rewriting query

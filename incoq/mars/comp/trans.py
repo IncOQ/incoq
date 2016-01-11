@@ -272,7 +272,6 @@ def rewrite_all_comps_with_patterns(tree, symtab):
             
             ct = self.symtab.clausetools
             comp = ct.rewrite_with_patterns(expr, symbol.params)
-            comp = ct.elim_sameclause_eqs(comp)
             return comp
     
     return Rewriter.run(tree, symtab)
