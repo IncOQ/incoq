@@ -6,6 +6,7 @@ __all__ = [
 ]
 
 
+from incoq.util.collections import OrderedSet
 from incoq.util.planner import State, Planner
 from incoq.mars.incast import L
 
@@ -20,7 +21,7 @@ class OrderState(State):
         self.chosen = chosen
         """List of determined clauses, in order."""
         self.remaining = remaining
-        """List of clauses remaining to be ordered."""
+        """OrderedSet of clauses remaining to be ordered."""
     
     def get_successors(self):
         # Sort by priority under the current binding environment.
@@ -37,7 +38,7 @@ class OrderState(State):
         for cl in clauses:
             new_bindenv = self.bindenv | set(self.clv.lhs_vars(cl))
             new_chosen = self.chosen + [cl]
-            new_remaining = set(self.remaining) - {cl}
+            new_remaining = self.remaining - {cl}
             state = OrderState(self.clv, new_bindenv,
                                new_chosen, new_remaining)
             succ.append(state)
@@ -57,5 +58,5 @@ def order_clauses(clausevisitor, clauses):
     Use a greedy heuristic: Choose the leftmost clause whose priority
     is best (lowest number). Return the ordered clauses as a list.
     """
-    init = OrderState(clausevisitor, set(), [], clauses)
+    init = OrderState(clausevisitor, set(), [], OrderedSet(clauses))
     return Planner().get_first_answer(init)
