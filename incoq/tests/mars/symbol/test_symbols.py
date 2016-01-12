@@ -8,7 +8,12 @@ from incoq.mars.type import T
 from incoq.mars.symbol.symbols import *
 
 
-class MetaSymbolCase(unittest.TestCase):
+class MetaCase(unittest.TestCase):
+    
+    def test_constants(self):
+        # Check that the namespace and __all__ have been flooded
+        # with the members.
+        Normal
     
     def test_symbolattribute_default(self):
         class Sym(Symbol):
@@ -20,14 +25,19 @@ class MetaSymbolCase(unittest.TestCase):
         s.A = 3
         self.assertEqual(s.A, 3)
     
-    def test_symbolattribute_allowed_values(self):
+    def test_enumsymbolattribute_allowed_values(self):
         class Sym(Symbol):
-            A = SymbolAttribute(allowed_values=[1, 2])
+            A = EnumSymbolAttribute(allowed_values=[Normal, Inc])
         s = Sym('s')
-        s.A = 1
-        s.A = 2
+        s.A = Normal
+        s.A = Inc
         with self.assertRaises(ValueError):
-            s.A = 3
+            s.A = 'a'
+    
+    def test_enumsymbolattribute_parser(self):
+        class Sym(Symbol):
+            A = EnumSymbolAttribute(allowed_values=[Normal, Inc])
+        self.assertEqual(Sym.A.parser('NoRmAl'), Normal)
     
     def test_metasymbol_symbol_attrs(self):
         self.assertEqual(Symbol._symbol_attrs, ())

@@ -2,9 +2,14 @@
 
 
 __all__ = [
+    'Constants',
+    # Programmatically add Constants members.
+    
     'SymbolAttribute',
+    'EnumSymbolAttribute',
     'Symbol',
     'TypedSymbolMixin',
+    
     'RelationSymbol',
     'MapSymbol',
     'VarSymbol',
@@ -12,18 +17,36 @@ __all__ = [
 ]
 
 
+from enum import Enum
 from collections import OrderedDict
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
 
 
+class Constants(Enum):
+    
+    """Enumeration for symbol attribute constants."""
+    
+    # impl
+    Normal = 1
+    Inc = 2
+    
+    # demand_param_strat
+    Unconstrained = 10
+    All = 11
+    Explicit = 12
+
+# Flood the namespace with constants.
+globals().update(Constants.__members__)
+__all__.extend(Constants.__members__.keys())
+
+
 class SymbolAttribute:
     
     """Descriptor for a symbol attribute."""
     
-    def __init__(self, *, doc=None, default=None, parser=None,
-                 allowed_values=None):
+    def __init__(self, *, doc=None, default=None, parser=None):
         self.name = None
         """Name of attribute. Populated by MetaSymbol."""
         self.doc = doc
@@ -36,7 +59,6 @@ class SymbolAttribute:
         """If not None, a callable that takes a literal value (e.g. a
         string supplied by the user) to a value for this attribute.
         """
-        self.allowed_values = allowed_values
     
     def __get__(self, inst, owner):
         if inst is None:
@@ -50,16 +72,42 @@ class SymbolAttribute:
         return getattr(inst, '_' + self.name, default)
     
     def __set__(self, inst, value):
-        # Check if the value is allowable.
+        setattr(inst, '_' + self.name, value)
+    
+    def defined(self, inst):
+        return hasattr(inst, '_' + self.name)
+
+
+class EnumSymbolAttribute(SymbolAttribute):
+    
+    """SymbolAttribute where value must be one of the members of
+    Constant.
+    """
+    
+    def __init__(self, *, allowed_values, **kargs):
+        if 'parser' not in kargs:
+            kargs['parser'] = self.parser
+        super().__init__(**kargs)
+        self.allowed_values = allowed_values
+        """Sequence of Constant members."""
+    
+    def __set__(self, inst, value):
         if self.allowed_values is not None:
             if value not in self.allowed_values:
                 vals = ', '.join(str(v) for v in self.allowed_values)
                 raise ValueError('Value for attribute {} must be one of: {}'
                                  .format(self.name, vals))
-        setattr(inst, '_' + self.name, value)
+        super().__set__(inst, value)
     
-    def defined(self, inst):
-        return hasattr(inst, '_' + self.name)
+    def parser(self, value):
+        """Default parser, construct constant from string representation."""
+        assert isinstance(value, str)
+        lv = value.lower()
+        for member in self.allowed_values:
+            if lv == member.name.lower():
+                return member
+        # Let __set__() raise an error.
+        return value
 
 
 class MetaSymbol(type):
@@ -213,10 +261,10 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         doc='Tuple of parameter identifiers for this query',
         default=())
     
-    impl = SymbolAttribute(
+    impl = EnumSymbolAttribute(
         doc='Implementation strategy, one of: normal, inc',
-        default='normal',
-        allowed_values=['normal', 'inc'])
+        default=Normal,
+        allowed_values=[Normal, Inc])
     
     demand_set = SymbolAttribute(
         doc='Name of demand set, or None if not used',
@@ -226,11 +274,11 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         doc='Tuple of demand parameter identifiers, or None if not used',
         default=None)
     
-    demand_param_strat = SymbolAttribute(
+    demand_param_strat = EnumSymbolAttribute(
         doc='Strategy to use for determining demand parameters, one of: '
             'unconstrained, all, explicit',
-        default='unconstrained',
-        allowed_values=['unconstrained', 'all', 'explicit'])
+        default=Unconstrained,
+        allowed_values=[Unconstrained, All, Explicit])
     
     def __str__(self):
         s = 'Query {}'.format(self.name)

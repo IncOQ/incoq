@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symbol import SymbolTable
+from incoq.mars.symbol import SymbolTable, Unconstrained, All, Explicit, Inc
 from incoq.mars.comp import CoreClauseTools
 from incoq.mars.transform.param_analysis import *
 
@@ -27,35 +27,35 @@ class ParamAnalysisCase(unittest.TestCase):
     def test_determine_demand_params(self):
         comp = L.Parser.pe('{x for (x, y) in REL(R) if z > 5}')
         
-        # Strat: all.
+        # Strat: All.
         symtab = SymbolTable()
         query = symtab.define_query('Q', node=comp, params=('x', 'z'),
-                                    demand_param_strat='all')
+                                    demand_param_strat=All)
         demand_params = determine_demand_params(self.ct, query)
         exp_demand_params = ['x', 'z']
         self.assertSequenceEqual(demand_params, exp_demand_params)
         
-        # Strat: unconstrained.
+        # Strat: Unconstrained.
         symtab = SymbolTable()
         query = symtab.define_query('Q', node=comp, params=('x', 'z'),
-                                    demand_param_strat='unconstrained')
+                                    demand_param_strat=Unconstrained)
         demand_params = determine_demand_params(self.ct, query)
         exp_demand_params = ['z']
         self.assertSequenceEqual(demand_params, exp_demand_params)
         
-        # Strat: explicit.
+        # Strat: Explicit.
         symtab = SymbolTable()
         query = symtab.define_query('Q', node=comp, params=('x', 'z'),
-                                    demand_param_strat='explicit',
+                                    demand_param_strat=Explicit,
                                     demand_params=['x'])
         demand_params = determine_demand_params(self.ct, query)
         exp_demand_params = ['x']
         self.assertSequenceEqual(demand_params, exp_demand_params)
         
-        # explicit requires demand_params attribute.
+        # Explicit requires demand_params attribute.
         symtab = SymbolTable()
         query = symtab.define_query('Q', node=comp, params=('x', 'z'),
-                                    demand_param_strat='explicit')
+                                    demand_param_strat=Explicit)
         with self.assertRaises(AssertionError):
             determine_demand_params(self.ct, query)
         
@@ -209,8 +209,8 @@ class ParamAnalysisCase(unittest.TestCase):
         symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
         symtab.define_var('x', type=T.Number)
         symtab.define_var('y', type=T.Number)
-        query_sym = symtab.define_query('Q', node=comp, impl='inc',
-                                        demand_param_strat='explicit',
+        query_sym = symtab.define_query('Q', node=comp, impl=Inc,
+                                        demand_param_strat=Explicit,
                                         demand_params=('x',))
         tree = L.Parser.p('''
             def main():
@@ -246,10 +246,10 @@ class ParamAnalysisCase(unittest.TestCase):
         symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
         for v in ['x', 'y', 'z']:
             symtab.define_var(v, type=T.Number)
-        query_sym1 = symtab.define_query('Q1', node=comp1, impl='inc',
-                                        demand_param_strat='explicit',
+        query_sym1 = symtab.define_query('Q1', node=comp1, impl=Inc,
+                                        demand_param_strat=Explicit,
                                         demand_params=('x',))
-        query_sym2 = symtab.define_query('Q2', node=comp2, impl='inc')
+        query_sym2 = symtab.define_query('Q2', node=comp2, impl=Inc)
         tree = L.Parser.p('''
             def main():
                 x = 1

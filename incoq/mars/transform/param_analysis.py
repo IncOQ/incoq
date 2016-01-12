@@ -19,7 +19,7 @@ from itertools import chain
 
 from incoq.util.collections import OrderedSet
 from incoq.mars.type import T
-from incoq.mars.symbol import N
+from incoq.mars.symbol import N, Unconstrained, All, Explicit, Inc, Normal
 from incoq.mars.incast import L
 
 
@@ -43,16 +43,16 @@ def determine_demand_params(clausetools, query):
     params = query.params
     
     strat = query.demand_param_strat
-    if strat != 'explicit' and query.demand_params is not None:
+    if strat != Explicit and query.demand_params is not None:
         raise AssertionError('Do not supply demand_params unless '
                              'demand_param_strat is set to "explicit"')
     
-    if strat == 'unconstrained':
+    if strat == Unconstrained:
         uncon_vars = clausetools.uncon_lhs_vars_from_comp(comp)
         demand_params = tuple(p for p in params if p in uncon_vars)
-    elif strat == 'all':
+    elif strat == All:
         demand_params = params
-    elif query.demand_param_strat == 'explicit':
+    elif query.demand_param_strat == Explicit:
         assert query.demand_params is not None
         demand_params = query.demand_params
     else:
@@ -396,7 +396,7 @@ class DemandAnalyzer(ParamAnalyzer):
         super().apply_context(query, context)
         
         # Don't touch non-incrementalized queries.
-        if query.impl == 'normal':
+        if query.impl == Normal:
             return
         
         # We can't handle non-Comp queries here.
@@ -536,7 +536,7 @@ class NestedDemandAnalyzer(DemandAnalyzer):
         # symbol, since that shouldn't change during instantiation
         # anyway.
         sym = self.symtab.get_queries()[node.name]
-        if isinstance(node.query, L.Comp) and sym.impl != 'normal':
+        if isinstance(node.query, L.Comp) and sym.impl != Normal:
             self.push_next_comp = True
         
         return super().visit_Query(node)

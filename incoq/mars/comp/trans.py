@@ -15,7 +15,7 @@ __all__ = [
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symbol import N, QueryRewriter
+from incoq.mars.symbol import N, QueryRewriter, Normal
 from .order import order_clauses
 
 
@@ -267,7 +267,7 @@ def rewrite_all_comps_with_patterns(tree, symtab):
         def rewrite(self, symbol, name, expr):
             if not isinstance(expr, L.Comp):
                 return
-            if symbol.impl == 'normal':
+            if symbol.impl == Normal:
                 return
             
             ct = self.symtab.clausetools

@@ -15,7 +15,7 @@ from itertools import chain
 from collections import OrderedDict
 
 from incoq.mars.incast import L, P
-from incoq.mars.symbol import Config, SymbolTable
+from incoq.mars.symbol import Config, SymbolTable, Inc, Normal
 from incoq.mars.comp import (
     CoreClauseTools, incrementalize_comp, expand_maintjoins,
     rewrite_all_comps_with_patterns)
@@ -151,10 +151,10 @@ def postprocess_tree(tree, symtab):
 def transform_query(tree, symtab, query):
     if isinstance(query.node, L.Comp):
         
-        if query.impl == 'normal':
+        if query.impl == Normal:
             success = False
         
-        elif query.impl == 'inc':
+        elif query.impl == Inc:
             # Incrementalize the query.
             result_var = 'R_' + query.name
             tree = incrementalize_comp(tree, symtab, query, result_var)
