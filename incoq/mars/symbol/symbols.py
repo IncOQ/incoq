@@ -2,6 +2,7 @@
 
 
 __all__ = [
+    'SymbolAttribute',
     'Symbol',
     'TypedSymbolMixin',
     'RelationSymbol',
@@ -20,25 +21,41 @@ from incoq.mars.type import T
 
 class SymbolAttribute(Struct):
     
-    name = Field()
-    default = Field()
-    docstring = Field()
+    """Descriptor for a symbol attribute."""
     
-    allowed_values = None
-    """If not None, must be a sequence of enumerated allowed values."""
+    name = Field()
+    """Name of attribute."""
+    default = Field()
+    """Default value. The owner class or instance may override this with
+    a new default by defining an attribute named default_<name>.
+    """
+    docstring = Field()
+    """User documentation."""
+    allowed_values = Field(default=None)
+    """If not None, sequence of enumerated allowed values."""
+    parser = Field(default=None)
+    """If not None, a callable that takes a literal value (e.g. a
+    string supplied by the user) to a value for this attribute.
+    """
     
     def __get__(self, inst, owner):
         if inst is None:
             return self
-        else:
-            return getattr(inst, '_' + self.name, self.default)
+        
+        # Determine default.
+        default = getattr(inst, 'default_' + self.name, None)
+        if default is None:
+            default = self.default
+        # Return value or default.
+        return getattr(inst, '_' + self.name, default)
     
     def __set__(self, inst, value):
+        # Check if the value is allowable.
         if self.allowed_values is not None:
             if value not in self.allowed_values:
+                vals = ', '.join(str(v) for v in self.allowed_values)
                 raise ValueError('Value for attribute {} must be one of: {}'
-                                 .format(self.name,
-                                         ', '.join(self.allowed_values)))
+                                 .format(self.name, vals))
         setattr(inst, '_' + self.name, value)
     
     def defined(self, inst):
@@ -57,12 +74,15 @@ class MetaSymbol(type):
         return OrderedDict()
     
     def __new__(mcls, clsname, bases, namespace):
+        # Determine base classes' symbol attributes.
         symbol_attrs = []
         for b in bases:
             if isinstance(b, MetaSymbol):
                 symbol_attrs += b._symbol_attrs
-        for sym_attr in namespace.values():
+        # Add new ones for this class.
+        for key, sym_attr in namespace.items():
             if isinstance(sym_attr, SymbolAttribute):
+                assert key == sym_attr.name
                 symbol_attrs.append(sym_attr)
         
         cls = super().__new__(mcls, clsname, bases, dict(namespace))
@@ -72,60 +92,67 @@ class MetaSymbol(type):
 
 class Symbol(metaclass=MetaSymbol):
     
-    name = SymbolAttribute('name', None,
-            'Name of the symbol')
+    """Base class for symbols."""
     
     def __init__(self, name, **kargs):
-        self.update(name=name, **kargs)
+        self.name = name
+        self.update(**kargs)
     
     def update(self, **kargs):
-        for name, value in kargs.items():
-            if not isinstance(getattr(self.__class__, name, None),
+        """Assign to each symbol attribute as specified in keyword
+        arguments.
+        """
+        for attr, value in kargs.items():
+            if not isinstance(getattr(self.__class__, attr, None),
                               SymbolAttribute):
-                raise KeyError('Unknown symbol attribute "{}"'.format(name))
-            setattr(self, name, value)
+                raise KeyError('Unknown symbol attribute "{}"'.format(attr))
+            setattr(self, attr, value)
+    
+    def parse_and_update(self, **kargs):
+        """Like update(), but run the values through the symbol
+        attributes' parser functions if present.
+        """
+        for attr, value in kargs.items():
+            desc = getattr(self.__class__, attr, None)
+            if not isinstance(desc, SymbolAttribute):
+                raise KeyError('Unknown symbol attribute "{}"'.format(attr))
+            if desc.parser is not None:
+                value = desc.parser(value)
+            setattr(self, attr, value)
     
     def clone_attrs(self):
-        """Return a dictionary of attributes for this symbol, not
-        including name, suitable for passing to SymbolTable.define_*().
+        """Return a dictionary of symbol attributes having non-default
+        values on this instance.
         """
-        d = {}
-        for attr in self._symbol_attrs:
-            if attr.name == 'name':
-                continue
-            if attr.defined(self):
-                d[attr.name] = getattr(self, attr.name)
-        return d
+        return {desc.name: getattr(self, desc.name)
+                for desc in self._symbol_attrs
+                if desc.defined(self)}
 
 
 class TypedSymbolMixin(Symbol):
     
-    # Min/max type can be supplied as INFO inputs, but type
-    # should not be.
+    """Mixin for typed symbols."""
     
-    type = SymbolAttribute('type', T.Bottom,
-            'Current annotated or inferred type of the symbol')
+    min_type = T.Bottom
+    """Minimum allowable type for this symbol; the initial type for
+    non-input variables prior to type inference.
+    """
+    max_type = T.Top
+    """Maximum allowable type for this symbol; the initial type for
+    input variables in the absence of other constraining information.
+    """
     
-    min_type = SymbolAttribute('min_type', T.Bottom,
-            'Initial minimum type before type inference; the type '
-            'of input values for variables')
+    type = SymbolAttribute('type', None,
+            'Current annotated or inferred type of the symbol',
+            parser=lambda t: T.eval_typestr(t))
     
-    max_type = SymbolAttribute('max_type', T.Top,
-            'Maximum type after type inference; the type of output '
-            'values for variables')
-    
-    def type_helper(self, t):
-        return T.eval_typestr(t)
-    
-    parse_type = type_helper
-    parse_min_type = type_helper
-    parse_max_type = type_helper
+    @property
+    def default_type(self):
+        return self.min_type
     
     @property
     def decl_comment(self):
         return self.name + ' : ' + str(self.type)
-
-TSM = TypedSymbolMixin
 
 
 class RelationSymbol(TypedSymbolMixin, Symbol):
@@ -133,9 +160,8 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
     counted = SymbolAttribute('counted', False,
             'Allow duplicates, associate a count with each element')
     
-    type = TSM.type._replace(default=T.Set(T.Bottom))
-    min_type = TSM.min_type._replace(default=T.Set(T.Bottom))
-    max_type = TSM.max_type._replace(default=T.Set(T.Top))
+    min_type = T.Set(T.Bottom)
+    max_type = T.Set(T.Top)
     
     def __str__(self):
         s = 'Relation {}'.format(self.name)
@@ -153,9 +179,8 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
 
 class MapSymbol(TypedSymbolMixin, Symbol):
     
-    type = TSM.type._replace(default=T.Map(T.Bottom, T.Bottom))
-    min_type = TSM.min_type._replace(default=T.Map(T.Bottom, T.Bottom))
-    max_type = TSM.max_type._replace(default=T.Map(T.Top, T.Top))
+    min_type = T.Map(T.Bottom, T.Bottom)
+    max_type = T.Map(T.Top, T.Top)
     
     def __str__(self):
         s = 'Map {}'.format(self.name)
@@ -185,8 +210,8 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
             'Tuple of parameter identifiers for this query')
     
     impl = SymbolAttribute('impl', 'normal',
-            'Implementation strategy, one of: normal, inc')
-    impl.allowed_values = ['normal', 'inc']
+            'Implementation strategy, one of: normal, inc',
+            allowed_values=['normal', 'inc'])
     
     demand_set = SymbolAttribute('demand_set', None,
             'Name of demand set, or None if not used')
@@ -195,9 +220,8 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
     demand_param_strat = SymbolAttribute(
                          'demand_param_strat', 'unconstrained',
             'Strategy to use for determining demand parameters, one of: '
-            'unconstrained, all, explicit')
-    demand_param_strat.allowed_values = ['unconstrained', 'all',
-                                         'explicit']
+            'unconstrained, all, explicit',
+            allowed_values=['unconstrained', 'all', 'explicit'])
     
     def __str__(self):
         s = 'Query {}'.format(self.name)

@@ -38,9 +38,9 @@ class ConfigAttribute(Struct):
     def __get__(self, inst, owner):
         if inst is None:
             return self
-        else:
-            # Return default if it doesn't exist.
-            return getattr(inst, '_' + self.name, self.default)
+        
+        # Return default if it doesn't exist.
+        return getattr(inst, '_' + self.name, self.default)
     
     def __set__(self, inst, value):
         setattr(inst, '_' + self.name, value)
