@@ -15,8 +15,7 @@ from itertools import chain
 from collections import OrderedDict
 
 from incoq.mars.incast import L, P
-from incoq.mars.config import Config
-from incoq.mars.symbol import SymbolTable
+from incoq.mars.symbol import Config, SymbolTable
 from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer, define_map
 from incoq.mars.comp import (
     CoreClauseTools, incrementalize_comp, expand_maintjoins,

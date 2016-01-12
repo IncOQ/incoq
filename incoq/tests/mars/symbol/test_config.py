@@ -3,8 +3,8 @@
 
 import unittest
 
-from incoq.mars.config import *
-from incoq.mars.config import all_attributes
+from incoq.mars.symbol.config import *
+from incoq.mars.symbol.config import all_attributes
 
 
 class ConfigCase(unittest.TestCase):

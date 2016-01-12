@@ -10,7 +10,7 @@ __all__ = [
 import sys
 import argparse
 
-from incoq.mars.config import all_attributes
+from incoq.mars.symtab.config import all_attributes
 from incoq.mars.transform import transform_source
 
 
