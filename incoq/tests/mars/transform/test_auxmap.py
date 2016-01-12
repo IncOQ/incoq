@@ -6,9 +6,9 @@ import unittest
 from incoq.mars.incast import L
 from incoq.mars.type import T
 from incoq.mars.symbol import N, SymbolTable
-from incoq.mars.auxmap import *
-from incoq.mars.auxmap import (make_imgadd, make_imgremove,
-                               make_auxmap_maint_func)
+from incoq.mars.transform.auxmap import *
+from incoq.mars.transform.auxmap import (make_imgadd, make_imgremove,
+                                         make_auxmap_maint_func)
 
 
 class AuxmapCase(unittest.TestCase):

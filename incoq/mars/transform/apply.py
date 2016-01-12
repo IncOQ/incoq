@@ -16,7 +16,6 @@ from collections import OrderedDict
 
 from incoq.mars.incast import L, P
 from incoq.mars.symbol import Config, SymbolTable
-from incoq.mars.auxmap import AuxmapFinder, AuxmapTransformer, define_map
 from incoq.mars.comp import (
     CoreClauseTools, incrementalize_comp, expand_maintjoins,
     rewrite_all_comps_with_patterns)
@@ -26,6 +25,7 @@ from .incast_rewritings import incast_preprocess, incast_postprocess
 from .optimize import unwrap_singletons
 from .param_analysis import analyze_demand
 from .misc_rewritings import relationalize_comp_queries
+from .auxmap import AuxmapFinder, AuxmapTransformer, define_map
 
 
 def debug_symbols(symtab, illtyped, badsyms):
