@@ -5,9 +5,11 @@ from incoq.util.misc import new_namespace
 
 from . import nodes
 from . import pynodes as P
+from . import tools
 from . import pyconv
 from . import error
+from . import mask
 from . import util
 
 
-L = new_namespace(nodes, tools, pyconv, error, util)
+L = new_namespace(nodes, tools, pyconv, error, mask, util)
