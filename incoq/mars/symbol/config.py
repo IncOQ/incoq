@@ -2,7 +2,7 @@
 
 
 __all__ = [
-    'Attribute',
+    'ConfigAttribute',
     'Config',
 ]
 
@@ -16,9 +16,13 @@ from simplestruct import Struct, Field
 # purposes.
 
 
-class Attribute(Struct):
+class ConfigAttribute(Struct):
     
     """Descriptor for a configuration attribute."""
+    
+    # The actual attribute value, if it exists, is stored on the
+    # instance under the name of the attribute prefixed with an
+    # underscore.
     
     name = Field()
     """Name of attribute."""
@@ -35,6 +39,7 @@ class Attribute(Struct):
         if inst is None:
             return self
         else:
+            # Return default if it doesn't exist.
             return getattr(inst, '_' + self.name, self.default)
     
     def __set__(self, inst, value):
@@ -42,13 +47,13 @@ class Attribute(Struct):
 
 
 all_attributes = [
-    Attribute('verbose', False,
-              'print transformation information to standard output',
-              {'action': 'store_true'}),
+    ConfigAttribute('verbose', False,
+        'print transformation information to standard output',
+        {'action': 'store_true'}),
     
-    Attribute('unwrap_singletons', False,
-              'rewrite singleton relations to eliminate unneeded tuples',
-              {'action': 'store_true'})
+    ConfigAttribute('unwrap_singletons', False,
+        'rewrite singleton relations to eliminate unneeded tuples',
+        {'action': 'store_true'})
 ]
 
 
@@ -57,16 +62,17 @@ class Config:
     """A bundle of configuration attributes."""
     
     # Attribute descriptors are pulled in from all_attributes
-    # programmatically. Methods refer to all_attributes, so
-    # any subclasses of Config may have problems.
+    # programmatically. (Beware if subclassing Config.)
     
     def __str__(self):
         return '\n'.join('{}: {}'.format(attr.name, getattr(self, attr.name))
                          for attr in all_attributes)
     
     def update(self, **kargs):
+        """Assign to each attribute as specified in keyword arguments."""
         for attr, value in kargs.items():
-            if not isinstance(getattr(type(self), attr, None), Attribute):
+            descriptor = getattr(type(self), attr, None)
+            if not isinstance(descriptor, ConfigAttribute):
                 raise ValueError('Unknown config attribute "{}"'.format(attr))
             setattr(self, attr, value)
 
