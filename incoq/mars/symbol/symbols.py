@@ -13,30 +13,30 @@ __all__ = [
 
 
 from collections import OrderedDict
-from simplestruct import Struct, Field
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
 
 
-class SymbolAttribute(Struct):
+class SymbolAttribute:
     
     """Descriptor for a symbol attribute."""
     
-    name = Field()
-    """Name of attribute."""
-    default = Field()
-    """Default value. The owner class or instance may override this with
-    a new default by defining an attribute named default_<name>.
-    """
-    docstring = Field()
-    """User documentation."""
-    allowed_values = Field(default=None)
-    """If not None, sequence of enumerated allowed values."""
-    parser = Field(default=None)
-    """If not None, a callable that takes a literal value (e.g. a
-    string supplied by the user) to a value for this attribute.
-    """
+    def __init__(self, *, doc=None, default=None, parser=None,
+                 allowed_values=None):
+        self.name = None
+        """Name of attribute. Populated by MetaSymbol."""
+        self.doc = doc
+        """User documentation."""
+        self.default = default
+        """Default value. The owner class or instance may override this with
+        a new default by defining an attribute named default_<name>.
+        """
+        self.parser = parser
+        """If not None, a callable that takes a literal value (e.g. a
+        string supplied by the user) to a value for this attribute.
+        """
+        self.allowed_values = allowed_values
     
     def __get__(self, inst, owner):
         if inst is None:
@@ -82,7 +82,7 @@ class MetaSymbol(type):
         # Add new ones for this class.
         for key, sym_attr in namespace.items():
             if isinstance(sym_attr, SymbolAttribute):
-                assert key == sym_attr.name
+                sym_attr.name = key
                 symbol_attrs.append(sym_attr)
         
         cls = super().__new__(mcls, clsname, bases, dict(namespace))
@@ -142,9 +142,10 @@ class TypedSymbolMixin(Symbol):
     input variables in the absence of other constraining information.
     """
     
-    type = SymbolAttribute('type', None,
-            'Current annotated or inferred type of the symbol',
-            parser=lambda t: T.eval_typestr(t))
+    type = SymbolAttribute(
+        doc='Current annotated or inferred type of the symbol',
+        default=None,
+        parser=lambda t: T.eval_typestr(t))
     
     @property
     def default_type(self):
@@ -157,8 +158,9 @@ class TypedSymbolMixin(Symbol):
 
 class RelationSymbol(TypedSymbolMixin, Symbol):
     
-    counted = SymbolAttribute('counted', False,
-            'Allow duplicates, associate a count with each element')
+    counted = SymbolAttribute(
+        doc='Allow duplicates, associate a count with each element',
+        default=False)
     
     min_type = T.Set(T.Bottom)
     max_type = T.Set(T.Top)
@@ -202,26 +204,33 @@ class VarSymbol(TypedSymbolMixin, Symbol):
 
 class QuerySymbol(TypedSymbolMixin, Symbol):
     
-    node = SymbolAttribute('node', None,
-            'Expression AST node corresponding to (all occurrences of) '
-            'the query')
+    node = SymbolAttribute(
+        doc='Expression AST node corresponding to (all occurrences of) '
+            'the query',
+        default=None)
     
-    params = SymbolAttribute('params', (),
-            'Tuple of parameter identifiers for this query')
+    params = SymbolAttribute(
+        doc='Tuple of parameter identifiers for this query',
+        default=())
     
-    impl = SymbolAttribute('impl', 'normal',
-            'Implementation strategy, one of: normal, inc',
-            allowed_values=['normal', 'inc'])
+    impl = SymbolAttribute(
+        doc='Implementation strategy, one of: normal, inc',
+        default='normal',
+        allowed_values=['normal', 'inc'])
     
-    demand_set = SymbolAttribute('demand_set', None,
-            'Name of demand set, or None if not used')
-    demand_params = SymbolAttribute('demand_params', None,
-            'Tuple of demand parameter identifiers, or None if not used')
+    demand_set = SymbolAttribute(
+        doc='Name of demand set, or None if not used',
+        default=None)
+    
+    demand_params = SymbolAttribute(
+        doc='Tuple of demand parameter identifiers, or None if not used',
+        default=None)
+    
     demand_param_strat = SymbolAttribute(
-                         'demand_param_strat', 'unconstrained',
-            'Strategy to use for determining demand parameters, one of: '
+        doc='Strategy to use for determining demand parameters, one of: '
             'unconstrained, all, explicit',
-            allowed_values=['unconstrained', 'all', 'explicit'])
+        default='unconstrained',
+        allowed_values=['unconstrained', 'all', 'explicit'])
     
     def __str__(self):
         s = 'Query {}'.format(self.name)
