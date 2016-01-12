@@ -19,7 +19,7 @@ from itertools import chain
 
 from incoq.util.collections import OrderedSet
 from incoq.mars.type import T
-from incoq.mars.symbol import N, Unconstrained, All, Explicit, Inc, Normal
+from incoq.mars.symbol import S, N
 from incoq.mars.incast import L
 
 
@@ -43,16 +43,16 @@ def determine_demand_params(clausetools, query):
     params = query.params
     
     strat = query.demand_param_strat
-    if strat != Explicit and query.demand_params is not None:
+    if strat != S.Explicit and query.demand_params is not None:
         raise AssertionError('Do not supply demand_params unless '
                              'demand_param_strat is set to "explicit"')
     
-    if strat == Unconstrained:
+    if strat == S.Unconstrained:
         uncon_vars = clausetools.uncon_lhs_vars_from_comp(comp)
         demand_params = tuple(p for p in params if p in uncon_vars)
-    elif strat == All:
+    elif strat == S.All:
         demand_params = params
-    elif query.demand_param_strat == Explicit:
+    elif query.demand_param_strat == S.Explicit:
         assert query.demand_params is not None
         demand_params = query.demand_params
     else:
@@ -396,7 +396,7 @@ class DemandAnalyzer(ParamAnalyzer):
         super().apply_context(query, context)
         
         # Don't touch non-incrementalized queries.
-        if query.impl == Normal:
+        if query.impl == S.Normal:
             return
         
         # We can't handle non-Comp queries here.
@@ -449,7 +449,7 @@ class NestedDemandAnalyzer(DemandAnalyzer):
     #      the left of this query in the immediate containing query.
     #
     # Outermost queries (not counting queries whose impl attribute is
-    # "normal") get demand sets, while inner queries get demand queries.
+    # Normal) get demand sets, while inner queries get demand queries.
     #
     # We keep track of the clauses of the containing query by
     # maintaining a stack corresponding to nested queries, where each
@@ -458,7 +458,7 @@ class NestedDemandAnalyzer(DemandAnalyzer):
     def process(self, tree):
         self.comp_stack = []
         """Each stack entry corresponds to a level of nesting of a
-        Query node for a comprehension whose impl is not "normal".
+        Query node for a comprehension whose impl is not Normal.
         The value of each entry is a list of the clauses at that
         level that have already been fully processed.
         """
@@ -532,11 +532,11 @@ class NestedDemandAnalyzer(DemandAnalyzer):
             return self.rewrite_with_demand_query(query, context)
     
     def visit_Query(self, node):
-        # Check for impl == "normal" using the pre-instantiated query
+        # Check for impl == Normal using the pre-instantiated query
         # symbol, since that shouldn't change during instantiation
         # anyway.
         sym = self.symtab.get_queries()[node.name]
-        if isinstance(node.query, L.Comp) and sym.impl != Normal:
+        if isinstance(node.query, L.Comp) and sym.impl != S.Normal:
             self.push_next_comp = True
         
         return super().visit_Query(node)

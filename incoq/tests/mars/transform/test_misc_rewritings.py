@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symbol import SymbolTable
+from incoq.mars.symbol import S
 from incoq.mars.transform.misc_rewritings import *
 
 
@@ -14,7 +14,7 @@ class MiscRewritingsCase(unittest.TestCase):
     def test_relationalize_comp_queires(self):
         comp1 = L.Parser.pe('{2 * y for (x, y) in REL(R)}')
         comp2 = L.Parser.pe('{(y,) for (x, y) in REL(R)}')
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         query_sym1 = symtab.define_query('Q1', node=comp1,
                                          type=T.Set(T.Number))
         query_sym2 = symtab.define_query('Q2', node=comp2)

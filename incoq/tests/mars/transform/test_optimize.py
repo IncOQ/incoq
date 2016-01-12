@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symbol import SymbolTable
+from incoq.mars.symbol import S
 from incoq.mars.transform.optimize import *
 from incoq.mars.transform.optimize import SingletonUnwrapper
 
@@ -13,7 +13,7 @@ from incoq.mars.transform.optimize import SingletonUnwrapper
 class UnwrapSingletonsCase(unittest.TestCase):
     
     def test_unwrapper_updates(self):
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         tree = L.Parser.p('''
             def main():
                 v = (1,)
@@ -33,7 +33,7 @@ class UnwrapSingletonsCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
     
     def test_unwrapper_loops(self):
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         tree = L.Parser.p('''
             def main():
                 for x in S:
@@ -63,7 +63,7 @@ class UnwrapSingletonsCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
     
     def test_unwrap(self):
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         symtab.define_relation('S', type=T.Set(T.Tuple([T.Number])))
         symtab.define_relation('T', type=T.Set(T.Tuple([T.Number, T.Number])))
         tree = L.Parser.p('''

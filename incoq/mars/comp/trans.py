@@ -15,7 +15,7 @@ __all__ = [
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symbol import N, QueryRewriter, Normal
+from incoq.mars.symbol import S, N
 from .order import order_clauses
 
 
@@ -237,7 +237,7 @@ def incrementalize_comp(tree, symtab, query, result_var):
     
     MaintJoinDefiner.run(tree)
     
-    class CompExpander(QueryRewriter):
+    class CompExpander(S.QueryRewriter):
         
         def rewrite(self, symbol, name, expr):
             if name == query.name:
@@ -263,11 +263,11 @@ def rewrite_all_comps_with_patterns(tree, symtab):
     """Perform pattern rewriting for all comprehension queries that
     are to be incrementalized. Parameter information must be available.
     """
-    class Rewriter(QueryRewriter):
+    class Rewriter(S.QueryRewriter):
         def rewrite(self, symbol, name, expr):
             if not isinstance(expr, L.Comp):
                 return
-            if symbol.impl == Normal:
+            if symbol.impl == S.Normal:
                 return
             
             ct = self.symtab.clausetools

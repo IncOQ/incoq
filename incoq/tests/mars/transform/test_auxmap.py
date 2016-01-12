@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symbol import N, SymbolTable
+from incoq.mars.symbol import S, N
 from incoq.mars.transform.auxmap import *
 from incoq.mars.transform.auxmap import (make_imgadd, make_imgremove,
                                          make_auxmap_maint_func)
@@ -146,7 +146,7 @@ class AuxmapCase(unittest.TestCase):
         self.assertEqual(t, exp_t)
     
     def test_define_map(self):
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         symtab.define_relation(
             'R', type=T.Set(T.Tuple([T.Number, T.Top, T.String])))
         symtab.define_relation('S')

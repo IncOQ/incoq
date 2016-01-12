@@ -8,7 +8,7 @@ __all__ = [
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symbol import QueryRewriter
+from incoq.mars.symbol import S
 
 
 def relationalize_comp_queries(tree, symtab):
@@ -17,7 +17,7 @@ def relationalize_comp_queries(tree, symtab):
     """
     changed_queries = set()
     
-    class CompRewriter(QueryRewriter):
+    class CompRewriter(S.QueryRewriter):
         def rewrite(self, symbol, name, expr):
             if not isinstance(expr, L.Comp):
                 return None
@@ -38,7 +38,7 @@ def relationalize_comp_queries(tree, symtab):
             
             return expr
     
-    class UnwrapAdder(QueryRewriter):
+    class UnwrapAdder(S.QueryRewriter):
         def rewrite(self, symbol, name, expr):
             if name in changed_queries:
                 return L.Unwrap(L.Query(name, expr))

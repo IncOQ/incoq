@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symbol import SymbolTable, Unconstrained, All, Explicit, Inc
+from incoq.mars.symbol import S
 from incoq.mars.comp import CoreClauseTools
 from incoq.mars.transform.param_analysis import *
 
@@ -28,39 +28,39 @@ class ParamAnalysisCase(unittest.TestCase):
         comp = L.Parser.pe('{x for (x, y) in REL(R) if z > 5}')
         
         # Strat: All.
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         query = symtab.define_query('Q', node=comp, params=('x', 'z'),
-                                    demand_param_strat=All)
+                                    demand_param_strat=S.All)
         demand_params = determine_demand_params(self.ct, query)
         exp_demand_params = ['x', 'z']
         self.assertSequenceEqual(demand_params, exp_demand_params)
         
         # Strat: Unconstrained.
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         query = symtab.define_query('Q', node=comp, params=('x', 'z'),
-                                    demand_param_strat=Unconstrained)
+                                    demand_param_strat=S.Unconstrained)
         demand_params = determine_demand_params(self.ct, query)
         exp_demand_params = ['z']
         self.assertSequenceEqual(demand_params, exp_demand_params)
         
         # Strat: Explicit.
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         query = symtab.define_query('Q', node=comp, params=('x', 'z'),
-                                    demand_param_strat=Explicit,
+                                    demand_param_strat=S.Explicit,
                                     demand_params=['x'])
         demand_params = determine_demand_params(self.ct, query)
         exp_demand_params = ['x']
         self.assertSequenceEqual(demand_params, exp_demand_params)
         
         # Explicit requires demand_params attribute.
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         query = symtab.define_query('Q', node=comp, params=('x', 'z'),
-                                    demand_param_strat=Explicit)
+                                    demand_param_strat=S.Explicit)
         with self.assertRaises(AssertionError):
             determine_demand_params(self.ct, query)
         
         # Non-explicit requires absence of demand_params attribute.
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         query = symtab.define_query('Q', node=comp, params=('x', 'z'),
                                     demand_params=('x',))
         with self.assertRaises(AssertionError):
@@ -97,7 +97,7 @@ class ParamAnalysisCase(unittest.TestCase):
                 query.ctx = context
                 query.node = L.BinOp(L.Str(context), L.Add(), L.Str(context))
         
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         symtab.define_query('Q', node=L.Parser.pe('1 + 1'))
         tree = L.Parser.p('''
             def main():
@@ -131,7 +131,7 @@ class ParamAnalysisCase(unittest.TestCase):
             def apply_context(self, query, context):
                 query.node = Doubler.run(query.node)
         
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         symtab.define_query('Q1', node=L.Parser.pe('1 + 1'))
         symtab.define_query('Q2', node=L.Parser.pe(
                 "2 + QUERY('Q1', 1 + 1)"))
@@ -153,7 +153,7 @@ class ParamAnalysisCase(unittest.TestCase):
     
     def test_param_analyzer_basic(self):
         comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         query_sym = symtab.define_query('Q', node=comp)
         tree = L.Parser.p('''
             def main():
@@ -166,7 +166,7 @@ class ParamAnalysisCase(unittest.TestCase):
     
     def test_param_analyzer_inst(self):
         comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         query_sym = symtab.define_query('Q', node=comp)
         tree = L.Parser.p('''
             def main():
@@ -204,13 +204,13 @@ class ParamAnalysisCase(unittest.TestCase):
     
     def test_demand_analyzer(self):
         comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         symtab.clausetools = self.ct
         symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
         symtab.define_var('x', type=T.Number)
         symtab.define_var('y', type=T.Number)
-        query_sym = symtab.define_query('Q', node=comp, impl=Inc,
-                                        demand_param_strat=Explicit,
+        query_sym = symtab.define_query('Q', node=comp, impl=S.Inc,
+                                        demand_param_strat=S.Explicit,
                                         demand_params=('x',))
         tree = L.Parser.p('''
             def main():
@@ -241,15 +241,15 @@ class ParamAnalysisCase(unittest.TestCase):
             '{(y,) for (x, y) in REL(R)}')
         comp2 = L.Parser.pe(
             "{z for (z,) in VARS(QUERY('Q1', {(y,) for (x, y) in REL(R)}))}")
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         symtab.clausetools = self.ct
         symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
         for v in ['x', 'y', 'z']:
             symtab.define_var(v, type=T.Number)
-        query_sym1 = symtab.define_query('Q1', node=comp1, impl=Inc,
-                                        demand_param_strat=Explicit,
+        query_sym1 = symtab.define_query('Q1', node=comp1, impl=S.Inc,
+                                        demand_param_strat=S.Explicit,
                                         demand_params=('x',))
-        query_sym2 = symtab.define_query('Q2', node=comp2, impl=Inc)
+        query_sym2 = symtab.define_query('Q2', node=comp2, impl=S.Inc)
         tree = L.Parser.p('''
             def main():
                 x = 1

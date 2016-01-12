@@ -1,6 +1,12 @@
 """Config, symbols, names, and queries."""
 
 
-from .config import *
-from .symbols import *
-from .symtab import *
+from incoq.util.misc import new_namespace
+
+from . import config
+from . import symbols
+from . import symtab
+
+
+S = new_namespace(config, symbols, symtab)
+N = symtab.N

@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symbol import N, SymbolTable
+from incoq.mars.symbol import S, N
 from incoq.mars.comp.join import CoreClauseTools
 from incoq.mars.comp.trans import *
 
@@ -125,7 +125,7 @@ class TransCase(unittest.TestCase):
     
     def test_incrementalize_comp(self):
         comp = L.Parser.pe('{(x,) for (x,) in REL(R)}')
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         symtab.clausetools = CoreClauseTools()
         query = symtab.define_query('Q', node=comp,
                                     type=T.Set(T.Tuple([T.Number])))
@@ -150,7 +150,7 @@ class TransCase(unittest.TestCase):
     
     def test_incrementalize_comp_with_params(self):
         comp = L.Parser.pe('{(2 * y,) for (x, y) in REL(R)}')
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         symtab.clausetools = CoreClauseTools()
         symtab.define_var('x', type=T.Number)
         symtab.define_var('y', type=T.Number)
@@ -180,7 +180,7 @@ class TransCase(unittest.TestCase):
     def test_expand_maintjoins(self):
         comp = L.Parser.pe('{x for (x,) in REL(R)}')
         maint_comp = L.Parser.pe('{(x,) for (x,) in SING(e)}')
-        symtab = SymbolTable()
+        symtab = S.SymbolTable()
         symtab.clausetools = CoreClauseTools()
         query = symtab.define_query('Q', node=comp)
         join = symtab.define_query('J', node=maint_comp)
