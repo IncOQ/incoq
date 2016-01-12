@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symtab import SymbolTable
+from incoq.mars.symbol import SymbolTable
 from incoq.mars.comp import CoreClauseTools
 from incoq.mars.transform.param_analysis import *
 

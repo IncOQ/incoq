@@ -19,7 +19,7 @@ from itertools import chain
 
 from incoq.util.collections import OrderedSet
 from incoq.mars.type import T
-from incoq.mars.symtab import N
+from incoq.mars.symbol import N
 from incoq.mars.incast import L
 
 

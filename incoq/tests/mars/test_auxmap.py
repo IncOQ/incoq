@@ -5,7 +5,7 @@ import unittest
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symtab import N, SymbolTable
+from incoq.mars.symbol import N, SymbolTable
 from incoq.mars.auxmap import *
 from incoq.mars.auxmap import (make_imgadd, make_imgremove,
                                make_auxmap_maint_func)

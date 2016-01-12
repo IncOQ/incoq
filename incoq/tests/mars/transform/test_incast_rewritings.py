@@ -4,7 +4,7 @@
 import unittest
 
 from incoq.mars.incast import L
-from incoq.mars.symtab import N
+from incoq.mars.symbol import N
 from incoq.mars.transform.incast_rewritings import *
 from incoq.mars.transform.incast_rewritings import QueryMarker
 

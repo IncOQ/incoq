@@ -8,7 +8,7 @@ __all__ = [
 
 from incoq.mars.incast import L
 from incoq.mars.type import T
-from incoq.mars.symtab import QueryRewriter
+from incoq.mars.symbol import QueryRewriter
 
 
 def relationalize_comp_queries(tree, symtab):

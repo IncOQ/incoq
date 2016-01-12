@@ -4,7 +4,7 @@
 import unittest
 
 from incoq.mars.incast import L
-from incoq.mars.symtab import N
+from incoq.mars.symbol import N
 from incoq.mars.comp.clause import RelMemberHandler
 from incoq.mars.comp.join import *
 
