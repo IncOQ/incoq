@@ -37,7 +37,8 @@ from functools import wraps
 
 from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
-from incoq.mars.types import *
+
+from .types import *
 
 
 class TypeAnalysisStepper(L.AdvNodeVisitor):

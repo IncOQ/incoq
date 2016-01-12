@@ -16,7 +16,7 @@ from simplestruct import Struct, TypedField
 from incoq.util.collections import OrderedSet
 from incoq.util.type import typechecked
 from incoq.mars.incast import L
-import incoq.mars.types as T
+from incoq.mars.type import T
 from incoq.mars.symtab import N
 
 

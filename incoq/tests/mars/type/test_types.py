@@ -3,8 +3,8 @@
 
 import unittest
 
-from incoq.mars.types import *
-from incoq.mars.types import TopClass, BottomClass
+from incoq.mars.type.types import *
+from incoq.mars.type.types import TopClass, BottomClass
 
 
 class TypeCase(unittest.TestCase):

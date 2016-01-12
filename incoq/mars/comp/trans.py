@@ -14,7 +14,7 @@ __all__ = [
 
 
 from incoq.mars.incast import L
-import incoq.mars.types as T
+from incoq.mars.type import T
 from incoq.mars.symtab import N, QueryRewriter
 from .order import order_clauses
 

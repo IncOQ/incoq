@@ -1,11 +1,11 @@
-"""Unit tests for type_analysis.py."""
+"""Unit tests for analysis.py."""
 
 
 import unittest
 
 from incoq.mars.incast import L
-from incoq.mars.types import *
-from incoq.mars.type_analysis import *
+from incoq.mars.type.types import *
+from incoq.mars.type.analysis import *
 
 
 class TypeAnalysisCase(unittest.TestCase):

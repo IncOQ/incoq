@@ -4,7 +4,7 @@
 import unittest
 
 from incoq.mars.incast import L
-from incoq.mars.types import Set, Top
+from incoq.mars.type import T
 from incoq.mars.symtab import *
 
 
@@ -62,11 +62,11 @@ class SymbolCase(unittest.TestCase):
                          (Symbol.name, TS.type, TS.min_type, TS.max_type))
     
     def test_symbol(self):
-        r = RelationSymbol('R', type=Set(Top))
-        self.assertEqual(r.clone_attrs(), {'type': Set(Top)})
+        r = RelationSymbol('R', type=T.Set(T.Top))
+        self.assertEqual(r.clone_attrs(), {'type': T.Set(T.Top)})
     
     def test_rel(self):
-        r = RelationSymbol('R', type=Set(Top))
+        r = RelationSymbol('R', type=T.Set(T.Top))
         s = str(r)
         exp_s = 'Relation R (type: {Top})'
         self.assertEqual(s, exp_s)
@@ -82,7 +82,7 @@ class SymbolCase(unittest.TestCase):
         self.assertEqual(s, exp_s)
     
     def test_var(self):
-        v = VarSymbol('v', type=Set(Top))
+        v = VarSymbol('v', type=T.Set(T.Top))
         s = str(v)
         exp_s = 'Var v (type: {Top})'
         self.assertEqual(s, exp_s)

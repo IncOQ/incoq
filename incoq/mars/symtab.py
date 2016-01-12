@@ -24,8 +24,7 @@ from simplestruct import Struct, Field
 
 from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
-import incoq.mars.types as T
-from incoq.mars.type_analysis import analyze_types, analyze_expr_type
+from incoq.mars.type import T
 
 
 class N:
@@ -357,7 +356,7 @@ class SymbolTable:
         """
         store = self.get_type_store()
         
-        store, illtyped = analyze_types(tree, store)
+        store, illtyped = T.analyze_types(tree, store)
         
         # Write back non-query symbol types.
         badsyms = set()
@@ -369,14 +368,14 @@ class SymbolTable:
         
         # Write back query symbol types.
         for sym in self.get_queries().values():
-            type = analyze_expr_type(sym.node, store)
+            type = T.analyze_expr_type(sym.node, store)
             sym.type = type
         
         return illtyped, badsyms
     
     def analyze_expr_type(self, expr):
         store = self.get_type_store()
-        return analyze_expr_type(expr, store)
+        return T.analyze_expr_type(expr, store)
 
 
 class QueryRewriter(L.NodeTransformer):

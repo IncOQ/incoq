@@ -18,7 +18,7 @@ __all__ = [
 from itertools import chain
 
 from incoq.util.collections import OrderedSet
-import incoq.mars.types as T
+from incoq.mars.type import T
 from incoq.mars.symtab import N
 from incoq.mars.incast import L
 

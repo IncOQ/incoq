@@ -4,7 +4,7 @@
 import unittest
 
 from incoq.mars.incast import P, L
-from incoq.mars.types import Top, Set, Map
+from incoq.mars.type import T
 from incoq.mars.symtab import N
 from incoq.mars.transform.py_rewritings import *
 
