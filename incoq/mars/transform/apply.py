@@ -141,10 +141,16 @@ def postprocess_tree(tree, symtab):
     decls = []
     for sym in chain(symtab.get_relations().values(),
                      symtab.get_maps().values()):
-        decls.append((sym.name, sym.decl_constr, sym.decl_comment))
+        decls.append((sym.name, sym.decl_constructor, sym.decl_comment))
+    
+    # Get comment header.
+    header = []
+    for query in symtab.get_queries().values():
+        if query.display:
+            header.append(query.decl_comment)
     
     tree = incast_postprocess(tree)
-    tree = py_postprocess(tree, decls=decls)
+    tree = py_postprocess(tree, decls=decls, header=header)
     return tree
 
 

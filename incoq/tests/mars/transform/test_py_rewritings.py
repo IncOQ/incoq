@@ -50,6 +50,19 @@ class ConstructCase(unittest.TestCase):
         self.check.pe('a < b < c', 'a < b and b < c')
 
 
+class HeaderCase(unittest.TestCase):
+    
+    def test_postprocess(self):
+        tree = P.Parser.p('pass')
+        tree = postprocess_header(tree, ['a', 'b'])
+        exp_tree = P.Parser.p('''
+            COMMENT('a')
+            COMMENT('b')
+            pass
+            ''')
+        self.assertEqual(tree, exp_tree)
+
+
 class PassCase(unittest.TestCase):
     
     def test_postprocess(self):

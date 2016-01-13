@@ -181,6 +181,16 @@ class Symbol(metaclass=MetaSymbol):
         return {desc.name: getattr(self, desc.name)
                 for desc in self._symbol_attrs
                 if desc.defined(self)}
+    
+    @property
+    def decl_comment(self):
+        """Comment string to annotate the declaration of this symbol."""
+        return None
+    
+    decl_constructor = None
+    """Name of constructor to call when initializing this symbol's
+    variable.
+    """
 
 
 class TypedSymbolMixin(Symbol):
@@ -229,7 +239,7 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
         return s
     
     @property
-    def decl_constr(self):
+    def decl_constructor(self):
         return 'CSet' if self.counted else 'Set'
 
 
@@ -244,7 +254,7 @@ class MapSymbol(TypedSymbolMixin, Symbol):
             s += ' (type: {})'.format(self.type)
         return s
     
-    decl_constr = 'Map'
+    decl_constructor = 'Map'
 
 
 class VarSymbol(TypedSymbolMixin, Symbol):
@@ -285,6 +295,17 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         default=Unconstrained,
         allowed_values=[Unconstrained, All, Explicit])
     
+    # Internal attributes.
+    
+    maint_joins = SymbolAttribute(
+        doc='List of query symbols of maintenance joins used to help '
+            'incrementally compute this comprehension query')
+    
+    display = SymbolAttribute(
+        doc='Whether or not to include this query\'s description in '
+            'the comment header of the output program',
+        default=True)
+    
     def __str__(self):
         s = 'Query {}'.format(self.name)
         if self.node is not None:
@@ -294,3 +315,12 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
     def make_node(self):
         """Return a Query node for this query symbol."""
         return L.Query(self.name, self.node)
+    
+    @property
+    def decl_comment(self):
+        return '{name} : {params}{node}{type}'.format(
+            name=self.name,
+            params=', '.join(self.params) + ' -> '
+                   if len(self.params) > 0 else '',
+            node=L.Parser.ts(self.node),
+            type=' : ' + str(self.type) if self.type is not None else '')

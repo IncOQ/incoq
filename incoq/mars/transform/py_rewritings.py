@@ -9,6 +9,8 @@ __all__ = [
     
     'preprocess_constructs',
     
+    'postprocess_header',
+    
     'postprocess_pass',
     
     'preprocess_runtime_import',
@@ -100,6 +102,13 @@ class ConstructRewriter(P.NodeTransformer):
         return node
 
 preprocess_constructs = ConstructRewriter.run
+
+
+def postprocess_header(tree, header):
+    """Add comment lines for each string in header."""
+    header = tuple(P.Parser.ps('COMMENT(_S)', subst={'_S': P.Str(line)})
+                   for line in header)
+    return tree._replace(body=header + tree.body)
 
 
 class PassAdder(P.NodeTransformer):
@@ -401,7 +410,7 @@ def py_preprocess(tree):
     return tree, rels, info
 
 
-def py_postprocess(tree, *, decls):
+def py_postprocess(tree, *, decls, header):
     """Take in an IncAST tree, postprocess it, and return the
     corresponding Python AST tree. See postprocess_var_decls()
     for the format of decls.
@@ -420,5 +429,8 @@ def py_postprocess(tree, *, decls):
     
     # Correct any missing Pass statements.
     tree = postprocess_pass(tree)
+    
+    # Add header information.
+    tree = postprocess_header(tree, header)
     
     return tree

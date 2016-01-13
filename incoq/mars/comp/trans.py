@@ -232,7 +232,8 @@ def incrementalize_comp(tree, symtab, query, result_var):
             
             if (node.name in used_join_names and
                 node.name not in symtab.get_symbols()):
-                sym = symtab.define_query(node.name, node=node.query)
+                sym = symtab.define_query(node.name, node=node.query,
+                                          display=False)
                 query.maint_joins.append(sym)
     
     MaintJoinDefiner.run(tree)

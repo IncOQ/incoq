@@ -1,3 +1,4 @@
+# Q : a -> {(b,) for (a, b) in REL(S)} : {(Number, Number)}
 from incoq.mars.runtime import *
 # S : {(Number, Number)}
 S = Set()
