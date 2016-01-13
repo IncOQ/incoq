@@ -328,6 +328,24 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_ms_deccount(self, _func, set_, elem):
         return L.SetUpdate(set_, L.DecCount(), elem)
     
+    def handle_ms_update(self, _func, set_, elem):
+        return L.SetBulkUpdate(set_, L.Union(), elem)
+    
+    def handle_ms_intersection_update(self, _func, set_, elem):
+        return L.SetBulkUpdate(set_, L.Inter(), elem)
+    
+    def handle_ms_difference_update(self, _func, set_, elem):
+        return L.SetBulkUpdate(set_, L.Diff(), elem)
+    
+    def handle_ms_symmetric_difference_update(self, _func, set_, elem):
+        return L.SetBulkUpdate(set_, L.SymDiff(), elem)
+    
+    def handle_ms_copy_update(self, _func, set_, elem):
+        return L.SetBulkUpdate(set_, L.Copy(), elem)
+    
+    def handle_ms_clear(self, _func, set_):
+        return L.SetClear(set_)
+    
     def handle_ms_reladd(self, _func, rel, elem):
         self.assert_isname([rel, elem], 'reladd')
         return L.RelUpdate(rel.id, L.SetAdd(), elem.id)
@@ -343,6 +361,10 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_ms_reldeccount(self, _func, rel, elem):
         self.assert_isname([rel, elem], 'reldeccount')
         return L.RelUpdate(rel.id, L.DecCount(), elem.id)
+    
+    def handle_ms_relclear(self, _func, rel):
+        self.assert_isname([rel], 'relclear')
+        return L.RelClear(rel.id)
     
     def handle_ms_mapassign(self, _func, map, key, value):
         self.assert_isname([map, key, value], 'mapassign')
@@ -429,6 +451,22 @@ class IncLangSpecialExporter(L.NodeTransformer):
         return L.Expr(L.GeneralCall(L.Attribute(node.target, op),
                                     [node.value]))
     
+    def visit_SetBulkUpdate(self, node):
+        node = self.generic_visit(node)
+        
+        op = {L.Union: 'update',
+              L.Inter: 'intersection_update',
+              L.Diff: 'difference_update',
+              L.SymDiff: 'symmetric_difference_update',
+              L.Copy: 'copy_update'}[node.op.__class__]
+        return L.Expr(L.GeneralCall(L.Attribute(node.target, op),
+                                    [node.value]))
+    
+    def visit_SetClear(self, node):
+        node = self.generic_visit(node)
+        
+        return L.Expr(L.GeneralCall(L.Attribute(node.target, 'clear'), [])) 
+    
     def visit_RelUpdate(self, node):
         op = {L.SetAdd: 'reladd',
               L.SetRemove: 'relremove',
@@ -436,6 +474,11 @@ class IncLangSpecialExporter(L.NodeTransformer):
               L.DecCount: 'reldeccount'}[node.op.__class__]
         return L.Expr(L.GeneralCall(L.Attribute(L.Name(node.rel), op),
                                     [L.Name(node.elem)]))
+    
+    def visit_RelClear(self, node):
+        return L.Expr(L.GeneralCall(L.Attribute(L.Name(node.rel),
+                                                'relclear'),
+                                    []))
     
     def visit_BinOp(self, node):
         node = self.generic_visit(node)

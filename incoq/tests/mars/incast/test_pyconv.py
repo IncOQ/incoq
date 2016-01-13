@@ -189,6 +189,25 @@ class ParseImportCase(unittest.TestCase):
         with self.assertRaises(IncASTConversionError):
             Parser.ps('(a + b).relinccount(x)')
     
+    def test_setbulkupdates_and_clear(self):
+        tree = Parser.pc('''
+            S.update(T)
+            S.intersection_update(T)
+            S.difference_update(T)
+            S.symmetric_difference_update(T)
+            S.copy_update(T)
+            S.clear()
+            R.relclear()
+            ''')
+        exp_tree = (L.SetBulkUpdate(L.Name('S'), L.Union(), L.Name('T')),
+                    L.SetBulkUpdate(L.Name('S'), L.Inter(), L.Name('T')),
+                    L.SetBulkUpdate(L.Name('S'), L.Diff(), L.Name('T')),
+                    L.SetBulkUpdate(L.Name('S'), L.SymDiff(), L.Name('T')),
+                    L.SetBulkUpdate(L.Name('S'), L.Copy(), L.Name('T')),
+                    L.SetClear(L.Name('S')),
+                    L.RelClear('R'))
+        self.assertEqual(tree, exp_tree)
+    
     def test_calls(self):
         tree = Parser.pe('f(a)')
         exp_tree = L.Call('f', [L.Name('a')])
@@ -337,6 +356,15 @@ class RoundTripCase(unittest.TestCase):
         self.trip.ps('S.reladd(x)')
         self.trip.ps('S.inccount(x)')
         self.trip.ps('S.relinccount(x)')
+    
+    def test_setbulkupdates_and_clear(self):
+        self.trip.ps('S.update(T)')
+        self.trip.ps('S.intersection_update(T)')
+        self.trip.ps('S.difference_update(T)')
+        self.trip.ps('S.symmetric_difference_update(T)')
+        self.trip.ps('S.copy_update(T)')
+        self.trip.ps('S.clear()')
+        self.trip.ps('R.relclear()')
     
     def test_dictupdates(self):
         self.trip.ps('M[k] = v')

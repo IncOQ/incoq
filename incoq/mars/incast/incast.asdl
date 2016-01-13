@@ -34,7 +34,10 @@ module IncAST
          | DecompAssign(identifier* vars, expr value)
          
          | SetUpdate(expr target, setupop op, expr value)
+         | SetBulkUpdate(expr target, setbulkop op, expr value)
+         | SetClear(expr target)
          | RelUpdate(identifier rel, setupop op, identifier elem)
+         | RelClear(identifier rel)
          
          | DictAssign(expr target, expr key, expr value)
          | DictDelete(expr target, expr key)
@@ -100,6 +103,9 @@ module IncAST
     cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
     
     -- New operations.
+    
     setupop = SetAdd | SetRemove
             | IncCount | DecCount
+    
+    setbulkop = Union | Inter | Diff | SymDiff | Copy
 }
