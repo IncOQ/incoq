@@ -46,7 +46,8 @@ class SymbolAttribute:
     
     """Descriptor for a symbol attribute."""
     
-    def __init__(self, *, doc=None, default=None, parser=None):
+    _Missing = object()
+    def __init__(self, *, doc=None, default=None, parser=_Missing):
         self.name = None
         """Name of attribute. Populated by MetaSymbol."""
         self.doc = doc
@@ -55,9 +56,11 @@ class SymbolAttribute:
         """Default value. The owner class or instance may override this with
         a new default by defining an attribute named default_<name>.
         """
-        self.parser = parser
-        """If not None, a callable that takes a literal value (e.g. a
-        string supplied by the user) to a value for this attribute.
+        if parser is not self._Missing:
+            self.parser = parser
+        """Callable that takes a literal value (e.g. a string supplied
+        by the user) to a value for this attribute. If None, this
+        attribute is internal and should not be populated by the user.
         """
     
     def __get__(self, inst, owner):
@@ -76,6 +79,10 @@ class SymbolAttribute:
     
     def defined(self, inst):
         return hasattr(inst, '_' + self.name)
+    
+    def parser(self, value):
+        # Default parser, identity function.
+        return value
 
 
 class EnumSymbolAttribute(SymbolAttribute):
@@ -85,8 +92,6 @@ class EnumSymbolAttribute(SymbolAttribute):
     """
     
     def __init__(self, *, allowed_values, **kargs):
-        if 'parser' not in kargs:
-            kargs['parser'] = self.parser
         super().__init__(**kargs)
         self.allowed_values = allowed_values
         """Sequence of Constant members."""
@@ -164,8 +169,9 @@ class Symbol(metaclass=MetaSymbol):
             desc = getattr(self.__class__, attr, None)
             if not isinstance(desc, SymbolAttribute):
                 raise KeyError('Unknown symbol attribute "{}"'.format(attr))
-            if desc.parser is not None:
-                value = desc.parser(value)
+            if desc.parser is None:
+                raise KeyError('Attribute "{}" cannot be parsed'.format(attr))
+            value = desc.parser(value)
             setattr(self, attr, value)
     
     def clone_attrs(self):
@@ -262,7 +268,7 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         default=())
     
     impl = EnumSymbolAttribute(
-        doc='Implementation strategy, one of: normal, inc',
+        doc='Implementation strategy',
         default=Normal,
         allowed_values=[Normal, Inc])
     
@@ -275,8 +281,7 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         default=None)
     
     demand_param_strat = EnumSymbolAttribute(
-        doc='Strategy to use for determining demand parameters, one of: '
-            'unconstrained, all, explicit',
+        doc='Strategy to use for determining demand parameters',
         default=Unconstrained,
         allowed_values=[Unconstrained, All, Explicit])
     
