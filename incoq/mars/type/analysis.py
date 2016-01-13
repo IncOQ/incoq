@@ -219,7 +219,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         # If join(value, Tuple<Bottom, ..., Bottom>) ==
         #    Tuple<T1, ..., Tn>, n == len(vars):
         #   vars_i := T_i for each i
-        # else:
+        # Else:
         #   vars_i := Top for each i
         #
         # Check value <= Tuple<Top, ..., Top>
@@ -237,11 +237,39 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         if not t_target.issmaller(Set(Top)):
             self.mark_bad(node)
     
+    def visit_SetBulkUpdate(self, node):
+        # If join(value, Set<Bottom>) == Set<T>:
+        #   target := Set<T>
+        # Else:
+        #   target := Set<Top>
+        #
+        # Check value <= Set<Top> and target <= Set<Top>
+        t_value = self.visit(node.value)
+        t_elt = self.get_sequence_elt(node, t_value, Set)
+        t_target = self.visit(node.target, type=Set(t_elt))
+        if not (t_value.issmaller(Set(Top)) and
+                t_target.issmaller(Set(Top))):
+            self.mark_bad(node)
+    
+    def visit_SetClear(self, node):
+        # target := Set<Bottom>
+        # Check target <= Set<Top>
+        t_target = self.visit(node.target, type=Set(Bottom))
+        if not t_target.issmaller(Set(Top)):
+            self.mark_bad(node)
+    
     def visit_RelUpdate(self, node):
         # rel := Set<elem>
         # Check rel <= Set<Top>
         t_value = self.get_store(node.elem)
         t_rel = self.update_store(node.rel, Set(t_value))
+        if not t_rel.issmaller(Set(Top)):
+            self.mark_bad(node)
+    
+    def visit_RelClear(self, node):
+        # rel := Set<Bottom>
+        # Check rel <= Set<Top>
+        t_rel = self.update_store(node.rel, Set(Bottom))
         if not t_rel.issmaller(Set(Top)):
             self.mark_bad(node)
     

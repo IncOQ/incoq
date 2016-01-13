@@ -155,6 +155,48 @@ class TypeAnalysisCase(unittest.TestCase):
                    {'S': Set(Number), 'R': Top, 'v': Number},
                    True)
     
+    def test_setbulkupdate(self):
+        source = '''
+            def main():
+                S.update(T)
+            '''
+        # Normal case.
+        self.check(source,
+                   {'S': Set(String), 'T': Set(Number)},
+                   {'S': Set(Top), 'T': Set(Number)},
+                   False)
+        # target is not a set.
+        self.check(source,
+                   {'S': Top, 'T': Set(Number)},
+                   {'S': Top, 'T': Set(Number)},
+                   True)
+        # value is not a set.
+        self.check(source,
+                   {'S': Set(String), 'T': Top},
+                   {'S': Set(Top), 'T': Top},
+                   True)
+    
+    def test_setrel_clear(self):
+        source = '''
+            def main():
+                S.clear()
+                R.relclear()
+            '''
+        # Normal case.
+        self.check(source,
+                   {'S': Bottom, 'R': Bottom},
+                   {'S': Set(Bottom), 'R': Set(Bottom)},
+                   False)
+        # Not a set.
+        self.check(source,
+                   {'S': Top, 'R': Set(Number)},
+                   {'S': Top, 'R': Set(Number)},
+                   True)
+        self.check(source,
+                   {'S': Set(Number), 'R': Top},
+                   {'S': Set(Number), 'R': Top},
+                   True)
+    
     def test_dictmap_update(self):
         source = '''
             def main():
