@@ -47,7 +47,7 @@ class BuiltinsCase(unittest.TestCase):
         
         # Bulk updates.
         s = Set({0})
-        s.assign_update({1, 2, 3})
+        s.copy_update({1, 2, 3})
         self.assertCountEqual(s, {1, 2, 3})
         s.update({4, 5})
         self.assertCountEqual(s, {1, 2, 3, 4, 5})
@@ -66,7 +66,7 @@ class BuiltinsCase(unittest.TestCase):
         self.assertCountEqual(s, set())
         s1 = Set({1, 2})
         s2 = Set(s1)
-        s1.assign_update(s1)
+        s1.copy_update(s1)
         self.assertCountEqual(s1, s2)
     
     def test_set_pickle(self):

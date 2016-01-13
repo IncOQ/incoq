@@ -127,9 +127,9 @@ class Set(IncOQType, set, ImgLookupMixin):
     #   - difference_update() and symmetric_difference_update()
     #   - clear()
     #
-    # The only other update we need to add is assign_update().
+    # The only other update we need to add is copy_update().
     
-    def assign_update(self, other):
+    def copy_update(self, other):
         if self is not other:
             self.clear()
             self.update(other)
