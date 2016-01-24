@@ -11,6 +11,7 @@ __all__ = [
     'ParamAnalyzer',
     'DemandAnalyzer',
     'NestedDemandAnalyzer',
+    'analyze_parameters',
     'analyze_demand',
 ]
 
@@ -560,6 +561,14 @@ class NestedDemandAnalyzer(DemandAnalyzer):
         else:
             node = self.generic_visit(node)
         return node
+
+
+def analyze_parameters(tree, symtab):
+    """Analyze parameter information for all queries. Assign this
+    information to symbol attributes and instantiate query occurrences
+    as needed.
+    """
+    return ParamAnalyzer.run(tree, symtab)
 
 
 def analyze_demand(tree, symtab):

@@ -23,7 +23,7 @@ from incoq.mars.comp import (
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
 from .optimize import unwrap_singletons
-from .param_analysis import analyze_demand
+from .param_analysis import analyze_parameters, analyze_demand
 from .misc_rewritings import relationalize_comp_queries
 from .auxmap import AuxmapFinder, AuxmapTransformer, define_map
 
@@ -224,10 +224,17 @@ def transform_ast(input_ast, *, options=None):
     if config.verbose:
         debug_symbols(symtab, illtyped, badsyms)
     
+    # analyze_demand() depends on pattern equalities having already
+    # been eliminated, so that it can use clause logic to determine
+    # unconstrained parameters. However, in order to correctly eliminate
+    # patterns we need parameter information to know which variables
+    # we can get rid of. Both analyze_*() functions instantiate queries.
+    
+    # Infer parameter information.
+    tree = analyze_parameters(tree, symtab)
     # Rewrite patterns.
     tree = rewrite_all_comps_with_patterns(tree, symtab)
-    
-    # Infer parameter information, instantiate queries as needed.
+    # Infer demand information (and parameter information again).
     tree = analyze_demand(tree, symtab)
     
     # Make sure relational queries return tuples.
