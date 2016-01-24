@@ -91,6 +91,7 @@ class AuxmapCase(unittest.TestCase):
                 S.reladd(elem)
                 print(S.imglookup('bu', (x,)))
                 R.relinccount(elem)
+                R.relclear()
             ''')
         tree = AuxmapTransformer.run(tree, N.fresh_name_generator(), auxmaps)
         exp_tree = L.Parser.p('''
@@ -119,6 +120,8 @@ class AuxmapCase(unittest.TestCase):
                 S.reladd(elem)
                 print(S.imglookup('bu', (x,)))
                 R.relinccount(elem)
+                R_bu.clear()
+                R.relclear()
             ''')
         self.assertEqual(tree, exp_tree)
     

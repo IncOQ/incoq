@@ -167,6 +167,14 @@ class AuxmapTransformer(L.NodeTransformer):
             code = L.insert_rel_maint(code, call_code, node.op)
         return code
     
+    def visit_RelClear(self, node):
+        auxmaps = self.auxmaps_by_rel.get(node.rel, set())
+        code = (node,)
+        for auxmap in auxmaps:
+            clear_code = (L.SetClear(L.Name(auxmap.map)),)
+            code = L.insert_rel_maint(code, clear_code, L.SetRemove())
+        return code
+    
     def visit_ImgLookup(self, node):
         auxmap = self.auxmaps_by_relmask.get((node.rel, node.mask), None)
         if auxmap is None:

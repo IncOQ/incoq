@@ -11,6 +11,10 @@ def main():
     print(sorted(S.imglookup('bu', (x,))))
     S.remove((1, 3))
     print(sorted(S.imglookup('bu', (x,))))
+    S.add((1, 4))
+    print(sorted(S.imglookup('bu', (x,))))
+    S.clear()
+    print(sorted(S.imglookup('bu', (x,))))
 
 if __name__ == '__main__':
     main()
