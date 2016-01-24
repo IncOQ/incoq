@@ -8,6 +8,45 @@ from incoq.mars.type.types import *
 from incoq.mars.type.analysis import *
 
 
+class FunctionTypeCheckerCase(unittest.TestCase):
+    
+    def test_unknown(self):
+        checker = FunctionTypeChecker()
+        t_result = checker.get_call_type(L.Parser.pe('bar({5}, 6)'),
+                                         [Set(Number), Number])
+        self.assertIsNone(t_result)
+    
+    def test_simple_builtin(self):
+        class Checker(FunctionTypeChecker):
+            simple_builtin_funcs = {
+                'foo': ([Set(Number), Number], List(Bool))
+            }
+        checker = Checker()
+        
+        # Normal case.
+        t_result = checker.get_call_type(L.Parser.pe('foo({5}, 6)'),
+                                         [Set(Number), Number])
+        self.assertEqual(t_result, List(Bool))
+        
+        # Bad argument type.
+        t_result = checker.get_call_type(L.Parser.pe('foo({5}, 6)'),
+                                         [Set(Top), Number])
+        self.assertIsNone(t_result)
+    
+    def test_builtin_list(self):
+        checker = FunctionTypeChecker()
+        
+        # Normal case.
+        t_result = checker.get_call_type(L.Parser.pe('list({5})'),
+                                         [Set(Number)])
+        self.assertEqual(t_result, List(Number))
+        
+        # Bad argument type.
+        t_result = checker.get_call_type(L.Parser.pe('list(5)'),
+                                         [Number])
+        self.assertIsNone(t_result)
+
+
 class TypeAnalysisCase(unittest.TestCase):
     
     def check(self, source, store, exp_store, illtyped):
@@ -312,6 +351,22 @@ class TypeAnalysisCase(unittest.TestCase):
            {'a': Bottom, 'b': Number, 'c': String, 'd': String},
            {'a': Top, 'b': Number, 'c': String, 'd': String},
            True)
+    
+    def test_call(self):
+        self.check('''
+            def main():
+                a = list({5})
+            ''',
+            {'a': Bottom},
+            {'a': List(Number)},
+            False)
+        self.check('''
+            def main():
+                a = foo()
+            ''',
+            {'a': Bottom},
+            {'a': Top},
+            True)
     
     def test_num(self):
         self.check('''

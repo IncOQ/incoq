@@ -27,6 +27,7 @@ programs to be well-typed.
 
 
 __all__ = [
+    'FunctionTypeChecker',
     'TypeAnalysisStepper',
     'analyze_types',
     'analyze_expr_type',
@@ -39,6 +40,65 @@ from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
 
 from .types import *
+
+
+class FunctionTypeChecker:
+    
+    """Determine if a function call is well-typed."""
+    
+    def get_sequence_elt(self, t_seq, seq_cls):
+        """As in the TypeAnalysisStepper method, but instead of marking
+        bad nodes, return None.
+        """
+        t_seq = t_seq.join(seq_cls(Bottom))
+        if not t_seq.issmaller(seq_cls(Top)):
+            return None
+        return t_seq.elt
+    
+    # Mapping from name of builtin function to a pair of its expected
+    # argument types and its return type.
+    #
+    # For polymorphic functions, define a custom handler.
+    simple_builtin_funcs = {
+        'Set': ([], Set(Bottom)),
+    }
+    
+    def typeof_print(self, node, t_args):
+        return Top
+    
+    def typeof_list(self, node, t_args):
+        t_elt = self.get_sequence_elt(t_args[0], Sequence)
+        if t_elt is None:
+            return None
+        return List(t_elt)
+    
+    def get_call_type(self, node, t_args):
+        """Given a Call node and a list of types for each of its
+        arguments, return the type of the Call's result. If the
+        Call is ill-typed/unknown, return None.
+        """
+        assert len(t_args) == len(node.args)
+        
+        # See if it matches one of the simple built-in cases.
+        if node.func in self.simple_builtin_funcs:
+            t_params, t_result = self.simple_builtin_funcs[node.func]
+            assert len(t_params) == len(t_args)
+            # Check that each actual argument is a subtype of the
+            # parameter types.
+            for t_param, t_arg in zip(t_params, t_args):
+                if not t_arg.issmaller(t_param):
+                    return None
+            return t_result
+        
+        # Otherwise, if it's a built-in that we have a handler for,
+        # dispatch to it.
+        handler_name = 'typeof_' + node.func
+        handler = getattr(self, handler_name, None)
+        if handler is not None:
+            return handler(node, t_args)
+        
+        # Otherwise, it's unknown.
+        return None
 
 
 class TypeAnalysisStepper(L.AdvNodeVisitor):
@@ -358,9 +418,21 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
             self.mark_bad(node)
         return t_body.join(t_orelse)
     
-    # TODO:
-    #   visit_GeneralCall
-    #   visit_Call
+    @readonly
+    def visit_GeneralCall(self, node, *, type=None):
+        # Return Top
+        self.generic_visit(node)
+        return Top
+    
+    @readonly
+    def visit_Call(self, node, *, type=None):
+        checker = FunctionTypeChecker()
+        t_args = [self.visit(a) for a in node.args]
+        t_result = checker.get_call_type(node, t_args)
+        if t_result is None:
+            self.mark_bad(node)
+            return Top
+        return t_result
     
     @readonly
     def visit_Num(self, node, *, type=None):
