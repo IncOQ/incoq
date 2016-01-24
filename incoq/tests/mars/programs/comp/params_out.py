@@ -48,6 +48,10 @@ def main():
         _maint_R_Q_for_S_add(_v1)
     a = 1
     print(sorted(R_Q_bu.get((a,), Set()).unwrap()))
+    R_Q_bu.clear()
+    R_Q.clear()
+    S.clear()
+    print(sorted(R_Q_bu.get((a,), Set()).unwrap()))
 
 if (__name__ == '__main__'):
     main()

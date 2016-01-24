@@ -84,6 +84,11 @@ def main():
         _maint_S_ub_for_S_add(_v1)
         _maint_R_Q_for_S_add(_v1)
     print(sorted(R_Q.unwrap()))
+    R_Q.clear()
+    S_ub.clear()
+    S_bu.clear()
+    S.clear()
+    print(sorted(R_Q.unwrap()))
 
 if (__name__ == '__main__'):
     main()

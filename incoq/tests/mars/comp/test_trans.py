@@ -93,6 +93,8 @@ class TransCase(unittest.TestCase):
             def main():
                 R.reladd(e)
                 S.reladd(e)
+                R.relclear()
+                S.relclear()
             ''')
         tree = CompMaintainer.run(tree, self.ct, N.fresh_name_generator(),
                                   iter(['J1', 'J2']),
@@ -120,6 +122,9 @@ class TransCase(unittest.TestCase):
                 R.reladd(e)
                 _maint_RQ_for_R_add(e)
                 S.reladd(e)
+                RQ.relclear()
+                R.relclear()
+                S.relclear()
             ''')
         self.assertEqual(tree, exp_tree)
     

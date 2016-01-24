@@ -182,6 +182,15 @@ class CompMaintainer(L.NodeTransformer):
         call_code = (L.Expr(L.Call(func_name, [L.Name(node.elem)])),)
         code = L.insert_rel_maint(code, call_code, node.op)
         return code
+    
+    def visit_RelClear(self, node):
+        if node.rel not in self.rels:
+            return node
+        
+        code = (node,)
+        clear_code = (L.RelClear(self.result_var),)
+        code = L.insert_rel_maint(code, clear_code, L.SetRemove())
+        return code
 
 
 def incrementalize_comp(tree, symtab, query, result_var):
