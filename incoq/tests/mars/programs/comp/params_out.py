@@ -47,7 +47,7 @@ def main():
         S.add(_v1)
         _maint_R_Q_for_S_add(_v1)
     a = 1
-    print(R_Q_bu.get((a,), Set()).unwrap())
+    print(sorted(R_Q_bu.get((a,), Set()).unwrap()))
 
 if (__name__ == '__main__'):
     main()
