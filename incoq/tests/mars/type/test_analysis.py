@@ -496,6 +496,24 @@ class TypeAnalysisCase(unittest.TestCase):
              'k1': String, 'k2': Number, 'v': Bool},
             False)
     
+    def test_imglookup(self):
+        # Precision leak: imglookup return Set(Top) at the moment.
+        # Should be refined to use information about R and mask.
+        self.check('''
+            def main():
+                y = R.imglookup('bu', (x,))
+            ''',
+            {'R': Set(Tuple([Number, String])), 'x': Bottom, 'y': Bottom},
+            {'R': Set(Tuple([Number, String])), 'x': Bottom, 'y': Set(Top)},
+            False)
+        self.check('''
+            def main():
+                y = R.imglookup('bu', (x,))
+            ''',
+            {'R': Top, 'x': Bottom, 'y': Bottom},
+            {'R': Top, 'x': Bottom, 'y': Top},
+            True)
+    
     def test_query(self):
         self.check('''
             def main():

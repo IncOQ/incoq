@@ -67,6 +67,18 @@ class FunctionTypeChecker:
         return Top
     
     def typeof_list(self, node, t_args):
+        if len(t_args) != 1:
+            return None
+        
+        t_elt = self.get_sequence_elt(t_args[0], Sequence)
+        if t_elt is None:
+            return None
+        return List(t_elt)
+    
+    def typeof_sorted(self, node, t_args):
+        if len(t_args) != 1:
+            return None
+        
         t_elt = self.get_sequence_elt(t_args[0], Sequence)
         if t_elt is None:
             return None
@@ -548,7 +560,17 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         return t_value.value.join(t_default)
     
     visit_FirstThen = default_expr_handler
-    visit_ImgLookup = default_expr_handler
+    
+    @readonly
+    def visit_ImgLookup(self, node, *, type=None):
+        # Check rel <= Set(Top)
+        # Return Set(Top)
+        t_rel = self.get_store(node.rel)
+        if not t_rel.issmaller(Set(Top)):
+            self.mark_bad(node)
+            return Top
+        return Set(Top)
+    
     visit_Unwrap = default_expr_handler
     
     @readonly
