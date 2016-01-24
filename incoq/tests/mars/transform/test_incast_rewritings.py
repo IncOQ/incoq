@@ -93,6 +93,58 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(tree, orig_tree)
 
 
+class BulkUpdatesCase(unittest.TestCase):
+    
+    def test_preprocess(self):
+        tree = L.Parser.p('''
+            def main():
+                S.update(T)
+                S.intersection_update(T)
+                S.difference_update(T)
+                S.symmetric_difference_update(T)
+                S.copy_update(T)
+            ''')
+        tree = preprocess_bulkupdates(tree, N.fresh_name_generator())
+        exp_tree = L.Parser.p('''
+            def main():
+                for _v1 in T:
+                    if (_v1 not in S):
+                        S.add(_v1)
+                for _v2 in list(S):
+                    if (_v2 not in T):
+                        S.remove(_v2)
+                for _v3 in list(T):
+                    if (_v3 in S):
+                        S.remove(_v3)
+                for _v4 in list(T):
+                    if (_v4 in S):
+                        S.remove(_v4)
+                    else:
+                        S.add(_v4)
+                for _v5 in list(S):
+                    if (_v5 not in T):
+                        S.remove(_v5)
+                for _v5 in list(T):
+                    if (_v5 not in S):
+                        S.add(_v5)
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        # Arbitrary expressions are allowed at this point.
+        tree = L.Parser.p('''
+            def main():
+                S.update(1+1)
+            ''')
+        tree = preprocess_bulkupdates(tree, N.fresh_name_generator())
+        exp_tree = L.Parser.p('''
+            def main():
+                for _v1 in 1+1:
+                    if _v1 not in S:
+                        S.add(_v1)
+            ''')
+        self.assertEqual(tree, exp_tree)
+
+
 class RelMapCase(unittest.TestCase):
     
     def test_preprocess_postprocess(self):
@@ -102,6 +154,8 @@ class RelMapCase(unittest.TestCase):
                 S.add(x + y)
                 T.add(x)
                 (a + b).add(x)
+                S.clear()
+                (a + b).clear()
                 M[k] = v
                 del M[k]
                 N[k] = v
@@ -116,6 +170,8 @@ class RelMapCase(unittest.TestCase):
                 S.reladd(_v1)
                 T.add(x)
                 (a + b).add(x)
+                S.relclear()
+                (a + b).clear()
                 M.mapassign(k, v)
                 M.mapdelete(k)
                 N[k] = v
@@ -131,10 +187,41 @@ class RelMapCase(unittest.TestCase):
                 S.add(_v1)
                 T.add(x)
                 (a + b).add(x)
+                S.clear()
+                (a + b).clear()
                 M[k] = v
                 del M[k]
                 N[k] = v
                 {x for (x, y) in S}
+            ''')
+        self.assertEqual(tree, exp_tree)
+
+
+class SetClearCase(unittest.TestCase):
+    
+    def test_preprocess(self):
+        tree = L.Parser.p('''
+            def main():
+                S.clear()
+            ''')
+        tree = preprocess_setclear(tree, N.fresh_name_generator())
+        exp_tree = L.Parser.p('''
+            def main():
+                for _v1 in list(S):
+                    S.remove(_v1)
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        # Arbitrary expression case.
+        tree = L.Parser.p('''
+            def main():
+                (1+1).clear()
+            ''')
+        tree = preprocess_setclear(tree, N.fresh_name_generator())
+        exp_tree = L.Parser.p('''
+            def main():
+                for _v1 in list(1+1):
+                    (1+1).remove(_v1)
             ''')
         self.assertEqual(tree, exp_tree)
 
