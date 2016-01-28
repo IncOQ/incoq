@@ -71,6 +71,7 @@ module IncAST
            -- Utility expressions.
          | FirstThen(expr first, expr then)
          | ImgLookup(identifier rel, mask mask, identifier* bounds)
+         | SetFromMap(identifier map, mask mask)
          | Unwrap(expr value)
          
            -- Queries.

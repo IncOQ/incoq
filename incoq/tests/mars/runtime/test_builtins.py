@@ -82,7 +82,7 @@ class BuiltinsCase(unittest.TestCase):
         self.assertCountEqual(img, exp_img)
         
         # Degenerate cases.
-        s = Set({})
+        s = Set(set())
         img = s.imglookup('', ())
         exp_img = {}
         self.assertCountEqual(img, exp_img)
@@ -173,6 +173,27 @@ class BuiltinsCase(unittest.TestCase):
         b = pickle.dumps(m1)
         m2 = pickle.loads(b)
         self.assertEqual(dict(m1), dict(m2))
+    
+    def test_map_setfrommap(self):
+        m = Map({('a',): (1,), ('b',): (2,)})
+        s = m.setfrommap('bu')
+        exp_s = {('a', 1), ('b', 2)}
+        self.assertCountEqual(s, exp_s)
+        
+        m = Map({('a', 'b'): (1, 2), ('c', 'd'): (3, 4)})
+        s = m.setfrommap('bubu')
+        exp_s = {('a', 1, 'b', 2), ('c', 3, 'd', 4)}
+        self.assertCountEqual(s, exp_s)
+        
+        # Degenerate cases.
+        m = Map({})
+        s = m.setfrommap('')
+        exp_s = set()
+        self.assertCountEqual(s, exp_s)
+        m = Map({(): ()})
+        s = m.setfrommap('')
+        exp_s = {()}
+        self.assertCountEqual(s, exp_s)
 
 
 if __name__ == '__main__':

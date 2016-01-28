@@ -514,6 +514,23 @@ class TypeAnalysisCase(unittest.TestCase):
             {'R': Top, 'x': Bottom, 'y': Top},
             True)
     
+    def test_setfrommap(self):
+        # Precision leak similar to above.
+        self.check('''
+            def main():
+                S = M.setfrommap('bu')
+            ''',
+            {'M': Map(Number, String), 'S': Bottom},
+            {'M': Map(Number, String), 'S': Set(Top)},
+            False)
+        self.check('''
+            def main():
+                S = M.setfrommap('bu')
+            ''',
+            {'M': Top, 'S': Bottom},
+            {'M': Top, 'S': Top},
+            True)
+    
     def test_query(self):
         self.check('''
             def main():

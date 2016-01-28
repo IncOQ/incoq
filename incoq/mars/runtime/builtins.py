@@ -105,6 +105,29 @@ class ImgLookupMixin:
         return result
 
 
+class SetFromMapMixin:
+    
+    """Mixin for giving a map-like class the setfrommap() operation."""
+    
+    def setfrommap(self, mask):
+        nb = mask.count('b')
+        nu = mask.count('u')
+        # Check arity.
+        assert all(isinstance(item, tuple) and len(item) == nb
+                   for item in self.keys())
+        assert all(isinstance(item, tuple) and len(item) == nu
+                   for item in self.values())
+        
+        result = Set()
+        for k, v in self.items():
+            ki = iter(k)
+            vi = iter(v)
+            entry = tuple(next(ki) if c == 'b' else next(vi)
+                          for c in mask)
+            result.add(entry)
+        return result
+
+
 class Set(IncOQType, set, ImgLookupMixin):
     
     """IncOQ Set. This differs from Python sets in that it has identity
@@ -187,7 +210,7 @@ class CSet(IncOQType, Counter, ImgLookupMixin):
     # elements(), update(), and clear() are provided by Counter.
 
 
-class Map(IncOQType, dict):
+class Map(IncOQType, dict, SetFromMapMixin):
     
     """Like dict, but with identity semantics."""
     

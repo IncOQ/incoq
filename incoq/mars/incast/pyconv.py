@@ -395,13 +395,28 @@ class IncLangSpecialImporter(L.MacroExpander):
         try:
             mask = L.mask(maskstr)
         except ValueError:
-            raise ASTErr('invalid mask string for imglookup operation')
+            raise ASTErr('Invalid mask string for imglookup operation')
         if not (isinstance(bounds, L.Tuple) and
                 all(isinstance(item, L.Name) for item in bounds.elts)):
             raise ASTErr('imglookup operation requires tuple of bound '
                          'variable identifiers')
         bounds = [item.id for item in bounds.elts]
         return L.ImgLookup(rel, mask, bounds)
+    
+    def handle_me_setfrommap(self, _func, map, maskstr):
+        if not isinstance(map, L.Name):
+            raise ASTErr('Cannot apply setfrommap operation to '
+                         '{} node'.format(map.__class__.__name__))
+        map = map.id
+        if not isinstance(maskstr, L.Str):
+            raise ASTErr('setfrommap operation requires string literal '
+                         'for mask')
+        maskstr = maskstr.s
+        try:
+            mask = L.mask(maskstr)
+        except ValueError:
+            raise ASTErr('Invalid mask string for setfrommap operation')
+        return L.SetFromMap(map, mask)
     
     def handle_me_unwrap(self, _func, set_):
         return L.Unwrap(set_)
@@ -510,6 +525,13 @@ class IncLangSpecialExporter(L.NodeTransformer):
         idents = L.Tuple([L.Name(item) for item in node.bounds])
         return L.GeneralCall(L.Attribute(L.Name(node.rel), 'imglookup'),
                              [maskstr, idents])
+    
+    def visit_SetFromMap(self, node):
+        node = self.generic_visit(node)
+        
+        maskstr = L.Str(node.mask.m)
+        return L.GeneralCall(L.Attribute(L.Name(node.map), 'setfrommap'),
+                             [maskstr])
     
     def visit_Unwrap(self, node):
         node = self.generic_visit(node)

@@ -259,6 +259,11 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.ImgLookup('R', L.mask('bu'), ['x'])
         self.assertEqual(tree, exp_tree)
     
+    def test_setfrommap(self):
+        tree = Parser.pe("M.setfrommap('bu')")
+        exp_tree = L.SetFromMap('M', L.mask('bu'))
+        self.assertEqual(tree, exp_tree)
+    
     def test_unwrap(self):
         tree = Parser.pe('R.unwrap()')
         exp_tree = L.Unwrap(L.Name('R'))
@@ -391,6 +396,9 @@ class RoundTripCase(unittest.TestCase):
     
     def test_imglookup(self):
         self.trip.pe("R.imglookup('bu', (x,))")
+    
+    def test_setfrommap(self):
+        self.trip.pe("R.setfrommap('bu')")
     
     def test_unwrap(self):
         self.trip.pe('R.unwrap()')
