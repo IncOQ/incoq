@@ -383,11 +383,7 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_fe_FIRSTTHEN(self, _func, first, then):
         return L.FirstThen(first, then)
     
-    def handle_me_imglookup(self, _func, rel, maskstr, bounds):
-        if not isinstance(rel, L.Name):
-            raise ASTErr('Cannot apply imglookup operation to '
-                         '{} node'.format(rel.__class__.__name__))
-        rel = rel.id
+    def handle_me_imglookup(self, _func, set, maskstr, bounds):
         if not isinstance(maskstr, L.Str):
             raise ASTErr('imglookup operation requires string literal '
                          'for mask')
@@ -401,13 +397,9 @@ class IncLangSpecialImporter(L.MacroExpander):
             raise ASTErr('imglookup operation requires tuple of bound '
                          'variable identifiers')
         bounds = [item.id for item in bounds.elts]
-        return L.ImgLookup(rel, mask, bounds)
+        return L.ImgLookup(set, mask, bounds)
     
     def handle_me_setfrommap(self, _func, map, maskstr):
-        if not isinstance(map, L.Name):
-            raise ASTErr('Cannot apply setfrommap operation to '
-                         '{} node'.format(map.__class__.__name__))
-        map = map.id
         if not isinstance(maskstr, L.Str):
             raise ASTErr('setfrommap operation requires string literal '
                          'for mask')
@@ -523,14 +515,14 @@ class IncLangSpecialExporter(L.NodeTransformer):
         
         maskstr = L.Str(node.mask.m)
         idents = L.Tuple([L.Name(item) for item in node.bounds])
-        return L.GeneralCall(L.Attribute(L.Name(node.rel), 'imglookup'),
+        return L.GeneralCall(L.Attribute(node.set, 'imglookup'),
                              [maskstr, idents])
     
     def visit_SetFromMap(self, node):
         node = self.generic_visit(node)
         
         maskstr = L.Str(node.mask.m)
-        return L.GeneralCall(L.Attribute(L.Name(node.map), 'setfrommap'),
+        return L.GeneralCall(L.Attribute(node.map, 'setfrommap'),
                              [maskstr])
     
     def visit_Unwrap(self, node):

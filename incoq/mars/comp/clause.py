@@ -256,7 +256,7 @@ class RelMemberHandler(ClauseHandler):
         
         else:
             bvars, uvars = L.split_by_mask(mask, cl.vars)
-            lookup = L.ImgLookup(cl.rel, mask, bvars)
+            lookup = L.ImgLookup(L.Name(cl.rel), mask, bvars)
             code = (L.DecompFor(uvars, lookup, body),)
         
         return code

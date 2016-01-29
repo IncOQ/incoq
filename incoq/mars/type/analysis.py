@@ -565,7 +565,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     def visit_ImgLookup(self, node, *, type=None):
         # Check rel <= Set<Top>
         # Return Set<Top>
-        t_rel = self.get_store(node.rel)
+        t_rel = self.visit(node.set)
         if not t_rel.issmaller(Set(Top)):
             self.mark_bad(node)
             return Top
@@ -575,7 +575,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     def visit_SetFromMap(self, node, *, type=None):
         # Check map <= Map<Top, Top>
         # Return Set<Top>
-        t_map = self.get_store(node.map)
+        t_map = self.visit(node.map)
         if not t_map.issmaller(Map(Top, Top)):
             self.mark_bad(node)
             return Top

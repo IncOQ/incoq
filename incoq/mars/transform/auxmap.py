@@ -193,13 +193,25 @@ class InvariantFinder(L.NodeVisitor):
         return self.auxmaps, self.setfrommaps
     
     def visit_ImgLookup(self, node):
-        map = N.get_auxmap_name(node.rel, node.mask)
-        auxmap = AuxmapInvariant(map, node.rel, node.mask)
+        self.generic_visit(node)
+        
+        if not isinstance(node.set, L.Name):
+            return
+        rel = node.set.id
+        
+        map = N.get_auxmap_name(rel, node.mask)
+        auxmap = AuxmapInvariant(map, rel, node.mask)
         self.auxmaps.add(auxmap)
     
     def visit_SetFromMap(self, node):
-        rel = N.get_setfrommap_name(node.map, node.mask)
-        setfrommap = SetFromMapInvariant(rel, node.map, node.mask)
+        self.generic_visit(node)
+        
+        if not isinstance(node.map, L.Name):
+            return
+        map = node.map.id
+        
+        rel = N.get_setfrommap_name(map, node.mask)
+        setfrommap = SetFromMapInvariant(rel, map, node.mask)
         self.setfrommaps.add(setfrommap)
 
 
@@ -293,7 +305,13 @@ class InvariantTransformer(L.NodeTransformer):
         return code
     
     def visit_ImgLookup(self, node):
-        auxmap = self.auxmaps_by_relmask.get((node.rel, node.mask), None)
+        node = self.generic_visit(node)
+        
+        if not isinstance(node.set, L.Name):
+            return node
+        rel = node.set.id
+        
+        auxmap = self.auxmaps_by_relmask.get((rel, node.mask), None)
         if auxmap is None:
             return node
         
@@ -303,13 +321,19 @@ class InvariantTransformer(L.NodeTransformer):
                                   '_KEY': key})
     
     def visit_SetFromMap(self, node):
-        sfm = self.setfrommaps_by_map.get(node.map, None)
+        node = self.generic_visit(node)
+        
+        if not isinstance(node.map, L.Name):
+            return node
+        map = node.map.id
+        
+        sfm = self.setfrommaps_by_map.get(map, None)
         if sfm is None:
             return node
         
         if not sfm.mask == node.mask:
             raise L.ProgramError('Multiple SetFromMap expressions on '
-                                 'same map {}'.format(node.map))
+                                 'same map {}'.format(map))
         return L.Name(sfm.rel)
 
 

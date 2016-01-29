@@ -76,7 +76,7 @@ def convert_subquery_clause(clause):
     
         - right-hand side is a Name node
         
-        - right-hand side is an ImgLookup node with a keymask
+        - right-hand side is an ImgLookup node on a Name, with a keymask
     """
     if not isinstance(clause, L.VarsMember):
         return clause
@@ -84,12 +84,13 @@ def convert_subquery_clause(clause):
     if isinstance(clause.iter, L.Name):
         return L.RelMember(clause.vars, clause.iter.id)
     elif (isinstance(clause.iter, L.ImgLookup) and
+          isinstance(clause.iter.set, L.Name) and
           L.is_keymask(clause.iter.mask)):
         nb, nu = L.break_keymask(clause.iter.mask)
         assert nb == len(clause.iter.bounds)
         assert nu == len(clause.vars)
         return L.RelMember(clause.iter.bounds + clause.vars,
-                           clause.iter.rel)
+                           clause.iter.set.id)
     
     return clause
 
@@ -255,7 +256,7 @@ def incrementalize_comp(tree, symtab, query, result_var):
                     return L.Name(result_var)
                 else:
                     mask = L.keymask_from_len(len(query.params), orig_arity)
-                    return L.ImgLookup(result_var, mask, query.params)
+                    return L.ImgLookup(L.Name(result_var), mask, query.params)
     
     tree = CompExpander.run(tree, symtab, expand=True)
     

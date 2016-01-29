@@ -256,12 +256,12 @@ class ParseImportCase(unittest.TestCase):
     
     def test_imglookup(self):
         tree = Parser.pe("R.imglookup('bu', (x,))")
-        exp_tree = L.ImgLookup('R', L.mask('bu'), ['x'])
+        exp_tree = L.ImgLookup(L.Name('R'), L.mask('bu'), ['x'])
         self.assertEqual(tree, exp_tree)
     
     def test_setfrommap(self):
         tree = Parser.pe("M.setfrommap('bu')")
-        exp_tree = L.SetFromMap('M', L.mask('bu'))
+        exp_tree = L.SetFromMap(L.Name('M'), L.mask('bu'))
         self.assertEqual(tree, exp_tree)
     
     def test_unwrap(self):
