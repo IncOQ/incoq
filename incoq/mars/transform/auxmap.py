@@ -4,10 +4,13 @@
 __all__ = [
     'AuxmapInvariant',
     'SetFromMapInvariant',
+    
     'InvariantFinder',
     'InvariantTransformer',
+    
     'make_auxmap_type',
     'make_setfrommap_type',
+    
     'define_map',
     'define_set',
     'transform_auxmaps',
@@ -177,8 +180,8 @@ def make_setfrommap_maint_func(fresh_vars,
 
 class InvariantFinder(L.NodeVisitor):
     
-    """Finds all auxiliary map and setfrommap invariants needed for
-    image-set and setfrommap expressions in the program.
+    """Find all auxiliary map and setfrommap invariants needed for
+    ImgLookup and SetFromMap expressions in the program.
     """
     
     def process(self, tree):
@@ -202,11 +205,13 @@ class InvariantFinder(L.NodeVisitor):
 
 class InvariantTransformer(L.NodeTransformer):
     
-    """Insert auxmap and setfrommap maintenance functions, insert calls
-    to maintenance functions around SetAdd/SetRemove and MapAssign/
-    MapDelete updates, and replace image-set and setfrommap expressions
-    with uses of auxmaps.
+    """Insert maintenance functions, insert calls to these functions
+    at updates, and replace expressions with uses of stored results.
     """
+    
+    # We only support at most one SetFromMap mask for a given
+    # relation. We don't really have a use for multiple ones at this
+    # time.
     
     def __init__(self, fresh_vars, auxmaps, setfrommaps):
         super().__init__()
@@ -223,10 +228,6 @@ class InvariantTransformer(L.NodeTransformer):
         self.setfrommaps_by_map = sfm_by_map = OrderedDict()
         for sfm in setfrommaps:
             if sfm.map in sfm_by_map:
-                # This actually can be supported in principle, but
-                # I don't think we have a use for it, so we'll flag
-                # it as an error and have the dict store at most one
-                # entry per map.
                 raise L.ProgramError('Multiple SetFromMap expressions on '
                                      'same map {}'.format(sfm.map))
             sfm_by_map[sfm.map] = sfm
@@ -306,7 +307,9 @@ class InvariantTransformer(L.NodeTransformer):
         if sfm is None:
             return node
         
-        assert sfm.mask == node.mask
+        if not sfm.mask == node.mask:
+            raise L.ProgramError('Multiple SetFromMap expressions on '
+                                 'same map {}'.format(node.map))
         return L.Name(sfm.rel)
 
 
