@@ -270,28 +270,35 @@ postprocess_main_call = MainCallAdder.run
 def preprocess_var_decls(tree):
     """Eliminate global variable declarations of the form
     
-        R = Set()
+        S = Set()
+        M = Map()
     
-    and return a list of relations declared in this manner.
+    and return a list of pairs of variables names and type names (i.e.,
+    'Set' or 'Map').
     """
     assert isinstance(tree, P.Module)
-    pat = P.Assign([P.Name(P.PatVar('_REL'), P.Wildcard())],
-                   P.Parser.pe('Set()'))
+    pat = P.Assign([P.Name(P.PatVar('_VAR'), P.Wildcard())],
+                   P.Call(P.Name(P.PatVar('_KIND'), P.Load()),
+                          [], [], None, None))
     
-    rels = OrderedSet()
+    decls = OrderedSet()
     body = []
     changed = False
     for stmt in tree.body:
         match = P.match(pat, stmt)
         if match is not None:
-            rels.add(match['_REL'])
+            var, kind = match['_VAR'], match['_KIND']
+            if kind not in ['Set', 'Map']:
+                raise L.ProgramError('Unknown declaration initializer {}'
+                                     .format(kind))
+            decls.add((var, kind))
             changed = True
         else:
             body.append(stmt)
     
     if changed:
         tree = tree._replace(body=body)
-    return tree, list(rels)
+    return tree, list(decls)
 
 
 def postprocess_var_decls(tree, decls):
@@ -397,7 +404,7 @@ def py_preprocess(tree):
     tree = preprocess_main_call(tree)
     
     # Get relation declarations.
-    tree, rels = preprocess_var_decls(tree)
+    tree, decls = preprocess_var_decls(tree)
     
     # Get symbol info.
     tree, info = preprocess_directives(tree)
@@ -407,7 +414,7 @@ def py_preprocess(tree):
     info.query_info = [(L.import_incast(query), value)
                        for query, value in info.query_info]
     
-    return tree, rels, info
+    return tree, decls, info
 
 
 def py_postprocess(tree, *, decls, header):

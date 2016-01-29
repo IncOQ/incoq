@@ -180,20 +180,21 @@ class VarDeclCase(unittest.TestCase):
         tree = P.Parser.p('''
             R = Set()
             R = Set()
+            M = Map()
             S = Set()
             x = 1
             def main():
                 T = Set()
             ''')
-        tree, rels = preprocess_var_decls(tree)
+        tree, decls = preprocess_var_decls(tree)
         exp_tree = P.Parser.p('''
             x = 1
             def main():
                 T = Set()
             ''')
-        exp_rels = ['R', 'S']
+        exp_decls = [('R', 'Set'), ('M', 'Map'), ('S', 'Set')]
         self.assertEqual(tree, exp_tree)
-        self.assertSequenceEqual(rels, exp_rels)
+        self.assertSequenceEqual(decls, exp_decls)
     
     def test_postprocess(self):
         decls = [

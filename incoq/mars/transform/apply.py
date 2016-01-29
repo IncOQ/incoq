@@ -97,7 +97,20 @@ def preprocess_tree(tree, symtab, config):
     """
     # Preprocess at the Python level. Obtain parsed information
     # about symbols and directives.
-    tree, rels, info = py_preprocess(tree)
+    tree, decls, info = py_preprocess(tree)
+    
+    # Define symbols for declared relations and maps.
+    rels = []
+    maps = []
+    for var, kind in decls:
+        if kind == 'Set':
+            rels.append(var)
+            symtab.define_relation(var)
+        elif kind == 'Map':
+            maps.append(var)
+            symtab.define_map(var)
+        else:
+            assert()
     
     # Create query names for parsed query info.
     query_name_map = {q: next(symtab.fresh_names.queries)
@@ -106,12 +119,8 @@ def preprocess_tree(tree, symtab, config):
     # Continue preprocessing.
     # Maps in the input program aren't currently handled.
     tree = incast_preprocess(tree, fresh_vars=symtab.fresh_names.vars,
-                             rels=rels, maps=[],
+                             rels=rels, maps=maps,
                              query_name_map=query_name_map)
-    
-    # Define symbols for declared relations.
-    for rel in rels:
-        symtab.define_relation(rel)
     
     # Define symbols for queries.
     queries = QueryNodeFinder.run(tree)
