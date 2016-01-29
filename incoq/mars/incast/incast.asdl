@@ -82,6 +82,8 @@ module IncAST
            -- Comprehension clauses are flattened compared to Python's
            -- format, where conditions are nested underneath memberships.
          | Comp(expr resexp, clause* clauses)
+         
+         | Aggr(aggrop op, expr value)
     
     clause = Member(expr target, expr iter)
            | RelMember(identifier* vars, identifier rel)
@@ -109,4 +111,7 @@ module IncAST
             | IncCount | DecCount
     
     setbulkop = Union | Inter | Diff | SymDiff | Copy
+    
+    aggrop = Count | Sum
+           | Min | Max
 }

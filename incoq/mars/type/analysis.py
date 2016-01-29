@@ -668,6 +668,31 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     def visit_Cond(self, node, *, type=None):
         self.visit(node.cond)
     
+    @readonly
+    def visit_Aggr(self, node, *, type=None):
+        # If join(value, Set<Bottom>) == Set<T>:
+        #   If op is count or op is sum:
+        #     Check T <= Number
+        #     If T <= Number:
+        #       Return Number
+        #     Else:
+        #       Return Top
+        #   Elif op is min or op is max:
+        #     Return T
+        # Else:
+        #   Return Top
+        #
+        # Check value <= Set<Top>
+        t_value = self.visit(node.value)
+        t_elt = self.get_sequence_elt(node, t_value, Set)
+        if isinstance(node.op, (L.Count, L.Sum)):
+            if not t_elt.issmaller(Number):
+                self.mark_bad(node)
+                return Top
+            return Number
+        elif isinstance(node.op, (L.Min, L.Max)):
+            return t_elt
+    
     # Remaining nodes require no handler.
 
 

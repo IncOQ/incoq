@@ -309,6 +309,21 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.Comp(N('x'), [L.VarsMember(['x', 'y'],
                                                 Parser.pe('1 + 1'))])
         self.assertEqual(tree, exp_tree)
+    
+    def test_aggr(self):
+        trees = [
+            Parser.pe('count(S)'),
+            Parser.pe('sum(S)'),
+            Parser.pe('min(S)'),
+            Parser.pe('max(S)'),
+        ]
+        exp_trees = (
+            L.Aggr(L.Count(), L.Name('S')),
+            L.Aggr(L.Sum(), L.Name('S')),
+            L.Aggr(L.Min(), L.Name('S')),
+            L.Aggr(L.Max(), L.Name('S')),
+        )
+        self.assertSequenceEqual(trees, exp_trees)
 
 
 class RoundTripCase(unittest.TestCase):
@@ -412,6 +427,14 @@ class RoundTripCase(unittest.TestCase):
         self.trip.pe('{x for (x, y) in SING(E)}')
         self.trip.pe('{x for (x, y) in WITHOUT(REL(R), e)}')
         self.trip.pe('{x for (x, y) in VARS(1 + 1)}')
+    
+    def test_aggr(self):
+        self.trip.pc('''
+            count(S)
+            sum(S)
+            min(S)
+            max(S)
+            ''')
     
     def test_unparse_arity(self):
         self.trip.p('''

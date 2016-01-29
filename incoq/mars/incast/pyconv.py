@@ -422,6 +422,18 @@ class IncLangSpecialImporter(L.MacroExpander):
             raise ASTErr('QUERY annotation first argument must be a '
                          'string literal containing a valid identifier')
         return L.Query(name.s, query)
+    
+    def handle_fe_count(self, _func, value):
+        return L.Aggr(L.Count(), value)
+    
+    def handle_fe_sum(self, _func, value):
+        return L.Aggr(L.Sum(), value)
+    
+    def handle_fe_min(self, _func, value):
+        return L.Aggr(L.Min(), value)
+    
+    def handle_fe_max(self, _func, value):
+        return L.Aggr(L.Max(), value)
 
 
 class CallSimplifier(L.NodeTransformer):
@@ -529,6 +541,15 @@ class IncLangSpecialExporter(L.NodeTransformer):
         node = self.generic_visit(node)
         
         return L.GeneralCall(L.Attribute(node.value, 'unwrap'), [])
+    
+    def visit_Aggr(self, node):
+        node = self.generic_visit(node)
+        
+        opfunc = {L.Count: 'count',
+                  L.Sum: 'sum',
+                  L.Min: 'min',
+                  L.Max: 'max'}[node.op.__class__]
+        return L.Call(opfunc, [node.value])
 
 
 class IncLangNodeExporter(NodeMapper):

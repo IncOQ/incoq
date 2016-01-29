@@ -617,6 +617,43 @@ class TypeAnalysisCase(unittest.TestCase):
              'x': Top, 'y': Top},
             True)
     
+    def test_aggr(self):
+        # Count and sum.
+        self.check('''
+            def main():
+                a = count(S)
+                b = sum(S)
+            ''',
+            {'S': Set(Number), 'a': Bottom, 'b': Bottom},
+            {'S': Set(Number), 'a': Number, 'b': Number},
+            False)
+        self.check('''
+            def main():
+                a = count(S)
+                b = sum(S)
+            ''',
+            {'S': Set(String), 'a': Bottom, 'b': Bottom},
+            {'S': Set(String), 'a': Top, 'b': Top},
+            True)
+        
+        # Min and max.
+        self.check('''
+            def main():
+                a = min(S)
+                b = max(S)
+            ''',
+            {'S': Set(String), 'a': Bottom, 'b': Bottom},
+            {'S': Set(String), 'a': String, 'b': String},
+            False)
+        self.check('''
+            def main():
+                a = min(S)
+                b = max(S)
+            ''',
+            {'S': Top, 'a': Bottom, 'b': Bottom},
+            {'S': Top, 'a': Top, 'b': Top},
+            True)
+    
     # Clauses are taken care of by Comp's tests.
     
     def test_analyze_basic(self):
