@@ -12,6 +12,7 @@ __all__ = [
     'mask_is_allbound',
     'mask_is_allunbound',
     'split_by_mask',
+    'combine_by_mask',
     'bind_by_mask',
 ]
 
@@ -111,6 +112,26 @@ def split_by_mask(mask, items):
         else:
             assert()
     return bounds, unbounds
+
+
+def combine_by_mask(mask, bounds, unbounds):
+    """Return a single list that merges bounds and unbounds according
+    to the sequence in mask. The combined lengths of bounds and unbounds
+    must equal the number of components in the mask. This is effectively
+    the inverse of split_by_mask().
+    """
+    assert len(mask.m) == len(bounds) + len(unbounds)
+    result = []
+    bi = iter(bounds)
+    ui = iter(unbounds)
+    for c in mask.m:
+        if c == 'b':
+            result.append(next(bi))
+        elif c == 'u':
+            result.append(next(ui))
+        else:
+            assert()
+    return result
 
 
 def bind_by_mask(mask, lhs, rhs):

@@ -39,6 +39,10 @@ class N:
         return '{}_{}'.format(map, mask.m)
     
     @classmethod
+    def get_setfrommap_name(cls, map, mask):
+        return 'S{}'.format(map)
+    
+    @classmethod
     def get_maint_func_name(cls, inv, param, op):
         return '_maint_{}_for_{}_{}'.format(inv, param, op)
     

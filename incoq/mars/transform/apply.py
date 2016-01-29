@@ -25,7 +25,7 @@ from .incast_rewritings import incast_preprocess, incast_postprocess
 from .optimize import unwrap_singletons
 from .param_analysis import analyze_parameters, analyze_demand
 from .misc_rewritings import relationalize_comp_queries
-from .auxmap import AuxmapFinder, AuxmapTransformer, define_map
+from .auxmap import transform_auxmaps
 
 
 def debug_symbols(symtab, illtyped, badsyms):
@@ -190,19 +190,6 @@ def transform_queries(tree, symtab):
         if not success:
             symtab.ignored_queries.add(query_name)
         result = findnext()
-    return tree
-
-
-def transform_auxmaps(tree, symtab):
-    auxmaps = AuxmapFinder.run(tree)
-    for auxmap in auxmaps:
-        if auxmap.rel not in symtab.get_relations():
-            raise L.ProgramError('Cannot make auxiliary map for image-set '
-                                 'lookup over non-relation variable {}'
-                                 .format(auxmap.rel))
-    for auxmap in auxmaps:
-        define_map(auxmap, symtab)
-    tree = AuxmapTransformer.run(tree, symtab.fresh_names.vars, auxmaps)
     return tree
 
 

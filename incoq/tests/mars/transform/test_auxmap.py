@@ -8,7 +8,8 @@ from incoq.mars.type import T
 from incoq.mars.symbol import S, N
 from incoq.mars.transform.auxmap import *
 from incoq.mars.transform.auxmap import (make_imgadd, make_imgremove,
-                                         make_auxmap_maint_func)
+                                         make_auxmap_maint_func,
+                                         make_setfrommap_maint_func)
 
 
 class AuxmapCase(unittest.TestCase):
@@ -32,7 +33,7 @@ class AuxmapCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
     
-    def test_maint_add(self):
+    def test_auxmap_maint_add(self):
         auxmap = AuxmapInvariant('m', 'R', L.mask('bu'))
         func = make_auxmap_maint_func(N.fresh_name_generator(),
                                       auxmap, L.SetAdd())
@@ -48,7 +49,7 @@ class AuxmapCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
     
-    def test_maint_remove(self):
+    def test_auxmap_maint_remove(self):
         auxmap = AuxmapInvariant('m', 'R', L.mask('bu'))
         func = make_auxmap_maint_func(N.fresh_name_generator(),
                                       auxmap, L.SetRemove())
@@ -63,25 +64,60 @@ class AuxmapCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
     
-    def test_imglookup_finder(self):
+    def test_setfrommap_maint_assign(self):
+        setfrommap = SetFromMapInvariant('R', 'M', L.mask('bu'))
+        func = make_setfrommap_maint_func(N.fresh_name_generator(),
+                                          setfrommap, 'assign')
+        exp_func = L.Parser.ps('''
+            def _maint_R_for_M_assign(_key, _val):
+                (_key_v1,) = _key
+                (_val_v1,) = _val
+                _v1_elem = (_key_v1, _val_v1)
+                R.reladd(_v1_elem)
+            ''')
+        self.assertEqual(func, exp_func)
+    
+    def test_setfrommap_maint_delete(self):
+        setfrommap = SetFromMapInvariant('R', 'M', L.mask('bu'))
+        func = make_setfrommap_maint_func(N.fresh_name_generator(),
+                                          setfrommap, 'delete')
+        exp_func = L.Parser.ps('''
+            def _maint_R_for_M_delete(_key):
+                _val = M[_key]
+                (_key_v1,) = _key
+                (_val_v1,) = _val
+                _v1_elem = (_key_v1, _val_v1)
+                R.relremove(_v1_elem)
+            ''')
+        self.assertEqual(func, exp_func)
+    
+    def test_invariant_finder(self):
         tree = L.Parser.p('''
             def f():
                 R.imglookup('bu', (x,))
                 R.imglookup('bu', (x,))
+                M.setfrommap('bu')
                 R.imglookup('ub', (y,))
                 S.imglookup('bu', (x,))
             ''')
-        auxmaps = AuxmapFinder.run(tree)
+        auxmaps, setfrommaps = InvariantFinder.run(tree)
         exp_auxmaps = [
             AuxmapInvariant('R_bu', 'R', L.mask('bu')),
             AuxmapInvariant('R_ub', 'R', L.mask('ub')),
             AuxmapInvariant('S_bu', 'S', L.mask('bu')),
         ]
-        self.assertEqual(auxmaps, exp_auxmaps)
+        exp_setfrommaps = [
+            SetFromMapInvariant('SM', 'M', L.mask('bu')),
+        ]
+        self.assertSequenceEqual(list(auxmaps), exp_auxmaps)
+        self.assertSequenceEqual(list(setfrommaps), exp_setfrommaps)
     
-    def test_auxmap_transformer(self):
+    def test_invariant_transformer(self):
         auxmaps = [
             AuxmapInvariant('R_bu', 'R', L.mask('bu')),
+        ]
+        setfrommaps = [
+            SetFromMapInvariant('S', 'M', L.mask('bu')),
         ]
         tree = L.Parser.p('''
             def f():
@@ -92,8 +128,12 @@ class AuxmapCase(unittest.TestCase):
                 print(S.imglookup('bu', (x,)))
                 R.relinccount(elem)
                 R.relclear()
+                M.mapassign(k, v)
+                M.mapdelete(k)
+                print(M.setfrommap('bu'))
             ''')
-        tree = AuxmapTransformer.run(tree, N.fresh_name_generator(), auxmaps)
+        tree = InvariantTransformer.run(tree, N.fresh_name_generator(),
+                                        auxmaps, setfrommaps)
         exp_tree = L.Parser.p('''
             def _maint_R_bu_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem
@@ -112,6 +152,19 @@ class AuxmapCase(unittest.TestCase):
                 if (len(R_bu[_v3_key]) == 0):
                     R_bu.mapdelete(_v3_key)
             
+            def _maint_S_for_M_assign(_key, _val):
+                (_key_v1,) = _key
+                (_val_v1,) = _val
+                _v4_elem = (_key_v1, _val_v1)
+                S.reladd(_v4_elem)
+            
+            def _maint_S_for_M_delete(_key):
+                _val = M[_key]
+                (_key_v1,) = _key
+                (_val_v1,) = _val
+                _v5_elem = (_key_v1, _val_v1)
+                S.relremove(_v5_elem)
+            
             def f():
                 elem = (1, 2)
                 R.reladd(elem)
@@ -122,6 +175,11 @@ class AuxmapCase(unittest.TestCase):
                 R.relinccount(elem)
                 R_bu.clear()
                 R.relclear()
+                M.mapassign(k, v)
+                _maint_S_for_M_assign(k, v)
+                _maint_S_for_M_delete(k)
+                M.mapdelete(k)
+                print(S)
             ''')
         self.assertEqual(tree, exp_tree)
     
@@ -146,6 +204,27 @@ class AuxmapCase(unittest.TestCase):
         t_rel = T.Set(T.Tuple([T.Number]))
         t = make_auxmap_type(mask, t_rel)
         exp_t = T.Map(T.Top, T.Top)
+        self.assertEqual(t, exp_t)
+    
+    def test_make_setfrommap_type(self):
+        mask = L.mask('bub')
+        
+        # Normal case.
+        t_map = T.Map(T.Tuple([T.Number, T.Top]), T.Tuple([T.String]))
+        t = make_setfrommap_type(mask, t_map)
+        exp_t = T.Set(T.Tuple([T.Number, T.String, T.Top]))
+        self.assertEqual(t, exp_t)
+        
+        # Bottom case.
+        t_map = T.Map(T.Bottom, T.Bottom)
+        t = make_setfrommap_type(mask, t_map)
+        exp_t = T.Set(T.Tuple([T.Bottom, T.Bottom, T.Bottom]))
+        self.assertEqual(t, exp_t)
+        
+        # Other case, incorrect arity.
+        t_map = T.Map(T.Tuple([T.Number]), T.Tuple([]))
+        t = make_setfrommap_type(mask, t_map)
+        exp_t = T.Set(T.Top)
         self.assertEqual(t, exp_t)
     
     def test_define_map(self):
@@ -180,6 +259,19 @@ class AuxmapCase(unittest.TestCase):
         self.assertEqual(
             mapsym.type,
             T.Map(T.Top, T.Top))
+    
+    def test_define_set(self):
+        symtab = S.SymbolTable()
+        symtab.define_map(
+            'M', type=T.Map(T.Tuple([T.Number, T.Top]),
+                            T.Tuple([T.String])))
+        inv = SetFromMapInvariant('S', 'M', L.mask('bub'))
+        
+        define_set(inv, symtab)
+        relsym = symtab.get_relations()['S']
+        self.assertEqual(
+            relsym.type,
+            T.Set(T.Tuple([T.Number, T.String, T.Top])))
 
 
 if __name__ == '__main__':
