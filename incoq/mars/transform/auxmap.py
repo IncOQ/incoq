@@ -430,9 +430,15 @@ def define_set(setfrommap, symtab):
     symtab.define_relation(setfrommap.rel, type=rel_type)
 
 
-def transform_auxmaps(tree, symtab):
-    """Transform auxiliary map and setfrommap invariants."""
+def transform_auxmaps_stepper(tree, symtab):
+    """Transform all auxmap and setfrommap expressions we can find that
+    are over Name nodes. Return the tree and whether any transformation
+    was done.
+    """
     auxmaps, setfrommaps = InvariantFinder.run(tree)
+    if len(auxmaps) == len(setfrommaps) == 0:
+        return tree, False
+    
     for auxmap in auxmaps:
         if auxmap.rel not in symtab.get_relations():
             raise L.ProgramError('Cannot make auxiliary map for image-set '
@@ -444,4 +450,23 @@ def transform_auxmaps(tree, symtab):
         define_set(sfm, symtab)
     tree = InvariantTransformer.run(tree, symtab.fresh_names.vars,
                                     auxmaps, setfrommaps)
+    return tree, True
+
+
+def transform_auxmaps(tree, symtab):
+    """Transform all ImgLookup and SetFromMap nodes. If any remain that
+    do not fit our form, raise an error.
+    """
+    class Complainer(L.NodeVisitor):
+        def visit_ImgLookup(self, node):
+            raise L.ProgramError('Invalid ImgLookup expression: {}'
+                                 .format(node))
+        def visit_SetFromMap(self, node):
+            raise L.ProgramError('Invalid SetFromMap expression: {}'
+                                 .format(node))
+    
+    changed = True
+    while changed:
+        tree, changed = transform_auxmaps_stepper(tree, symtab)
+    Complainer.run(tree)
     return tree
