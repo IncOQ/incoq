@@ -153,16 +153,23 @@ class ParamAnalysisCase(unittest.TestCase):
     
     def test_param_analyzer_basic(self):
         comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
+        inner_comp = L.Parser.pe('{y for (x, y) in REL(R)}')
+        aggr = L.Parser.pe("sum(QUERY('Q2', {y for (x, y) in REL(R)}))")
         symtab = S.SymbolTable()
-        query_sym = symtab.define_query('Q', node=comp)
+        query_sym1 = symtab.define_query('Q1', node=comp)
+        query_sym2 = symtab.define_query('Q2', node=inner_comp)
+        query_sym3 = symtab.define_query('Q3', node=aggr)
         tree = L.Parser.p('''
             def main():
                 x = 1
-                print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
+                print(QUERY('Q1', {(x, y) for (x, y) in REL(R)}))
+                print(QUERY('Q3', sum(QUERY('Q2', {y for (x, y) in REL(R)}))))
             ''')
         
         tree = ParamAnalyzer.run(tree, symtab)
-        self.assertEqual(query_sym.params, ('x',))
+        self.assertEqual(query_sym1.params, ('x',))
+        self.assertEqual(query_sym2.params, ('x',))
+        self.assertEqual(query_sym3.params, ('x',))
     
     def test_param_analyzer_inst(self):
         comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
