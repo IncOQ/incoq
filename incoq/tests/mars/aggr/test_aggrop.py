@@ -27,6 +27,10 @@ class TransCase(unittest.TestCase):
         expr = handler.make_projection_expr('S')
         exp_expr = L.Name('S')
         self.assertEqual(code, exp_code)
+        
+        expr = handler.make_empty_cond('S')
+        exp_expr = L.Parser.pe('S == 0')
+        self.assertEqual(expr, exp_expr)
     
     def test_sum(self):
         handler = SumHandler()
@@ -46,6 +50,31 @@ class TransCase(unittest.TestCase):
         expr = handler.make_projection_expr('S')
         exp_expr = L.Name('S')
         self.assertEqual(code, exp_code)
+        
+        # No implementation of make_empty_cond().
+    
+    def test_countedsum(self):
+        handler = CountedSumHandler()
+        
+        expr = handler.make_zero_expr()
+        exp_expr = L.Parser.pe('(0, 0)')
+        self.assertEqual(expr, exp_expr)
+        
+        code = handler.make_update_state_code('_', 'S', L.SetAdd(), 'v')
+        exp_code = L.Parser.pc('S = (S.index(0) + v, S.index(1) + 1)')
+        self.assertEqual(code, exp_code)
+        
+        code = handler.make_update_state_code('_', 'S', L.SetRemove(), 'v')
+        exp_code = L.Parser.pc('S = (S.index(0) - v, S.index(1) - 1)')
+        self.assertEqual(code, exp_code)
+        
+        expr = handler.make_projection_expr('S')
+        exp_expr = L.Parser.pe('S.index(0)')
+        self.assertEqual(code, exp_code)
+        
+        expr = handler.make_empty_cond('S')
+        exp_expr = L.Parser.pe('S.index(1) == 0')
+        self.assertEqual(expr, exp_expr)
     
     def test_min(self):
         handler = MinHandler()
@@ -73,6 +102,10 @@ class TransCase(unittest.TestCase):
         expr = handler.make_projection_expr('S')
         exp_expr = L.Name('S.index(1)')
         self.assertEqual(code, exp_code)
+        
+        expr = handler.make_empty_cond('S')
+        exp_expr = L.Parser.pe('len(S.index(0)) == 0')
+        self.assertEqual(expr, exp_expr)
     
     def test_max(self):
         handler = MaxHandler()
@@ -100,6 +133,10 @@ class TransCase(unittest.TestCase):
         expr = handler.make_projection_expr('S')
         exp_expr = L.Name('S.index(1)')
         self.assertEqual(code, exp_code)
+        
+        expr = handler.make_empty_cond('S')
+        exp_expr = L.Parser.pe('len(S.index(0)) == 0')
+        self.assertEqual(expr, exp_expr)
 
 
 if __name__ == '__main__':

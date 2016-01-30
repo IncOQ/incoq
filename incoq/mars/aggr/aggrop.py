@@ -5,6 +5,7 @@ __all__ = [
     'AggrOpHandler',
     'CountHandler',
     'SumHandler',
+    'CountedSumHandler',
     'MinHandler',
     'MaxHandler',
     'handler_for_op',
@@ -36,6 +37,13 @@ class AggrOpHandler:
         expression projecting the state down to an answer.
         """
         raise NotImplementedError
+    
+    def make_empty_cond(self, state):
+        """Given the name of a variable holding state, return an
+        expression that determines whether the state corresponds to an
+        empty argument set.
+        """
+        raise NotImplementedError
 
 
 class CountSumHandler(AggrOpHandler):
@@ -57,9 +65,35 @@ class CountSumHandler(AggrOpHandler):
 
 class CountHandler(CountSumHandler):
     kind = 'count'
+    
+    def make_empty_cond(self, state):
+        return L.Parser.pe('_STATE == 0', subst={'_STATE': state})
 
 class SumHandler(CountSumHandler):
     kind = 'sum'
+
+
+class CountedSumHandler(AggrOpHandler):
+    
+    def make_zero_expr(self):
+        return L.Parser.pe('(0, 0)')
+    
+    def make_update_state_code(self, prefix, state, op, value):
+        if isinstance(op, L.SetAdd):
+            template = '''
+                _STATE = (_STATE.index(0) + _VALUE, _STATE.index(1) + 1)
+                '''
+        elif isinstance(op, L.SetRemove):
+            template = '''
+                _STATE = (_STATE.index(0) - _VALUE, _STATE.index(1) - 1)
+                '''
+        return L.Parser.pc(template, subst={'_STATE': state, '_VALUE': value})
+    
+    def make_projection_expr(self, state):
+        return L.Subscript(L.Name(state), L.Num(0))
+    
+    def make_empty_cond(self, state):
+        return L.Parser.pe('_STATE.index(1) == 0', subst={'_STATE': state})
 
 
 class MinMaxHandler(AggrOpHandler):
@@ -99,6 +133,10 @@ class MinMaxHandler(AggrOpHandler):
     
     def make_projection_expr(self, state):
         return L.Subscript(L.Name(state), L.Num(1))
+    
+    def make_empty_cond(self, state):
+        return L.Parser.pe('len(_STATE.index(0)) == 0',
+                           subst={'_STATE': state})
 
 class MinHandler(MinMaxHandler):
     kind = 'min'
@@ -109,7 +147,7 @@ class MaxHandler(MinMaxHandler):
 
 handler_for_op = {
     L.Count: CountHandler,
-    L.Sum: SumHandler,
+    L.Sum: CountedSumHandler,
     L.Min: MinHandler,
     L.Max: MaxHandler,
 }
