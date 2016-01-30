@@ -1,4 +1,4 @@
-"""Unit tests for the builtins module."""
+"""Unit tests for builtins.py."""
 
 
 import unittest

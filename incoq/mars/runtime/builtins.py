@@ -14,6 +14,8 @@ __all__ = [
     'Set',
     'CSet',
     'Map',
+    
+    'Tree',
 ]
 
 
@@ -21,6 +23,8 @@ from reprlib import recursive_repr
 from collections import Counter
 from functools import partial
 import builtins
+
+from .tree import Tree
 
 
 # These act as syntactic directives for the transformation system.
