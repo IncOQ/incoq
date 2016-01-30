@@ -15,6 +15,13 @@ class BuiltinsCase(unittest.TestCase):
         QUERY(1, a=2, b=3)
         self.assertEqual(QUERY('Q', 5), 5)
     
+    def test_aggregates(self):
+        self.assertEqual(count(range(3)), 3)
+        self.assertEqual(min([2, 1, 3]), 1)
+        self.assertEqual(max([2, 1, 3]), 3)
+        self.assertEqual(min([]), None)
+        self.assertEqual(max([]), None)
+    
     def test_set_identity(self):
         s1 = Set()
         s2 = Set()

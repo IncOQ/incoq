@@ -6,6 +6,10 @@ __all__ = [
     'SYMCONFIG',
     'QUERY',
     
+    'count',
+    'min',
+    'max',
+    
     'IncOQType',
     'Set',
     'CSet',
@@ -15,6 +19,8 @@ __all__ = [
 
 from reprlib import recursive_repr
 from collections import Counter
+from functools import partial
+import builtins
 
 
 # These act as syntactic directives for the transformation system.
@@ -36,6 +42,18 @@ def QUERY(*args, **kargs):
         return args[1]
     else:
         pass
+
+
+# Aggregate functions.
+#
+# - count() is aliased to len()
+# - sum() is already provided by Python
+# - min() and max() are the same as the Python built-ins, except
+#   that they return None when the input is empty.
+
+count = len
+min = partial(builtins.min, default=None)
+max = partial(builtins.max, default=None)
 
 
 class IncOQType:
