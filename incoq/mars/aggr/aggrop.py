@@ -5,8 +5,8 @@ __all__ = [
     'AggrOpHandler',
     'CountHandler',
     'SumHandler',
-#    'MinHandler',
-#    'MaxHandler',
+    'MinHandler',
+    'MaxHandler',
     'handler_for_op',
 ]
 
@@ -62,9 +62,54 @@ class SumHandler(CountSumHandler):
     kind = 'sum'
 
 
+class MinMaxHandler(AggrOpHandler):
+    
+    """Common code for min and max."""
+    
+    # State is a pair of a tree and a saved value. The zero state is a
+    # pair of an empty tree and None.
+    
+    kind = None
+    
+    def make_zero_expr(self):
+        # This is an example of why we have to construct a fresh zero
+        # state each time it's requested. We wouldn't want the tree that
+        # this code constructs to get aliased with the tree of any other
+        # state.
+        return L.Parser.pe('(Tree(), None)')
+    
+    def make_update_state_code(self, prefix, state, op, value):
+        add_template = '''
+            _TREE, _ = _STATE
+            _TREE[_VAL] = None
+            _STATE = (_TREE, _TREE._MINMAX())
+            '''
+        remove_template = '''
+            _TREE, _ = _STATE
+            del _TREE[_VAL]
+            _STATE = (_TREE, _TREE._MINMAX())
+            '''
+        template = {L.SetAdd: add_template,
+                    L.SetRemove: remove_template}[op.__class__]
+        treevar = prefix + 'tree'
+        minmax = {'min': '__min__', 'max': '__max__'}[self.kind]
+        code = L.Parser.pc(template, subst={'_TREE': treevar, '_STATE': state,
+                                            '_VAL': value, '_MINMAX': minmax})
+        return code
+    
+    def make_projection_expr(self, state):
+        return L.Subscript(L.Name(state), L.Num(1))
+
+class MinHandler(MinMaxHandler):
+    kind = 'min'
+
+class MaxHandler(MinMaxHandler):
+    kind = 'max'
+
+
 handler_for_op = {
     L.Count: CountHandler,
     L.Sum: SumHandler,
-#    L.Min: MinHandler,
-#    L.max: MaxHandler,
+    L.Min: MinHandler,
+    L.Max: MaxHandler,
 }

@@ -46,6 +46,60 @@ class TransCase(unittest.TestCase):
         expr = handler.make_projection_expr('S')
         exp_expr = L.Name('S')
         self.assertEqual(code, exp_code)
+    
+    def test_min(self):
+        handler = MinHandler()
+        
+        expr = handler.make_zero_expr()
+        exp_expr = L.Parser.pe('(Tree(), None)')
+        self.assertEqual(expr, exp_expr)
+        
+        code = handler.make_update_state_code('_', 'S', L.SetAdd(), 'v')
+        exp_code = L.Parser.pc('''
+            _tree, _ = S
+            _tree[v] = None
+            S = (_tree, _tree.__min__())
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        code = handler.make_update_state_code('_', 'S', L.SetRemove(), 'v')
+        exp_code = L.Parser.pc('''
+            _tree, _ = S
+            del _tree[v]
+            S = (_tree, _tree.__min__())
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        expr = handler.make_projection_expr('S')
+        exp_expr = L.Name('S.index(1)')
+        self.assertEqual(code, exp_code)
+    
+    def test_max(self):
+        handler = MaxHandler()
+        
+        expr = handler.make_zero_expr()
+        exp_expr = L.Parser.pe('(Tree(), None)')
+        self.assertEqual(expr, exp_expr)
+        
+        code = handler.make_update_state_code('_', 'S', L.SetAdd(), 'v')
+        exp_code = L.Parser.pc('''
+            _tree, _ = S
+            _tree[v] = None
+            S = (_tree, _tree.__max__())
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        code = handler.make_update_state_code('_', 'S', L.SetRemove(), 'v')
+        exp_code = L.Parser.pc('''
+            _tree, _ = S
+            del _tree[v]
+            S = (_tree, _tree.__max__())
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        expr = handler.make_projection_expr('S')
+        exp_expr = L.Name('S.index(1)')
+        self.assertEqual(code, exp_code)
 
 
 if __name__ == '__main__':
