@@ -218,10 +218,16 @@ class AggrMaintainer(L.NodeTransformer):
     def visit_Module(self, node):
         node = self.generic_visit(node)
         
+        fv = self.fresh_vars
+        ops = [L.SetAdd(), L.SetRemove()]
         funcs = []
-        for op in [L.SetAdd(), L.SetRemove()]:
-            func = make_aggr_oper_maint_func(self.fresh_vars, self.aggrinv, op)
+        for op in ops:
+            func = make_aggr_oper_maint_func(fv, self.aggrinv, op)
             funcs.append(func)
+        if self.aggrinv.uses_demand:
+            for op in ops:
+                func = make_aggr_restr_maint_func(fv, self.aggrinv, op)
+                funcs.append(func)
         
         node = node._replace(decls=tuple(funcs) + node.decls)
         return node
@@ -229,23 +235,25 @@ class AggrMaintainer(L.NodeTransformer):
     def visit_RelUpdate(self, node):
         if not isinstance(node.op, (L.SetAdd, L.SetRemove)):
             return node
-        if node.rel != self.aggrinv.rel:
-            return node
         
-        func_name = self.aggrinv.get_oper_maint_func_name(node.op)
+        if node.rel == self.aggrinv.rel:
+            func = self.aggrinv.get_oper_maint_func_name(node.op)
+            code = L.insert_rel_maint_call(node, func)
+        elif self.aggrinv.uses_demand and node.rel == self.aggrinv.restr:
+            func = self.aggrinv.get_restr_maint_func_name(node.op)
+            code = L.insert_rel_maint_call(node, func)
+        else:
+            code = node
         
-        code = (node,)
-        call_code = (L.Expr(L.Call(func_name, [L.Name(node.elem)])),)
-        code = L.insert_rel_maint(code, call_code, node.op)
         return code
     
     def visit_RelClear(self, node):
-        if node.rel != self.aggrinv.rel:
+        if not (node.rel == self.aggrinv.rel or
+                self.aggrinv.uses_demand and node.rel == self.aggrinv.restr):
             return node
         
-        code = (node,)
         clear_code = (L.MapClear(self.aggrinv.map),)
-        code = L.insert_rel_maint(code, clear_code, L.SetRemove())
+        code = L.insert_rel_maint((node,), clear_code, L.SetRemove())
         return code
 
 
@@ -269,19 +277,22 @@ def get_rel_type(symtab, rel):
 def aggrinv_from_query(symtab, query, result_var):
     """Determine the aggregate invariant info for a given query."""
     node = query.node
-    assert isinstance(node, L.Aggr)
+    
+    assert isinstance(node, (L.Aggr, L.AggrRestr))
+    oper = node.value
+    op = node.op
     
     # Get rel, mask, and param info.
-    if isinstance(node.value, L.Name):
-        rel = node.value.id
+    if isinstance(oper, L.Name):
+        rel = oper.id
         # Mask will be all-unbound, filled in below.
         mask = None
         params = ()
-    elif (isinstance(node.value, L.ImgLookup) and
-          isinstance(node.value.set, L.Name)):
-        rel = node.value.set.id
-        mask = node.value.mask
-        params = node.value.bounds
+    elif (isinstance(oper, L.ImgLookup) and
+          isinstance(oper.set, L.Name)):
+        rel = oper.set.id
+        mask = oper.mask
+        params = oper.bounds
     else:
         raise L.ProgramError('Unknown aggregate form: {}'.format(node))
     
@@ -295,7 +306,19 @@ def aggrinv_from_query(symtab, query, result_var):
         # Confirm that this arity is consistent with the above mask.
         assert len(mask.m) == arity
     
-    return AggrInvariant(result_var, node.op, rel, mask, params, None)
+    if isinstance(node, L.AggrRestr):
+        # Check that the restriction parameters match the ImgLookup
+        # parameters
+        if node.params != params:
+            raise L.TransformationError('AggrRestr params do not match '
+                                        'ImgLookup params')
+        if not isinstance(node.restr, L.Name):
+            raise L.ProgramError('Bad AggrRestr restriction expr')
+        restr = node.restr.id
+    else:
+        restr = None
+    
+    return AggrInvariant(result_var, op, rel, mask, params, restr)
 
 
 def incrementalize_aggr(tree, symtab, query, result_var):
@@ -308,13 +331,15 @@ def incrementalize_aggr(tree, symtab, query, result_var):
     
     # Transform occurrences of the aggregate.
     
+    zero = None if aggrinv.uses_demand else handler.make_zero_expr()
+    state_expr = L.DictLookup(L.Name(aggrinv.map),
+                              L.tuplify(aggrinv.params), zero)
+    lookup_expr = handler.make_projection_expr(state_expr)
+    
     class CompExpander(S.QueryRewriter):
         def rewrite(self, symbol, name, expr):
             if name == query.name:
-                state_expr = L.DictLookup(L.Name(aggrinv.map),
-                                          L.tuplify(aggrinv.params),
-                                          handler.make_zero_expr())
-                return handler.make_projection_expr(state_expr)
+                return lookup_expr
     
     tree = CompExpander.run(tree, symtab, expand=True)
     

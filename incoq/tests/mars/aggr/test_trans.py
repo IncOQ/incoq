@@ -135,6 +135,41 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(main, exp_main)
     
+    def test_aggrmaintainer_withdemand(self):
+        aggrinv = AggrInvariant('A', L.Count(), 'R',
+                                L.mask('u'), (), 'U')
+        tree = L.Parser.p('''
+            def main():
+                R.reladd(x)
+                R.relremove(x)
+                U.reladd(x)
+                U.relremove(x)
+                R.relclear()
+                U.relclear()
+            ''')
+        tree = AggrMaintainer.run(tree, N.fresh_name_generator(), aggrinv)
+        self.assertEqual(tree.decls[0].name, '_maint_A_for_R_add')
+        self.assertEqual(tree.decls[1].name, '_maint_A_for_R_remove')
+        self.assertEqual(tree.decls[2].name, '_maint_A_for_U_add')
+        self.assertEqual(tree.decls[3].name, '_maint_A_for_U_remove')
+        main = tree.decls[4]
+        exp_main = L.Parser.ps('''
+            def main():
+                R.reladd(x)
+                _maint_A_for_R_add(x)
+                _maint_A_for_R_remove(x)
+                R.relremove(x)
+                U.reladd(x)
+                _maint_A_for_U_add(x)
+                _maint_A_for_U_remove(x)
+                U.relremove(x)
+                A.mapclear()
+                R.relclear()
+                A.mapclear()
+                U.relclear()
+            ''')
+        self.assertEqual(main, exp_main)
+    
     def test_aggrinv_from_query(self):
         # Relation operand.
         symtab = S.SymbolTable()
@@ -155,6 +190,16 @@ class TransCase(unittest.TestCase):
         exp_aggrinv = AggrInvariant('A', L.Count(), 'R',
                                     L.mask('bu'), ('x',), None)
         self.assertEqual(aggrinv, exp_aggrinv)
+        
+        # AggrRestr.
+        symtab = S.SymbolTable()
+        aggr = L.Parser.pe("count(R.imglookup('bu', (x,)), (x,), U)")
+        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
+        query = symtab.define_query('Q', node=aggr)
+        aggrinv = aggrinv_from_query(symtab, query, 'A')
+        exp_aggrinv = AggrInvariant('A', L.Count(), 'R',
+                                    L.mask('bu'), ('x',), 'U')
+        self.assertEqual(aggrinv, exp_aggrinv)
     
     def test_incrementalize_aggr(self):
         symtab = S.SymbolTable()
@@ -173,6 +218,29 @@ class TransCase(unittest.TestCase):
             def main():
                 R.add(x)
                 print(A.get((x,), 0))
+            ''')
+        self.assertEqual(main, exp_main)
+        
+        sym = symtab.get_maps()['A']
+        self.assertEqual(sym.type, T.Map(T.Tuple([T.Number]), T.Number))
+    
+    def test_incrementalize_aggr_withdemand(self):
+        symtab = S.SymbolTable()
+        aggr = L.Parser.pe("count(R.imglookup('bu', (x,)), (x,), U)")
+        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
+        query = symtab.define_query('Q', node=aggr)
+        tree = L.Parser.p('''
+            def main():
+                R.add(x)
+                print(QUERY('Q', count(R.imglookup('bu', (x,)), (x,), U)))
+            ''')
+        
+        tree = incrementalize_aggr(tree, symtab, query, 'A')
+        main = tree.decls[4]
+        exp_main = L.Parser.ps('''
+            def main():
+                R.add(x)
+                print(A[(x,)])
             ''')
         self.assertEqual(main, exp_main)
         
