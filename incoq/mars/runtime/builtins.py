@@ -6,6 +6,8 @@ __all__ = [
     'SYMCONFIG',
     'QUERY',
     
+    'index',
+    
     'count',
     'sum',
     'min',
@@ -47,6 +49,11 @@ def QUERY(*args, **kargs):
         return args[1]
     else:
         pass
+
+
+# Alias for subscripting/__getindex__.
+def index(seq, ind):
+    return seq[ind]
 
 
 # Aggregate functions.
