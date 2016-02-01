@@ -137,13 +137,12 @@ class SetFromMapMixin:
         # Check arity.
         assert all(isinstance(item, tuple) and len(item) == nb
                    for item in self.keys())
-        assert all(isinstance(item, tuple) and len(item) == nu
-                   for item in self.values())
+        assert nu == 1
         
         result = Set()
         for k, v in self.items():
             ki = iter(k)
-            vi = iter(v)
+            vi = iter([v])
             entry = tuple(next(ki) if c == 'b' else next(vi)
                           for c in mask)
             result.add(entry)

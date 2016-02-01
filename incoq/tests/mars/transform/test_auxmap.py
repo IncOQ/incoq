@@ -71,8 +71,7 @@ class AuxmapCase(unittest.TestCase):
         exp_func = L.Parser.ps('''
             def _maint_R_for_M_assign(_key, _val):
                 (_key_v1,) = _key
-                (_val_v1,) = _val
-                _v1_elem = (_key_v1, _val_v1)
+                _v1_elem = (_key_v1, _val)
                 R.reladd(_v1_elem)
             ''')
         self.assertEqual(func, exp_func)
@@ -85,8 +84,7 @@ class AuxmapCase(unittest.TestCase):
             def _maint_R_for_M_delete(_key):
                 _val = M[_key]
                 (_key_v1,) = _key
-                (_val_v1,) = _val
-                _v1_elem = (_key_v1, _val_v1)
+                _v1_elem = (_key_v1, _val)
                 R.relremove(_v1_elem)
             ''')
         self.assertEqual(func, exp_func)
@@ -155,15 +153,13 @@ class AuxmapCase(unittest.TestCase):
             
             def _maint_S_for_M_assign(_key, _val):
                 (_key_v1,) = _key
-                (_val_v1,) = _val
-                _v4_elem = (_key_v1, _val_v1)
+                _v4_elem = (_key_v1, _val)
                 S.reladd(_v4_elem)
             
             def _maint_S_for_M_delete(_key):
                 _val = M[_key]
                 (_key_v1,) = _key
-                (_val_v1,) = _val
-                _v5_elem = (_key_v1, _val_v1)
+                _v5_elem = (_key_v1, _val)
                 S.relremove(_v5_elem)
             
             def f():
@@ -213,7 +209,7 @@ class AuxmapCase(unittest.TestCase):
         mask = L.mask('bub')
         
         # Normal case.
-        t_map = T.Map(T.Tuple([T.Number, T.Top]), T.Tuple([T.String]))
+        t_map = T.Map(T.Tuple([T.Number, T.Top]), T.String)
         t = make_setfrommap_type(mask, t_map)
         exp_t = T.Set(T.Tuple([T.Number, T.String, T.Top]))
         self.assertEqual(t, exp_t)
@@ -266,8 +262,7 @@ class AuxmapCase(unittest.TestCase):
     def test_define_set(self):
         symtab = S.SymbolTable()
         symtab.define_map(
-            'M', type=T.Map(T.Tuple([T.Number, T.Top]),
-                            T.Tuple([T.String])))
+            'M', type=T.Map(T.Tuple([T.Number, T.Top]), T.String))
         inv = SetFromMapInvariant('S', 'M', L.mask('bub'))
         
         define_set(inv, symtab)

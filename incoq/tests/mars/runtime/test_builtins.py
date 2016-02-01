@@ -182,24 +182,19 @@ class BuiltinsCase(unittest.TestCase):
         self.assertEqual(dict(m1), dict(m2))
     
     def test_map_setfrommap(self):
-        m = Map({('a',): (1,), ('b',): (2,)})
+        m = Map({('a',): 1, ('b',): 2})
         s = m.setfrommap('bu')
         exp_s = {('a', 1), ('b', 2)}
         self.assertCountEqual(s, exp_s)
         
-        m = Map({('a', 'b'): (1, 2), ('c', 'd'): (3, 4)})
-        s = m.setfrommap('bubu')
-        exp_s = {('a', 1, 'b', 2), ('c', 3, 'd', 4)}
-        self.assertCountEqual(s, exp_s)
-        
         # Degenerate cases.
         m = Map({})
-        s = m.setfrommap('')
+        s = m.setfrommap('u')
         exp_s = set()
         self.assertCountEqual(s, exp_s)
-        m = Map({(): ()})
-        s = m.setfrommap('')
-        exp_s = {()}
+        m = Map({(): 1})
+        s = m.setfrommap('u')
+        exp_s = {(1,)}
         self.assertCountEqual(s, exp_s)
 
 

@@ -47,12 +47,19 @@ class SetFromMapInvariant(Struct):
     
     """SetFromMap invariant."""
     
+    # The map key must be a tuple. The mask must have a number of bound
+    # components equal to the arity of the map key, and a single unbound
+    # component corresponding to the map value.
+    
     rel = TypedField(str)
     """Name of variable holding the relation to be created."""
     map = TypedField(str)
     """Name of map being indexed."""
     mask = TypedField(L.mask)
     """Mask for relating the map to the set."""
+    
+    def __init__(self, rel, map, mask):
+        assert mask.m.count('u') == 1
     
     def get_maint_func_name(self, op):
         assert op in ['assign', 'delete']
@@ -134,12 +141,10 @@ def make_setfrommap_maint_func(fresh_vars,
     nu = mask.m.count('u')
     # Fresh variables for components of the key and value.
     key_vars = N.get_subnames('_key', nb)
-    val_vars = N.get_subnames('_val', nu)
     
-    decomp_code = (L.DecompAssign(key_vars, L.Name('_key')),
-                   L.DecompAssign(val_vars, L.Name('_val')))
+    decomp_code = (L.DecompAssign(key_vars, L.Name('_key')),)
     
-    vars = L.combine_by_mask(mask, key_vars, val_vars)
+    vars = L.combine_by_mask(mask, key_vars, ['_val'])
     elem = L.tuplify(vars)
     fresh_var_prefix = next(fresh_vars)
     elem_var = fresh_var_prefix + '_elem'
@@ -384,21 +389,19 @@ def make_setfrommap_type(mask, maptype):
     type.
     
     We obtain by lattice join the smallest map type that is at least as
-    big as the given map type and that has the correct key/value tuple
-    arity. This should have the form {(K1, ..., Kn): (V1, ..., Vn)}.
-    The relation type is then a set of tuples of these types interleaved
-    according to the mask.
+    big as the given map type and that has the correct key tuple arity.
+    This should have the form {(K1, ..., Kn): V}. The relation type is
+    then a set of tuples of these types interleaved according to the
+    mask.
     
     If no such type exists, e.g. if the given relation type is {Top: Top}
-    or the key and value are not tuples of correct arity, we instead
-    give the relation type {Top}.
+    or the key is not a tuple of correct arity, we instead give the
+    relation type {Top}.
     """
     nb = mask.m.count('b')
-    nu = mask.m.count('u')
-    bottom_maptype = T.Map(T.Tuple([T.Bottom] * nb),
-                           T.Tuple([T.Bottom] * nu))
-    top_maptype = T.Map(T.Tuple([T.Top] * nb),
-                        T.Tuple([T.Top] * nu))
+    assert mask.m.count('u') == 1
+    bottom_maptype = T.Map(T.Tuple([T.Bottom] * nb), T.Bottom)
+    top_maptype = T.Map(T.Tuple([T.Top] * nb), T.Top)
     
     norm_type = maptype.join(bottom_maptype)
     well_typed = norm_type.issmaller(top_maptype)
@@ -406,11 +409,9 @@ def make_setfrommap_type(mask, maptype):
     if well_typed:
         assert (isinstance(norm_type, T.Map) and
                 isinstance(norm_type.key, T.Tuple) and
-                len(norm_type.key.elts) == nb and
-                isinstance(norm_type.value, T.Tuple) and
-                len(norm_type.value.elts) == nu)
+                len(norm_type.key.elts) == nb)
         t_elts = L.combine_by_mask(mask, norm_type.key.elts,
-                                   norm_type.value.elts)
+                                   [norm_type.value])
         rel_type = T.Set(T.Tuple(t_elts))
     else:
         rel_type = T.Set(T.Top)
