@@ -244,7 +244,7 @@ class ParseImportCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
     
     def test_subscript(self):
-        tree = Parser.pe('t.index(i)')
+        tree = Parser.pe('t.__get__(i)')
         exp_tree = L.Subscript(L.Name('t'), L.Name('i'))
         self.assertEqual(tree, exp_tree)
     
@@ -410,7 +410,7 @@ class RoundTripCase(unittest.TestCase):
         self.trip.pe('{1, 2}')
     
     def test_subscript(self):
-        self.trip.pe('t.index(i)')
+        self.trip.pe('t.__get__(i)')
     
     def test_dictlookup(self):
         self.trip.pe('M[k]')

@@ -381,7 +381,7 @@ class IncLangSpecialImporter(L.MacroExpander):
         self.assert_isname([map], 'mapclear')
         return L.MapClear(map.id)
     
-    def handle_me_index(self, _func, value, index):
+    def handle_me___get__(self, _func, value, index):
         return L.Subscript(value, index)
     
     def handle_me_get(self, _func, dict, key, default):
@@ -683,7 +683,7 @@ class IncLangNodeExporter(NodeMapper):
     
     def visit_Subscript(self, node):
         return P.Call(P.Attribute(self.visit(node.value),
-                                  'index', P.Load()),
+                                  '__get__', P.Load()),
                       [self.visit(node.index)],
                       [], None, None)
     

@@ -91,11 +91,11 @@ class CountedSumHandler(AggrOpHandler):
     def make_update_state_code(self, prefix, state, op, value):
         if isinstance(op, L.SetAdd):
             template = '''
-                _STATE = (_STATE.index(0) + _VALUE, _STATE.index(1) + 1)
+                _STATE = (_STATE.__get__(0) + _VALUE, _STATE.__get__(1) + 1)
                 '''
         elif isinstance(op, L.SetRemove):
             template = '''
-                _STATE = (_STATE.index(0) - _VALUE, _STATE.index(1) - 1)
+                _STATE = (_STATE.__get__(0) - _VALUE, _STATE.__get__(1) - 1)
                 '''
         return L.Parser.pc(template, subst={'_STATE': state, '_VALUE': value})
     
@@ -103,7 +103,7 @@ class CountedSumHandler(AggrOpHandler):
         return L.Subscript(L.Name(state), L.Num(0))
     
     def make_empty_cond(self, state):
-        return L.Parser.pe('_STATE.index(1) == 0', subst={'_STATE': state})
+        return L.Parser.pe('_STATE.__get__(1) == 0', subst={'_STATE': state})
     
     def result_type(self, t_oper):
         return T.Number
@@ -148,7 +148,7 @@ class MinMaxHandler(AggrOpHandler):
         return L.Subscript(L.Name(state), L.Num(1))
     
     def make_empty_cond(self, state):
-        return L.Parser.pe('len(_STATE.index(0)) == 0',
+        return L.Parser.pe('len(_STATE.__get__(0)) == 0',
                            subst={'_STATE': state})
     
     def result_type(self, t_oper):

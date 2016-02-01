@@ -450,8 +450,8 @@ class TypeAnalysisCase(unittest.TestCase):
     def test_subscript(self):
         source = '''
             def main():
-                a = t.index(0)
-                b = t.index(i)
+                a = t.__get__(0)
+                b = t.__get__(i)
             '''
         # Normal case, Tuple.
         self.check(source,

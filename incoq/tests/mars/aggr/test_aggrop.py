@@ -68,19 +68,19 @@ class TransCase(unittest.TestCase):
         self.assertEqual(expr, exp_expr)
         
         code = handler.make_update_state_code('_', 'S', L.SetAdd(), 'v')
-        exp_code = L.Parser.pc('S = (S.index(0) + v, S.index(1) + 1)')
+        exp_code = L.Parser.pc('S = (S.__get__(0) + v, S.__get__(1) + 1)')
         self.assertEqual(code, exp_code)
         
         code = handler.make_update_state_code('_', 'S', L.SetRemove(), 'v')
-        exp_code = L.Parser.pc('S = (S.index(0) - v, S.index(1) - 1)')
+        exp_code = L.Parser.pc('S = (S.__get__(0) - v, S.__get__(1) - 1)')
         self.assertEqual(code, exp_code)
         
         expr = handler.make_projection_expr('S')
-        exp_expr = L.Parser.pe('S.index(0)')
+        exp_expr = L.Parser.pe('S.__get__(0)')
         self.assertEqual(code, exp_code)
         
         expr = handler.make_empty_cond('S')
-        exp_expr = L.Parser.pe('S.index(1) == 0')
+        exp_expr = L.Parser.pe('S.__get__(1) == 0')
         self.assertEqual(expr, exp_expr)
         
         t_result = handler.result_type(T.Set(T.Tuple([T.String, T.String])))
@@ -110,11 +110,11 @@ class TransCase(unittest.TestCase):
         self.assertEqual(code, exp_code)
         
         expr = handler.make_projection_expr('S')
-        exp_expr = L.Name('S.index(1)')
+        exp_expr = L.Name('S.__get__(1)')
         self.assertEqual(code, exp_code)
         
         expr = handler.make_empty_cond('S')
-        exp_expr = L.Parser.pe('len(S.index(0)) == 0')
+        exp_expr = L.Parser.pe('len(S.__get__(0)) == 0')
         self.assertEqual(expr, exp_expr)
         
         t_result = handler.result_type(T.Set(T.Tuple([T.String, T.String])))
@@ -144,11 +144,11 @@ class TransCase(unittest.TestCase):
         self.assertEqual(code, exp_code)
         
         expr = handler.make_projection_expr('S')
-        exp_expr = L.Name('S.index(1)')
+        exp_expr = L.Name('S.__get__(1)')
         self.assertEqual(code, exp_code)
         
         expr = handler.make_empty_cond('S')
-        exp_expr = L.Parser.pe('len(S.index(0)) == 0')
+        exp_expr = L.Parser.pe('len(S.__get__(0)) == 0')
         self.assertEqual(expr, exp_expr)
         
         t_result = handler.result_type(T.Set(T.Tuple([T.String, T.String])))
