@@ -226,9 +226,10 @@ def incrementalize_aggr(tree, symtab, query, result_var):
     class CompExpander(S.QueryRewriter):
         def rewrite(self, symbol, name, expr):
             if name == query.name:
-                return L.DictLookup(L.Name(aggrinv.map),
-                                    L.tuplify(aggrinv.params),
-                                    handler.make_zero_expr())
+                state_expr = L.DictLookup(L.Name(aggrinv.map),
+                                          L.tuplify(aggrinv.params),
+                                          handler.make_zero_expr())
+                return handler.make_projection_expr(state_expr)
     
     tree = CompExpander.run(tree, symtab, expand=True)
     

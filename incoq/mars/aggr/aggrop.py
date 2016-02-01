@@ -34,8 +34,8 @@ class AggrOpHandler:
         raise NotImplementedError
     
     def make_projection_expr(self, state):
-        """Given the name of a variable holding state, return an
-        expression projecting the state down to an answer.
+        """Given an expression that evaluates to a state, return an
+        expression projecting this state down to an answer.
         """
         raise NotImplementedError
     
@@ -69,7 +69,7 @@ class CountSumHandler(AggrOpHandler):
         return (L.Assign(state, L.BinOp(L.Name(state), opcls(), by)),)
     
     def make_projection_expr(self, state):
-        return L.Name(state)
+        return state
     
     def result_type(self, t_oper):
         return T.Number
@@ -102,7 +102,7 @@ class CountedSumHandler(AggrOpHandler):
         return L.Parser.pc(template, subst={'_STATE': state, '_VALUE': value})
     
     def make_projection_expr(self, state):
-        return L.Subscript(L.Name(state), L.Num(0))
+        return L.Subscript(state, L.Num(0))
     
     def make_empty_cond(self, state):
         return L.Parser.pe('index(_STATE, 1) == 0', subst={'_STATE': state})
@@ -147,7 +147,7 @@ class MinMaxHandler(AggrOpHandler):
         return code
     
     def make_projection_expr(self, state):
-        return L.Subscript(L.Name(state), L.Num(1))
+        return L.Subscript(state, L.Num(1))
     
     def make_empty_cond(self, state):
         return L.Parser.pe('len(index(_STATE, 0)) == 0',

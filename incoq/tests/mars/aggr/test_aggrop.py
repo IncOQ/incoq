@@ -25,7 +25,7 @@ class TransCase(unittest.TestCase):
         exp_code = L.Parser.pc('S = S - 1')
         self.assertEqual(code, exp_code)
         
-        expr = handler.make_projection_expr('S')
+        expr = handler.make_projection_expr(L.Name('S'))
         exp_expr = L.Name('S')
         self.assertEqual(expr, exp_expr)
         
@@ -51,7 +51,7 @@ class TransCase(unittest.TestCase):
         exp_code = L.Parser.pc('S = S - index(v, 0)')
         self.assertEqual(code, exp_code)
         
-        expr = handler.make_projection_expr('S')
+        expr = handler.make_projection_expr(L.Name('S'))
         exp_expr = L.Name('S')
         self.assertEqual(expr, exp_expr)
         
@@ -77,7 +77,7 @@ class TransCase(unittest.TestCase):
                                     'index(S, 1) - 1)')
         self.assertEqual(code, exp_code)
         
-        expr = handler.make_projection_expr('S')
+        expr = handler.make_projection_expr(L.Name('S'))
         exp_expr = L.Parser.pe('index(S, 0)')
         self.assertEqual(expr, exp_expr)
         
@@ -111,7 +111,7 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
         
-        expr = handler.make_projection_expr('S')
+        expr = handler.make_projection_expr(L.Name('S'))
         exp_expr = L.Parser.pe('index(S, 1)')
         self.assertEqual(expr, exp_expr)
         
@@ -145,7 +145,7 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
         
-        expr = handler.make_projection_expr('S')
+        expr = handler.make_projection_expr(L.Name('S'))
         exp_expr = L.Parser.pe('index(S, 1)')
         self.assertEqual(expr, exp_expr)
         
