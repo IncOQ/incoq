@@ -16,6 +16,8 @@ def main():
     del M[k]
     print(sorted(M.setfrommap('bbu')))
     print(sorted(M.setfrommap('bbu').imglookup('buu', (x,))))
+    M.dictclear()
+    print(sorted(M.setfrommap('bbu')))
 
 if __name__ == '__main__':
     main()

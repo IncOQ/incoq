@@ -51,6 +51,10 @@ def main():
     del M[k]
     print(sorted(SM))
     print(sorted(SM_buu.get((x,), Set())))
+    SM_buu.dictclear()
+    SM.clear()
+    M.dictclear()
+    print(sorted(SM))
 
 if (__name__ == '__main__'):
     main()

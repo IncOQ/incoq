@@ -130,6 +130,7 @@ class AuxmapCase(unittest.TestCase):
                 R.relclear()
                 M.mapassign(k, v)
                 M.mapdelete(k)
+                M.mapclear()
                 print(M.setfrommap('bu'))
             ''')
         tree = InvariantTransformer.run(tree, N.fresh_name_generator(),
@@ -179,6 +180,8 @@ class AuxmapCase(unittest.TestCase):
                 _maint_S_for_M_assign(k, v)
                 _maint_S_for_M_delete(k)
                 M.mapdelete(k)
+                S.relclear()
+                M.mapclear()
                 print(S)
             ''')
         self.assertEqual(tree, exp_tree)

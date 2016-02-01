@@ -304,6 +304,16 @@ class InvariantTransformer(L.NodeTransformer):
         code = L.insert_rel_maint(code, call_code, L.SetRemove())
         return code
     
+    def visit_MapClear(self, node):
+        sfm = self.setfrommaps_by_map.get(node.map, None)
+        if sfm is None:
+            return node
+        
+        code = (node,)
+        clear_code = (L.RelClear(sfm.rel),)
+        code = L.insert_rel_maint(code, clear_code, L.SetRemove())
+        return code
+    
     def visit_ImgLookup(self, node):
         node = self.generic_visit(node)
         
