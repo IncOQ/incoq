@@ -161,11 +161,11 @@ class CompMaintainer(L.NodeTransformer):
         funcs = []
         for rel in self.rels:
             for op in [L.SetAdd(), L.SetRemove()]:
-                    func = make_comp_maint_func(
-                            ct, self.fresh_vars, self.fresh_join_names,
-                            self.comp, self.result_var, rel, op,
-                            counted=self.counted)
-                    funcs.append(func)
+                func = make_comp_maint_func(
+                        ct, self.fresh_vars, self.fresh_join_names,
+                        self.comp, self.result_var, rel, op,
+                        counted=self.counted)
+                funcs.append(func)
         
         node = node._replace(decls=tuple(funcs) + node.decls)
         return node
