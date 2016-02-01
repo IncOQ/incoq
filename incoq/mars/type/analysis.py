@@ -683,8 +683,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     def visit_Cond(self, node, *, type=None):
         self.visit(node.cond)
     
-    @readonly
-    def visit_Aggr(self, node, *, type=None):
+    def aggr_helper(self, node):
         # If join(value, Set<Bottom>) != Set<T>:
         #   Fail
         # If T == Bottom:
@@ -715,6 +714,22 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
             return t_elt
         else:
             assert()
+    
+    @readonly
+    def visit_Aggr(self, node, *, type=None):
+        # Rules are exactly those of aggr_helper() above.
+        return self.aggr_helper(node)
+    
+    @readonly
+    def visit_AggrRestr(self, node, *, type=None):
+        # As for Aggr, except we have the additional condition:
+        #
+        # Check restr <= Set<Tuple<Top, ..., Top>> of arity |params|
+        n = len(node.params)
+        t_restr = self.visit(node.restr)
+        if not t_restr.issmaller(Set(Tuple([Top] * n))):
+            self.mark_bad(node)
+        return self.aggr_helper(node)
     
     # Remaining nodes require no handler.
 

@@ -670,6 +670,26 @@ class TypeAnalysisCase(unittest.TestCase):
             {'S': Top, 'a': Top, 'b': Top},
             True)
     
+    def test_aggrrestr(self):
+        self.check('''
+            def main():
+                a = count(S, (x,), R)
+            ''',
+            {'S': Set(Tuple([Number])), 'x': String,
+             'R': Set(Tuple([String])), 'a': Bottom},
+            {'S': Set(Tuple([Number])), 'x': String,
+             'R': Set(Tuple([String])), 'a': Number},
+            False)
+        self.check('''
+            def main():
+                a = count(S, (x,), R)
+            ''',
+            {'S': Set(Tuple([Number])), 'x': String,
+             'R': Set(Top), 'a': Bottom},
+            {'S': Set(Tuple([Number])), 'x': String,
+             'R': Set(Top), 'a': Number},
+            True)
+    
     # Clauses are taken care of by Comp's tests.
     
     def test_analyze_basic(self):

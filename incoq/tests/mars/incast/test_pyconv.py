@@ -332,6 +332,11 @@ class ParseImportCase(unittest.TestCase):
             L.Aggr(L.Max(), L.Name('S')),
         )
         self.assertSequenceEqual(trees, exp_trees)
+    
+    def test_aggrrestr(self):
+        tree = Parser.pe('count(S, (x,), R)')
+        exp_tree = L.AggrRestr(L.Count(), L.Name('S'), ('x',), L.Name('R'))
+        self.assertEqual(tree, exp_tree)
 
 
 class RoundTripCase(unittest.TestCase):
@@ -444,6 +449,14 @@ class RoundTripCase(unittest.TestCase):
             sum(S)
             min(S)
             max(S)
+            ''')
+    
+    def test_aggrrestr(self):
+        self.trip.pc('''
+            count(S, (x,), R)
+            sum(S, (x, y), R)
+            min(S, (x,), R)
+            max(S, (x, y), R)
             ''')
     
     def test_unparse_arity(self):

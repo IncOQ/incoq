@@ -86,6 +86,7 @@ module IncAST
          | Comp(expr resexp, clause* clauses)
          
          | Aggr(aggrop op, expr value)
+         | AggrRestr(aggrop op, expr value, identifier* params, expr restr)
     
     clause = Member(expr target, expr iter)
            | RelMember(identifier* vars, identifier rel)

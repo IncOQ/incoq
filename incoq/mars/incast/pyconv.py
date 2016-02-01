@@ -430,17 +430,25 @@ class IncLangSpecialImporter(L.MacroExpander):
                          'string literal containing a valid identifier')
         return L.Query(name.s, query)
     
-    def handle_fe_count(self, _func, value):
-        return L.Aggr(L.Count(), value)
+    def aggr_helper(self, _func, value, params=None, restr=None):
+        op = {'count': L.Count(),
+              'sum': L.Sum(),
+              'min': L.Min(),
+              'max': L.Max()}[_func]
+        
+        if params is None and restr is None:
+            return L.Aggr(op, value)
+        else:
+            if not (isinstance(params, L.Tuple) and
+                    all(isinstance(p, L.Name) for p in params.elts)):
+                raise ASTErr('Bad parameter list for AggrRestr')
+            params = [p.id for p in params.elts]
+            return L.AggrRestr(op, value, params, restr)
     
-    def handle_fe_sum(self, _func, value):
-        return L.Aggr(L.Sum(), value)
-    
-    def handle_fe_min(self, _func, value):
-        return L.Aggr(L.Min(), value)
-    
-    def handle_fe_max(self, _func, value):
-        return L.Aggr(L.Max(), value)
+    handle_fe_count = aggr_helper
+    handle_fe_sum = aggr_helper
+    handle_fe_min = aggr_helper
+    handle_fe_max = aggr_helper
 
 
 class CallSimplifier(L.NodeTransformer):
@@ -561,11 +569,21 @@ class IncLangSpecialExporter(L.NodeTransformer):
     def visit_Aggr(self, node):
         node = self.generic_visit(node)
         
-        opfunc = {L.Count: 'count',
-                  L.Sum: 'sum',
-                  L.Min: 'min',
-                  L.Max: 'max'}[node.op.__class__]
-        return L.Call(opfunc, [node.value])
+        op = {L.Count: 'count',
+              L.Sum: 'sum',
+              L.Min: 'min',
+              L.Max: 'max'}[node.op.__class__]
+        return L.Call(op, [node.value])
+    
+    def visit_AggrRestr(self, node):
+        node = self.generic_visit(node)
+        
+        op = {L.Count: 'count',
+              L.Sum: 'sum',
+              L.Min: 'min',
+              L.Max: 'max'}[node.op.__class__]
+        params = L.Tuple([L.Name(p) for p in node.params])
+        return L.Call(op, [node.value, params, node.restr])
 
 
 class IncLangNodeExporter(NodeMapper):
