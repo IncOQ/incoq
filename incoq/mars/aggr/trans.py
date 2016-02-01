@@ -155,8 +155,13 @@ class AggrMaintainer(L.NodeTransformer):
         return code
     
     def visit_RelClear(self, node):
-        # TODO
-        assert()
+        if node.rel != self.aggrinv.rel:
+            return node
+        
+        code = (node,)
+        clear_code = (L.MapClear(self.aggrinv.map),)
+        code = L.insert_rel_maint(code, clear_code, L.SetRemove())
+        return code
 
 
 def get_rel_type(symtab, rel):

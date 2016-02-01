@@ -14,7 +14,7 @@ def main():
     print(QUERY('Q', count(S)))
     S.remove((4,))
     print(QUERY('Q', count(S)))
-#    S.clear()
+    S.clear()
     print(QUERY('Q', count(S)))
 
 if __name__ == '__main__':

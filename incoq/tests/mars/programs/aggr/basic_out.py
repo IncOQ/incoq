@@ -34,6 +34,8 @@ def main():
     _maint_A_Q_for_S_remove(_v2)
     S.remove(_v2)
     print(A_Q.get((), 0))
+    A_Q.dictclear()
+    S.clear()
     print(A_Q.get((), 0))
 
 if (__name__ == '__main__'):

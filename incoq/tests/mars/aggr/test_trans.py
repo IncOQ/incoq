@@ -53,6 +53,7 @@ class TransCase(unittest.TestCase):
             def main():
                 R.reladd(x)
                 R.relremove(x)
+                R.relclear()
             ''')
         tree = AggrMaintainer.run(tree, N.fresh_name_generator(), aggrinv)
         self.assertEqual(tree.decls[0].name, '_maint_A_for_R_add')
@@ -64,6 +65,8 @@ class TransCase(unittest.TestCase):
                 _maint_A_for_R_add(x)
                 _maint_A_for_R_remove(x)
                 R.relremove(x)
+                A.mapclear()
+                R.relclear()
             ''')
         self.assertEqual(main, exp_main)
     
