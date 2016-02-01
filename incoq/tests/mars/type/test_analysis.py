@@ -263,6 +263,21 @@ class TypeAnalysisCase(unittest.TestCase):
                    {'d': Map(Bool, String), 'm': Map(Bool, String),
                     'k': Bool, 'v': String},
                    False)
+        
+        # Clear operation.
+        source = '''
+            def main():
+                m1.dictclear()
+                m2.mapclear()
+            '''
+        self.check(source,
+                   {'m1': Bottom, 'm2': Bottom},
+                   {'m1': Map(Bottom, Bottom), 'm2': Map(Bottom, Bottom)},
+                   False)
+        self.check(source,
+                   {'m1': Top, 'm2': Top},
+                   {'m1': Top, 'm2': Top},
+                   True)
     
     def test_readonly(self):
         # Disallow write context for UnaryOp.

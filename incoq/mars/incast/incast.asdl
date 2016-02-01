@@ -41,8 +41,10 @@ module IncAST
          
          | DictAssign(expr target, expr key, expr value)
          | DictDelete(expr target, expr key)
+         | DictClear(expr target)
          | MapAssign(identifier map, identifier key, identifier value)
          | MapDelete(identifier map, identifier key)
+         | MapClear(identifier map)
     
     expr = UnaryOp(unaryop op, expr operand)
          | BoolOp(boolop op, expr* values)

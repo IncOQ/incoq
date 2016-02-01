@@ -366,6 +366,9 @@ class IncLangSpecialImporter(L.MacroExpander):
         self.assert_isname([rel], 'relclear')
         return L.RelClear(rel.id)
     
+    def handle_ms_dictclear(self, _func, target):
+        return L.DictClear(target)
+    
     def handle_ms_mapassign(self, _func, map, key, value):
         self.assert_isname([map, key, value], 'mapassign')
         return L.MapAssign(map.id, key.id, value.id)
@@ -373,6 +376,10 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_ms_mapdelete(self, _func, map, key):
         self.assert_isname([map, key], 'mapdelete')
         return L.MapDelete(map.id, key.id)
+    
+    def handle_ms_mapclear(self, _func, map):
+        self.assert_isname([map], 'mapclear')
+        return L.MapClear(map.id)
     
     def handle_me_index(self, _func, value, index):
         return L.Subscript(value, index)
@@ -499,13 +506,10 @@ class IncLangSpecialExporter(L.NodeTransformer):
                                                 'relclear'),
                                     []))
     
-    def visit_BinOp(self, node):
+    def visit_DictClear(self, node):
         node = self.generic_visit(node)
-        
-        if isinstance(node.op, L.GetCount):
-            return L.GeneralCall(L.Attribute(node.left, 'getcount'),
-                                 [node.right])
-        return node
+        func = L.Attribute(self.target, 'dictclear')
+        return L.Expr(L.GeneralCall(func, []))
     
     def visit_MapAssign(self, node):
         func = L.Attribute(L.Name(node.map), 'mapassign')
@@ -515,6 +519,18 @@ class IncLangSpecialExporter(L.NodeTransformer):
     def visit_MapDelete(self, node):
         func = L.Attribute(L.Name(node.map), 'mapdelete')
         return L.Expr(L.GeneralCall(func, [L.Name(node.key)]))
+    
+    def visit_MapClear(self, node):
+        func = L.Attribute(L.Name(node.map), 'mapclear')
+        return L.Expr(L.GeneralCall(func, []))
+    
+    def visit_BinOp(self, node):
+        node = self.generic_visit(node)
+        
+        if isinstance(node.op, L.GetCount):
+            return L.GeneralCall(L.Attribute(node.left, 'getcount'),
+                                 [node.right])
+        return node
     
     def visit_FirstThen(self, node):
         node = self.generic_visit(node)

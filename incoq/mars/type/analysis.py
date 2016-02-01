@@ -363,6 +363,13 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         if not t_target.issmaller(Map(Top, Top)):
             self.mark_bad(node)
     
+    def visit_DictClear(self, node):
+        # target := Map<Bottom, Bottom>
+        # Check target <= Map<Top, Top>
+        t_target = self.visit(node.target, type=Map(Bottom, Bottom))
+        if not t_target.issmaller(Map(Top, Top)):
+            self.mark_bad(node)
+    
     def visit_MapAssign(self, node):
         # map := Map<key, value>
         # Check map <= Map<Top, Top>
@@ -377,6 +384,13 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         # Check map <= Map<Top, Top>
         t_key = self.get_store(node.key)
         t_map = self.update_store(node.map, Map(t_key, Bottom))
+        if not t_map.issmaller(Map(Top, Top)):
+            self.mark_bad(node)
+    
+    def visit_MapClear(self, node):
+        # target := Map<Bottom, Bottom>
+        # Check target <= Map<Top, Top>
+        t_map = self.update_store(node.map, Map(Bottom, Bottom))
         if not t_map.issmaller(Map(Top, Top)):
             self.mark_bad(node)
     

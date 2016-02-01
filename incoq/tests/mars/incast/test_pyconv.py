@@ -227,12 +227,20 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.DictDelete(L.Name('M'), L.Name('k'))
         self.assertEqual(tree, exp_tree)
         
+        tree = Parser.ps('M.dictclear()')
+        exp_tree = L.DictClear(L.Name('M'))
+        self.assertEqual(tree, exp_tree)
+        
         tree = Parser.ps('M.mapassign(k, v)')
         exp_tree = L.MapAssign('M', 'k', 'v')
         self.assertEqual(tree, exp_tree)
         
         tree = Parser.ps('M.mapdelete(k)')
         exp_tree = L.MapDelete('M', 'k')
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.ps('M.mapclear()')
+        exp_tree = L.MapClear('M')
         self.assertEqual(tree, exp_tree)
     
     def test_subscript(self):
@@ -389,8 +397,10 @@ class RoundTripCase(unittest.TestCase):
     def test_dictupdates(self):
         self.trip.ps('M[k] = v')
         self.trip.ps('del M[k]')
+        self.trip.ps('M.dictclear')
         self.trip.ps('M.mapassign(k, v)')
         self.trip.ps('M.mapdelete(k)')
+        self.trip.ps('M.mapclear')
     
     def test_getcount(self):
         self.trip.pe('S.getcount(x)')
