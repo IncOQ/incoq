@@ -19,6 +19,7 @@ from incoq.mars.symbol import S
 from incoq.mars.comp import (
     CoreClauseTools, incrementalize_comp, expand_maintjoins,
     rewrite_all_comps_with_patterns)
+from incoq.mars.aggr import incrementalize_aggr
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
@@ -179,6 +180,16 @@ def transform_query(tree, symtab, query):
             # Expand the maintenance joins.
             tree = expand_maintjoins(tree, symtab, query)
             
+            success = True
+    
+    elif isinstance(query.node, L.Aggr):
+        
+        if query.impl == S.Normal:
+            success = False
+        
+        elif query.impl == S.Inc:
+            result_var = 'A_' + query.name
+            tree = incrementalize_aggr(tree, symtab, query, result_var)
             success = True
     
     else:

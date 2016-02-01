@@ -400,12 +400,14 @@ class DemandAnalyzer(ParamAnalyzer):
         if query.impl == S.Normal:
             return
         
-        # We can't handle non-Comp queries here.
-        if not isinstance(query.node, L.Comp):
+        if isinstance(query.node, L.Comp):
+            self.rewrite_with_demand(query, context)
+        elif isinstance(query.node, L.Aggr):
+            # We don't support demand for aggregates yet.
+            pass
+        else:
             raise AssertionError('No rule for handling demand for {} node'
                                  .format(query.node.__class__.__name__))
-        
-        self.rewrite_with_demand(query, context)
     
     def add_demand_function_call(self, node):
         query = self.symtab.get_queries()[node.name]
