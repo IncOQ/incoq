@@ -13,6 +13,7 @@ __all__ = [
 
 
 from incoq.mars.incast import L
+from incoq.mars.type import T
 
 
 class AggrOpHandler:
@@ -44,6 +45,12 @@ class AggrOpHandler:
         empty argument set.
         """
         raise NotImplementedError
+    
+    def result_type(self, t_oper):
+        """Return the type of the aggregate result, given the type of
+        the operand.
+        """
+        raise NotImplementedError
 
 
 class CountSumHandler(AggrOpHandler):
@@ -62,6 +69,9 @@ class CountSumHandler(AggrOpHandler):
     
     def make_projection_expr(self, state):
         return L.Name(state)
+    
+    def result_type(self, t_oper):
+        return T.Number
 
 class CountHandler(CountSumHandler):
     kind = 'count'
@@ -94,6 +104,9 @@ class CountedSumHandler(AggrOpHandler):
     
     def make_empty_cond(self, state):
         return L.Parser.pe('_STATE.index(1) == 0', subst={'_STATE': state})
+    
+    def result_type(self, t_oper):
+        return T.Number
 
 
 class MinMaxHandler(AggrOpHandler):
@@ -137,6 +150,10 @@ class MinMaxHandler(AggrOpHandler):
     def make_empty_cond(self, state):
         return L.Parser.pe('len(_STATE.index(0)) == 0',
                            subst={'_STATE': state})
+    
+    def result_type(self, t_oper):
+        t_oper = t_oper.join(T.Set(T.Bottom))
+        return t_oper.elt
 
 class MinHandler(MinMaxHandler):
     kind = 'min'

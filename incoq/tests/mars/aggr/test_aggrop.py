@@ -4,6 +4,7 @@
 import unittest
 
 from incoq.mars.incast import L
+from incoq.mars.type import T
 from incoq.mars.aggr.aggrop import *
 
 
@@ -31,6 +32,9 @@ class TransCase(unittest.TestCase):
         expr = handler.make_empty_cond('S')
         exp_expr = L.Parser.pe('S == 0')
         self.assertEqual(expr, exp_expr)
+        
+        t_result = handler.result_type(T.Set(T.Tuple([T.String, T.String])))
+        self.assertEqual(t_result, T.Number)
     
     def test_sum(self):
         handler = SumHandler()
@@ -52,6 +56,9 @@ class TransCase(unittest.TestCase):
         self.assertEqual(code, exp_code)
         
         # No implementation of make_empty_cond().
+        
+        t_result = handler.result_type(T.Set(T.Tuple([T.String, T.String])))
+        self.assertEqual(t_result, T.Number)
     
     def test_countedsum(self):
         handler = CountedSumHandler()
@@ -75,6 +82,9 @@ class TransCase(unittest.TestCase):
         expr = handler.make_empty_cond('S')
         exp_expr = L.Parser.pe('S.index(1) == 0')
         self.assertEqual(expr, exp_expr)
+        
+        t_result = handler.result_type(T.Set(T.Tuple([T.String, T.String])))
+        self.assertEqual(t_result, T.Number)
     
     def test_min(self):
         handler = MinHandler()
@@ -106,6 +116,9 @@ class TransCase(unittest.TestCase):
         expr = handler.make_empty_cond('S')
         exp_expr = L.Parser.pe('len(S.index(0)) == 0')
         self.assertEqual(expr, exp_expr)
+        
+        t_result = handler.result_type(T.Set(T.Tuple([T.String, T.String])))
+        self.assertEqual(t_result, T.Tuple([T.String, T.String]))
     
     def test_max(self):
         handler = MaxHandler()
@@ -137,6 +150,9 @@ class TransCase(unittest.TestCase):
         expr = handler.make_empty_cond('S')
         exp_expr = L.Parser.pe('len(S.index(0)) == 0')
         self.assertEqual(expr, exp_expr)
+        
+        t_result = handler.result_type(T.Set(T.Tuple([T.String, T.String])))
+        self.assertEqual(t_result, T.Tuple([T.String, T.String]))
 
 
 if __name__ == '__main__':
