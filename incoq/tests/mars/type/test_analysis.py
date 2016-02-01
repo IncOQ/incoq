@@ -624,8 +624,8 @@ class TypeAnalysisCase(unittest.TestCase):
                 a = count(S)
                 b = sum(S)
             ''',
-            {'S': Set(Number), 'a': Bottom, 'b': Bottom},
-            {'S': Set(Number), 'a': Number, 'b': Number},
+            {'S': Set(Tuple([Number])), 'a': Bottom, 'b': Bottom},
+            {'S': Set(Tuple([Number])), 'a': Number, 'b': Number},
             False)
         self.check('''
             def main():
@@ -642,8 +642,9 @@ class TypeAnalysisCase(unittest.TestCase):
                 a = min(S)
                 b = max(S)
             ''',
-            {'S': Set(String), 'a': Bottom, 'b': Bottom},
-            {'S': Set(String), 'a': String, 'b': String},
+            {'S': Set(Tuple([String])), 'a': Bottom, 'b': Bottom},
+            {'S': Set(Tuple([String])), 'a': Tuple([String]),
+             'b': Tuple([String])},
             False)
         self.check('''
             def main():

@@ -195,6 +195,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     #    Check X <= Y    Well-typedness constraint that X is a
     #                    subtype of Y
     #    Return X        Return X as the type of an expression
+    #    Fail            Mark an error at this node and return Top
     #
     # This syntax is augmented by If/Elif/Else and pattern matching,
     # e.g. iter == Set<T> introduces T as the element type of iter.
@@ -670,28 +671,36 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     @readonly
     def visit_Aggr(self, node, *, type=None):
-        # If join(value, Set<Bottom>) == Set<T>:
-        #   If op is count or op is sum:
-        #     Check T <= Number
-        #     If T <= Number:
-        #       Return Number
-        #     Else:
-        #       Return Top
-        #   Elif op is min or op is max:
-        #     Return T
-        # Else:
-        #   Return Top
+        # If join(value, Set<Bottom>) != Set<T>:
+        #   Fail
+        # If T == Bottom:
+        #   Return Bottom
+        # Elif T != Tuple<T1, ..., Tn>:
+        #   Fail
         #
-        # Check value <= Set<Top>
+        # If op is count or op is sum:
+        #   If n != 1:
+        #     Fail
+        #   Check T1 <= Number
+        #   Return Number
+        # Elif op is min or op is max:
+        #   Return T
         t_value = self.visit(node.value)
         t_elt = self.get_sequence_elt(node, t_value, Set)
+        if not isinstance(t_elt, Tuple):
+            self.mark_bad(node)
+            return Top
+        
         if isinstance(node.op, (L.Count, L.Sum)):
-            if not t_elt.issmaller(Number):
+            if not (len(t_elt.elts) == 1 and
+                    t_elt.elts[0].issmaller(Number)):
                 self.mark_bad(node)
                 return Top
             return Number
         elif isinstance(node.op, (L.Min, L.Max)):
             return t_elt
+        else:
+            assert()
     
     # Remaining nodes require no handler.
 

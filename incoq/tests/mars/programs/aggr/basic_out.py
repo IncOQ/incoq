@@ -1,4 +1,4 @@
-# Q : count(S) : Top
+# Q : count(S) : Number
 from incoq.mars.runtime import *
 # S : {(Number)}
 S = Set()
