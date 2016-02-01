@@ -35,7 +35,7 @@ def main():
     S.add(_v3)
     _maint_S_bu_for_S_add(_v3)
     print(sorted(S_bu.get((x,), Set())))
-    S_bu.clear()
+    S_bu.dictclear()
     S.clear()
     print(sorted(S_bu.get((x,), Set())))
 

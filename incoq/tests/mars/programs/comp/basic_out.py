@@ -85,8 +85,8 @@ def main():
         _maint_R_Q_for_S_add(_v1)
     print(sorted(R_Q.unwrap()))
     R_Q.clear()
-    S_ub.clear()
-    S_bu.clear()
+    S_ub.dictclear()
+    S_bu.dictclear()
     S.clear()
     print(sorted(R_Q.unwrap()))
 

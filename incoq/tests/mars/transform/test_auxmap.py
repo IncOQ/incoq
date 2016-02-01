@@ -173,7 +173,7 @@ class AuxmapCase(unittest.TestCase):
                 S.reladd(elem)
                 print(S.imglookup('bu', (x,)))
                 R.relinccount(elem)
-                R_bu.clear()
+                R_bu.mapclear()
                 R.relclear()
                 M.mapassign(k, v)
                 _maint_S_for_M_assign(k, v)

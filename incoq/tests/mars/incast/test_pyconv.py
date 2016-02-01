@@ -397,10 +397,10 @@ class RoundTripCase(unittest.TestCase):
     def test_dictupdates(self):
         self.trip.ps('M[k] = v')
         self.trip.ps('del M[k]')
-        self.trip.ps('M.dictclear')
+        self.trip.ps('M.dictclear()')
         self.trip.ps('M.mapassign(k, v)')
         self.trip.ps('M.mapdelete(k)')
-        self.trip.ps('M.mapclear')
+        self.trip.ps('M.mapclear()')
     
     def test_getcount(self):
         self.trip.pe('S.getcount(x)')

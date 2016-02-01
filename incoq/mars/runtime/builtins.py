@@ -239,3 +239,8 @@ class Map(IncOQType, dict, SetFromMapMixin):
     def _fmt_helper(self, fmt):
         return ('{' + ', '.join('{}: {}'.format(fmt(key), fmt(value))
                                 for key, value in self.items()) + '}')
+    
+    # Aliased to clear(). We use a separate name so as to not
+    # syntactically conflict with the name of the set clearing
+    # operation.
+    dictclear = dict.clear

@@ -508,7 +508,7 @@ class IncLangSpecialExporter(L.NodeTransformer):
     
     def visit_DictClear(self, node):
         node = self.generic_visit(node)
-        func = L.Attribute(self.target, 'dictclear')
+        func = L.Attribute(node.target, 'dictclear')
         return L.Expr(L.GeneralCall(func, []))
     
     def visit_MapAssign(self, node):

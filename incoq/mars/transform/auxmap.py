@@ -277,7 +277,7 @@ class InvariantTransformer(L.NodeTransformer):
         auxmaps = self.auxmaps_by_rel.get(node.rel, set())
         code = (node,)
         for auxmap in auxmaps:
-            clear_code = (L.SetClear(L.Name(auxmap.map)),)
+            clear_code = (L.MapClear(auxmap.map),)
             code = L.insert_rel_maint(code, clear_code, L.SetRemove())
         return code
     
