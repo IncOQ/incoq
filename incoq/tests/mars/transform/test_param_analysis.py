@@ -58,13 +58,6 @@ class ParamAnalysisCase(unittest.TestCase):
                                     demand_param_strat=S.Explicit)
         with self.assertRaises(AssertionError):
             determine_demand_params(self.ct, query)
-        
-        # Non-explicit requires absence of demand_params attribute.
-        symtab = S.SymbolTable()
-        query = symtab.define_query('Q', node=comp, params=('x', 'z'),
-                                    demand_params=('x',))
-        with self.assertRaises(AssertionError):
-            determine_demand_params(self.ct, query)
     
     def test_scope_builder(self):
         query = L.Parser.pe("QUERY('Q', {(x, y) for (x, y) in REL(R)})")
@@ -324,6 +317,55 @@ class ParamAnalysisCase(unittest.TestCase):
         self.assertEqual(query_sym2.demand_set, '_U_Q2')
         demquery_sym = symtab.get_symbols()['_QU_Q1']
         self.assertEqual(demquery_sym.type, T.Set(T.Tuple([T.Number])))
+    
+    def test_nested_demand_analyzer_aggr(self):
+        inner_comp = L.Parser.pe(
+            '{(y,) for (x, y) in REL(R)}')
+        aggr = L.Parser.pe(
+            "count(QUERY('Q1', {(y,) for (x, y) in REL(R)}))")
+        outer_comp = L.Parser.pe('''
+            {z for (z,) in REL(S)
+               if z < QUERY('Q2', count(QUERY('Q1',
+                   {(y,) for (x, y) in REL(R)})))}
+            ''')
+        symtab = S.SymbolTable()
+        symtab.clausetools = self.ct
+        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
+        for v in ['x', 'y', 'z']:
+            symtab.define_var(v, type=T.Number)
+        query_sym1 = symtab.define_query('Q1', node=inner_comp, impl=S.Inc,
+                                        demand_param_strat=S.Explicit,
+                                        demand_params=('x',))
+        query_sym2 = symtab.define_query('Q2', node=aggr, impl=S.Inc)
+        query_sym3 = symtab.define_query('Q3', node=outer_comp, impl=S.Inc)
+        tree = L.Parser.p('''
+            def main():
+                x = 1
+                print(QUERY('Q3', {z for (z,) in REL(S) if z <
+                    QUERY('Q2', count(QUERY('Q1',
+                    {(y,) for (x, y) in REL(R)})))}))
+            ''')
+        tree = NestedDemandAnalyzer.run(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def _demand_Q3(_elem):
+                if (_elem not in _U_Q3):
+                    _U_Q3.reladd(_elem)
+            
+            def main():
+                x = 1
+                print(FIRSTTHEN(_demand_Q3((x,)), QUERY('Q3',
+                    {z for (x,) in REL(_U_Q3) for (z,) in REL(S)
+                       if (z < QUERY('Q2', count(QUERY('Q1',
+                          {(y,) for (x,) in VARS(QUERY('_QU_Q2',
+                                {(_v1x,) for (_v1x,) in REL(_U_Q3)
+                                         for (_v1z,) in REL(S)}))
+                                for (x, y) in REL(R)}),
+                          (x,),
+                          QUERY('_QU_Q2',
+                            {(_v1x,) for (_v1x,) in REL(_U_Q3)
+                                     for (_v1z,) in REL(S)}))))})))
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':

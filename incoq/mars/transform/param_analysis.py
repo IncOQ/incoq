@@ -43,10 +43,16 @@ def determine_demand_params(clausetools, query):
     comp = query.node
     params = query.params
     
+    if query.demand_params is not None:
+        return query.demand_params
+    
     strat = query.demand_param_strat
-    if strat != S.Explicit and query.demand_params is not None:
-        raise AssertionError('Do not supply demand_params unless '
-                             'demand_param_strat is set to "explicit"')
+    
+    # Helpful check, but belongs in a preprocessing rather than
+    # here.
+#    if strat != S.Explicit and query.demand_params is not None:
+#        raise AssertionError('Do not supply demand_params unless '
+#                             'demand_param_strat is set to "explicit"')
     
     if strat == S.Unconstrained:
         uncon_vars = clausetools.uncon_lhs_vars_from_comp(comp)
@@ -256,6 +262,16 @@ class QueryContextInstantiator(L.NodeTransformer):
         """Return a context object for the given Query node."""
         raise NotImplementedError
     
+    def freeze_context(self, context):
+        """Helper to turn a context into a hashable representative."""
+        return context
+    
+    def context_matches(self, context1, context2):
+        """Return whether two contexts are compatible enough to warrant
+        not instantiating.
+        """
+        return context1 == context2
+    
     def apply_context(self, query, context):
         """Update the attributes (including possibly the AST) of a
         query symbol to include the given context info.
@@ -272,7 +288,7 @@ class QueryContextInstantiator(L.NodeTransformer):
         context_map = self.query_contexts.setdefault(name, {})
         already_instantiated = False
         for inst_name, ctx in context_map.items():
-            if context == ctx:
+            if self.context_matches(context, ctx):
                 # Found an existing instantiation. Reuse it.
                 query_sym = queries[inst_name]
                 already_instantiated = True
@@ -293,7 +309,7 @@ class QueryContextInstantiator(L.NodeTransformer):
                 query_sym = self.symtab.define_query(inst_name, **attrs)
             
             # Update the context map and query symbol.
-            context_map[inst_name] = context
+            context_map[inst_name] = self.freeze_context(context)
             self.apply_context(query_sym, context)
         
         # Rewrite this occurrence. Then recurse, if we haven't already
@@ -396,11 +412,15 @@ class DemandAnalyzer(ParamAnalyzer):
         if uset is not None:
             query.node = ct.rewrite_with_uset(query.node, demand_params, uset)
     
-    def rewrite_aggr_with_demand_set(self, query):
+    def get_aggr_demand_params(self, query):
+        """Return the demand params for an aggregate of a relation or
+        of a comprehension. Fail for other kinds of aggregates.
+        """
         symtab = self.symtab
         ct = symtab.clausetools
         
         node = query.node
+        assert isinstance(node, L.Aggr)
         operand = node.value
         if isinstance(operand, L.Name):
             demand_params = ()
@@ -412,10 +432,19 @@ class DemandAnalyzer(ParamAnalyzer):
             raise L.ProgramError('Cannot rewrite aggregate node for '
                                  'demand: {}'.format(node))
         
-        uset = self.make_demand_set(query, demand_params)
-        query.node = L.AggrRestr(node.op, node.value,
-                                 demand_params, L.Name(uset))
         query.demand_params = demand_params
+        return demand_params
+    
+    def rewrite_aggr_with_demand_set(self, query):
+        symtab = self.symtab
+        node = query.node
+        
+        demand_params = self.get_aggr_demand_params(query)
+        
+        uset = self.make_demand_set(query, demand_params)
+        if uset is not None:
+            query.node = L.AggrRestr(node.op, node.value,
+                                     demand_params, L.Name(uset))
     
     def rewrite_comp_with_demand(self, query, context):
         return self.rewrite_comp_with_demand_set(query)
@@ -472,20 +501,29 @@ class NestedDemandAnalyzer(DemandAnalyzer):
     queries, and demand queries for inner queries.
     """
     
-    # A context for this visitor is a tuple whose first component
-    # are the query parameters, and whose second component is
+    # A context for this visitor is a pair of the query's parameters and
+    # its clause context. The clause context is a sequence of clauses
+    # appearing to the left of this query in its enclosing comprehension,
+    # or None if there is no enclosing comprehension.
     #
-    #   1) for an outermost query, None, or
+    # Queries whose impl attribute is Normal should not occur inside
+    # transformable queries, and do not count as enclosing comprehension.
+    # Note that the enclosing comprehension is not necessarily the
+    # immediately enclosing query, e.g. when the enclosing query is an
+    # aggregate.
     #
-    #   2) for an inner query, a sequence of clauses appearing to
-    #      the left of this query in the immediate containing query.
+    # The clause context includes the demand clause for the outer
+    # comprehension.
     #
-    # Outermost queries (not counting queries whose impl attribute is
-    # Normal) get demand sets, while inner queries get demand queries.
+    # Queries whose clause context is None get demand sets. Other
+    # queries get demand queries, defined based on the clause context.
     #
-    # We keep track of the clauses of the containing query by
-    # maintaining a stack corresponding to nested queries, where each
-    # stack entry lists the clauses seen so far at that level.
+    # We keep track of the clause context by maintaining a stack, each
+    # level of which corresponds to an enclosing comprehension.
+    #
+    # We keep a cache of query symbols created for given contexts,
+    # in particular so that the same demand query can be reused for both
+    # an aggregate and its comprehension operand.
     
     def process(self, tree):
         self.comp_stack = []
@@ -500,6 +538,8 @@ class NestedDemandAnalyzer(DemandAnalyzer):
         whose immediate descendant is a Comp. It helps us distinguish
         proper comprehension queries from stray non-Query Comp nodes.
         """
+        self.demand_query_cache = {}
+        """Map from contexts to demand query symbols."""
         tree = super().process(tree)
         return tree
     
@@ -526,42 +566,99 @@ class NestedDemandAnalyzer(DemandAnalyzer):
     def get_context(self, node):
         return self.get_params(node), self.current_left_clauses()
     
-    def rewrite_comp_with_demand_query(self, query, context):
-        ct = self.symtab.clausetools
+    def freeze_context(self, context):
+        params, clauses = context
+        if clauses is None:
+            return context
+        else:
+            return (params, tuple(clauses))
+    
+    def context_matches(self, context1, context2):
+        params1, _clauses1 = context1
+        params2, _clauses2 = context2
+        
+        # If there are no parameters, we don't really care about
+        # context.
+        if params1 == params2 == ():
+            return True
+        else:
+            return super().context_matches(context1, context2)
+    
+    def make_demand_query(self, query, context, demand_params):
+        """Define a demand query and mark the query as using it. Return
+        the demand query's symbol. If there are no demand parameters
+        then instead return None.
+        
+        If the current context already has a demand query associated
+        with it, reuse it.
+        """
         symtab = self.symtab
+        ct = symtab.clausetools
         
-        # Determine demand parameters. No demand parameters means no
-        # transformation.
-        demand_params = determine_demand_params(ct, query)
         if len(demand_params) == 0:
-            return
+            return None
         
-        # Add demand set for symbol.
+        # Consult cache.
+        context = self.freeze_context(context)
+        if context in self.demand_query_cache:
+            demquery_sym = self.demand_query_cache[context]
+            query.demand_query = demquery_sym.name
+            return demquery_sym
+        
+        # Do it the hard way.
+        clauses = self.current_left_clauses()
         demquery_name = N.get_query_demand_query_name(query.name)
         t_demand_params = symtab.analyze_expr_type(L.tuplify(demand_params))
         demquery_type = T.Set(t_demand_params)
-        demquery_comp = L.Comp(L.tuplify(demand_params),
-                               self.current_left_clauses())
+        demquery_comp = L.Comp(L.tuplify(demand_params), clauses)
         prefix = next(symtab.fresh_names.vars)
         demquery_comp = ct.comp_rename_lhs_vars(
                             demquery_comp, lambda x: prefix + x)
         demquery_sym = symtab.define_query(demquery_name, type=demquery_type,
-                                           node=demquery_comp, impl=query.impl)
-        query.demand_query = demquery_name
+                                           node=demquery_comp,
+                                           impl=query.impl)
         
-        # Rewrite AST to use it.
-        demquery_node = L.Query(demquery_name, demquery_comp)
-        query.node = ct.rewrite_with_demand_query(
-                            query.node, demand_params, demquery_node)
+        self.demand_query_cache[context] = demquery_sym
+        
+        query.demand_query = demquery_name
+        return demquery_sym
+    
+    def rewrite_comp_with_demand_query(self, query, context):
+        ct = self.symtab.clausetools
+        
+        demand_params = determine_demand_params(ct, query)
+        demquery_sym = self.make_demand_query(query, context, demand_params)
+        if demquery_sym is not None:
+            demquery_node = demquery_sym.make_node()
+            query.node = ct.rewrite_with_demand_query(
+                                query.node, demand_params, demquery_node)
+    
+    def rewrite_aggr_with_demand_query(self, query, context):
+        symtab = self.symtab
+        node = query.node
+        
+        demand_params = self.get_aggr_demand_params(query)
+        demquery_sym = self.make_demand_query(query, context, demand_params)
+        if demquery_sym is not None:
+            demquery_node = demquery_sym.make_node()
+            query.node = L.AggrRestr(node.op, node.value,
+                                     demand_params, demquery_node)
     
     def rewrite_comp_with_demand(self, query, context):
         _params, clauses = context
         
         if clauses is None:
-            # Outermost, just add a U-set.
             return self.rewrite_comp_with_demand_set(query)
         else:
             return self.rewrite_comp_with_demand_query(query, context)
+    
+    def rewrite_aggr_with_demand(self, query, context):
+        _params, clauses = context
+        
+        if clauses is None:
+            return self.rewrite_aggr_with_demand_set(query)
+        else:
+            return self.rewrite_aggr_with_demand_query(query, context)
     
     def visit_Query(self, node):
         # Check for impl == Normal using the pre-instantiated query
