@@ -5,6 +5,7 @@ __all__ = [
     'set_update',
     'rel_update',
     'insert_rel_maint',
+    'insert_rel_maint_call',
     'set_update_name',
     'apply_renamer',
 ]
@@ -57,6 +58,18 @@ def insert_rel_maint(update_code, maint_code, op):
         return maint_code + update_code
     else:
         assert()
+
+
+def insert_rel_maint_call(node, func_name):
+    """Insert a call to a maintenance function before/after a SetAdd
+    or SetRemove, with the element passed as the sole argument.
+    """
+    assert isinstance(node, L.RelUpdate)
+    assert isinstance(node.op, (L.SetAdd, L.SetRemove))
+    code = (node,)
+    call_code = (L.Expr(L.Call(func_name, [L.Name(node.elem)])),)
+    code = insert_rel_maint(code, call_code, node.op)
+    return code
 
 
 def set_update_name(op):

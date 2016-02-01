@@ -90,6 +90,23 @@ class UtilCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
     
+    def test_insert_rel_maint_call(self):
+        update = Parser.ps('R.reladd(x)')
+        code = insert_rel_maint_call(update, 'maint')
+        exp_code = Parser.pc('''
+            R.reladd(x)
+            maint(x)
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        update = Parser.ps('R.relremove(x)')
+        code = insert_rel_maint_call(update, 'maint')
+        exp_code = Parser.pc('''
+            maint(x)
+            R.relremove(x)
+            ''')
+        self.assertEqual(code, exp_code)
+    
     def test_set_update_name(self):
         self.assertEqual(set_update_name(L.SetAdd()), 'add')
         self.assertEqual(set_update_name(L.SetRemove()), 'remove')
