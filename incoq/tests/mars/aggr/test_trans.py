@@ -13,7 +13,8 @@ from incoq.mars.aggr.trans import make_aggr_maint_func, aggrinv_from_query
 class TransCase(unittest.TestCase):
     
     def test_aggr_maint_func_add(self):
-        aggrinv = AggrInvariant('A', L.Count(), 'R', L.mask('bu'), ['x'])
+        aggrinv = AggrInvariant('A', L.Count(), 'R',
+                                L.mask('bu'), ['x'], None)
         func = make_aggr_maint_func(N.fresh_name_generator(),
                                     aggrinv, L.SetAdd())
         exp_func = L.Parser.ps('''
@@ -30,7 +31,8 @@ class TransCase(unittest.TestCase):
         self.assertEqual(func, exp_func)
     
     def test_aggr_maint_func_remove(self):
-        aggrinv = AggrInvariant('A', L.Count(), 'R', L.mask('bu'), ['x'])
+        aggrinv = AggrInvariant('A', L.Count(), 'R',
+                                L.mask('bu'), ['x'], None)
         func = make_aggr_maint_func(N.fresh_name_generator(),
                                     aggrinv, L.SetRemove())
         exp_func = L.Parser.ps('''
@@ -46,9 +48,45 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
     
+    def test_aggr_maint_func_add_withdemand(self):
+        aggrinv = AggrInvariant('A', L.Count(), 'R',
+                                L.mask('bu'), ['x'], 'U')
+        func = make_aggr_maint_func(N.fresh_name_generator(),
+                                    aggrinv, L.SetAdd())
+        exp_func = L.Parser.ps('''
+            def _maint_A_for_R_add(_elem):
+                (_elem_v1, _elem_v2) = _elem
+                _v1_key = (_elem_v1,)
+                _v1_value = (_elem_v2,)
+                if _v1_key in U:
+                    _v1_state = A[_v1_key]
+                    _v1_state = (_v1_state + 1)
+                    A.mapdelete(_v1_key)
+                    A.mapassign(_v1_key, _v1_state)
+            ''')
+        self.assertEqual(func, exp_func)
+    
+    def test_aggr_maint_func_remove_withdemand(self):
+        aggrinv = AggrInvariant('A', L.Count(), 'R',
+                                L.mask('bu'), ['x'], 'U')
+        func = make_aggr_maint_func(N.fresh_name_generator(),
+                                    aggrinv, L.SetRemove())
+        exp_func = L.Parser.ps('''
+            def _maint_A_for_R_remove(_elem):
+                (_elem_v1, _elem_v2) = _elem
+                _v1_key = (_elem_v1,)
+                _v1_value = (_elem_v2,)
+                if _v1_key in U:
+                    _v1_state = A[_v1_key]
+                    _v1_state = (_v1_state - 1)
+                    A.mapdelete(_v1_key)
+                    A.mapassign(_v1_key, _v1_state)
+            ''')
+        self.assertEqual(func, exp_func)
+    
     def test_aggrmaintainer(self):
         aggrinv = AggrInvariant('A', L.Count(), 'R',
-                                L.mask('u'), ())
+                                L.mask('u'), (), None)
         tree = L.Parser.p('''
             def main():
                 R.reladd(x)
@@ -78,7 +116,7 @@ class TransCase(unittest.TestCase):
         query = symtab.define_query('Q', node=aggr)
         aggrinv = aggrinv_from_query(symtab, query, 'A')
         exp_aggrinv = AggrInvariant('A', L.Count(), 'R',
-                                    L.mask('uu'), ())
+                                    L.mask('uu'), (), None)
         self.assertEqual(aggrinv, exp_aggrinv)
         
         # ImgLookup operand.
@@ -88,7 +126,7 @@ class TransCase(unittest.TestCase):
         query = symtab.define_query('Q', node=aggr)
         aggrinv = aggrinv_from_query(symtab, query, 'A')
         exp_aggrinv = AggrInvariant('A', L.Count(), 'R',
-                                    L.mask('bu'), ('x',))
+                                    L.mask('bu'), ('x',), None)
         self.assertEqual(aggrinv, exp_aggrinv)
     
     def test_incrementalize_aggr(self):

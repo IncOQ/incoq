@@ -14,7 +14,7 @@ from incoq.mars.incast import L
 from incoq.mars.type import T
 from incoq.mars.symbol import S, N
 
-from .aggrop import handler_for_op
+from .aggrop import get_handler_for_op
 
 
 class AggrInvariant(Struct):
@@ -39,17 +39,24 @@ class AggrInvariant(Struct):
     params = TypedField(str, seq=True)
     """Parameter variables for ImgLookup."""
     
+    restr = TypedField(str, or_none=True)
+    """Name of demand set, or None if not using demand."""
+    
     def get_maint_func_name(self, op):
         op_name = L.set_update_name(op)
         return N.get_maint_func_name(self.map, self.rel, op_name)
     
     def get_handler(self):
-        return handler_for_op[self.op.__class__]()
+        return get_handler_for_op(self.op.__class__, use_demand=False)
+    
+    @property
+    def uses_demand(self):
+        return self.restr is not None
 
 
 def make_aggr_maint_func(fresh_vars, aggrinv, op):
     """Make the maintenance function for an aggregate invariant and a
-    given set update operation (add or remove).
+    given set update operation (add or remove) to the operand.
     """
     assert isinstance(op, (L.SetAdd, L.SetRemove))
     
@@ -68,14 +75,20 @@ def make_aggr_maint_func(fresh_vars, aggrinv, op):
     # Logic specific to aggregate operator.
     handler = aggrinv.get_handler()
     zero = handler.make_zero_expr()
-    empty = handler.make_empty_cond(state)
     updatestate_code = handler.make_update_state_code(fresh_var_prefix,
                                                       state, op, value)
     
     subst = {'_KEY': key, '_KEY_EXPR': ktuple,
              '_VALUE': value, '_VALUE_EXPR': vtuple,
              '_MAP': aggrinv.map, '_STATE': state,
-             '_ZERO': zero, '_EMPTY': empty}
+             '_ZERO': zero}
+    
+    if aggrinv.uses_demand:
+        subst['_RESTR'] = aggrinv.restr
+    else:
+        # Empty conditions are only used when we don't have a
+        # restriction set.
+        subst['_EMPTY'] = handler.make_empty_cond(state)
     
     decomp_code = (L.DecompAssign(vars, L.Name('_elem')),)
     decomp_code += L.Parser.pc('''
@@ -83,40 +96,63 @@ def make_aggr_maint_func(fresh_vars, aggrinv, op):
         _VALUE = _VALUE_EXPR
         ''', subst=subst)
     
+    # Determine what kind of get/set state code to generate.
     if isinstance(op, L.SetAdd):
-        getstate_code = L.Parser.pc('''
-            _STATE = _MAP.get(_KEY, _ZERO)
-            ''', subst=subst)
-        setstate_code = L.Parser.pc('''
-            if _KEY in _MAP:
-                _MAP.mapdelete(_KEY)
-            _MAP.mapassign(_KEY, _STATE)
-            ''', subst=subst)
+        definitely_preexists = aggrinv.uses_demand
+        setstate_mayremove = False
     elif isinstance(op, L.SetRemove):
-        getstate_code = L.Parser.pc('''
-            _STATE = _MAP[_KEY]
-            ''', subst=subst)
-        setstate_code = L.Parser.pc('''
-            _MAP.mapdelete(_KEY)
-            if not _EMPTY:
-                _MAP.mapassign(_KEY, _STATE)
-            ''', subst=subst)
+        definitely_preexists = True
+        setstate_mayremove = not aggrinv.uses_demand
     else:
         assert()
+    
+    if definitely_preexists:
+        getstate_template = '_STATE = _MAP[_KEY]'
+        delstate_template = '_MAP.mapdelete(_KEY)'
+    else:
+        getstate_template = '_STATE = _MAP.get(_KEY, _ZERO)'
+        delstate_template = '''
+            if _KEY in _MAP:
+                _MAP.mapdelete(_KEY)
+            '''
+    
+    if setstate_mayremove:
+        setstate_template = '''
+            if not _EMPTY:
+                _MAP.mapassign(_KEY, _STATE)
+            '''
+    else:
+        setstate_template = '_MAP.mapassign(_KEY, _STATE)'
+    
+    getstate_code = L.Parser.pc(getstate_template, subst=subst)
+    delstate_code = L.Parser.pc(delstate_template, subst=subst)
+    setstate_code = L.Parser.pc(setstate_template, subst=subst)
+    
+    maint_code = (
+        getstate_code +
+        updatestate_code +
+        delstate_code +
+        setstate_code
+    )
+    
+    # Guard in test if we have a restriction set.
+    if aggrinv.uses_demand:
+        maint_subst = dict(subst)
+        maint_subst['<c>_MAINT'] = maint_code
+        maint_code = L.Parser.pc('''
+            if _KEY in _RESTR:
+                _MAINT
+            ''', subst=maint_subst)
     
     func_name = aggrinv.get_maint_func_name(op)
     
     func = L.Parser.ps('''
         def _FUNC(_elem):
             _DECOMP
-            _GETSTATE
-            _UPDATESTATE
-            _SETSTATE
+            _MAINT
         ''', subst={'_FUNC': func_name,
                     '<c>_DECOMP': decomp_code,
-                    '<c>_GETSTATE': getstate_code,
-                    '<c>_UPDATESTATE': updatestate_code,
-                    '<c>_SETSTATE': setstate_code})
+                    '<c>_MAINT': maint_code})
     
     return func
 
@@ -210,7 +246,7 @@ def aggrinv_from_query(symtab, query, result_var):
         # Confirm that this arity is consistent with the above mask.
         assert len(mask.m) == arity
     
-    return AggrInvariant(result_var, node.op, rel, mask, params)
+    return AggrInvariant(result_var, node.op, rel, mask, params, None)
 
 
 def incrementalize_aggr(tree, symtab, query, result_var):

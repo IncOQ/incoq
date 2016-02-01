@@ -8,7 +8,7 @@ __all__ = [
     'CountedSumHandler',
     'MinHandler',
     'MaxHandler',
-    'handler_for_op',
+    'get_handler_for_op',
 ]
 
 
@@ -164,9 +164,11 @@ class MaxHandler(MinMaxHandler):
     kind = 'max'
 
 
-handler_for_op = {
-    L.Count: CountHandler,
-    L.Sum: CountedSumHandler,
-    L.Min: MinHandler,
-    L.Max: MaxHandler,
-}
+def get_handler_for_op(op, *, use_demand):
+    if op is L.Sum:
+        handlercls = SumHandler if use_demand else CountedSumHandler
+    else:
+        handlercls = {L.Count: CountHandler,
+                      L.Min: MinHandler,
+                      L.Max: MaxHandler}[op]
+    return handlercls()
