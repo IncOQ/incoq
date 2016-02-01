@@ -7,16 +7,18 @@ from incoq.mars.incast import L
 from incoq.mars.type import T
 from incoq.mars.symbol import S, N
 from incoq.mars.aggr.trans import *
-from incoq.mars.aggr.trans import make_aggr_maint_func, aggrinv_from_query
+from incoq.mars.aggr.trans import (
+    make_aggr_oper_maint_func, make_aggr_restr_maint_func,
+    aggrinv_from_query)
 
 
 class TransCase(unittest.TestCase):
     
-    def test_aggr_maint_func_add(self):
+    def test_aggr_oper_maint_func_add(self):
         aggrinv = AggrInvariant('A', L.Count(), 'R',
                                 L.mask('bu'), ['x'], None)
-        func = make_aggr_maint_func(N.fresh_name_generator(),
-                                    aggrinv, L.SetAdd())
+        func = make_aggr_oper_maint_func(N.fresh_name_generator(),
+                                         aggrinv, L.SetAdd())
         exp_func = L.Parser.ps('''
             def _maint_A_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem
@@ -30,11 +32,11 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
     
-    def test_aggr_maint_func_remove(self):
+    def test_aggr_oper_maint_func_remove(self):
         aggrinv = AggrInvariant('A', L.Count(), 'R',
                                 L.mask('bu'), ['x'], None)
-        func = make_aggr_maint_func(N.fresh_name_generator(),
-                                    aggrinv, L.SetRemove())
+        func = make_aggr_oper_maint_func(N.fresh_name_generator(),
+                                         aggrinv, L.SetRemove())
         exp_func = L.Parser.ps('''
             def _maint_A_for_R_remove(_elem):
                 (_elem_v1, _elem_v2) = _elem
@@ -48,11 +50,11 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
     
-    def test_aggr_maint_func_add_withdemand(self):
+    def test_aggr_oper_maint_func_add_withdemand(self):
         aggrinv = AggrInvariant('A', L.Count(), 'R',
                                 L.mask('bu'), ['x'], 'U')
-        func = make_aggr_maint_func(N.fresh_name_generator(),
-                                    aggrinv, L.SetAdd())
+        func = make_aggr_oper_maint_func(N.fresh_name_generator(),
+                                         aggrinv, L.SetAdd())
         exp_func = L.Parser.ps('''
             def _maint_A_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem
@@ -66,11 +68,11 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
     
-    def test_aggr_maint_func_remove_withdemand(self):
+    def test_aggr_oper_maint_func_remove_withdemand(self):
         aggrinv = AggrInvariant('A', L.Count(), 'R',
                                 L.mask('bu'), ['x'], 'U')
-        func = make_aggr_maint_func(N.fresh_name_generator(),
-                                    aggrinv, L.SetRemove())
+        func = make_aggr_oper_maint_func(N.fresh_name_generator(),
+                                         aggrinv, L.SetRemove())
         exp_func = L.Parser.ps('''
             def _maint_A_for_R_remove(_elem):
                 (_elem_v1, _elem_v2) = _elem
@@ -81,6 +83,31 @@ class TransCase(unittest.TestCase):
                     _v1_state = (_v1_state - 1)
                     A.mapdelete(_v1_key)
                     A.mapassign(_v1_key, _v1_state)
+            ''')
+        self.assertEqual(func, exp_func)
+    
+    def test_aggr_restr_maint_func_add(self):
+        aggrinv = AggrInvariant('A', L.Count(), 'R',
+                                L.mask('bu'), ['x'], 'U')
+        func = make_aggr_restr_maint_func(N.fresh_name_generator(),
+                                          aggrinv, L.SetAdd())
+        exp_func = L.Parser.ps('''
+            def _maint_A_for_U_add(_key):
+                _v1_state = 0
+                for _v1_value in R.imglookup('bu', (x,)):
+                    _v1_state = (_v1_state + 1)
+                A[_key] = _v1_state
+            ''')
+        self.assertEqual(func, exp_func)
+    
+    def test_aggr_restr_maint_func_remove(self):
+        aggrinv = AggrInvariant('A', L.Count(), 'R',
+                                L.mask('bu'), ['x'], 'U')
+        func = make_aggr_restr_maint_func(N.fresh_name_generator(),
+                                          aggrinv, L.SetRemove())
+        exp_func = L.Parser.ps('''
+            def _maint_A_for_U_remove(_key):
+                del A[_key]
             ''')
         self.assertEqual(func, exp_func)
     

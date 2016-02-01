@@ -42,9 +42,14 @@ class AggrInvariant(Struct):
     restr = TypedField(str, or_none=True)
     """Name of demand set, or None if not using demand."""
     
-    def get_maint_func_name(self, op):
+    def get_oper_maint_func_name(self, op):
         op_name = L.set_update_name(op)
         return N.get_maint_func_name(self.map, self.rel, op_name)
+    
+    def get_restr_maint_func_name(self, op):
+        assert self.uses_demand
+        op_name = L.set_update_name(op)
+        return N.get_maint_func_name(self.map, self.restr, op_name)
     
     def get_handler(self):
         return get_handler_for_op(self.op.__class__, use_demand=False)
@@ -54,7 +59,7 @@ class AggrInvariant(Struct):
         return self.restr is not None
 
 
-def make_aggr_maint_func(fresh_vars, aggrinv, op):
+def make_aggr_oper_maint_func(fresh_vars, aggrinv, op):
     """Make the maintenance function for an aggregate invariant and a
     given set update operation (add or remove) to the operand.
     """
@@ -144,7 +149,7 @@ def make_aggr_maint_func(fresh_vars, aggrinv, op):
                 _MAINT
             ''', subst=maint_subst)
     
-    func_name = aggrinv.get_maint_func_name(op)
+    func_name = aggrinv.get_oper_maint_func_name(op)
     
     func = L.Parser.ps('''
         def _FUNC(_elem):
@@ -152,6 +157,52 @@ def make_aggr_maint_func(fresh_vars, aggrinv, op):
             _MAINT
         ''', subst={'_FUNC': func_name,
                     '<c>_DECOMP': decomp_code,
+                    '<c>_MAINT': maint_code})
+    
+    return func
+
+
+def make_aggr_restr_maint_func(fresh_vars, aggrinv, op):
+    """Make the maintenance function for an aggregate invariant and
+    an update to its restriction set.
+    """
+    assert isinstance(op, (L.SetAdd, L.SetRemove))
+    assert aggrinv.uses_demand
+    
+    if isinstance(op, L.SetAdd):
+        fresh_var_prefix = next(fresh_vars)
+        value = fresh_var_prefix + '_value'
+        state = fresh_var_prefix + '_state'
+        
+        rellookup = L.ImgLookup(L.Name(aggrinv.rel),
+                                aggrinv.mask, aggrinv.params)
+        
+        handler = aggrinv.get_handler()
+        zero = handler.make_zero_expr()
+        updatestate_code = handler.make_update_state_code(fresh_var_prefix,
+                                                          state, op, value)
+        
+        maint_code = L.Parser.pc('''
+            _STATE = _ZERO
+            for _VALUE in _RELLOOKUP:
+                _UPDATESTATE
+            _MAP[_KEY] = _STATE
+            ''', subst={'_MAP': aggrinv.map, '_KEY': '_key',
+                        '_STATE': state, '_ZERO': zero,
+                        '_VALUE': value, '_RELLOOKUP': rellookup,
+                        '<c>_UPDATESTATE': updatestate_code})
+    
+    else:
+        maint_code = L.Parser.pc('''
+            del _MAP[_KEY]
+            ''', subst={'_MAP': aggrinv.map, '_KEY': '_key'})
+    
+    func_name = aggrinv.get_restr_maint_func_name(op)
+    
+    func = L.Parser.ps('''
+        def _FUNC(_key):
+            _MAINT
+        ''', subst={'_FUNC': func_name,
                     '<c>_MAINT': maint_code})
     
     return func
@@ -169,7 +220,7 @@ class AggrMaintainer(L.NodeTransformer):
         
         funcs = []
         for op in [L.SetAdd(), L.SetRemove()]:
-            func = make_aggr_maint_func(self.fresh_vars, self.aggrinv, op)
+            func = make_aggr_oper_maint_func(self.fresh_vars, self.aggrinv, op)
             funcs.append(func)
         
         node = node._replace(decls=tuple(funcs) + node.decls)
@@ -181,9 +232,7 @@ class AggrMaintainer(L.NodeTransformer):
         if node.rel != self.aggrinv.rel:
             return node
         
-        op_name = L.set_update_name(node.op)
-        func_name = N.get_maint_func_name(self.aggrinv.map,
-                                          node.rel, op_name)
+        func_name = self.aggrinv.get_oper_maint_func_name(node.op)
         
         code = (node,)
         call_code = (L.Expr(L.Call(func_name, [L.Name(node.elem)])),)
