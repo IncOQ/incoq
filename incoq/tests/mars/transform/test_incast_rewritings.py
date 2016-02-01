@@ -158,6 +158,7 @@ class RelMapCase(unittest.TestCase):
                 (a + b).clear()
                 M[k] = v
                 del M[k]
+                M.dictclear()
                 N[k] = v
                 {x for (x, y) in S}
             ''')
@@ -174,6 +175,7 @@ class RelMapCase(unittest.TestCase):
                 (a + b).clear()
                 M.mapassign(k, v)
                 M.mapdelete(k)
+                M.mapclear()
                 N[k] = v
                 {x for (x, y) in REL(S)}
             ''')
@@ -191,6 +193,7 @@ class RelMapCase(unittest.TestCase):
                 (a + b).clear()
                 M[k] = v
                 del M[k]
+                M.dictclear()
                 N[k] = v
                 {x for (x, y) in S}
             ''')

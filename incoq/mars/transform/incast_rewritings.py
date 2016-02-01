@@ -316,6 +316,12 @@ class RelMapImporter(L.NodeTransformer):
             return L.MapDelete(node.target.id, node.key.id)
         return node
     
+    def visit_DictClear(self, node):
+        if (isinstance(node.target, L.Name) and
+            node.target.id in self.maps):
+            return L.MapClear(node.target.id)
+        return node
+    
     def visit_Member(self, node):
         if (isinstance(node.iter, L.Name) and
             node.iter.id in self.rels and
@@ -341,6 +347,9 @@ class RelMapExporter(L.NodeTransformer):
     
     def visit_MapDelete(self, node):
         return L.DictDelete(L.Name(node.map), L.Name(node.key))
+    
+    def visit_MapClear(self, node):
+        return L.DictClear(L.Name(node.map))
     
     def visit_RelMember(self, node):
         return L.Member(L.tuplify(node.vars), L.Name(node.rel))
