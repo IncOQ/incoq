@@ -7,6 +7,7 @@ __all__ = [
     'QUERY',
     
     'count',
+    'sum',
     'min',
     'max',
     
@@ -51,11 +52,22 @@ def QUERY(*args, **kargs):
 # Aggregate functions.
 #
 # - count() is aliased to len()
-# - sum() is already provided by Python
+# - sum() is overloaded to also work on numbers wrapped in singleton tuples
 # - min() and max() are the same as the Python built-ins, except
 #   that they return None when the input is empty.
 
 count = len
+
+def sum(nums):
+    s = 0
+    for n in nums:
+        if isinstance(n, tuple):
+            if len(n) != 1:
+                raise ValueError
+            (n,) = n
+        s += n
+    return s
+
 min = partial(builtins.min, default=None)
 max = partial(builtins.max, default=None)
 
