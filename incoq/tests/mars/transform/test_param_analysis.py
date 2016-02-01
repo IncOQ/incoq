@@ -154,7 +154,7 @@ class ParamAnalysisCase(unittest.TestCase):
     def test_param_analyzer_basic(self):
         comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
         inner_comp = L.Parser.pe('{y for (x, y) in REL(R)}')
-        aggr = L.Parser.pe("sum(QUERY('Q2', {y for (x, y) in REL(R)}))")
+        aggr = L.Parser.pe("count(QUERY('Q2', {y for (x, y) in REL(R)}))")
         symtab = S.SymbolTable()
         query_sym1 = symtab.define_query('Q1', node=comp)
         query_sym2 = symtab.define_query('Q2', node=inner_comp)
@@ -163,7 +163,8 @@ class ParamAnalysisCase(unittest.TestCase):
             def main():
                 x = 1
                 print(QUERY('Q1', {(x, y) for (x, y) in REL(R)}))
-                print(QUERY('Q3', sum(QUERY('Q2', {y for (x, y) in REL(R)}))))
+                print(QUERY('Q3', count(QUERY('Q2',
+                                  {y for (x, y) in REL(R)}))))
             ''')
         
         tree = ParamAnalyzer.run(tree, symtab)
@@ -242,6 +243,50 @@ class ParamAnalysisCase(unittest.TestCase):
         self.assertEqual(query_sym.demand_params, ('x',))
         uset_sym = symtab.get_symbols()[query_sym.demand_set]
         self.assertEqual(uset_sym.type, T.Set(T.Tuple([T.Number])))
+    
+    def test_demand_analyzer_aggr(self):
+        # Test to make sure the aggregate is transformed correctly.
+        # The nested comprehension will not be rewritten correctly,
+        # since it should have a demand query instead of a demand set,
+        # but we don't care about that.
+        
+        comp = L.Parser.pe('{(x, y) for (x, y) in REL(R)}')
+        aggr = L.Parser.pe("count(QUERY('Q1',"
+                           "{(x, y) for (x, y) in REL(R)}))")
+        symtab = S.SymbolTable()
+        symtab.clausetools = self.ct
+        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
+        symtab.define_var('x', type=T.Number)
+        symtab.define_var('y', type=T.Number)
+        compquery_sym = symtab.define_query('Q1', node=comp, impl=S.Inc,
+                                            demand_param_strat=S.Explicit,
+                                            demand_params=('x',))
+        aggrquery_sym = symtab.define_query('Q2', node=aggr, impl=S.Inc)
+        tree = L.Parser.p('''
+            def main():
+                x = 1
+                print(QUERY('Q2', count(QUERY('Q1',
+                                  {(x, y) for (x, y) in REL(R)}))))
+            ''')
+        
+        tree = DemandAnalyzer.run(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def _demand_Q2(_elem):
+                if (_elem not in _U_Q2):
+                    _U_Q2.reladd(_elem)
+            
+            def _demand_Q1(_elem):
+                if (_elem not in _U_Q1):
+                    _U_Q1.reladd(_elem)
+            
+            def main():
+                x = 1
+                print(FIRSTTHEN(_demand_Q2((x,)), QUERY('Q2',
+                    count(FIRSTTHEN(_demand_Q1((x,)), QUERY('Q1',
+                    {(x, y) for (x,) in REL(_U_Q1) for (x, y) in REL(R)})),
+                    (x,), _U_Q2))))
+            ''')
+        self.assertEqual(tree, exp_tree)
     
     def test_nested_demand_analyzer(self):
         comp1 = L.Parser.pe(

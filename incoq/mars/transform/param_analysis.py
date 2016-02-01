@@ -368,18 +368,17 @@ class DemandAnalyzer(ParamAnalyzer):
         super().__init__(symtab)
         self.queries_with_usets = OrderedSet()
     
-    def rewrite_with_demand_set(self, query):
-        ct = self.symtab.clausetools
+    def make_demand_set(self, query, demand_params):
+        """Define a demand set and mark the query as using it. Return
+        the demand set's name. If there are no demand parameters then
+        instead return None.
+        """
         symtab = self.symtab
         
-        # Determine demand parameters.
-        demand_params = determine_demand_params(ct, query)
-        
-        # If there aren't any demand parameters, no demand transformation.
         if len(demand_params) == 0:
-            return
+            return None
         
-        # Add demand set for symbol.
+        # Define symbol.
         uset = N.get_query_demand_set_name(query.name)
         uset_type = T.Set(symtab.analyze_expr_type(L.tuplify(demand_params)))
         symtab.define_relation(uset, type=uset_type)
@@ -387,11 +386,42 @@ class DemandAnalyzer(ParamAnalyzer):
         
         self.queries_with_usets.add(query)
         
-        # Rewrite AST to use it.
-        query.node = ct.rewrite_with_uset(query.node, demand_params, uset)
+        return uset
     
-    def rewrite_with_demand(self, query, context):
-        return self.rewrite_with_demand_set(query)
+    def rewrite_comp_with_demand_set(self, query):
+        ct = self.symtab.clausetools
+        
+        demand_params = determine_demand_params(ct, query)
+        uset = self.make_demand_set(query, demand_params)
+        if uset is not None:
+            query.node = ct.rewrite_with_uset(query.node, demand_params, uset)
+    
+    def rewrite_aggr_with_demand_set(self, query):
+        symtab = self.symtab
+        ct = symtab.clausetools
+        
+        node = query.node
+        operand = node.value
+        if isinstance(operand, L.Name):
+            demand_params = ()
+        elif (isinstance(operand, L.Query) and
+              isinstance(operand.query, L.Comp)):
+            opquery = symtab.get_queries()[operand.name]
+            demand_params = determine_demand_params(ct, opquery)
+        else:
+            raise L.ProgramError('Cannot rewrite aggregate node for '
+                                 'demand: {}'.format(node))
+        
+        uset = self.make_demand_set(query, demand_params)
+        query.node = L.AggrRestr(node.op, node.value,
+                                 demand_params, L.Name(uset))
+        query.demand_params = demand_params
+    
+    def rewrite_comp_with_demand(self, query, context):
+        return self.rewrite_comp_with_demand_set(query)
+    
+    def rewrite_aggr_with_demand(self, query, context):
+        return self.rewrite_aggr_with_demand_set(query)
     
     def apply_context(self, query, context):
         super().apply_context(query, context)
@@ -401,10 +431,9 @@ class DemandAnalyzer(ParamAnalyzer):
             return
         
         if isinstance(query.node, L.Comp):
-            self.rewrite_with_demand(query, context)
+            self.rewrite_comp_with_demand(query, context)
         elif isinstance(query.node, L.Aggr):
-            # We don't support demand for aggregates yet.
-            pass
+            self.rewrite_aggr_with_demand(query, context)
         else:
             raise AssertionError('No rule for handling demand for {} node'
                                  .format(query.node.__class__.__name__))
@@ -497,7 +526,7 @@ class NestedDemandAnalyzer(DemandAnalyzer):
     def get_context(self, node):
         return self.get_params(node), self.current_left_clauses()
     
-    def rewrite_with_demand_query(self, query, context):
+    def rewrite_comp_with_demand_query(self, query, context):
         ct = self.symtab.clausetools
         symtab = self.symtab
         
@@ -525,14 +554,14 @@ class NestedDemandAnalyzer(DemandAnalyzer):
         query.node = ct.rewrite_with_demand_query(
                             query.node, demand_params, demquery_node)
     
-    def rewrite_with_demand(self, query, context):
+    def rewrite_comp_with_demand(self, query, context):
         _params, clauses = context
         
         if clauses is None:
             # Outermost, just add a U-set.
-            return self.rewrite_with_demand_set(query)
+            return self.rewrite_comp_with_demand_set(query)
         else:
-            return self.rewrite_with_demand_query(query, context)
+            return self.rewrite_comp_with_demand_query(query, context)
     
     def visit_Query(self, node):
         # Check for impl == Normal using the pre-instantiated query
