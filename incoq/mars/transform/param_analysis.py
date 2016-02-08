@@ -13,7 +13,8 @@ __all__ = [
     'ParamAnalyzer',
     'DemandTransformer',
     
-    'analyze_parameters',
+    'analyze_params',
+    'analyze_demand_params',
     'transform_demand',
 ]
 
@@ -313,9 +314,9 @@ class CompContextTracker(L.NodeTransformer):
 
 class ParamAnalyzer(L.NodeVisitor):
     
-    """Annotate all query symbols with params and demand_params
-    attribute info. Raise ProgramError if any query has multiple
-    occurrences with inconsistent context information.
+    """Annotate all query symbols with params attribute info. Raise
+    ProgramError if any query has multiple occurrences with inconsistent
+    context information.
     """
     
     def __init__(self, symtab, scope_info):
@@ -350,31 +351,10 @@ class ParamAnalyzer(L.NodeVisitor):
                                      '{}: {}, {}'.format(
                                      querysym.name, cache[node.name], params))
         
-        # Otherwise, add to the cache and figure out the demand_params.
+        # Otherwise, add to the cache and update the symbol.
         else:
             cache[node.name] = params
-            
-            # Grab demand_params and demand_param_strat from symbol.
-            demand_params = querysym.demand_params
-            demand_param_strat = querysym.demand_param_strat
-            
-            # Compute final demand_params based on this info.
-            if isinstance(node.query, L.Comp):
-                demand_params = determine_comp_demand_params(
-                                    ct, node.query, params, demand_params,
-                                    demand_param_strat)
-            elif isinstance(node.query, L.Aggr):
-                # For aggregates, all parameters are demand parameters.
-                demand_params = params
-            
-            else:
-                raise L.ProgramError('No rule for analyzing parameters of '
-                                     '{} query'.format(
-                                     node.query.__class__.__name__))
-            
-            # Update the symbol.
             querysym.params = params
-            querysym.demand_params = demand_params
         
         self.generic_visit(node)
 
@@ -503,11 +483,26 @@ class DemandTransformer(CompContextTracker):
         return node
 
 
-def analyze_parameters(tree, symtab):
-    """Analyze parameter information for all queries and assign the
-    information to the symbol attributes.
-    """
-    ParamAnalyzer.run(tree, symtab)
+def analyze_params(tree, symtab):
+    """Determine params symbol attributes for all queries."""
+    scope_info = ScopeBuilder.run(tree)
+    ParamAnalyzer.run(tree, symtab, scope_info)
+
+
+def analyze_demand_params(tree, symtab):
+    """Determine demand_params symbol attributes for all queries."""
+    for query_sym in symtab.get_queries().values():
+        if isinstance(query_sym.node, L.Comp):
+            demand_params = determine_comp_demand_params(
+                symtab.clausetools, query_sym.node, query_sym.params,
+                query_sym.demand_params, query_sym.demand_param_strat)
+        elif isinstance(query_sym.node, L.Aggr):
+            demand_params = query_sym.params
+        else:
+            kind = query_sym.node.__class__.__name__
+            raise L.ProgramError('No rule for analyzing parameters of '
+                                 '{} query'.format(kind))
+        query_sym.demand_params = demand_params
 
 
 def transform_demand(tree, symtab):

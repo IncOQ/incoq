@@ -223,9 +223,6 @@ class ParamAnalysisCase(unittest.TestCase):
         self.assertEqual(query_sym1.params, ('y',))
         self.assertEqual(query_sym2.params, ('y',))
         self.assertEqual(query_sym3.params, ('z', 'y'))
-        self.assertEqual(query_sym1.demand_params, ('y',))
-        self.assertEqual(query_sym2.demand_params, ('y',))
-        self.assertEqual(query_sym3.demand_params, ('y',))
     
     def test_demand_transformer_basic(self):
         comp1 = L.Parser.pe('{(x,) for (x,) in REL(R) if x > y}')
@@ -331,6 +328,36 @@ class ParamAnalysisCase(unittest.TestCase):
                          T.Set(T.Tuple([T.Number])))
         self.assertEqual(symtab.get_relations()['_U_Q3'].type,
                          T.Set(T.Tuple([T.Number])))
+    
+    def test_analyze_demand_params(self):
+        inner_comp = L.Parser.pe('{(x,) for (x,) in REL(R) if x > y}')
+        aggr = L.Parser.pe('''
+            count(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y}))
+            ''')
+        outer_comp = L.Parser.pe('''
+            {z for (z,) in REL(S) if z > QUERY('Q2',
+            count(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y})))}
+            ''')
+        symtab = S.SymbolTable()
+        symtab.clausetools = self.ct
+        query_sym1 = symtab.define_query('Q1', node=inner_comp,
+                                         params=('y',))
+        query_sym2 = symtab.define_query('Q2', node=aggr,
+                                         params=('y',))
+        query_sym3 = symtab.define_query('Q3', node=outer_comp,
+                                         params=('z', 'y'))
+        tree = L.Parser.p('''
+            def main():
+                y = 1
+                z = 2
+                print(QUERY('Q3', {z for (z,) in REL(S) if z > QUERY('Q2',
+                    count(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y})))}))
+            ''')
+        
+        analyze_demand_params(tree, symtab)
+        self.assertEqual(query_sym1.demand_params, ('y',))
+        self.assertEqual(query_sym2.demand_params, ('y',))
+        self.assertEqual(query_sym3.demand_params, ('y',))
 
 
 if __name__ == '__main__':

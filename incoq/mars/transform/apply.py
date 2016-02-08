@@ -24,7 +24,8 @@ from incoq.mars.aggr import incrementalize_aggr
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
 from .optimize import unwrap_singletons
-from .param_analysis import analyze_parameters, analyze_demand
+from .param_analysis import (analyze_params, analyze_demand_params,
+                             transform_demand)
 from .misc_rewritings import relationalize_comp_queries
 from .auxmap import transform_auxmaps
 
@@ -231,18 +232,21 @@ def transform_ast(input_ast, *, options=None):
     if config.verbose:
         debug_symbols(symtab, illtyped, badsyms)
     
-    # analyze_demand() depends on pattern equalities having already
-    # been eliminated, so that it can use clause logic to determine
-    # unconstrained parameters. However, in order to correctly eliminate
-    # patterns we need parameter information to know which variables
-    # we can get rid of. Both analyze_*() functions instantiate queries.
+    # Before we can transform for demand, we need to know the demand
+    # params. Before we can do that, we need to rewrite patterns in
+    # comprehensions to ensure that parameters are constrained by
+    # equalities. Before we can do that, we need to do basic parameter
+    # analysis so that the rewriting doesn't discard a parameter in
+    # favor of a local.
     
     # Infer parameter information.
-    tree = analyze_parameters(tree, symtab)
+    analyze_params(tree, symtab)
     # Rewrite patterns.
     tree = rewrite_all_comps_with_patterns(tree, symtab)
-    # Infer demand information (and parameter information again).
-    tree = analyze_demand(tree, symtab)
+    # Infer demand parameter information.
+    analyze_demand_params(tree, symtab)
+    # Transform for demand.
+    tree = transform_demand(tree, symtab)
     
     # Make sure relational queries return tuples.
     tree = relationalize_comp_queries(tree, symtab)
