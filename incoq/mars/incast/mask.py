@@ -9,6 +9,9 @@ __all__ = [
     'keymask_from_len',
     'is_keymask',
     'break_keymask',
+    'mapmask_from_len',
+    'is_mapmask',
+    'break_mapmask',
     'mask_is_allbound',
     'mask_is_allunbound',
     'split_by_mask',
@@ -84,6 +87,32 @@ def break_keymask(mask):
     if not (all(c == 'b' for c in bs) and all(c == 'u' for c in us)):
         raise ValueError('Mask is not keymask')
     return len(bs), len(us)
+
+
+# A mapmask is a mask where there are any number of bound components
+# followed by exactly one unbound component, e.g. "bbbu". Mapmasks are
+# used for SetFromMap nodes.
+
+def mapmask_from_len(nb):
+    """Return a mapmask with the given number of bound components."""
+    return L.mask('b' * nb + 'u')
+
+def is_mapmask(mask):
+    """Return True if mask is a mapmask."""
+    try:
+        break_mapmask(mask)
+    except ValueError:
+        return False
+    return True
+
+def break_mapmask(mask):
+    """Given a mapmask, return the number of bound components."""
+    m = mask.m
+    nb = len(m) - 1
+    bs, us = m[:nb], m[nb:]
+    if not (all(c == 'b' for c in bs) and all(c == 'u' for c in us)):
+        raise ValueError('Mask is not mapmask')
+    return nb
 
 
 def mask_is_allbound(mask):

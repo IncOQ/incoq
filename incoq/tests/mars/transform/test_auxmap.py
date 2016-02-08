@@ -263,13 +263,13 @@ class AuxmapCase(unittest.TestCase):
         symtab = S.SymbolTable()
         symtab.define_map(
             'M', type=T.Map(T.Tuple([T.Number, T.Top]), T.String))
-        inv = SetFromMapInvariant('S', 'M', L.mask('bub'))
+        inv = SetFromMapInvariant('S', 'M', L.mask('bbu'))
         
         define_set(inv, symtab)
         relsym = symtab.get_relations()['S']
         self.assertEqual(
             relsym.type,
-            T.Set(T.Tuple([T.Number, T.String, T.Top])))
+            T.Set(T.Tuple([T.Number, T.Top, T.String])))
 
 
 if __name__ == '__main__':

@@ -47,9 +47,8 @@ class SetFromMapInvariant(Struct):
     
     """SetFromMap invariant."""
     
-    # The map key must be a tuple. The mask must have a number of bound
-    # components equal to the arity of the map key, and a single unbound
-    # component corresponding to the map value.
+    # The map key must be a tuple. The mask must be a mapmask with a
+    # number of bound components equal to the arity of the map key.
     
     rel = TypedField(str)
     """Name of variable holding the relation to be created."""
@@ -59,7 +58,7 @@ class SetFromMapInvariant(Struct):
     """Mask for relating the map to the set."""
     
     def __init__(self, rel, map, mask):
-        assert mask.m.count('u') == 1
+        assert L.is_mapmask(mask)
     
     def get_maint_func_name(self, op):
         assert op in ['assign', 'delete']
@@ -137,8 +136,7 @@ def make_setfrommap_maint_func(fresh_vars,
                                setfrommap: SetFromMapInvariant,
                                op: str):
     mask = setfrommap.mask
-    nb = mask.m.count('b')
-    nu = mask.m.count('u')
+    nb = L.break_mapmask(mask)
     # Fresh variables for components of the key and value.
     key_vars = N.get_subnames('_key', nb)
     
@@ -226,9 +224,9 @@ class InvariantTransformer(L.NodeTransformer):
     at updates, and replace expressions with uses of stored results.
     """
     
-    # We only support at most one SetFromMap mask for a given
-    # relation. We don't really have a use for multiple ones at this
-    # time.
+    # There can be at most one SetFromMap mask for a given map.
+    # Multiple distinct masks would have to differ on their arity,
+    # which would be a type error.
     
     def __init__(self, fresh_vars, auxmaps, setfrommaps):
         super().__init__()
@@ -245,7 +243,7 @@ class InvariantTransformer(L.NodeTransformer):
         self.setfrommaps_by_map = sfm_by_map = OrderedDict()
         for sfm in setfrommaps:
             if sfm.map in sfm_by_map:
-                raise L.ProgramError('Multiple SetFromMap expressions on '
+                raise L.ProgramError('Multiple SetFromMap invariants on '
                                      'same map {}'.format(sfm.map))
             sfm_by_map[sfm.map] = sfm
     
