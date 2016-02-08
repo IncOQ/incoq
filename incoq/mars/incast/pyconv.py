@@ -240,6 +240,19 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
             vars = self.match_store_vars(target)
             member = L.VarsMember(vars, value)
         
+        # for x1, ..., xn in SETFROMMAP(M, mask)
+        elif (isinstance(iter, L.GeneralCall) and
+              isinstance(iter.func, L.Name) and
+              iter.func.id == 'SETFROMMAP'):
+            if not (len(iter.args) == 2 and
+                    isinstance(iter.args[0], L.Name) and
+                    isinstance(iter.args[1], L.Str)):
+                raise ASTErr('Invalid SETFROMMAP clause')
+            map = iter.args[0].id
+            mask = L.mask(iter.args[1].s)
+            vars = self.match_store_vars(target)
+            member = L.SetFromMapMember(vars, map, mask)
+        
         # General case.
         else:
             target = self.visit(target)
@@ -771,6 +784,13 @@ class IncLangNodeExporter(NodeMapper):
         return P.comprehension(self.tuple_store_helper(node.vars),
                                P.Call(P.Name('VARS', P.Load()),
                                       [self.visit(node.iter)],
+                                      [], None, None), [])
+    
+    def visit_SetFromMapMember(self, node):
+        return P.comprehension(self.tuple_store_helper(node.vars),
+                               P.Call(P.Name('SETFROMMAP', P.Load()),
+                                      [self.name_helper(node.map),
+                                       P.Str(node.mask.m)],
                                       [], None, None), [])
     
     def visit_Cond(self, node):

@@ -225,6 +225,17 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
             return Top
         return t_seq.elt
     
+    def get_map_keyval(self, node, t_map):
+        """Given a map type, return its key and value type. If the
+        given type cannot safely be converted to a map type, return
+        a pair of Tops instead and mark the node as ill-typed.
+        """
+        t_map = t_map.join(Map(Bottom, Bottom))
+        if not t_map.issmaller(Map(Top, Top)):
+            self.mark_bad(node)
+            return Top, Top
+        return t_map.key, t_map.value
+    
     def get_tuple_elts(self, node, t_tup, arity):
         """Given a tuple type, return the element types. If the given
         type cannot safely be converted to a tuple of the given arity,
@@ -677,6 +688,22 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         t_target = self.get_sequence_elt(node, t_iter, Set)
         t_vars = self.get_tuple_elts(node, t_target, n)
         for v, t in zip(node.vars, t_vars):
+            self.update_store(v, t)
+    
+    @readonly
+    def visit_SetFromMapMember(self, node, *, type=None):
+        # If join(map, Map<Tuple<Bottom, ..., Bottom>, Bottom> ==
+        #    Map<Tuple<T1, ..., Tn-1>, Tn>, n == len(vars):
+        #   vars_i := T_i for each i
+        # Else:
+        #   vars_i := Top for each i
+        #
+        # Check map <= Map<Tuple<Bottom, ..., Bottom>, Bottom>
+        n = len(node.vars)
+        t_map = self.get_store(node.map)
+        t_key, t_value = self.get_map_keyval(node, t_map)
+        t_keyvars = self.get_tuple_elts(node, t_key, n - 1)
+        for v, t in zip(node.vars, list(t_keyvars) + [t_value]):
             self.update_store(v, t)
     
     @readonly

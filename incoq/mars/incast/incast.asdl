@@ -93,6 +93,7 @@ module IncAST
            | SingMember(identifier* vars, expr value)
            | WithoutMember(clause cl, expr value)
            | VarsMember(identifier* vars, expr iter)
+           | SetFromMapMember(identifier* vars, identifier map, mask mask)
            | Cond(expr cond)
     
     mask = (string m)

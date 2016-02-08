@@ -631,6 +631,28 @@ class TypeAnalysisCase(unittest.TestCase):
             {'e': Top,
              'x': Top, 'y': Top},
             True)
+        
+        # SetFromMapMember.
+        self.check('''
+            def main():
+                print({x for (x, y) in SETFROMMAP(M, 'bu')})
+            ''',
+            {'M': Map(Tuple([String]), Number),
+             'x': Bottom, 'y': Bottom},
+            {'M': Map(Tuple([String]), Number),
+             'x': String, 'y': Number},
+            False)
+        
+        # SetFromMapMember, bad map key type.
+        self.check('''
+            def main():
+                print({x for (x, y) in SETFROMMAP(M, 'bu')})
+            ''',
+            {'M': Map(Top, Number),
+             'x': Bottom, 'y': Bottom},
+            {'M': Map(Top, Number),
+             'x': Top, 'y': Number},
+            True)
     
     def test_aggr(self):
         # Count and sum.
