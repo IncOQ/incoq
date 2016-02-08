@@ -282,6 +282,10 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         default=Normal,
         allowed_values=[Normal, Inc])
     
+    uses_demand = SymbolAttribute(
+        doc='Whether or not the query uses demand',
+        default=False)
+    
     demand_set = SymbolAttribute(
         doc='Name of demand set, or None if not used',
         default=None)

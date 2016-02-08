@@ -390,25 +390,27 @@ class DemandParamAnalyzer(CompContextTracker):
             demand_params = determine_comp_demand_params(
                 ct, node.query, query_sym.params,
                 query_sym.demand_params, query_sym.demand_param_strat)
+            uses_demand = len(demand_params) > 0
         
         elif isinstance(node.query, L.Aggr):
-            # If the operand is a comprehension that is demand-driven
-            # for any parameter, or if the aggregate appears in a
-            # transformed comprehension, then the aggregate must be
-            # demand-driven for all parameters.
+            # If the operand is a comprehension that is demand-driven,
+            # or if the aggregate appears in a transformed
+            # comprehension, then the aggregate must be demand-driven
+            # for all parameters.
             operand_uses_demand = False
             aggr_in_comp = self.get_left_clauses() is not None
             
             operand = node.query.value
-            if (isinstance(operand, L.Query) and
-                isinstance(operand.query, L.Comp)):
+            if isinstance(operand, L.Query):
                 oper_sym = symtab.get_queries()[operand.name]
-                if len(oper_sym.demand_params) > 0:
+                if oper_sym.uses_demand:
                     operand_uses_demand = True
             
             if operand_uses_demand or aggr_in_comp:
+                uses_demand = True
                 demand_params = query_sym.params
             else:
+                uses_demand = False
                 demand_params = ()
         
         else:
@@ -416,6 +418,7 @@ class DemandParamAnalyzer(CompContextTracker):
             raise L.ProgramError('No rule for analyzing parameters of '
                                  '{} query'.format(kind))
         
+        query_sym.uses_demand = uses_demand
         query_sym.demand_params = demand_params
         self.processed.add(query_sym.name)
     
@@ -491,9 +494,7 @@ class DemandTransformer(CompContextTracker):
         symtab = self.symtab
         demand_params = query_sym.demand_params
         
-        # If there are no demand parameters or we're not transforming
-        # this query, no rewriting is needed.
-        if len(demand_params) == 0 or query_sym.impl is S.Normal:
+        if not query_sym.uses_demand:
             return node
         
         # Make a demand set or demand query.

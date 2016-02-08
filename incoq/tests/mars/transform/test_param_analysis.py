@@ -250,11 +250,30 @@ class ParamAnalysisCase(unittest.TestCase):
             ''')
         
         DemandParamAnalyzer.run(tree, symtab)
+        self.assertTrue(query_sym1.uses_demand)
+        self.assertTrue(query_sym2.uses_demand)
+        self.assertTrue(query_sym3.uses_demand)
         self.assertEqual(query_sym1.demand_params, ('y',))
         self.assertEqual(query_sym2.demand_params, ('y',))
         self.assertEqual(query_sym3.demand_params, ('y',))
     
-    def test_demand_param_analyzer_aggr(self):
+    def test_demand_param_analyzer_uses_demand(self):
+        # Case where comp does not need demand.
+        comp = L.Parser.pe('''
+            {(x,) for (x,) in REL(S)}
+            ''')
+        symtab = S.SymbolTable()
+        symtab.clausetools = self.ct
+        query_sym = symtab.define_query('Q', node=comp,
+                                         params=('x',), impl=S.Inc)
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', {(x,) for (x,) in REL(S)}))
+            ''')
+        DemandParamAnalyzer.run(tree, symtab)
+        self.assertFalse(query_sym.uses_demand)
+        self.assertEqual(query_sym.demand_params, ())
+        
         # Case where aggregate does not need demand.
         comp = L.Parser.pe('''
             {(x,) for (x,) in REL(S)}
@@ -274,6 +293,8 @@ class ParamAnalysisCase(unittest.TestCase):
                       QUERY('Q1', {(x,) for (x,) in REL(S)}))))
             ''')
         DemandParamAnalyzer.run(tree, symtab)
+        self.assertFalse(query_sym1.uses_demand)
+        self.assertFalse(query_sym2.uses_demand)
         self.assertEqual(query_sym2.demand_params, ())
         
         # Case where it needs it because the operand uses demand.
@@ -295,6 +316,8 @@ class ParamAnalysisCase(unittest.TestCase):
                       QUERY('Q1', {(x,) for (x,) in REL(S) if x > y}))))
             ''')
         DemandParamAnalyzer.run(tree, symtab)
+        self.assertTrue(query_sym1.uses_demand)
+        self.assertTrue(query_sym2.uses_demand)
         self.assertEqual(query_sym2.demand_params, ('x', 'y'))
         
         # Case where it needs it because it appears in a comprehension.
@@ -312,53 +335,43 @@ class ParamAnalysisCase(unittest.TestCase):
                                          params=(), impl=S.Inc)
         tree = L.Parser.p('''
             def main():
-                print(QUERY('Q2', count(
-                      QUERY('Q1', {(x,) for (x,) in REL(S)}))))
+                print(QUERY('Q2', {(x,) for (x,) in REL(S) if x >
+                      QUERY('Q1', count(R))}))
             ''')
         DemandParamAnalyzer.run(tree, symtab)
+        self.assertTrue(query_sym1.uses_demand)
+        self.assertFalse(query_sym2.uses_demand)
         self.assertEqual(query_sym1.demand_params, ())
     
     def test_demand_transformer_basic(self):
-        comp1 = L.Parser.pe('{(x,) for (x,) in REL(R) if x > y}')
-        comp2 = L.Parser.pe('{(x,) for (x,) in REL(S)}')
-        comp2 = L.Parser.pe('{(x,) for (x,) in REL(T) if x > y}')
+        comp = L.Parser.pe('{(x,) for (x,) in REL(R) if x > y}')
         symtab = S.SymbolTable()
         symtab.clausetools = self.ct
-        query_sym1 = symtab.define_query('Q1', node=comp1,
-                                         demand_params=('y',),
-                                         impl=S.Inc)
-        query_sym2 = symtab.define_query('Q2', node=comp1,
-                                         demand_params=(),
-                                         impl=S.Inc)
-        query_sym3 = symtab.define_query('Q3', node=comp1,
-                                         demand_params=('y',),
-                                         impl=S.Normal)
+        query_sym = symtab.define_query(
+            'Q', node=comp, uses_demand=True,
+            demand_params=('y',), impl=S.Inc)
         symtab.define_var('y', type=T.Number)
         tree = L.Parser.p('''
             def main():
-                print(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y}))
-                print(QUERY('Q2', {(x,) for (x,) in REL(S)}))
-                print(QUERY('Q3', {(x,) for (x,) in REL(T) if x > y}))
+                print(QUERY('Q', {(x,) for (x,) in REL(R) if x > y}))
             ''')
         tree = DemandTransformer.run(tree, symtab)
         exp_tree = L.Parser.p('''
-            def _demand_Q1(_elem):
-                if (_elem not in _U_Q1):
-                    _U_Q1.reladd(_elem)
+            def _demand_Q(_elem):
+                if (_elem not in _U_Q):
+                    _U_Q.reladd(_elem)
             
             def main():
-                print(FIRSTTHEN(_demand_Q1((y,)),
-                      QUERY('Q1', {(x,) for (y,) in REL(_U_Q1)
-                                        for (x,) in REL(R) if (x > y)})))
-                print(QUERY('Q2', {(x,) for (x,) in REL(R) if (x > y)}))
-                print(QUERY('Q3', {(x,) for (x,) in REL(R) if (x > y)}))
+                print(FIRSTTHEN(_demand_Q((y,)),
+                      QUERY('Q', {(x,) for (y,) in REL(_U_Q)
+                                       for (x,) in REL(R) if (x > y)})))
             ''')
         self.assertEqual(tree, exp_tree)
-        self.assertEqual(query_sym1.node, L.Parser.pe('''
-            {(x,) for (y,) in REL(_U_Q1) for (x,) in REL(R) if (x > y)}
+        self.assertEqual(query_sym.node, L.Parser.pe('''
+            {(x,) for (y,) in REL(_U_Q) for (x,) in REL(R) if (x > y)}
             '''))
-        self.assertEqual(query_sym1.demand_set, '_U_Q1')
-        uset_sym = symtab.get_relations()['_U_Q1']
+        self.assertEqual(query_sym.demand_set, '_U_Q')
+        uset_sym = symtab.get_relations()['_U_Q']
         self.assertEqual(uset_sym.type, T.Set(T.Tuple([T.Number])))
     
     def test_demand_transformer_nested(self):
@@ -372,15 +385,15 @@ class ParamAnalysisCase(unittest.TestCase):
             ''')
         symtab = S.SymbolTable()
         symtab.clausetools = self.ct
-        query_sym1 = symtab.define_query('Q1', node=inner_comp,
-                                         demand_params=('y',),
-                                         impl=S.Inc)
-        query_sym2 = symtab.define_query('Q2', node=aggr,
-                                         demand_params=('y',),
-                                         impl=S.Inc)
-        query_sym3 = symtab.define_query('Q3', node=outer_comp,
-                                         demand_params=('y',),
-                                         impl=S.Inc)
+        query_sym1 = symtab.define_query(
+            'Q1', node=inner_comp, uses_demand=True,
+            demand_params=('y',), impl=S.Inc)
+        query_sym2 = symtab.define_query(
+            'Q2', node=aggr, uses_demand=True,
+            demand_params=('y',), impl=S.Inc)
+        query_sym3 = symtab.define_query(
+            'Q3', node=outer_comp, uses_demand=True,
+            demand_params=('y',), impl=S.Inc)
         symtab.define_var('x', type=T.Number)
         symtab.define_var('y', type=T.Number)
         symtab.define_var('z', type=T.Number)
