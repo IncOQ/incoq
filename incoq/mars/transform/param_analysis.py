@@ -11,6 +11,7 @@ __all__ = [
     'CompContextTracker',
     
     'ParamAnalyzer',
+    'DemandParamAnalyzer',
     'DemandTransformer',
     
     'analyze_params',
@@ -359,6 +360,73 @@ class ParamAnalyzer(L.NodeVisitor):
         self.generic_visit(node)
 
 
+class DemandParamAnalyzer(CompContextTracker):
+    
+    """Annotate all query symbols with demand_params attribute info."""
+    
+    # This is written as a NodeTransformer so that we can use
+    # CompContextTracker without having to make a NodeVisitor version
+    # of it, but we don't actually modify the tree at all.
+    
+    # We work on queries innermost-first so that at the time we process
+    # an aggregate of a comprehension, we know the demand_params of the
+    # comprehension. We make sure to only process each query once.
+    
+    def process(self, tree):
+        self.processed = set()
+        """Names of queries already handled."""
+        super().process(tree)
+    
+    def determine_demand_params(self, node):
+        # Skip if already processed.
+        if node.name in self.processed:
+            return
+        
+        symtab = self.symtab
+        ct = symtab.clausetools
+        query_sym = symtab.get_queries()[node.name]
+        
+        if isinstance(node.query, L.Comp):
+            demand_params = determine_comp_demand_params(
+                ct, node.query, query_sym.params,
+                query_sym.demand_params, query_sym.demand_param_strat)
+        
+        elif isinstance(node.query, L.Aggr):
+            # If the operand is a comprehension that is demand-driven
+            # for any parameter, or if the aggregate appears in a
+            # transformed comprehension, then the aggregate must be
+            # demand-driven for all parameters.
+            operand_uses_demand = False
+            aggr_in_comp = self.get_left_clauses() is not None
+            
+            operand = node.query.value
+            if (isinstance(operand, L.Query) and
+                isinstance(operand.query, L.Comp)):
+                oper_sym = symtab.get_queries()[operand.name]
+                if len(oper_sym.demand_params) > 0:
+                    operand_uses_demand = True
+            
+            if operand_uses_demand or aggr_in_comp:
+                demand_params = query_sym.params
+            else:
+                demand_params = ()
+        
+        else:
+            kind = query_sym.node.__class__.__name__
+            raise L.ProgramError('No rule for analyzing parameters of '
+                                 '{} query'.format(kind))
+        
+        query_sym.demand_params = demand_params
+        self.processed.add(query_sym.name)
+    
+    def visit_Query(self, node):
+        super().visit_Query(node)
+        
+        query_sym = self.symtab.get_queries()[node.name]
+        if query_sym.impl is not S.Normal:
+            self.determine_demand_params(node)
+
+
 class DemandTransformer(CompContextTracker):
     
     """Modify each query appearing in the tree to add demand. For
@@ -491,18 +559,7 @@ def analyze_params(tree, symtab):
 
 def analyze_demand_params(tree, symtab):
     """Determine demand_params symbol attributes for all queries."""
-    for query_sym in symtab.get_queries().values():
-        if isinstance(query_sym.node, L.Comp):
-            demand_params = determine_comp_demand_params(
-                symtab.clausetools, query_sym.node, query_sym.params,
-                query_sym.demand_params, query_sym.demand_param_strat)
-        elif isinstance(query_sym.node, L.Aggr):
-            demand_params = query_sym.params
-        else:
-            kind = query_sym.node.__class__.__name__
-            raise L.ProgramError('No rule for analyzing parameters of '
-                                 '{} query'.format(kind))
-        query_sym.demand_params = demand_params
+    DemandParamAnalyzer.run(tree, symtab)
 
 
 def transform_demand(tree, symtab):

@@ -224,6 +224,100 @@ class ParamAnalysisCase(unittest.TestCase):
         self.assertEqual(query_sym2.params, ('y',))
         self.assertEqual(query_sym3.params, ('z', 'y'))
     
+    def test_demand_param_analyzer(self):
+        inner_comp = L.Parser.pe('{(x,) for (x,) in REL(R) if x > y}')
+        aggr = L.Parser.pe('''
+            count(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y}))
+            ''')
+        outer_comp = L.Parser.pe('''
+            {z for (z,) in REL(S) if z > QUERY('Q2',
+            count(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y})))}
+            ''')
+        symtab = S.SymbolTable()
+        symtab.clausetools = self.ct
+        query_sym1 = symtab.define_query('Q1', node=inner_comp,
+                                         params=('y',), impl=S.Inc)
+        query_sym2 = symtab.define_query('Q2', node=aggr,
+                                         params=('y',), impl=S.Inc)
+        query_sym3 = symtab.define_query('Q3', node=outer_comp,
+                                         params=('z', 'y'), impl=S.Inc)
+        tree = L.Parser.p('''
+            def main():
+                y = 1
+                z = 2
+                print(QUERY('Q3', {z for (z,) in REL(S) if z > QUERY('Q2',
+                    count(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y})))}))
+            ''')
+        
+        DemandParamAnalyzer.run(tree, symtab)
+        self.assertEqual(query_sym1.demand_params, ('y',))
+        self.assertEqual(query_sym2.demand_params, ('y',))
+        self.assertEqual(query_sym3.demand_params, ('y',))
+    
+    def test_demand_param_analyzer_aggr(self):
+        # Case where aggregate does not need demand.
+        comp = L.Parser.pe('''
+            {(x,) for (x,) in REL(S)}
+            ''')
+        aggr = L.Parser.pe('''
+            count(QUERY('Q1', {(x,) for (x,) in REL(S)}))
+            ''')
+        symtab = S.SymbolTable()
+        symtab.clausetools = self.ct
+        query_sym1 = symtab.define_query('Q1', node=comp,
+                                         params=('x',), impl=S.Inc)
+        query_sym2 = symtab.define_query('Q2', node=aggr,
+                                         params=('x',), impl=S.Inc)
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q2', count(
+                      QUERY('Q1', {(x,) for (x,) in REL(S)}))))
+            ''')
+        DemandParamAnalyzer.run(tree, symtab)
+        self.assertEqual(query_sym2.demand_params, ())
+        
+        # Case where it needs it because the operand uses demand.
+        comp = L.Parser.pe('''
+            {(x,) for (x,) in REL(S) if x > y}
+            ''')
+        aggr = L.Parser.pe('''
+            count(QUERY('Q1', {(x,) for (x,) in REL(S) if x > y}))
+            ''')
+        symtab = S.SymbolTable()
+        symtab.clausetools = self.ct
+        query_sym1 = symtab.define_query('Q1', node=comp,
+                                         params=('x', 'y'), impl=S.Inc)
+        query_sym2 = symtab.define_query('Q2', node=aggr,
+                                         params=('x', 'y'), impl=S.Inc)
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q2', count(
+                      QUERY('Q1', {(x,) for (x,) in REL(S) if x > y}))))
+            ''')
+        DemandParamAnalyzer.run(tree, symtab)
+        self.assertEqual(query_sym2.demand_params, ('x', 'y'))
+        
+        # Case where it needs it because it appears in a comprehension.
+        aggr = L.Parser.pe('''
+            count(R)
+            ''')
+        comp = L.Parser.pe('''
+            {(x,) for (x,) in REL(S) if x > QUERY('Q1', count(R))}
+            ''')
+        symtab = S.SymbolTable()
+        symtab.clausetools = self.ct
+        query_sym1 = symtab.define_query('Q1', node=aggr,
+                                         params=(), impl=S.Inc)
+        query_sym2 = symtab.define_query('Q2', node=comp,
+                                         params=(), impl=S.Inc)
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q2', count(
+                      QUERY('Q1', {(x,) for (x,) in REL(S)}))))
+            ''')
+        DemandParamAnalyzer.run(tree, symtab)
+        self.assertEqual(query_sym1.demand_params, ())
+    
     def test_demand_transformer_basic(self):
         comp1 = L.Parser.pe('{(x,) for (x,) in REL(R) if x > y}')
         comp2 = L.Parser.pe('{(x,) for (x,) in REL(S)}')
@@ -266,7 +360,6 @@ class ParamAnalysisCase(unittest.TestCase):
         self.assertEqual(query_sym1.demand_set, '_U_Q1')
         uset_sym = symtab.get_relations()['_U_Q1']
         self.assertEqual(uset_sym.type, T.Set(T.Tuple([T.Number])))
-        
     
     def test_demand_transformer_nested(self):
         inner_comp = L.Parser.pe('{(x,) for (x,) in REL(R) if x > y}')
@@ -328,36 +421,6 @@ class ParamAnalysisCase(unittest.TestCase):
                          T.Set(T.Tuple([T.Number])))
         self.assertEqual(symtab.get_relations()['_U_Q3'].type,
                          T.Set(T.Tuple([T.Number])))
-    
-    def test_analyze_demand_params(self):
-        inner_comp = L.Parser.pe('{(x,) for (x,) in REL(R) if x > y}')
-        aggr = L.Parser.pe('''
-            count(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y}))
-            ''')
-        outer_comp = L.Parser.pe('''
-            {z for (z,) in REL(S) if z > QUERY('Q2',
-            count(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y})))}
-            ''')
-        symtab = S.SymbolTable()
-        symtab.clausetools = self.ct
-        query_sym1 = symtab.define_query('Q1', node=inner_comp,
-                                         params=('y',))
-        query_sym2 = symtab.define_query('Q2', node=aggr,
-                                         params=('y',))
-        query_sym3 = symtab.define_query('Q3', node=outer_comp,
-                                         params=('z', 'y'))
-        tree = L.Parser.p('''
-            def main():
-                y = 1
-                z = 2
-                print(QUERY('Q3', {z for (z,) in REL(S) if z > QUERY('Q2',
-                    count(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y})))}))
-            ''')
-        
-        analyze_demand_params(tree, symtab)
-        self.assertEqual(query_sym1.demand_params, ('y',))
-        self.assertEqual(query_sym2.demand_params, ('y',))
-        self.assertEqual(query_sym3.demand_params, ('y',))
 
 
 if __name__ == '__main__':
