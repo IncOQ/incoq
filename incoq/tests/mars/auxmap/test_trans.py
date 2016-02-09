@@ -1,4 +1,4 @@
-"""Unit tests for auxmap.py."""
+"""Unit tests for trans.py."""
 
 
 import unittest
@@ -6,10 +6,10 @@ import unittest
 from incoq.mars.incast import L
 from incoq.mars.type import T
 from incoq.mars.symbol import S, N
-from incoq.mars.transform.auxmap import *
-from incoq.mars.transform.auxmap import (make_imgadd, make_imgremove,
-                                         make_auxmap_maint_func,
-                                         make_setfrommap_maint_func)
+from incoq.mars.auxmap.trans import *
+from incoq.mars.auxmap.trans import (make_imgadd, make_imgremove,
+                                     make_auxmap_maint_func,
+                                     make_setfrommap_maint_func)
 
 
 class AuxmapCase(unittest.TestCase):
