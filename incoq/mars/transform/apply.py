@@ -183,7 +183,7 @@ def transform_query(tree, symtab, query):
             
             success = True
     
-    elif isinstance(query.node, L.Aggr):
+    elif isinstance(query.node, (L.Aggr, L.AggrRestr)):
         
         if query.impl == S.Normal:
             success = False
@@ -194,7 +194,8 @@ def transform_query(tree, symtab, query):
             success = True
     
     else:
-        success = False
+        raise L.ProgramError('Unknown query kind: {}'.format(
+                             query.node.__class__.__name__))
     return tree, success
 
 
