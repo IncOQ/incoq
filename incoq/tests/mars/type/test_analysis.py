@@ -635,22 +635,26 @@ class TypeAnalysisCase(unittest.TestCase):
         # SetFromMapMember.
         self.check('''
             def main():
-                print({x for (x, y) in SETFROMMAP(M, 'bu')})
+                print({x for (x, y) in SETFROMMAP(R, M, 'bu')})
             ''',
-            {'M': Map(Tuple([String]), Number),
+            {'R': Set(Tuple([Number, Number])),
+             'M': Map(Tuple([String]), Number),
              'x': Bottom, 'y': Bottom},
-            {'M': Map(Tuple([String]), Number),
-             'x': String, 'y': Number},
+            {'R': Set(Tuple([Number, Number])),
+             'M': Map(Tuple([String]), Number),
+             'x': Top, 'y': Number},
             False)
         
         # SetFromMapMember, bad map key type.
         self.check('''
             def main():
-                print({x for (x, y) in SETFROMMAP(M, 'bu')})
+                print({x for (x, y) in SETFROMMAP(R, M, 'bu')})
             ''',
-            {'M': Map(Top, Number),
+            {'R': Set(Tuple([Bottom, Bottom])),
+             'M': Map(Top, Number),
              'x': Bottom, 'y': Bottom},
-            {'M': Map(Top, Number),
+            {'R': Set(Tuple([Bottom, Bottom])),
+             'M': Map(Top, Number),
              'x': Top, 'y': Number},
             True)
     

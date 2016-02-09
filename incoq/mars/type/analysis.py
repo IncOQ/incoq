@@ -692,19 +692,26 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     @readonly
     def visit_SetFromMapMember(self, node, *, type=None):
-        # If join(map, Map<Tuple<Bottom, ..., Bottom>, Bottom> ==
-        #    Map<Tuple<T1, ..., Tn-1>, Tn>, n == len(vars):
-        #   vars_i := T_i for each i
+        # If join(rel, Set<Tuple<Bottom, ..., Bottom> ==
+        #      Set<Tuple<T1, ..., Tn>> and
+        #    join(map, Map<Tuple<Bottom, ..., Bottom>, Bottom> ==
+        #      Map<Tuple<U1, ..., Un-1>, Un>, n == len(vars):
+        #   vars_i := join(T_i, U_i) for each i
         # Else:
         #   vars_i := Top for each i
         #
         # Check map <= Map<Tuple<Bottom, ..., Bottom>, Bottom>
+        # Check rel <= Set<Bottom, ..., Bottom>
         n = len(node.vars)
+        t_rel = self.get_store(node.rel)
+        t_relelt = self.get_sequence_elt(node, t_rel, Set)
+        t_relvars = self.get_tuple_elts(node, t_relelt, n)
         t_map = self.get_store(node.map)
         t_key, t_value = self.get_map_keyval(node, t_map)
         t_keyvars = self.get_tuple_elts(node, t_key, n - 1)
-        for v, t in zip(node.vars, list(t_keyvars) + [t_value]):
-            self.update_store(v, t)
+        t_mapvars = list(t_keyvars) + [t_value]
+        for v, t, u in zip(node.vars, t_relvars, t_mapvars):
+            self.update_store(v, t.join(u))
     
     @readonly
     def visit_Cond(self, node, *, type=None):

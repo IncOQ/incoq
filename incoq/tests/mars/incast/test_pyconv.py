@@ -319,8 +319,8 @@ class ParseImportCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         
         # SetFromMap.
-        tree = Parser.pe("{x for (x, y) in SETFROMMAP(M, 'bu')}")
-        exp_tree = L.Comp(N('x'), [L.SetFromMapMember(['x', 'y'], 'M',
+        tree = Parser.pe("{x for (x, y) in SETFROMMAP(R, M, 'bu')}")
+        exp_tree = L.Comp(N('x'), [L.SetFromMapMember(['x', 'y'], 'R', 'M',
                                                       L.mask('bu'))])
         self.assertEqual(tree, exp_tree)
     
@@ -448,7 +448,7 @@ class RoundTripCase(unittest.TestCase):
         self.trip.pe('{x for (x, y) in SING(E)}')
         self.trip.pe('{x for (x, y) in WITHOUT(REL(R), e)}')
         self.trip.pe('{x for (x, y) in VARS(1 + 1)}')
-        self.trip.pe("{x for (x, y) in SETFROMMAP(M, 'bu')}")
+        self.trip.pe("{x for (x, y) in SETFROMMAP(R, M, 'bu')}")
     
     def test_aggr(self):
         self.trip.pc('''

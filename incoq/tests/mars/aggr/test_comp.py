@@ -17,15 +17,15 @@ class CompCase(unittest.TestCase):
         result = replacer.process(L.Parser.pe('M[(i,)] + N[(j, k)]'))
         exp_result = (
             L.Parser.pe('_v1 + _v2'),
-            [L.SetFromMapMember(['i', '_v1'], 'M', L.mask('bu')),
-             L.SetFromMapMember(['j', 'k', '_v2'], 'N', L.mask('bbu'))],
+            [L.SetFromMapMember(['i', '_v1'], 'SM', 'M', L.mask('bu')),
+             L.SetFromMapMember(['j', 'k', '_v2'], 'SN', 'N', L.mask('bbu'))],
         )
         self.assertEqual(result, exp_result)
         
         result = replacer.process(L.Parser.pe('M[(i,)] + O[(k,)]'))
         exp_result = (
             L.Parser.pe('_v1 + _v3'),
-            [L.SetFromMapMember(['k', '_v3'], 'O', L.mask('bu'))],
+            [L.SetFromMapMember(['k', '_v3'], 'SO', 'O', L.mask('bu'))],
         )
         self.assertEqual(result, exp_result)
         
@@ -48,7 +48,7 @@ class CompCase(unittest.TestCase):
         exp_tree = L.Parser.p('''
             def main():
                 print(QUERY('Q', {x for (x,) in REL(R)
-                                    for (x, _v1) in SETFROMMAP(M, 'bu')
+                                    for (x, _v1) in SETFROMMAP(SM, M, 'bu')
                                     if (_v1 > 5)}))
             ''')
         exp_sfm_invs = [
@@ -84,7 +84,7 @@ class CompCase(unittest.TestCase):
                 M.mapassign(k, v)
                 _maint_SM_for_M_assign(k, v)
                 print(QUERY('Q', {x for (x,) in REL(R)
-                    for (x, _v1) in SETFROMMAP(M, 'bu') if (_v1 > 5)}))
+                    for (x, _v1) in SETFROMMAP(SM, M, 'bu') if (_v1 > 5)}))
             ''')
         self.assertEqual(tree, exp_tree)
 
