@@ -94,9 +94,10 @@ class TransCase(unittest.TestCase):
         exp_func = L.Parser.ps('''
             def _maint_A_for_U_add(_key):
                 _v1_state = 0
-                for _v1_value in R.imglookup('bu', (x,)):
+                (_key_v1,) = _key
+                for _v1_value in R.imglookup('bu', (_key_v1,)):
                     _v1_state = (_v1_state + 1)
-                A[_key] = _v1_state
+                A.mapassign(_key, _v1_state)
             ''')
         self.assertEqual(func, exp_func)
     
@@ -107,7 +108,7 @@ class TransCase(unittest.TestCase):
                                           aggrinv, L.SetRemove())
         exp_func = L.Parser.ps('''
             def _maint_A_for_U_remove(_key):
-                del A[_key]
+                A.mapdelete(_key)
             ''')
         self.assertEqual(func, exp_func)
     

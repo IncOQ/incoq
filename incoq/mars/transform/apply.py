@@ -20,7 +20,7 @@ from incoq.mars.auxmap import transform_auxmaps
 from incoq.mars.comp import (
     CoreClauseTools, incrementalize_comp, expand_maintjoins,
     rewrite_all_comps_with_patterns)
-from incoq.mars.aggr import incrementalize_aggr
+from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
@@ -191,6 +191,10 @@ def transform_query(tree, symtab, query):
         elif query.impl == S.Inc:
             result_var = 'A_' + query.name
             tree = incrementalize_aggr(tree, symtab, query, result_var)
+            # Transform any aggregate map lookups inside comprehensions,
+            # including incrementalizing the SetFromMaps used in the
+            # additional comp clauses.
+            tree = transform_comps_with_maps(tree, symtab)
             success = True
     
     else:

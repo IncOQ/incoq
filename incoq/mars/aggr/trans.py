@@ -173,9 +173,11 @@ def make_aggr_restr_maint_func(fresh_vars, aggrinv, op):
         fresh_var_prefix = next(fresh_vars)
         value = fresh_var_prefix + '_value'
         state = fresh_var_prefix + '_state'
+        keyvars = N.get_subnames('_key', len(aggrinv.params))
         
+        decomp_key_code = (L.DecompAssign(keyvars, L.Name('_key')),)
         rellookup = L.ImgLookup(L.Name(aggrinv.rel),
-                                aggrinv.mask, aggrinv.params)
+                                aggrinv.mask, keyvars)
         
         handler = aggrinv.get_handler()
         zero = handler.make_zero_expr()
@@ -184,17 +186,19 @@ def make_aggr_restr_maint_func(fresh_vars, aggrinv, op):
         
         maint_code = L.Parser.pc('''
             _STATE = _ZERO
+            _DECOMP_KEY
             for _VALUE in _RELLOOKUP:
                 _UPDATESTATE
-            _MAP[_KEY] = _STATE
+            _MAP.mapassign(_KEY, _STATE)
             ''', subst={'_MAP': aggrinv.map, '_KEY': '_key',
                         '_STATE': state, '_ZERO': zero,
+                        '<c>_DECOMP_KEY': decomp_key_code,
                         '_VALUE': value, '_RELLOOKUP': rellookup,
                         '<c>_UPDATESTATE': updatestate_code})
     
     else:
         maint_code = L.Parser.pc('''
-            del _MAP[_KEY]
+            _MAP.mapdelete(_KEY)
             ''', subst={'_MAP': aggrinv.map, '_KEY': '_key'})
     
     func_name = aggrinv.get_restr_maint_func_name(op)
