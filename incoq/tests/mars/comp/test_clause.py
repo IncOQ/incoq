@@ -195,6 +195,41 @@ class ClauseCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             v.singletonize(cl, L.Name('f'))
     
+    def test_setfrommapmember(self):
+        v = self.visitor
+        
+        cl = L.SetFromMapMember(['x', 'y', 'z'], 'R', 'M', L.mask('bbu'))
+        
+        pri = v.get_priority(cl, ['a', 'x', 'y'])
+        self.assertEqual(pri, Priority.Constant)
+        pri = v.get_priority(cl, ['a', 'x'])
+        self.assertEqual(pri, Priority.Normal)
+        
+        # All bound.
+        code = v.get_code(cl, ['a', 'x', 'y', 'z'], (L.Pass(),))
+        exp_code = L.Parser.pc('''
+            if (x, y) in M and M[(x, y)] == z:
+                pass
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        # Map lookup.
+        code = v.get_code(cl, ['a', 'x', 'y'], (L.Pass(),))
+        exp_code = L.Parser.pc('''
+            if (x, y) in M:
+                z = M[(x, y)]
+                pass
+            ''')
+        self.assertEqual(code, exp_code)
+        
+        # Mixed.
+        code = v.get_code(cl, ['a', 'x'], (L.Pass(),))
+        exp_code = L.Parser.pc('''
+            for (y, z) in R.imglookup('buu', (x,)):
+                pass
+            ''')
+        self.assertEqual(code, exp_code)
+    
     def test_cond(self):
         v = self.visitor
         

@@ -16,6 +16,7 @@ __all__ = [
     'SingMemberHandler',
     'WithoutMemberHandler',
     'VarsMemberHandler',
+    'SetFromMapMemberHandler',
     'CondHandler',
     
     'CoreClauseVisitor',
@@ -181,6 +182,7 @@ class ClauseVisitor(BaseClauseVisitor):
     handlercls_SingMember = ClauseHandler
     handlercls_WithoutMember = ClauseHandler
     handlercls_VarsMember = ClauseHandler
+    handlercls_SetFromMapMember = ClauseHandler
     handlercls_Cond = ClauseHandler
     
     def __init__(self):
@@ -190,6 +192,7 @@ class ClauseVisitor(BaseClauseVisitor):
         self.handle_SingMember = self.handlercls_SingMember(self)
         self.handle_WithoutMember = self.handlercls_WithoutMember(self)
         self.handle_VarsMember = self.handlercls_VarsMember(self)
+        self.handle_SetFromMapMember = self.handlercls_SetFromMapMember(self)
         self.handle_Cond = self.handlercls_Cond(self)
     
     # Visit operations added programmatically.
@@ -369,6 +372,47 @@ class VarsMemberHandler(ClauseHandler):
         return cl._replace(vars=new_vars)
 
 
+class SetFromMapMemberHandler(RelMemberHandler):
+    
+    def get_priority(self, cl, bindenv):
+        mask = L.mask_from_bounds(cl.vars, bindenv)
+        if mask == cl.mask:
+            return Priority.Constant
+        
+        return super().get_priority(cl, bindenv)
+    
+    def get_code(self, cl, bindenv, body):
+        assert_unique(cl.vars)
+        mask = L.mask_from_bounds(cl.vars, bindenv)
+        keyvars, valvar = L.split_by_mask(cl.mask, cl.vars)
+        valvar = valvar[0]
+        
+        # Can also handle all-unbound case by iterating over dict.items(),
+        # but requires fresh var for decomposing key tuple.
+        
+        if L.mask_is_allbound(mask):
+            comparison = L.Parser.pe('_KEY in _MAP and _MAP[_KEY] == _VALUE',
+                                     subst={'_MAP': cl.map,
+                                            '_KEY': L.tuplify(keyvars),
+                                            '_VALUE': valvar})
+            code = (L.If(comparison, body, ()),)
+        
+        elif mask == cl.mask:
+            code = L.Parser.pc('''
+                if _KEY in _MAP:
+                    _VALUE = _MAP[_KEY]
+                    _BODY
+                ''', subst={'_MAP': cl.map,
+                            '_KEY': L.tuplify(keyvars),
+                            '_VALUE': valvar,
+                            '<c>_BODY': body})
+        
+        else:
+            code = super().get_code(cl, bindenv, body)
+        
+        return code
+
+
 class CondHandler(ClauseHandler):
     
     def kind(self, cl):
@@ -404,4 +448,5 @@ class CoreClauseVisitor(ClauseVisitor):
     handlercls_SingMember = SingMemberHandler
     handlercls_WithoutMember = WithoutMemberHandler
     handlercls_VarsMember = VarsMemberHandler
+    handlercls_SetFromMapMember = SetFromMapMemberHandler
     handlercls_Cond = CondHandler
