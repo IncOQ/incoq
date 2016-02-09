@@ -13,6 +13,7 @@ __all__ = [
     
     'define_map',
     'define_set',
+    'transform_setfrommap',
     'transform_auxmaps',
 ]
 
@@ -437,6 +438,14 @@ def define_set(setfrommap, symtab):
                                     .format(setfrommap.map, setfrommap.rel))
     rel_type = make_setfrommap_type(setfrommap.mask, mapsym.type)
     symtab.define_relation(setfrommap.rel, type=rel_type)
+
+
+def transform_setfrommap(tree, symtab, setfrommap):
+    """Transform a single SetFromMapInvariant."""
+    define_set(setfrommap, symtab)
+    tree = InvariantTransformer.run(tree, symtab.fresh_names.vars,
+                                    [], [setfrommap])
+    return tree
 
 
 def transform_auxmaps_stepper(tree, symtab):
