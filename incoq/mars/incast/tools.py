@@ -6,6 +6,7 @@ __all__ = [
     'Templater',
     'MacroExpander',
     'tree_size',
+    'rewrite_comp',
 ]
 
 
@@ -251,3 +252,73 @@ class Counter(L.NodeVisitor):
 def tree_size(tree):
     """Return the number of nodes in an AST."""
     return Counter.run(tree)
+
+
+def rewrite_comp(comp, rewriter, *,
+                 after=False, member_only=False, recursive=False,
+                 resexp=True):
+    """Helper for rewriting a Comp node. Rewriter is applied to each
+    clause in turn and then to the result expression. Each time it
+    returns a pair of a replacement AST (a clause, or for the result
+    expression, an expression) and a list of new clauses to be inserted
+    in the comprehension. The new Comp node is returned.
+    
+    If after is True, the new clauses are inserted after the clause
+    being processed, otherwise they are inserted before. Clauses
+    inserted for the result expression are always appended to the end of
+    the clause list.
+    
+    If member_only is True, only membership clauses will be processed,
+    not condition clauses or the result expression. Separately, if
+    resexp is False, the result expression will not be processed.
+    
+    If recursive is True, the rewriter will also be called on the newly
+    inserted clauses as well.
+    
+    The rewriter may return None to indicate no change.
+    """
+    assert isinstance(comp, L.Comp)
+    
+    # Wrap rewriter to handle None case.
+    orig_rewriter = rewriter
+    def rewriter(clause):
+        result = orig_rewriter(clause)
+        if result is None:
+            return clause, []
+        else:
+            return result
+    
+    # Use a recursive function to easily handle recursive=True case.
+    def process(clauses):
+        result = []
+        
+        for cl in clauses:
+            if member_only and isinstance(cl, L.Cond):
+                result.append(cl)
+                continue
+            
+            clause, inserted_clauses = rewriter(cl)
+            
+            if recursive:
+                inserted_clauses = process(inserted_clauses)
+            
+            if after:
+                clauses = [clause] + inserted_clauses
+            else:
+                clauses = inserted_clauses + [clause]
+            result.extend(clauses)
+        
+        return result
+    
+    new_clauses = process(comp.clauses)
+    
+    # Handle result expression.
+    if member_only or not resexp:
+        new_resexp = comp.resexp
+    else:
+        new_resexp, extra_clauses = rewriter(comp.resexp)
+        if recursive:
+            extra_clauses = process(extra_clauses)
+        new_clauses.extend(extra_clauses)
+    
+    return comp._replace(resexp=new_resexp, clauses=new_clauses)

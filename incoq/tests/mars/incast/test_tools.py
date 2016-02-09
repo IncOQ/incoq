@@ -154,5 +154,89 @@ class TreeCase(unittest.TestCase):
                 self.assertTrue(result.index(tleft) < result.index(tright))
 
 
+class RewriteCompCase(unittest.TestCase):
+    
+    def test_basic(self):
+        class Rewriter(L.NodeTransformer):
+            def process(self, tree):
+                self.new_clauses = []
+                tree = super().process(tree)
+                return tree, self.new_clauses
+            def visit_Name(self, node):
+                if node.id.islower():
+                    new_id = '_' + node.id
+                    new_clause = L.RelMember([new_id], 'R')
+                    self.new_clauses.append(new_clause)
+                    return node._replace(id=new_id)
+        
+        # Normal.
+        comp = Parser.pe('{(x, z) for (x,) in S if y > 1}')
+        comp = rewrite_comp(comp, Rewriter.run)
+        exp_comp = Parser.pe('''
+            {(_x, _z) for (_x,) in REL(R) for (_x,) in S
+                      for (_y,) in REL(R) if _y > 1
+                      for (_x,) in REL(R) for (_z,) in REL(R)}
+            ''')
+        self.assertEqual(comp, exp_comp)
+        
+        # After.
+        comp = Parser.pe('{(x, z) for (x,) in S if y > 1}')
+        comp = rewrite_comp(comp, Rewriter.run, after=True)
+        exp_comp = Parser.pe('''
+            {(_x, _z) for (_x,) in S for (_x,) in REL(R)
+                      if _y > 1 for (_y,) in REL(R)
+                      for (_x,) in REL(R) for (_z,) in REL(R)}
+            ''')
+        self.assertEqual(comp, exp_comp)
+        
+        # Member only.
+        comp = Parser.pe('{(x, z) for (x,) in S if y > 1}')
+        comp = rewrite_comp(comp, Rewriter.run, member_only=True)
+        exp_comp = Parser.pe('''
+            {(x, z) for (_x,) in REL(R) for (_x,) in S
+                    if y > 1}
+            ''')
+        self.assertEqual(comp, exp_comp)
+        
+        # No result expression.
+        comp = Parser.pe('{(x, z) for (x,) in S if y > 1}')
+        comp = rewrite_comp(comp, Rewriter.run, resexp=False)
+        exp_comp = Parser.pe('''
+            {(x, z) for (_x,) in REL(R) for (_x,) in S
+                    for (_y,) in REL(R) if _y > 1}
+            ''')
+        self.assertEqual(comp, exp_comp)
+        
+        # None return.
+        comp = Parser.pe('{(x, z) for (x,) in S if y > 1}')
+        comp = rewrite_comp(comp, lambda x: None)
+        exp_comp = Parser.pe('''
+            {(x, z) for (x,) in S if y > 1}
+            ''')
+        self.assertEqual(comp, exp_comp)
+    
+    def test_recursive(self):
+        class Rewriter(L.NodeTransformer):
+            def process(self, tree):
+                self.new_clauses = []
+                tree = super().process(tree)
+                return tree, self.new_clauses
+            def visit_Name(self, node):
+                if node.id not in ['x', 'y']:
+                    return node
+                new_id = {'x': 'y', 'y': 'z'}[node.id]
+                new_clause = L.Member(L.Name(new_id), L.Name('R'))
+                self.new_clauses.append(new_clause)
+                return node._replace(id=node.id * 2)
+        
+        comp = Parser.pe('{x for x in S}')
+        comp = rewrite_comp(comp, Rewriter.run,
+                            member_only=True, recursive=True)
+        exp_comp = Parser.pe('''
+            {x for z in R for yy in R for xx in S}
+            ''')
+        self.assertEqual(comp, exp_comp)
+
+
 if __name__ == '__main__':
     unittest.main()
