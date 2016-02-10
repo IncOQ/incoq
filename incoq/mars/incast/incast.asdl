@@ -95,6 +95,12 @@ module IncAST
            | VarsMember(identifier* vars, expr iter)
            | SetFromMapMember(identifier* vars, identifier rel,
                               identifier map, mask mask)
+           
+           | MMember(identifier set, identifier elem)
+           | FMember(identifier obj, identifier value, identifier attr)
+           | MAPMember(identifier map, identifier key, identifier value)
+           | TUPMember(identifier tup, identifier* elts)
+           
            | Cond(expr cond)
     
     mask = (string m)

@@ -323,6 +323,19 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.Comp(N('x'), [L.SetFromMapMember(['x', 'y'], 'R', 'M',
                                                       L.mask('bu'))])
         self.assertEqual(tree, exp_tree)
+        
+        # Object domain clauses.
+        tree = Parser.pe('''
+            {x for (x, y) in M() for (x, y) in F(f)
+               for (x, y, z) in MAP() for (x, y, z) in TUP()}
+            ''')
+        exp_tree = L.Comp(N('x'), [
+            L.MMember('x', 'y'),
+            L.FMember('x', 'y', 'f'),
+            L.MAPMember('x', 'y', 'z'),
+            L.TUPMember('x', ['y', 'z']),
+        ])
+        self.assertEqual(tree, exp_tree)
     
     def test_aggr(self):
         trees = [
@@ -449,6 +462,10 @@ class RoundTripCase(unittest.TestCase):
         self.trip.pe('{x for (x, y) in WITHOUT(REL(R), e)}')
         self.trip.pe('{x for (x, y) in VARS(1 + 1)}')
         self.trip.pe("{x for (x, y) in SETFROMMAP(R, M, 'bu')}")
+        self.trip.pe('{x for (x, y) in M()}')
+        self.trip.pe('{x for (x, y) in F(f)}')
+        self.trip.pe('{x for (x, y, z) in MAP()}')
+        self.trip.pe('{x for (x, y, z) in TUP()}')
     
     def test_aggr(self):
         self.trip.pc('''

@@ -387,13 +387,9 @@ preprocess_setclear = SetClearExpander.run
 
 class FeatureDisallower(L.NodeVisitor):
     
-    """Fail if there are any Attribute or GeneralCall nodes in the
-    tree.
+    """Fail if there are any GeneralCall nodes in the tree.
     """
     
-    def visit_Attribute(self, node):
-        raise TypeError('IncAST does not allow attributes')
-        
     def visit_GeneralCall(self, node):
         raise TypeError('IncAST function calls must be directly '
                         'by function name')

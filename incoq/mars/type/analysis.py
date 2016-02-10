@@ -713,6 +713,12 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         for v, t, u in zip(node.vars, t_relvars, t_mapvars):
             self.update_store(v, t.join(u))
     
+    # Object domain clauses not implemented:
+    # MMember
+    # FMember
+    # MAPMember
+    # TUPMember
+    
     @readonly
     def visit_Cond(self, node, *, type=None):
         self.visit(node.cond)

@@ -203,21 +203,21 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         if (isinstance(iter, L.GeneralCall) and
             isinstance(iter.func, L.Name) and
             iter.func.id == 'REL'):
+            vars = self.match_store_vars(target)
             if not (len(iter.args) == 1 and
                     isinstance(iter.args[0], L.Name)):
                 raise ASTErr('Invalid REL clause')
             rel = iter.args[0].id
-            vars = self.match_store_vars(target)
             member = L.RelMember(vars, rel)
         
-        # for x1, ..., xn in SING(e)
+        # for x1, ..., xn in SIwNG(e)
         elif (isinstance(iter, L.GeneralCall) and
               isinstance(iter.func, L.Name) and
               iter.func.id == 'SING'):
+            vars = self.match_store_vars(target)
             if not len(iter.args) == 1:
                 raise ASTErr('Invalid SING clause')
             value = iter.args[0]
-            vars = self.match_store_vars(target)
             member = L.SingMember(vars, value)
         
         # for x1, ..., xn in WITHOUT(R, e)
@@ -234,16 +234,17 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         elif (isinstance(iter, L.GeneralCall) and
               isinstance(iter.func, L.Name) and
               iter.func.id == 'VARS'):
+            vars = self.match_store_vars(target)
             if not len(iter.args) == 1:
                 raise ASTErr('Invalid VARS clause')
             value = iter.args[0]
-            vars = self.match_store_vars(target)
             member = L.VarsMember(vars, value)
         
         # for x1, ..., xn in SETFROMMAP(R, M, mask)
         elif (isinstance(iter, L.GeneralCall) and
               isinstance(iter.func, L.Name) and
               iter.func.id == 'SETFROMMAP'):
+            vars = self.match_store_vars(target)
             if not (len(iter.args) == 3 and
                     isinstance(iter.args[0], L.Name) and
                     isinstance(iter.args[1], L.Name) and
@@ -252,8 +253,53 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
             rel = iter.args[0].id
             map = iter.args[1].id
             mask = L.mask(iter.args[2].s)
-            vars = self.match_store_vars(target)
             member = L.SetFromMapMember(vars, rel, map, mask)
+        
+        # for x, y in M()
+        elif (isinstance(iter, L.GeneralCall) and
+              isinstance(iter.func, L.Name) and
+              iter.func.id == 'M'):
+            vars = self.match_store_vars(target)
+            if not (len(iter.args) == 0 and
+                    len(vars) == 2):
+                raise ASTErr('Invalid M clause')
+            set_, elem = vars
+            member = L.MMember(set_, elem)
+        
+        # for x, y in F(attr)
+        elif (isinstance(iter, L.GeneralCall) and
+              isinstance(iter.func, L.Name) and
+              iter.func.id == 'F'):
+            vars = self.match_store_vars(target)
+            if not (len(iter.args) == 1 and
+                    isinstance(iter.args[0], L.Name) and
+                    len(vars) == 2):
+                raise ASTErr('Invalid F clause')
+            attr = iter.args[0].id
+            obj, value = vars
+            member = L.FMember(obj, value, attr)
+        
+        # for m, k, v in MAP()
+        elif (isinstance(iter, L.GeneralCall) and
+              isinstance(iter.func, L.Name) and
+              iter.func.id == 'MAP'):
+            vars = self.match_store_vars(target)
+            if not (len(iter.args) == 0 and
+                    len(vars) == 3):
+                raise ASTErr('Invalid MAP clause')
+            map, key, value = vars
+            member = L.MAPMember(map, key, value)
+        
+        # for t, x1, ..., xn in TUP()
+        elif (isinstance(iter, L.GeneralCall) and
+              isinstance(iter.func, L.Name) and
+              iter.func.id == 'TUP'):
+            vars = self.match_store_vars(target)
+            if not (len(iter.args) == 0 and
+                    len(vars) >= 1):
+                raise ASTErr('Invalid TUP clause')
+            tup, *elts = vars
+            member = L.TUPMember(tup, elts)
         
         # General case.
         else:
@@ -795,6 +841,27 @@ class IncLangNodeExporter(NodeMapper):
                                        self.name_helper(node.map),
                                        P.Str(node.mask.m)],
                                       [], None, None), [])
+    
+    def visit_MMember(self, node):
+        vars = self.tuple_store_helper([node.set, node.elem])
+        return P.comprehension(vars, P.Call(P.Name('M', P.Load()),
+                                            [], [], None, None), [])
+    
+    def visit_FMember(self, node):
+        vars = self.tuple_store_helper([node.obj, node.value])
+        return P.comprehension(vars, P.Call(P.Name('F', P.Load()),
+                                            [P.Name(node.attr, P.Load())],
+                                            [], None, None), [])
+    
+    def visit_MAPMember(self, node):
+        vars = self.tuple_store_helper([node.map, node.key, node.value])
+        return P.comprehension(vars, P.Call(P.Name('MAP', P.Load()),
+                                            [], [], None, None), [])
+    
+    def visit_TUPMember(self, node):
+        vars = self.tuple_store_helper((node.tup,) + node.elts)
+        return P.comprehension(vars, P.Call(P.Name('TUP', P.Load()),
+                                            [], [], None, None), [])
     
     def visit_Cond(self, node):
         return self.visit(node.cond)

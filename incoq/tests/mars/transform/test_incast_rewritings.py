@@ -231,10 +231,6 @@ class SetClearCase(unittest.TestCase):
 
 class DisallowCase(unittest.TestCase):
     
-    def test_disallower_attr(self):
-        with self.assertRaises(TypeError):
-            disallow_features(L.Parser.pc('o.f'))
-    
     def test_disallower_generalcall(self):
         # Call nodes good.
         disallow_features(L.Parser.pc('f(a)'))
