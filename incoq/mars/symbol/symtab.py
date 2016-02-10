@@ -61,6 +61,22 @@ class N:
     @classmethod
     def get_query_inst_name(cls, query, inststr):
         return query + '_ctx' + inststr
+    
+    # Object domain relations.
+    
+    M = '_M'
+    
+    @classmethod
+    def F(cls, attr):
+        assert isinstance(attr, str)
+        return '_F_' + attr
+    
+    MAP = '_MAP'
+    
+    @classmethod
+    def TUP(cls, k):
+        assert isinstance(k, int)
+        return '_TUP_' + str(k)
 
 
 class SymbolTable:

@@ -237,7 +237,7 @@ class RelMemberHandler(ClauseHandler):
         return cl.rel
     
     def get_priority(self, cl, bindenv):
-        mask = L.mask_from_bounds(cl.vars, bindenv)
+        mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
         
         if L.mask_is_allbound(mask):
             return Priority.Constant
@@ -247,19 +247,21 @@ class RelMemberHandler(ClauseHandler):
             return Priority.Normal
     
     def get_code(self, cl, bindenv, body):
-        assert_unique(cl.vars)
-        mask = L.mask_from_bounds(cl.vars, bindenv)
+        vars = self.lhs_vars(cl)
+        rel = self.rhs_rel(cl)
+        assert_unique(vars)
+        mask = L.mask_from_bounds(vars, bindenv)
         
         if L.mask_is_allbound(mask):
-            comparison = L.Compare(L.tuplify(cl.vars), L.In(), L.Name(cl.rel))
+            comparison = L.Compare(L.tuplify(vars), L.In(), L.Name(rel))
             code = (L.If(comparison, body, ()),)
         
         elif L.mask_is_allunbound(mask):
-            code = (L.DecompFor(cl.vars, L.Name(cl.rel), body),)
+            code = (L.DecompFor(vars, L.Name(rel), body),)
         
         else:
-            bvars, uvars = L.split_by_mask(mask, cl.vars)
-            lookup = L.ImgLookup(L.Name(cl.rel), mask, bvars)
+            bvars, uvars = L.split_by_mask(mask, vars)
+            lookup = L.ImgLookup(L.Name(rel), mask, bvars)
             code = (L.DecompFor(uvars, lookup, body),)
         
         return code
@@ -269,7 +271,7 @@ class RelMemberHandler(ClauseHandler):
         return cl._replace(vars=new_vars)
     
     def singletonize(self, cl, value):
-        return L.SingMember(cl.vars, value)
+        return L.SingMember(self.lhs_vars(cl), value)
 
 
 class SingMemberHandler(ClauseHandler):

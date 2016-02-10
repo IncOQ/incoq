@@ -1,0 +1,212 @@
+"""Relational clauses for object-domain concepts."""
+
+
+__all__ = [
+    'MMemberHandler',
+    'FMemberHandler',
+    'MAPMemberHandler',
+    'TUPMemberHandler',
+    
+    'ObjClauseVisitor',
+]
+
+
+from incoq.mars.incast import L
+from incoq.mars.symbol import N
+from incoq.mars.comp import (ClauseVisitor, RelMemberHandler,
+                             Priority, assert_unique)
+
+
+class MMemberHandler(RelMemberHandler):
+    
+    def lhs_vars(self, cl):
+        return (cl.set, cl.elem)
+    
+    def rhs_rel(self, cl):
+        return N.M
+    
+    def constrained_mask(self, cl):
+        return (False, True)
+    
+    def get_code(self, cl, bindenv, body):
+        vars = self.lhs_vars(cl)
+        assert_unique(vars)
+        mask = L.mask_from_bounds(vars, bindenv)
+        
+        if L.mask_is_allbound(mask):
+            comparison = L.Compare(L.Name(cl.elem), L.In(), L.Name(cl.set))
+            code = (L.If(comparison, body, ()),)
+        
+        elif mask == L.mask('bu'):
+            code = (L.For(cl.elem, L.Name(cl.set), body),)
+        
+        else:
+            code = super().get_code(cl, bindenv, body)
+        
+        return code
+    
+    def rename_lhs_vars(self, cl, renamer):
+        set = renamer(cl.set)
+        elem = renamer(cl.elem)
+        return cl._replace(set=set, elem=elem)
+
+
+class FMemberHandler(RelMemberHandler):
+    
+    def lhs_vars(self, cl):
+        return (cl.obj, cl.value)
+    
+    def rhs_rel(self, cl):
+        return N.F(cl.attr)
+    
+    def constrained_mask(self, cl):
+        return (False, True)
+    
+    def get_priority(self, cl, bindenv):
+        mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
+        
+        if mask == L.mask('bu'):
+            return Priority.Constant
+        else:
+            return super().get_priority(cl, bindenv)
+    
+    def get_code(self, cl, bindenv, body):
+        vars = self.lhs_vars(cl)
+        assert_unique(vars)
+        mask = L.mask_from_bounds(vars, bindenv)
+        
+        if L.mask_is_allbound(mask):
+            comparison = L.Compare(L.Name(cl.value), L.Eq(),
+                                   L.Attribute(L.Name(cl.obj), cl.attr))
+            code = (L.If(comparison, body, ()),)
+        
+        elif mask == L.mask('bu'):
+            code = (L.Assign(cl.value, L.Attribute(L.Name(cl.obj), cl.attr)),)
+            code += body
+        
+        else:
+            code = super().get_code(cl, bindenv, body)
+        
+        return code
+    
+    def rename_lhs_vars(self, cl, renamer):
+        obj = renamer(cl.obj)
+        value = renamer(cl.value)
+        return cl._replace(obj=obj, value=value)
+
+
+class MAPMemberHandler(RelMemberHandler):
+    
+    def lhs_vars(self, cl):
+        return (cl.map, cl.key, cl.value)
+    
+    def rhs_rel(self, cl):
+        return N.MAP
+    
+    def constrained_mask(self, cl):
+        return (False, False, True)
+    
+    def get_priority(self, cl, bindenv):
+        mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
+        
+        if mask == L.mask('bbu'):
+            return Priority.Constant
+        else:
+            return super().get_priority(cl, bindenv)
+    
+    def get_code(self, cl, bindenv, body):
+        vars = self.lhs_vars(cl)
+        assert_unique(vars)
+        mask = L.mask_from_bounds(vars, bindenv)
+        
+        lookup_expr = L.DictLookup(L.Name(cl.map), L.Name(cl.key), None)
+        
+        if L.mask_is_allbound(mask):
+            comparison = L.Compare(L.Name(cl.value), L.Eq(), lookup_expr)
+            code = (L.If(comparison, body, ()),)
+        
+        elif mask == L.mask('bbu'):
+            code = (L.Assign(cl.value, lookup_expr),)
+            code += body
+        
+        elif mask == L.mask('bu'):
+            items_expr = L.Parser.pe('_MAP.items()', subst={'_MAP': cl.map})
+            code = (L.DecompFor([cl.key, cl.value], items_expr, body),)
+        
+        else:
+            code = super().get_code(cl, bindenv, body)
+        
+        return code
+    
+    def rename_lhs_vars(self, cl, renamer):
+        map = renamer(cl.map)
+        key = renamer(cl.key)
+        value = renamer(cl.value)
+        return cl._replace(map=map, key=key, value=value)
+
+
+class TUPMemberHandler(RelMemberHandler):
+    
+    def lhs_vars(self, cl):
+        return (cl.tup,) + cl.elts
+    
+    def rhs_rel(self, cl):
+        return N.TUP(len(cl.elts))
+    
+    def constrained_mask(self, cl):
+        return (False,) + tuple(True for _ in cl.elts)
+    
+    def get_priority(self, cl, bindenv):
+        mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
+        
+        if mask.m[0] == 'b':
+            return Priority.Constant
+        else:
+            return super().get_priority(cl, bindenv)
+    
+    def get_code(self, cl, bindenv, body):
+        vars = self.lhs_vars(cl)
+        assert_unique(vars)
+        mask = L.mask_from_bounds(vars, bindenv)
+        
+        comparison = L.Compare(L.Name(cl.tup), L.Eq(), L.tuplify(cl.elts))
+        
+        if L.mask_is_allbound(mask):
+            code = (L.If(comparison, body, ()),)
+        
+        elif mask.m.startswith('b'):
+            elts_mask = L.mask_from_bounds(cl.elts, bindenv)
+            code = L.bind_by_mask(elts_mask, cl.elts, L.Name(cl.tup))
+            if L.mask_is_allunbound(elts_mask):
+                code += body
+            else:
+                code += (L.If(comparison, body, ()),)
+        
+        elif mask == L.mask('u' + 'b' * len(cl.elts)):
+            code = (L.Assign(cl.tup, L.tuplify(cl.elts)),)
+            code += body
+        
+        else:
+            code = super().get_code(cl, bindenv, body)
+        
+        return code
+    
+    def rename_lhs_vars(self, cl, renamer):
+        tup = renamer(cl.tup)
+        elts = [renamer(elt) for elt in cl.elts]
+        return cl._replace(tup=tup, elts=elts)
+
+
+class ObjClauseVisitor(ClauseVisitor):
+    
+    handlercls_MMember = MMemberHandler
+    handlercls_FMember = FMemberHandler
+    handlercls_MAPMember = MAPMemberHandler
+    handlercls_TUPMember = TUPMemberHandler
+    
+    def __init__(self):
+        super().__init__()
+        self.handle_MMember = self.handlercls_MMember(self)
+        self.handle_FMember = self.handlercls_FMember(self)
+        self.handle_MAPMember = self.handlercls_MAPMember(self)
+        self.handle_TUPMember = self.handlercls_TUPMember(self)
