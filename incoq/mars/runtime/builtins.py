@@ -13,6 +13,11 @@ __all__ = [
     'min',
     'max',
     
+    'isset',
+    'hasfield',
+    'ismap',
+    'hasarity',
+    
     'IncOQType',
     'Set',
     'CSet',
@@ -77,6 +82,21 @@ def sum(nums):
 
 min = partial(builtins.min, default=None)
 max = partial(builtins.max, default=None)
+
+
+# Type checks.
+
+def isset(value):
+    return isinstance(value, (set, CSet))
+
+def hasfield(value, attr):
+    return hasattr(value, attr)
+
+def ismap(value):
+    return isinstance(value, dict)
+
+def hasarity(value, k):
+    return isinstance(value, tuple) and len(value) == k
 
 
 class IncOQType:

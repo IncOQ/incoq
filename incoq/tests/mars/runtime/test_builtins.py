@@ -26,6 +26,26 @@ class BuiltinsCase(unittest.TestCase):
         self.assertEqual(min([]), None)
         self.assertEqual(max([]), None)
     
+    def test_typechecks(self):
+        self.assertTrue(isset({1}))
+        self.assertTrue(isset(CSet([1])))
+        self.assertFalse(isset(object()))
+        
+        class Obj: pass
+        o = Obj()
+        o.f = 1
+        self.assertTrue(hasfield(o, 'f'))
+        self.assertFalse(hasfield(o, 'g'))
+        self.assertFalse(hasfield({1}, 'f'))
+        
+        self.assertTrue(ismap({1: 2}))
+        self.assertTrue(ismap(Map({1: 2})))
+        self.assertFalse(ismap({1}))
+        
+        self.assertTrue(hasarity((1, 2), 2))
+        self.assertFalse(hasarity((1, 2), 3))
+        self.assertFalse(hasarity(object(), 2))
+    
     def test_set_identity(self):
         s1 = Set()
         s2 = Set()

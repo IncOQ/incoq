@@ -76,6 +76,12 @@ module IncAST
          | SetFromMap(expr map, mask mask)
          | Unwrap(expr value)
          
+           -- Type checks.
+         | IsSet(expr value)
+         | HasField(expr value, identifier attr)
+         | IsMap(expr value)
+         | HasArity(expr value, object arity)
+         
            -- Queries.
          
            -- Named query expression.

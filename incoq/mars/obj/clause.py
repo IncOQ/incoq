@@ -19,6 +19,8 @@ from incoq.mars.comp import (ClauseVisitor, RelMemberHandler,
 
 class MMemberHandler(RelMemberHandler):
     
+    use_typecheck = True
+    
     def lhs_vars(self, cl):
         return (cl.set, cl.elem)
     
@@ -36,12 +38,18 @@ class MMemberHandler(RelMemberHandler):
         if L.mask_is_allbound(mask):
             comparison = L.Compare(L.Name(cl.elem), L.In(), L.Name(cl.set))
             code = (L.If(comparison, body, ()),)
+            needs_typecheck = True
         
         elif mask == L.mask('bu'):
             code = (L.For(cl.elem, L.Name(cl.set), body),)
+            needs_typecheck = True
         
         else:
             code = super().get_code(cl, bindenv, body)
+            needs_typecheck = False
+        
+        if needs_typecheck and self.use_typecheck:
+            code = (L.If(L.IsSet(L.Name(cl.set)), code, ()),)
         
         return code
     
@@ -52,6 +60,8 @@ class MMemberHandler(RelMemberHandler):
 
 
 class FMemberHandler(RelMemberHandler):
+    
+    use_typecheck = True
     
     def lhs_vars(self, cl):
         return (cl.obj, cl.value)
@@ -79,13 +89,19 @@ class FMemberHandler(RelMemberHandler):
             comparison = L.Compare(L.Name(cl.value), L.Eq(),
                                    L.Attribute(L.Name(cl.obj), cl.attr))
             code = (L.If(comparison, body, ()),)
+            needs_typecheck = True
         
         elif mask == L.mask('bu'):
             code = (L.Assign(cl.value, L.Attribute(L.Name(cl.obj), cl.attr)),)
             code += body
+            needs_typecheck = True
         
         else:
             code = super().get_code(cl, bindenv, body)
+            needs_typecheck = False
+        
+        if needs_typecheck and self.use_typecheck:
+            code = (L.If(L.HasField(L.Name(cl.obj), cl.attr), code, ()),)
         
         return code
     
@@ -96,6 +112,8 @@ class FMemberHandler(RelMemberHandler):
 
 
 class MAPMemberHandler(RelMemberHandler):
+    
+    use_typecheck = True
     
     def lhs_vars(self, cl):
         return (cl.map, cl.key, cl.value)
@@ -124,17 +142,24 @@ class MAPMemberHandler(RelMemberHandler):
         if L.mask_is_allbound(mask):
             comparison = L.Compare(L.Name(cl.value), L.Eq(), lookup_expr)
             code = (L.If(comparison, body, ()),)
+            needs_typecheck = True
         
         elif mask == L.mask('bbu'):
             code = (L.Assign(cl.value, lookup_expr),)
             code += body
+            needs_typecheck = True
         
         elif mask == L.mask('bu'):
             items_expr = L.Parser.pe('_MAP.items()', subst={'_MAP': cl.map})
             code = (L.DecompFor([cl.key, cl.value], items_expr, body),)
+            needs_typecheck = True
         
         else:
             code = super().get_code(cl, bindenv, body)
+            needs_typecheck = False
+        
+        if needs_typecheck and self.use_typecheck:
+            code = (L.If(L.IsMap(L.Name(cl.map)), code, ()),)
         
         return code
     
@@ -146,6 +171,8 @@ class MAPMemberHandler(RelMemberHandler):
 
 
 class TUPMemberHandler(RelMemberHandler):
+    
+    use_typecheck = True
     
     def lhs_vars(self, cl):
         return (cl.tup,) + cl.elts
@@ -173,6 +200,7 @@ class TUPMemberHandler(RelMemberHandler):
         
         if L.mask_is_allbound(mask):
             code = (L.If(comparison, body, ()),)
+            needs_typecheck = True
         
         elif mask.m.startswith('b'):
             elts_mask = L.mask_from_bounds(cl.elts, bindenv)
@@ -181,13 +209,19 @@ class TUPMemberHandler(RelMemberHandler):
                 code += body
             else:
                 code += (L.If(comparison, body, ()),)
+            needs_typecheck = True
         
         elif mask == L.mask('u' + 'b' * len(cl.elts)):
             code = (L.Assign(cl.tup, L.tuplify(cl.elts)),)
             code += body
+            needs_typecheck = False
         
         else:
             code = super().get_code(cl, bindenv, body)
+            needs_typecheck = False
+        
+        if needs_typecheck and self.use_typecheck:
+            code = (L.If(L.HasArity(L.Name(cl.tup), len(cl.elts)), code, ()),)
         
         return code
     

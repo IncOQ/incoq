@@ -26,16 +26,18 @@ class ClauseCase(unittest.TestCase):
         # All bound.
         code = v.get_code(cl, ['s', 'e'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            if e in s:
-                pass
+            if isset(s):
+                if e in s:
+                    pass
             ''')
         self.assertEqual(code, exp_code)
         
         # Forward lookup.
         code = v.get_code(cl, ['s'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            for e in s:
-                pass
+            if isset(s):
+                for e in s:
+                    pass
             ''')
         self.assertEqual(code, exp_code)
         
@@ -66,16 +68,18 @@ class ClauseCase(unittest.TestCase):
         # All bound.
         code = v.get_code(cl, ['o', 'v'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            if v == o.f:
-                pass
+            if hasfield(o, 'f'):
+                if v == o.f:
+                    pass
             ''')
         self.assertEqual(code, exp_code)
         
         # Forward lookup.
         code = v.get_code(cl, ['o'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            v = o.f
-            pass
+            if hasfield(o, 'f'):
+                v = o.f
+                pass
             ''')
         self.assertEqual(code, exp_code)
         
@@ -106,24 +110,27 @@ class ClauseCase(unittest.TestCase):
         # All bound.
         code = v.get_code(cl, ['m', 'k', 'v'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            if v == m[k]:
-                pass
+            if ismap(m):
+                if v == m[k]:
+                    pass
             ''')
         self.assertEqual(code, exp_code)
         
         # Forward lookup.
         code = v.get_code(cl, ['m', 'k'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            v = m[k]
-            pass
+            if ismap(m):
+                v = m[k]
+                pass
             ''')
         self.assertEqual(code, exp_code)
         
         # Map iteration.
         code = v.get_code(cl, ['m'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            for (k, v) in m.items():
-                pass
+            if ismap(m):
+                for (k, v) in m.items():
+                    pass
             ''')
         
         # Other use.
@@ -153,25 +160,28 @@ class ClauseCase(unittest.TestCase):
         # All bound.
         code = v.get_code(cl, ['t', 'v1', 'v2'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            if t == (v1, v2):
-                pass
+            if hasarity(t, 2):
+                if t == (v1, v2):
+                    pass
             ''')
         self.assertEqual(code, exp_code)
         
         # Full forward lookup.
         code = v.get_code(cl, ['t'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            (v1, v2) = t
-            pass
+            if hasarity(t, 2):
+                (v1, v2) = t
+                pass
             ''')
         self.assertEqual(code, exp_code)
         
         # Mixed forward lookup.
         code = v.get_code(cl, ['t', 'v1'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            (_, v2) = t
-            if t == (v1, v2):
-                pass
+            if hasarity(t, 2):
+                (_, v2) = t
+                if t == (v1, v2):
+                    pass
             ''')
         self.assertEqual(code, exp_code)
         

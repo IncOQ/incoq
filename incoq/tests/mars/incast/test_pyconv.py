@@ -277,6 +277,23 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.Unwrap(L.Name('R'))
         self.assertEqual(tree, exp_tree)
     
+    def test_typechecks(self):
+        tree = Parser.pe('isset(s)')
+        exp_tree = L.IsSet(L.Name('s'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.pe("hasfield(o, 'f')")
+        exp_tree = L.HasField(L.Name('o'), 'f')
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.pe('ismap(m)')
+        exp_tree = L.IsMap(L.Name('m'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.pe('hasarity(t, 5)')
+        exp_tree = L.HasArity(L.Name('t'), 5)
+        self.assertEqual(tree, exp_tree)
+    
     def test_getcount(self):
         tree = Parser.pe('R.getcount(e)')
         exp_tree = L.BinOp(L.Name('R'), L.GetCount(), L.Name('e'))
@@ -451,6 +468,14 @@ class RoundTripCase(unittest.TestCase):
     
     def test_unwrap(self):
         self.trip.pe('R.unwrap()')
+    
+    def test_typechecks(self):
+        self.trip.pc('''
+            isset(s)
+            hasfield(o, 'f')
+            ismap(m)
+            hasarity(t, 5)
+            ''')
     
     def test_query(self):
         self.trip.pe("QUERY('A', 5)")

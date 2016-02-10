@@ -481,6 +481,22 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_me_unwrap(self, _func, set_):
         return L.Unwrap(set_)
     
+    def handle_fe_isset(self, _func, value):
+        return L.IsSet(value)
+    
+    def handle_fe_hasfield(self, _func, value, attr):
+        if not isinstance(attr, L.Str):
+            raise ASTErr('hasfield requires string literal for second arg')
+        return L.HasField(value, attr.s)
+    
+    def handle_fe_ismap(self, _func, value):
+        return L.IsMap(value)
+    
+    def handle_fe_hasarity(self, _func, value, arity):
+        if not isinstance(arity, L.Num):
+            raise ASTErr('hasarity requires integer literal for second arg')
+        return L.HasArity(value, arity.n)
+    
     def handle_me_getcount(self, _func, set_, elem):
         return L.BinOp(set_, L.GetCount(), elem)
     
@@ -626,6 +642,26 @@ class IncLangSpecialExporter(L.NodeTransformer):
         node = self.generic_visit(node)
         
         return L.GeneralCall(L.Attribute(node.value, 'unwrap'), [])
+    
+    def visit_IsSet(self, node):
+        node = self.generic_visit(node)
+        
+        return L.Call('isset', [node.value])
+    
+    def visit_HasField(self, node):
+        node = self.generic_visit(node)
+        
+        return L.Call('hasfield', [node.value, L.Str(node.attr)])
+    
+    def visit_IsMap(self, node):
+        node = self.generic_visit(node)
+        
+        return L.Call('ismap', [node.value])
+    
+    def visit_HasArity(self, node):
+        node = self.generic_visit(node)
+        
+        return L.Call('hasarity', [node.value, L.Num(node.arity)])
     
     def visit_Aggr(self, node):
         node = self.generic_visit(node)

@@ -609,6 +609,11 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     visit_Unwrap = default_expr_handler
     
+    visit_IsSet = default_expr_handler
+    visit_HasField = default_expr_handler
+    visit_IsMap = default_expr_handler
+    visit_HasArity = default_expr_handler
+    
     @readonly
     def visit_Query(self, node, *, type=None):
         # Return query
