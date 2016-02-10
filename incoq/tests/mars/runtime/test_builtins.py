@@ -66,6 +66,12 @@ class BuiltinsCase(unittest.TestCase):
         s = str(Set({5, 6}))
         exp_s = '{5, 6}'
         self.assertEqual(s, exp_s)
+        
+        v = Set()
+        v.add(v)
+        r = repr(v)
+        exp_r = 'Set({...})'
+        self.assertEqual(r, exp_r)
     
     def test_set_updates(self):
         # Add/remove.
@@ -140,6 +146,12 @@ class BuiltinsCase(unittest.TestCase):
         s = str(CSet({5, 6}))
         exp_s = '{5, 6}'
         self.assertEqual(s, exp_s)
+        
+        v = CSet()
+        v.add(v)
+        r = repr(v)
+        exp_r = 'CSet({...: 1})'
+        self.assertEqual(r, exp_r)
     
     def test_cset_updates(self):
         s = CSet({'a': 1, 'b': 2})
@@ -198,6 +210,12 @@ class BuiltinsCase(unittest.TestCase):
         s = str(Map({'a': 1}))
         exp_s = '{a: 1}'
         self.assertEqual(s, exp_s)
+        
+        v = Map()
+        v[v] = v
+        r = repr(v)
+        exp_r = 'Map({...: ...})'
+        self.assertEqual(r, exp_r)
     
     def test_map_pickle(self):
         m1 = Map({'a': 1, 'b': 2})
@@ -220,6 +238,36 @@ class BuiltinsCase(unittest.TestCase):
         s = m.setfrommap('u')
         exp_s = {(1,)}
         self.assertCountEqual(s, exp_s)
+    
+    def test_obj_repr(self):
+        r = repr(Obj())
+        exp_r = 'Obj()'
+        self.assertEqual(r, exp_r)
+        
+        r = repr(Obj(f=5))
+        exp_r = 'Obj(f=5)'
+        self.assertEqual(r, exp_r)
+        
+        r = repr(Obj(f=5, g=6))
+        exp_r = 'Obj(f=5, g=6)'
+        self.assertEqual(r, exp_r)
+        
+        o = Obj()
+        o.f = o
+        r = repr(o)
+        exp_r = 'Obj(f=...)'
+        self.assertEqual(r, exp_r)
+    
+    def test_obj_asdict(self):
+        d = Obj(f=5, g=6).asdict()
+        exp_d = {'f': 5, 'g': 6}
+        self.assertEqual(d, exp_d)
+    
+    def test_obj_pickle(self):
+        o = Obj(f=5, g=6)
+        b = pickle.dumps(o)
+        o2 = pickle.loads(b)
+        self.assertEqual(o.asdict(), o2.asdict())
 
 
 if __name__ == '__main__':

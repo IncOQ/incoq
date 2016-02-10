@@ -22,6 +22,7 @@ __all__ = [
     'Set',
     'CSet',
     'Map',
+    'Obj',
     
     'Tree',
 ]
@@ -282,3 +283,21 @@ class Map(IncOQType, dict, SetFromMapMixin):
     # syntactically conflict with the name of the set clearing
     # operation.
     dictclear = dict.clear
+
+
+class Obj(IncOQType):
+    
+    """IncOQ object with identity semantics."""
+    
+    def __init__(self, **init):
+        for k, v in init.items():
+            setattr(self, k, v)
+    
+    def _fmt_helper(self, fmt):
+        return ', '.join(attr + '=' + fmt(value)
+                         for attr, value in self.__dict__.items()
+                         if not attr.startswith('_'))
+    
+    def asdict(self):
+        return {attr: value for attr, value in self.__dict__.items()
+                            if not attr.startswith('_')}
