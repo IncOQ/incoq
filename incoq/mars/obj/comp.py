@@ -32,7 +32,6 @@ __all__ = [
 ]
 
 
-from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
 
 
@@ -50,6 +49,9 @@ class ReplaceableRewriter(L.NodeTransformer):
     # Make sure to handle replaceables in a post-recursive manner, so
     # inner expressions are replaced first.
     
+    rewrite_tuples = True
+    """Used to disable tuple rewriting for condition/result expressions."""
+    
     def __init__(self, field_namer, map_namer, tuple_namer):
         super().__init__()
         self.field_namer = field_namer
@@ -62,6 +64,10 @@ class ReplaceableRewriter(L.NodeTransformer):
         self.new_clauses = []
         tree = super().process(tree)
         return tree, self.new_clauses
+    
+    # Don't rewrite subqueries.
+    def visit_Comp(self, node):
+        return node
     
     # The helpers break apart the replaceable node, and return a pair
     # of the replacement variable name and the new clause.
@@ -117,4 +123,10 @@ class ReplaceableRewriter(L.NodeTransformer):
     
     visit_Attribute = replaceable_helper
     visit_DictLookup = replaceable_helper
-    visit_Tuple = replaceable_helper
+    
+    def visit_Tuple(self, node):
+        if self.rewrite_tuples:
+            return self.replaceable_helper(node)
+        else:
+            # Make sure to rewrite non-tuple replaceables below us.
+            return self.generic_visit(node)

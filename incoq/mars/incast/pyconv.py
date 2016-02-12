@@ -210,7 +210,7 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
             rel = iter.args[0].id
             member = L.RelMember(vars, rel)
         
-        # for x1, ..., xn in SIwNG(e)
+        # for x1, ..., xn in SING(e)
         elif (isinstance(iter, L.GeneralCall) and
               isinstance(iter.func, L.Name) and
               iter.func.id == 'SING'):
