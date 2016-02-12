@@ -57,6 +57,16 @@ class ClauseCase(unittest.TestCase):
         tree, _clauses = rewriter.process(tree)
         exp_tree = L.Parser.pe('(Fof,)')
         self.assertEqual(tree, exp_tree)
+    
+    def test_flatten_replaceables(self):
+        comp = L.Parser.pe('{o.f for o in P.s if m[o] > o.f}')
+        comp = flatten_replaceables(comp)
+        exp_comp = L.Parser.pe('''
+            {o_f for (P, P_s) in F(s) for o in P_s
+                 for (m, o, m_o) in MAP() for (o, o_f) in F(f)
+                 if (m_o > o_f)}
+            ''')
+        self.assertEqual(comp, exp_comp)
 
 
 if __name__ == '__main__':

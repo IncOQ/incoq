@@ -29,6 +29,7 @@ there is a membership clause that does not fit the form of RelMember.
 
 __all__ = [
     'ReplaceableRewriter',
+    'flatten_replaceables',
 ]
 
 
@@ -130,3 +131,17 @@ class ReplaceableRewriter(L.NodeTransformer):
         else:
             # Make sure to rewrite non-tuple replaceables below us.
             return self.generic_visit(node)
+
+
+def flatten_replaceables(comp):
+    """Transform the comprehension to rewrite replaceables and add new
+    clauses for them.
+    """
+    field_namer = lambda obj, attr: obj + '_' + attr
+    map_namer = lambda map, key: map + '_' + key
+    tuple_namer = lambda elts: 't_' + '_'.join(elts)
+    
+    rewriter = ReplaceableRewriter(field_namer, map_namer, tuple_namer)
+    tree = L.rewrite_comp(comp, rewriter.process)
+    
+    return tree
