@@ -30,6 +30,7 @@ there is a membership clause that does not fit the form of RelMember.
 __all__ = [
     'ReplaceableRewriter',
     'flatten_replaceables',
+    'flatten_memberships',
 ]
 
 
@@ -144,4 +145,24 @@ def flatten_replaceables(comp):
     rewriter = ReplaceableRewriter(field_namer, map_namer, tuple_namer)
     tree = L.rewrite_comp(comp, rewriter.process)
     
+    return tree
+
+
+def flatten_memberships(comp):
+    """Transform the comprehension to rewrite set memberships (Member
+    nodes) as MMember clauses.
+    """
+    def process(clause):
+        if isinstance(clause, L.Member):
+            if not (isinstance(clause.target, L.Name) and
+                    isinstance(clause.iter, L.Name)):
+                raise L.ProgramError('Cannot flatten Member clause: {}'
+                                     .format(clause))
+            set_ = clause.iter.id
+            elem = clause.target.id
+            return L.MMember(set_, elem), []
+        
+        return clause, []
+    
+    tree = L.rewrite_comp(comp, process)
     return tree

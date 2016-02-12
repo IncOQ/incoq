@@ -67,6 +67,16 @@ class ClauseCase(unittest.TestCase):
                  if (m_o > o_f)}
             ''')
         self.assertEqual(comp, exp_comp)
+    
+    def test_flatten_memberships(self):
+        comp = L.Parser.pe('''
+            {o_f for o in S for (o, o_f) in F(f) if o_f > 5}
+            ''')
+        comp = flatten_memberships(comp)
+        exp_comp = L.Parser.pe('''
+            {o_f for (S, o) in M() for (o, o_f) in F(f) if o_f > 5}
+            ''')
+        self.assertEqual(comp, exp_comp)
 
 
 if __name__ == '__main__':
