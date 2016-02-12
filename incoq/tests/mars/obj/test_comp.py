@@ -87,6 +87,31 @@ class ClauseCase(unittest.TestCase):
             {o_f for (S, o) in M() for (o, o_f) in F(f) if o_f > 5}
             ''')
         self.assertEqual(comp, exp_comp)
+    
+    def test_flatten_all_comps(self):
+        comp1 = L.Parser.pe('''
+            {(z,) for z in T}
+            ''')
+        comp2 = L.Parser.pe('''
+            {x + o.f for o in S for (x,) in VARS(QUERY('Q1',
+                {(z,) for z in T}))}
+            ''')
+        symtab = S.SymbolTable()
+        symtab.define_query('Q1', node=comp1, impl=S.Inc)
+        symtab.define_query('Q2', node=comp2, impl=S.Inc)
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q2', {x + o.f for o in S
+                    for (x,) in VARS(QUERY('Q1', {(z,) for z in T}))}))
+            ''')
+        tree = flatten_all_comps(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q2', {(x + o_f) for (S, o) in M()
+                    for (x,) in VARS(QUERY('Q1', {(z,) for (T, z) in M()}))
+                    for (o, o_f) in F(f)}))
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':

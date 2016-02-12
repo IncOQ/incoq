@@ -31,10 +31,12 @@ __all__ = [
     'ReplaceableRewriter',
     'flatten_replaceables',
     'flatten_memberships',
+    'flatten_all_comps',
 ]
 
 
 from incoq.mars.incast import L
+from incoq.mars.symbol import S
 
 
 class ReplaceableRewriterBase(L.NodeTransformer):
@@ -189,4 +191,16 @@ def flatten_memberships(comp):
         return clause, []
     
     tree = L.rewrite_comp(comp, process)
+    return tree
+
+
+def flatten_all_comps(tree, symtab):
+    class Rewriter(S.QueryRewriter):
+        def rewrite(self, symbol, name, expr):
+            if symbol.impl is not S.Normal:
+                comp = flatten_replaceables(expr)
+                comp = flatten_memberships(comp)
+                return comp
+    
+    tree = Rewriter.run(tree, symtab)
     return tree
