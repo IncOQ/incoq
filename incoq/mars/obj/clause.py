@@ -217,8 +217,9 @@ class TUPMemberHandler(RelMemberHandler):
             needs_typecheck = False
         
         else:
-            code = super().get_code(cl, bindenv, body)
-            needs_typecheck = False
+            raise L.TransformationError('Cannot emit code for TUP clause '
+                                        'that would require an auxiliary '
+                                        'map; use demand filtering')
         
         if needs_typecheck and self.use_typecheck:
             code = (L.If(L.HasArity(L.Name(cl.tup), len(cl.elts)), code, ()),)

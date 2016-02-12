@@ -194,12 +194,8 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(code, exp_code)
         
         # Other use.
-        code = v.get_code(cl, ['v2'], (L.Pass(),))
-        exp_code = L.Parser.pc('''
-            for (t, v1) in _TUP_2.imglookup('uub', (v2,)):
-                pass
-            ''')
-        self.assertEqual(code, exp_code)
+        with self.assertRaises(L.TransformationError):
+            code = v.get_code(cl, ['v2'], (L.Pass(),))
         
         cl2 = v.rename_lhs_vars(cl, lambda x: '_' + x)
         self.assertEqual(cl2, L.TUPMember('_t', ['_v1', '_v2']))
