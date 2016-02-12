@@ -6,6 +6,7 @@ import unittest
 from incoq.mars.incast import L
 from incoq.mars.symbol import S, N
 from incoq.mars.obj.comp import *
+from incoq.mars.obj.comp import ReplaceableRewriterBase
 
 
 class ClauseCase(unittest.TestCase):
@@ -17,9 +18,10 @@ class ClauseCase(unittest.TestCase):
             lambda elts: 'TUP' + str(len(elts)) + ''.join(elts),
         ]
     
-    def test_replaceablerewriter_basic(self):
-        rewriter = ReplaceableRewriter(*self.namers)
+    def test_replaceablerewriterbase(self):
+        rewriter = ReplaceableRewriterBase(*self.namers)
         
+        # Test all kinds of expressions.
         tree = L.Parser.pe('a.b + c[(d[e], f)]')
         tree, clauses = rewriter.process(tree)
         exp_tree = L.Parser.pe('Fab + MAPcTUP2MAPdef')
@@ -32,6 +34,8 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         self.assertSequenceEqual(clauses, exp_clauses)
         
+        
+        # a.b should already be there from the above run.
         tree = L.Parser.pe('(a.b.c,)')
         tree, clauses = rewriter.process(tree)
         exp_tree = L.Parser.pe('TUP1FFabc')
@@ -41,18 +45,24 @@ class ClauseCase(unittest.TestCase):
             }''').clauses
         self.assertEqual(tree, exp_tree)
         self.assertSequenceEqual(clauses, exp_clauses)
-    
-    def test_replaceablerewriter_subquery(self):
+        
         # Don't rewrite subqueries.
         orig_tree = L.VarsMember(['x'], L.Parser.pe('''
             QUERY('Q1', {p.f for p in S})
             '''))
-        tree, _clauses = ReplaceableRewriter.run(orig_tree, *self.namers)
+        tree, _clauses = ReplaceableRewriterBase.run(orig_tree, *self.namers)
         self.assertEqual(tree, orig_tree)
     
-    def test_replaceablerewriter_tuples(self):
+    def test_replaceablerewriter(self):
         rewriter = ReplaceableRewriter(*self.namers)
-        rewriter.rewrite_tuples = False
+        
+        # Membership clause, transform.
+        tree = L.Member(L.Parser.pe('o.f'), L.Name('s'))
+        tree, _clauses = rewriter.process(tree)
+        exp_tree = L.Member(L.Name('Fof'), L.Name('s'))
+        self.assertEqual(tree, exp_tree)
+        
+        # Expression, don't transform.
         tree = L.Parser.pe('(o.f,)')
         tree, _clauses = rewriter.process(tree)
         exp_tree = L.Parser.pe('(Fof,)')

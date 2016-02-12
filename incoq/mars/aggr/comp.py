@@ -85,7 +85,7 @@ class AggrMapCompRewriter(S.QueryRewriter):
     def rewrite(self, symbol, name, expr):
         if isinstance(expr, L.Comp):
             rewriter = AggrMapReplacer(self.symtab.fresh_names.vars)
-            expr = L.rewrite_comp(expr, rewriter.process, recursive=True)
+            expr = L.rewrite_comp(expr, rewriter.process)
             self.sfm_invs.update(rewriter.sfm_invs)
             return expr
 

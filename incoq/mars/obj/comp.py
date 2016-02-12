@@ -37,7 +37,7 @@ __all__ = [
 from incoq.mars.incast import L
 
 
-class ReplaceableRewriter(L.NodeTransformer):
+class ReplaceableRewriterBase(L.NodeTransformer):
     
     """Rewrite replaceable expressions. Return a pair of the modified
     tree and a sequence of new clauses to insert prior to this AST.
@@ -51,14 +51,12 @@ class ReplaceableRewriter(L.NodeTransformer):
     # Make sure to handle replaceables in a post-recursive manner, so
     # inner expressions are replaced first.
     
-    rewrite_tuples = True
-    """Used to disable tuple rewriting for condition/result expressions."""
-    
     def __init__(self, field_namer, map_namer, tuple_namer):
         super().__init__()
         self.field_namer = field_namer
         self.map_namer = map_namer
         self.tuple_namer = tuple_namer
+        
         self.cache = {}
         """Map from replaceable expression to its replacement variable."""
     
@@ -125,6 +123,32 @@ class ReplaceableRewriter(L.NodeTransformer):
     
     visit_Attribute = replaceable_helper
     visit_DictLookup = replaceable_helper
+    visit_Tuple = replaceable_helper
+
+
+class ReplaceableRewriter(ReplaceableRewriterBase):
+    
+    """Extension of ReplaceableRewriterBase that adds the behavior of
+    not rewriting tuples in condition and result expressions.
+    """
+    
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.rewrite_tuples = True
+        """Used to disable tuple rewriting for condition/result
+        expressions.
+        """
+    
+    def is_member(self, node):
+        """Return True if this is a membership clause."""
+        return (isinstance(node, L.clause) and
+                not isinstance(node, L.Cond))
+    
+    def process(self, tree):
+        # Enable/disable tuple rewriting depending on whether we're
+        # called on a membership clause.
+        self.rewrite_tuples = self.is_member(tree)
+        return super().process(tree)
     
     def visit_Tuple(self, node):
         if self.rewrite_tuples:
