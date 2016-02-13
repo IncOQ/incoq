@@ -175,7 +175,7 @@ class ClauseTools(ClauseVisitor):
             result = match_member_cond(cl)
             if result is not None:
                 vars, rel = result
-                cl = L.RelEnum(vars, rel)
+                cl = L.RelMember(vars, rel)
             
             # If it's not an equation condition, emit it to new_clauses
             # and skip.
