@@ -295,7 +295,7 @@ class Obj(IncOQType):
     
     def _fmt_helper(self, fmt):
         return ', '.join(attr + '=' + fmt(value)
-                         for attr, value in self.__dict__.items()
+                         for attr, value in sorted(self.__dict__.items())
                          if not attr.startswith('_'))
     
     def asdict(self):
