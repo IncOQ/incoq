@@ -19,6 +19,7 @@ class CompCase(unittest.TestCase):
             L.Parser.pe('_v1 + _v2'),
             [L.SetFromMapMember(['i', '_v1'], 'SM', 'M', L.mask('bu')),
              L.SetFromMapMember(['j', 'k', '_v2'], 'SN', 'N', L.mask('bbu'))],
+            [],
         )
         self.assertEqual(result, exp_result)
         
@@ -26,6 +27,7 @@ class CompCase(unittest.TestCase):
         exp_result = (
             L.Parser.pe('_v1 + _v3'),
             [L.SetFromMapMember(['k', '_v3'], 'SO', 'O', L.mask('bu'))],
+            [],
         )
         self.assertEqual(result, exp_result)
         

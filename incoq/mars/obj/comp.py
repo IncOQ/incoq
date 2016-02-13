@@ -63,9 +63,10 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         """Map from replaceable expression to its replacement variable."""
     
     def process(self, tree):
-        self.new_clauses = []
+        self.before_clauses = []
+        self.after_clauses = []
         tree = super().process(tree)
-        return tree, self.new_clauses
+        return tree, self.before_clauses, self.after_clauses
     
     # Don't rewrite subqueries.
     def visit_Comp(self, node):
@@ -119,7 +120,7 @@ class ReplaceableRewriterBase(L.NodeTransformer):
                   L.Tuple: self.Tuple_helper}[node.__class__]
         new_name, new_clause = helper(node)
         
-        self.new_clauses.append(new_clause)
+        self.before_clauses.append(new_clause)
         self.cache[orig_node] = new_name
         return L.Name(new_name)
     
@@ -186,9 +187,9 @@ def flatten_memberships(comp):
                                      .format(clause))
             set_ = clause.iter.id
             elem = clause.target.id
-            return L.MMember(set_, elem), []
+            return L.MMember(set_, elem), [], []
         
-        return clause, []
+        return clause, [], []
     
     tree = L.rewrite_comp(comp, process)
     return tree

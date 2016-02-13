@@ -38,7 +38,7 @@ class AggrMapReplacer(L.NodeTransformer):
     def process(self, tree):
         self.new_clauses = []
         tree = super().process(tree)
-        return tree, self.new_clauses
+        return tree, self.new_clauses, []
     
     def visit_DictLookup(self, node):
         node = self.generic_visit(node)

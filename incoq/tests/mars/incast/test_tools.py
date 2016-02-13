@@ -161,13 +161,17 @@ class RewriteCompCase(unittest.TestCase):
             def process(self, tree):
                 self.new_clauses = []
                 tree = super().process(tree)
-                return tree, self.new_clauses
+                return tree, self.new_clauses, []
             def visit_Name(self, node):
                 if node.id.islower():
                     new_id = '_' + node.id
                     new_clause = L.RelMember([new_id], 'R')
                     self.new_clauses.append(new_clause)
                     return node._replace(id=new_id)
+        class AfterRewriter(Rewriter):
+            def process(self, tree):
+                tree, before, after = super().process(tree)
+                return tree, after, before
         
         # Normal.
         comp = Parser.pe('{(x, z) for (x,) in S if y > 1}')
@@ -181,7 +185,7 @@ class RewriteCompCase(unittest.TestCase):
         
         # After.
         comp = Parser.pe('{(x, z) for (x,) in S if y > 1}')
-        comp = rewrite_comp(comp, Rewriter.run, after=True)
+        comp = rewrite_comp(comp, AfterRewriter.run)
         exp_comp = Parser.pe('''
             {(_x, _z) for (_x,) in S for (_x,) in REL(R)
                       if _y > 1 for (_y,) in REL(R)
@@ -220,7 +224,7 @@ class RewriteCompCase(unittest.TestCase):
             def process(self, tree):
                 self.new_clauses = []
                 tree = super().process(tree)
-                return tree, self.new_clauses
+                return tree, self.new_clauses, []
             def visit_Name(self, node):
                 if node.id not in ['x', 'y']:
                     return node

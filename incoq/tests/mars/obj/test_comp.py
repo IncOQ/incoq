@@ -23,34 +23,34 @@ class ClauseCase(unittest.TestCase):
         
         # Test all kinds of expressions.
         tree = L.Parser.pe('a.b + c[(d[e], f)]')
-        tree, clauses = rewriter.process(tree)
+        tree, before_clauses, _ = rewriter.process(tree)
         exp_tree = L.Parser.pe('Fab + MAPcTUP2MAPdef')
-        exp_clauses = L.Parser.pe('''{None
+        exp_before_clauses = L.Parser.pe('''{None
             for (a, Fab) in F(b)
             for (d, e, MAPde) in MAP()
             for (TUP2MAPdef, MAPde, f) in TUP()
             for (c, TUP2MAPdef, MAPcTUP2MAPdef) in MAP()
             }''').clauses
         self.assertEqual(tree, exp_tree)
-        self.assertSequenceEqual(clauses, exp_clauses)
+        self.assertSequenceEqual(before_clauses, exp_before_clauses)
         
         
         # a.b should already be there from the above run.
         tree = L.Parser.pe('(a.b.c,)')
-        tree, clauses = rewriter.process(tree)
+        tree, before_clauses, _ = rewriter.process(tree)
         exp_tree = L.Parser.pe('TUP1FFabc')
-        exp_clauses = L.Parser.pe('''{None
+        exp_before_clauses = L.Parser.pe('''{None
             for (Fab, FFabc) in F(c)
             for (TUP1FFabc, FFabc) in TUP()
             }''').clauses
         self.assertEqual(tree, exp_tree)
-        self.assertSequenceEqual(clauses, exp_clauses)
+        self.assertSequenceEqual(before_clauses, exp_before_clauses)
         
         # Don't rewrite subqueries.
         orig_tree = L.VarsMember(['x'], L.Parser.pe('''
             QUERY('Q1', {p.f for p in S})
             '''))
-        tree, _clauses = ReplaceableRewriterBase.run(orig_tree, *self.namers)
+        tree, _, _ = ReplaceableRewriterBase.run(orig_tree, *self.namers)
         self.assertEqual(tree, orig_tree)
     
     def test_replaceablerewriter(self):
@@ -58,13 +58,13 @@ class ClauseCase(unittest.TestCase):
         
         # Membership clause, transform.
         tree = L.Member(L.Parser.pe('o.f'), L.Name('s'))
-        tree, _clauses = rewriter.process(tree)
+        tree, _, _ = rewriter.process(tree)
         exp_tree = L.Member(L.Name('Fof'), L.Name('s'))
         self.assertEqual(tree, exp_tree)
         
         # Expression, don't transform.
         tree = L.Parser.pe('(o.f,)')
-        tree, _clauses = rewriter.process(tree)
+        tree, _, _ = rewriter.process(tree)
         exp_tree = L.Parser.pe('(Fof,)')
         self.assertEqual(tree, exp_tree)
     

@@ -255,18 +255,16 @@ def tree_size(tree):
 
 
 def rewrite_comp(comp, rewriter, *,
-                 after=False, member_only=False, recursive=False,
+                 member_only=False, recursive=False,
                  resexp=True):
     """Helper for rewriting a Comp node. Rewriter is applied to each
     clause in turn and then to the result expression. Each time it
-    returns a pair of a replacement AST (a clause, or for the result
-    expression, an expression) and a list of new clauses to be inserted
-    in the comprehension. The new Comp node is returned.
-    
-    If after is True, the new clauses are inserted after the clause
-    being processed, otherwise they are inserted before. Clauses
-    inserted for the result expression are always appended to the end of
-    the clause list.
+    is applied to a clause, it returns a triple of the replacement
+    clause's AST, and two lists of new clauses to be inserted
+    respectively before and after this clause. When it is applied to
+    the result expression, the return value is the same, except it is
+    an expression AST and the two clause lists are both appended to
+    the end of the comprehension's clause list.
     
     If member_only is True, only membership clauses will be processed,
     not condition clauses or the result expression. Separately, if
@@ -284,7 +282,7 @@ def rewrite_comp(comp, rewriter, *,
     def rewriter(clause):
         result = orig_rewriter(clause)
         if result is None:
-            return clause, []
+            return clause, [], []
         else:
             return result
     
@@ -297,15 +295,13 @@ def rewrite_comp(comp, rewriter, *,
                 result.append(cl)
                 continue
             
-            clause, inserted_clauses = rewriter(cl)
+            clause, before_clauses, after_clauses = rewriter(cl)
             
             if recursive:
-                inserted_clauses = process(inserted_clauses)
+                before_clauses = process(before_clauses)
+                after_clauses = process(after_clauses)
             
-            if after:
-                clauses = [clause] + inserted_clauses
-            else:
-                clauses = inserted_clauses + [clause]
+            clauses = before_clauses + [clause] + after_clauses
             result.extend(clauses)
         
         return result
@@ -316,9 +312,10 @@ def rewrite_comp(comp, rewriter, *,
     if member_only or not resexp:
         new_resexp = comp.resexp
     else:
-        new_resexp, extra_clauses = rewriter(comp.resexp)
+        new_resexp, before_clauses, after_clauses = rewriter(comp.resexp)
+        inserted_clauses = before_clauses + after_clauses
         if recursive:
-            extra_clauses = process(extra_clauses)
-        new_clauses.extend(extra_clauses)
+            inserted_clauses = process(inserted_clauses)
+        new_clauses.extend(inserted_clauses)
     
     return comp._replace(resexp=new_resexp, clauses=new_clauses)
