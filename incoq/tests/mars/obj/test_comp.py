@@ -23,28 +23,34 @@ class ClauseCase(unittest.TestCase):
         
         # Test all kinds of expressions.
         tree = L.Parser.pe('a.b + c[(d[e], f)]')
-        tree, before_clauses, _ = rewriter.process(tree)
+        tree, before_clauses, after_clauses = rewriter.process(tree)
         exp_tree = L.Parser.pe('Fab + MAPcTUP2MAPdef')
         exp_before_clauses = L.Parser.pe('''{None
             for (a, Fab) in F(b)
             for (d, e, MAPde) in MAP()
-            for (TUP2MAPdef, MAPde, f) in TUP()
             for (c, TUP2MAPdef, MAPcTUP2MAPdef) in MAP()
+            }''').clauses
+        exp_after_clauses = L.Parser.pe('''{None
+            for (TUP2MAPdef, MAPde, f) in TUP()
             }''').clauses
         self.assertEqual(tree, exp_tree)
         self.assertSequenceEqual(before_clauses, exp_before_clauses)
+        self.assertSequenceEqual(after_clauses, exp_after_clauses)
         
         
         # a.b should already be there from the above run.
         tree = L.Parser.pe('(a.b.c,)')
-        tree, before_clauses, _ = rewriter.process(tree)
+        tree, before_clauses, after_clauses = rewriter.process(tree)
         exp_tree = L.Parser.pe('TUP1FFabc')
         exp_before_clauses = L.Parser.pe('''{None
             for (Fab, FFabc) in F(c)
+            }''').clauses
+        exp_after_clauses = L.Parser.pe('''{None
             for (TUP1FFabc, FFabc) in TUP()
             }''').clauses
         self.assertEqual(tree, exp_tree)
         self.assertSequenceEqual(before_clauses, exp_before_clauses)
+        self.assertSequenceEqual(after_clauses, exp_after_clauses)
         
         # Don't rewrite subqueries.
         orig_tree = L.VarsMember(['x'], L.Parser.pe('''

@@ -72,8 +72,11 @@ class ReplaceableRewriterBase(L.NodeTransformer):
     def visit_Comp(self, node):
         return node
     
-    # The helpers break apart the replaceable node, and return a pair
-    # of the replacement variable name and the new clause.
+    # The helpers break apart the replaceable node, insert the
+    # new clause, and return the replacement variable name.
+    #
+    # Attribute and DictLookup insert the clause to the before list,
+    # Tuple to the after list.
     
     def Attribute_helper(self, node):
         if not isinstance(node.value, L.Name):
@@ -84,7 +87,8 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         
         name = self.field_namer(obj, attr)
         clause = L.FMember(obj, name, node.attr)
-        return name, clause
+        self.before_clauses.append(clause)
+        return name
     
     def DictLookup_helper(self, node):
         if not (isinstance(node.value, L.Name) and
@@ -96,7 +100,8 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         
         name = self.map_namer(map, key)
         clause = L.MAPMember(map, key, name)
-        return name, clause
+        self.before_clauses.append(clause)
+        return name
     
     def Tuple_helper(self, node):
         if not L.is_tuple_of_names(node):
@@ -106,7 +111,8 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         
         name = self.tuple_namer(elts)
         clause = L.TUPMember(name, elts)
-        return name, clause
+        self.after_clauses.append(clause)
+        return name
     
     def replaceable_helper(self, node):
         if node in self.cache:
@@ -118,9 +124,8 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         helper = {L.Attribute: self.Attribute_helper,
                   L.DictLookup: self.DictLookup_helper,
                   L.Tuple: self.Tuple_helper}[node.__class__]
-        new_name, new_clause = helper(node)
+        new_name = helper(node)
         
-        self.before_clauses.append(new_clause)
         self.cache[orig_node] = new_name
         return L.Name(new_name)
     
