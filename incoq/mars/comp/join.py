@@ -8,7 +8,6 @@ an essential part of the incremental transformation.
 
 
 __all__ = [
-    'match_member_cond',
     'match_eq_cond',
     'make_eq_cond',
     
@@ -26,22 +25,6 @@ from incoq.mars.incast import L
 
 from .clause import ClauseVisitor, CoreClauseVisitor
 
-
-member_cond_pattern = L.Cond(L.Compare(L.PatVar('LHS'), L.In(),
-                                       L.Name(L.PatVar('REL'))))
-
-def match_member_cond(tree):
-    """If tree is a condition clause with form <vars> in <rel>, return
-    a pair of a tuple of the vars and the rel. Otherwise return None.
-    """
-    result = L.match(member_cond_pattern, tree)
-    if result is None:
-        return None
-    lhs, rel = result['LHS'], result['REL']
-    if not L.is_tuple_of_names(lhs):
-        return None
-    vars = L.detuplify(lhs)
-    return vars, rel
 
 eq_cond_pattern = L.Cond(L.Compare(L.Name(L.PatVar('LEFT')), L.Eq(),
                                    L.Name(L.PatVar('RIGHT'))))
@@ -170,13 +153,6 @@ class ClauseTools(ClauseVisitor):
         part = Partitioning()
         new_clauses = []
         for cl in comp.clauses:
-            # Convert conditions expressing membership to the
-            # appropriate clause type.
-            result = match_member_cond(cl)
-            if result is not None:
-                vars, rel = result
-                cl = L.RelMember(vars, rel)
-            
             # If it's not an equation condition, emit it to new_clauses
             # and skip.
             result = match_eq_cond(cl)

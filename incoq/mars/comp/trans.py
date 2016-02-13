@@ -10,6 +10,8 @@ __all__ = [
     'incrementalize_comp',
     'expand_maintjoins',
     'rewrite_all_comps_with_patterns',
+    'match_member_cond',
+    'rewrite_all_comp_memberconds',
 ]
 
 
@@ -284,5 +286,45 @@ def rewrite_all_comps_with_patterns(tree, symtab):
             ct = self.symtab.clausetools
             comp = ct.rewrite_with_patterns(expr, symbol.params)
             return comp
+    
+    return Rewriter.run(tree, symtab)
+
+
+member_cond_pattern = L.Cond(L.Compare(L.PatVar('LHS'), L.In(),
+                                       L.Name(L.PatVar('REL'))))
+
+def match_member_cond(tree):
+    """If tree is a condition clause with form <vars> in <rel>, return
+    a pair of a tuple of the vars and the rel. Otherwise return None.
+    """
+    result = L.match(member_cond_pattern, tree)
+    if result is None:
+        return None
+    lhs, rel = result['LHS'], result['REL']
+    if not L.is_tuple_of_names(lhs):
+        return None
+    vars = L.detuplify(lhs)
+    return vars, rel
+
+def rewrite_all_comp_memberconds(tree, symtab):
+    """For each comprehension query that is to be transformed, rewrite
+    all Cond clauses expressing a set membership condition as a Member
+    clause.
+    """
+    class Rewriter(S.QueryRewriter):
+        def rewrite(self, symbol, name, expr):
+            if not isinstance(expr, L.Comp):
+                return
+            if symbol.impl == S.Normal:
+                return
+            
+            new_clauses = []
+            for cl in expr.clauses:
+                result = match_member_cond(cl)
+                if result is not None:
+                    vars, rel = result
+                    cl = L.RelMember(vars, rel)
+                new_clauses.append(cl)
+            return expr._replace(clauses=new_clauses)
     
     return Rewriter.run(tree, symtab)

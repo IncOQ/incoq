@@ -203,6 +203,8 @@ def flatten_memberships(comp):
 def flatten_all_comps(tree, symtab):
     class Rewriter(S.QueryRewriter):
         def rewrite(self, symbol, name, expr):
+            if not isinstance(expr, L.Comp):
+                return
             if symbol.impl is not S.Normal:
                 comp = flatten_replaceables(expr)
                 comp = flatten_memberships(comp)

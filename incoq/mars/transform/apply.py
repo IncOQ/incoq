@@ -19,7 +19,7 @@ from incoq.mars.symbol import S
 from incoq.mars.auxmap import transform_auxmaps
 from incoq.mars.comp import (
     CoreClauseTools, incrementalize_comp, expand_maintjoins,
-    rewrite_all_comps_with_patterns)
+    rewrite_all_comps_with_patterns, rewrite_all_comp_memberconds)
 from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
 
 from .py_rewritings import py_preprocess, py_postprocess
@@ -236,6 +236,10 @@ def transform_ast(input_ast, *, options=None):
     
     if config.verbose:
         debug_symbols(symtab, illtyped, badsyms)
+    
+    # Rewrite membership conditions in all comprehensions that are to
+    # be incrementalized.
+    tree = rewrite_all_comp_memberconds(tree, symtab)
     
     # Before we can transform for demand, we need to know the demand
     # params. Before we can do that, we need to rewrite patterns in
