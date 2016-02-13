@@ -122,7 +122,7 @@ class MAPMemberHandler(RelMemberHandler):
         return N.MAP
     
     def constrained_mask(self, cl):
-        return (False, False, True)
+        return (False, True, True)
     
     def get_priority(self, cl, bindenv):
         mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)

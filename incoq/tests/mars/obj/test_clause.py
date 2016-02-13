@@ -102,7 +102,7 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.lhs_vars(cl), ['m', 'k', 'v'])
         self.assertEqual(v.rhs_rel(cl), '_MAP')
         
-        self.assertSequenceEqual(v.uncon_vars(cl), ['m', 'k'])
+        self.assertSequenceEqual(v.uncon_vars(cl), ['m'])
         
         pri = v.get_priority(cl, ['m', 'k'])
         self.assertEqual(pri, Priority.Constant)
