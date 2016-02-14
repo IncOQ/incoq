@@ -28,6 +28,8 @@ there is a membership clause that does not fit the form of RelMember.
 
 
 __all__ = [
+    'ObjRelations',
+    
     'ReplaceableRewriter',
     'flatten_replaceables',
     'flatten_memberships',
@@ -35,8 +37,18 @@ __all__ = [
 ]
 
 
+from simplestruct import Struct, TypedField
+
 from incoq.mars.incast import L
 from incoq.mars.symbol import S
+
+
+class ObjRelations(Struct):
+    
+    M = TypedField(bool)
+    Fs = TypedField(str, seq=True)
+    MAP = TypedField(bool)
+    TUPs = TypedField(int, seq=True)
 
 
 class ReplaceableRewriterBase(L.NodeTransformer):

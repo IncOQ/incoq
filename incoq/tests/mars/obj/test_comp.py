@@ -1,4 +1,4 @@
-"""Unit tests for clause.py."""
+"""Unit tests for comp.py."""
 
 
 import unittest
