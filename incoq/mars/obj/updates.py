@@ -3,6 +3,7 @@
 
 __all__ = [
     'PairDomainImporter',
+    'PairDomainExporter',
 ]
 
 
@@ -65,3 +66,46 @@ class PairDomainImporter(L.NodeTransformer):
         var = next(self.fresh_vars)
         return (L.Assign(var, pair),
                 L.RelUpdate(N.F(node.attr), L.SetRemove(), var))
+
+
+class PairDomainExporter(L.NodeTransformer):
+    
+    """Transform all special relation updates back to the object domain."""
+    
+    def visit_RelUpdate(self, node):
+        if isinstance(node.op, L.SetAdd):
+            is_add = True
+        elif isinstance(node.op, L.SetRemove):
+            is_add = False
+        else:
+            return
+        rel = node.rel
+        elem = L.Name(node.elem)
+        
+        if N.is_M(rel):
+            set_ = L.Subscript(elem, L.Num(0))
+            value = L.Subscript(elem, L.Num(1))
+            code = (L.SetUpdate(set_, node.op, value),)
+        
+        elif N.is_F(rel):
+            attr = N.get_F(rel)
+            obj = L.Subscript(elem, L.Num(0))
+            value = L.Subscript(elem, L.Num(1))
+            if is_add:
+                code = (L.AttrAssign(obj, attr, value),)
+            else:
+                code = (L.AttrDelete(obj, attr),)
+        
+        elif N.is_MAP(rel):
+            map = L.Subscript(elem, L.Num(0))
+            key = L.Subscript(elem, L.Num(1))
+            value = L.Subscript(elem, L.Num(2))
+            if is_add:
+                code = (L.DictAssign(map, key, value),)
+            else:
+                code = (L.DictDelete(map, key),)
+        
+        else:
+            code = node
+        
+        return code

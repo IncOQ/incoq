@@ -62,6 +62,31 @@ class ClauseCase(unittest.TestCase):
         with self.assertRaises(L.TransformationError):
             tree = L.Parser.pc('d.dictclear()')
             PairDomainImporter.run(tree, fresh_vars, objrels)
+    
+    def test_pairdomainexporter(self):
+        objrels = ObjRelations(True, ['f'], True, [2])
+        tree = L.Parser.p('''
+            def main():
+                R.reladd(a)
+                _M.reladd(_v1)
+                _M.relremove(_v2)
+                _MAP.reladd(_v3)
+                _MAP.relremove(_v4)
+                _F_f.reladd(_v5)
+                _F_f.relremove(_v6)
+            ''')
+        tree = PairDomainExporter.run(tree)
+        exp_tree = L.Parser.p('''
+            def main():
+                R.reladd(a)
+                index(_v1, 0).add(index(_v1, 1))
+                index(_v2, 0).remove(index(_v2, 1))
+                index(_v3, 0)[index(_v3, 1)] = index(_v3, 2)
+                del index(_v4, 0)[index(_v4, 1)]
+                index(_v5, 0).f = index(_v5, 1)
+                del index(_v6, 0).f
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':

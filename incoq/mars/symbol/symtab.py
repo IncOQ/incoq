@@ -65,18 +65,46 @@ class N:
     # Object domain relations.
     
     M = '_M'
+    @classmethod
+    def is_M(cls, name):
+        return name == cls.M
     
+    Fprefix = '_F_'
     @classmethod
     def F(cls, attr):
         assert isinstance(attr, str)
-        return '_F_' + attr
+        return cls.Fprefix + attr
+    @classmethod
+    def is_F(cls, name):
+        return name.startswith(cls.Fprefix)
+    @classmethod
+    def get_F(cls, name):
+        assert cls.is_F(name)
+        return name[len(cls.Fprefix):]
     
     MAP = '_MAP'
+    @classmethod
+    def is_MAP(cls, name):
+        return name == cls.MAP
     
+    TUPprefix = '_TUP_'
     @classmethod
     def TUP(cls, k):
         assert isinstance(k, int)
-        return '_TUP_' + str(k)
+        return cls.TUPprefix + str(k)
+    @classmethod
+    def is_TUP(cls, name):
+        if not name.startswith(cls.TUPprefix):
+            return False
+        try:
+            int(name[len(cls.TUPprefix)])
+        except ValueError:
+            return False
+        return True
+    @classmethod
+    def get_TUP(cls, name):
+        assert cls.is_TUP(name)
+        return int(name[len(cls.TUPprefix):])
 
 
 class SymbolTable:
