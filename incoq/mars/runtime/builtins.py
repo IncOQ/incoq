@@ -200,7 +200,9 @@ class Set(IncOQType, set, ImgLookupMixin):
     # Python-level function introduces noticeable overhead.
     
     def _fmt_helper(self, fmt):
-        return '{' + ', '.join(fmt(item) for item in self) + '}'
+        # Always use repr() on the items, even if we were called as
+        # str(), to conform to the built-in set's behavior.
+        return '{' + ', '.join(repr(item) for item in self) + '}'
     
     # __getstate__() / __setstate__() for set suffice.
     
@@ -231,10 +233,11 @@ class CSet(IncOQType, Counter, ImgLookupMixin):
     
     def _fmt_helper(self, fmt):
         # Include reference counts for str() only.
+        # Always use repr() for the items.
         if fmt is str:
-            return '{' + ', '.join(fmt(item) for item in self) + '}'
+            return '{' + ', '.join(repr(item) for item in self) + '}'
         elif fmt is repr:
-            return ('{' + ', '.join(fmt(item) + ': ' + str(count)
+            return ('{' + ', '.join(repr(item) + ': ' + str(count)
                                     for item, count in self.items()) + '}')
         else:
             assert()

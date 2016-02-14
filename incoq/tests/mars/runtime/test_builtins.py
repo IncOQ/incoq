@@ -59,12 +59,12 @@ class BuiltinsCase(unittest.TestCase):
         exp_r = 'Set({})'
         self.assertEqual(r, exp_r)
         
-        r = repr(Set({5}))
-        exp_r = 'Set({5})'
+        r = repr(Set({'a'}))
+        exp_r = "Set({'a'})"
         self.assertEqual(r, exp_r)
         
-        s = str(Set({5, 6}))
-        exp_s = '{5, 6}'
+        s = str(Set({'a'}))
+        exp_s = "{'a'}"
         self.assertEqual(s, exp_s)
         
         v = Set()
@@ -139,12 +139,12 @@ class BuiltinsCase(unittest.TestCase):
         exp_r = 'CSet({})'
         self.assertEqual(r, exp_r)
         
-        r = repr(CSet({5}))
-        exp_r = 'CSet({5: 1})'
+        r = repr(CSet({'a'}))
+        exp_r = "CSet({'a': 1})"
         self.assertEqual(r, exp_r)
         
-        s = str(CSet({5, 6}))
-        exp_s = '{5, 6}'
+        s = str(CSet('a'))
+        exp_s = "{'a'}"
         self.assertEqual(s, exp_s)
         
         v = CSet()
