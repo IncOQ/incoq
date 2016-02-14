@@ -243,6 +243,16 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.MapClear('M')
         self.assertEqual(tree, exp_tree)
     
+    def test_attrupdates(self):
+        tree = Parser.ps('o.f.g = v')
+        exp_tree = L.AttrAssign(L.Attribute(L.Name('o'), 'f'), 'g',
+                                L.Name('v'))
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.ps('del o.f.g')
+        exp_tree = L.AttrDelete(L.Attribute(L.Name('o'), 'f'), 'g')
+        self.assertEqual(tree, exp_tree)
+    
     def test_subscript(self):
         tree = Parser.pe('index(t, i)')
         exp_tree = L.Subscript(L.Name('t'), L.Name('i'))
@@ -442,6 +452,10 @@ class RoundTripCase(unittest.TestCase):
         self.trip.ps('M.mapassign(k, v)')
         self.trip.ps('M.mapdelete(k)')
         self.trip.ps('M.mapclear()')
+    
+    def test_attrupdates(self):
+        self.trip.ps('o.f.g = v')
+        self.trip.ps('del o.f.g')
     
     def test_getcount(self):
         self.trip.pe('S.getcount(x)')

@@ -405,6 +405,10 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         if not t_map.issmaller(Map(Top, Top)):
             self.mark_bad(node)
     
+    # Attribute handlers not implemented:
+    # visit_AttrAssign
+    # visit_AttrDelete 
+    
     @readonly
     def visit_UnaryOp(self, node, *, type=None):
         # If op == Not:

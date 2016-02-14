@@ -115,6 +115,17 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
                          node.__class__.__name__)
         return node.value, node.slice.value
     
+    def match_attribute(self, node):
+        """Turn an expression o.f into a pair of expression o and
+        identifier f. Note that the given expression may be a chain of
+        field retrievals, in which case only the outermost retrieval is
+        matched; the rest are included in o.
+        """
+        if not isinstance(node, P.Attribute):
+            raise ASTErr('Invalid node where attribute expected: ' +
+                         node.__class__.__name__)
+        return node.value, node.attr
+    
     # Visitors for trivial nodes are auto-generated below
     # the class definition.
     
@@ -142,33 +153,66 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_Delete(self, node):
         if len(node.targets) != 1:
             raise ASTErr('IncAST does not allow multiple deletion')
-        dict, key = self.match_dictlookup(node.targets[0])
-        return L.DictDelete(self.visit(dict), self.visit(key))
+        target = node.targets[0]
+        
+        result = None
+        
+        # Dictionary deletion.
+        if result is None:
+            try:
+                dict, key = self.match_dictlookup(target)
+                result = L.DictDelete(self.visit(dict), self.visit(key))
+            except ASTErr:
+                pass
+        
+        # Attribute deletion.
+        if result is None:
+            try:
+                obj, attr = self.match_attribute(target)
+                result = L.AttrDelete(self.visit(obj), attr)
+            except ASTErr:
+                pass
+        
+        if result is None:
+            raise ASTErr('IncAST deletion does not fit '
+                         'allowed forms') from None
+        
+        return result
     
     def visit_Assign(self, node):
         if len(node.targets) != 1:
             raise ASTErr('IncAST does not allow multiple assignment')
+        target = node.targets[0]
+        value = self.visit(node.value)
         
         result = None
         
         # Simple variable assignment.
-        if isinstance(node.targets[0], P.Name):
-            result = L.Assign(node.targets[0].id, self.visit(node.value))
+        if isinstance(target, P.Name):
+            result = L.Assign(target.id, value)
         
         # Decomposing tuple assignment.
         if result is None:
             try:
-                vars = self.match_store_vars(node.targets[0])
-                result = L.DecompAssign(vars, self.visit(node.value))
+                vars = self.match_store_vars(target)
+                result = L.DecompAssign(vars, value)
             except ASTErr:
                 pass
         
         # Dictionary assignment.
         if result is None:
             try:
-                dict, key = self.match_dictlookup(node.targets[0])
+                dict, key = self.match_dictlookup(target)
                 result = L.DictAssign(self.visit(dict), self.visit(key),
-                                      self.visit(node.value))
+                                      value)
+            except ASTErr:
+                pass
+        
+        # Attribute assignment.
+        if result is None:
+            try:
+                obj, attr = self.match_attribute(target)
+                result = L.AttrAssign(self.visit(obj), attr, value)
             except ASTErr:
                 pass
         
@@ -776,6 +820,16 @@ class IncLangNodeExporter(NodeMapper):
         dict = self.visit(node.target)
         key = self.visit(node.key)
         return P.Delete([P.Subscript(dict, P.Index(key), P.Load())])
+    
+    def visit_AttrAssign(self, node):
+        obj = self.visit(node.obj)
+        value = self.visit(node.value)
+        return P.Assign([P.Attribute(obj, node.attr, P.Load())],
+                        value)
+    
+    def visit_AttrDelete(self, node):
+        obj = self.visit(node.obj)
+        return P.Delete([P.Attribute(obj, node.attr, P.Load())])
     
     def visit_Compare(self, node):
         return P.Compare(self.visit(node.left),

@@ -45,6 +45,9 @@ module IncAST
          | MapAssign(identifier map, identifier key, identifier value)
          | MapDelete(identifier map, identifier key)
          | MapClear(identifier map)
+         
+         | AttrAssign(expr obj, identifier attr, expr value)
+         | AttrDelete(expr obj, identifier attr)
     
     expr = UnaryOp(unaryop op, expr operand)
          | BoolOp(boolop op, expr* values)
