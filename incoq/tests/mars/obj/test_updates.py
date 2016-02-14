@@ -11,9 +11,10 @@ from incoq.mars.obj.updates import *
 
 class ClauseCase(unittest.TestCase):
     
-    def test_pairdomainimporter(self):
+    def test_pairdomainimporter_normal(self):
         objrels = ObjRelations(True, ['f'], True, [2])
         fresh_vars = N.fresh_name_generator()
+        
         tree = L.Parser.p('''
             def main():
                 s.add(e)
@@ -52,6 +53,26 @@ class ClauseCase(unittest.TestCase):
                 _F_f.relremove(_v6)
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_pairdomainimporter_noobjrels(self):
+        objrels = ObjRelations(False, [], False, [])
+        fresh_vars = N.fresh_name_generator()
+        
+        orig_tree = L.Parser.p('''
+            def main():
+                s.add(e)
+                s.remove(e)
+                d[k] = v
+                del d[k]
+                o.f = v
+                del o.f
+            ''')
+        tree = PairDomainImporter.run(orig_tree, fresh_vars, objrels)
+        self.assertEqual(tree, orig_tree)
+    
+    def test_pairdomainimporter_badnodes(self):
+        objrels = ObjRelations(True, ['f'], True, [2])
+        fresh_vars = N.fresh_name_generator()
         
         with self.assertRaises(L.TransformationError):
             tree = L.Parser.pc('s.update(t)')

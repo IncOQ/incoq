@@ -30,6 +30,8 @@ class PairDomainImporter(L.NodeTransformer):
     def visit_SetUpdate(self, node):
         if not isinstance(node.op, (L.SetAdd, L.SetRemove)):
             return
+        if not self.objrels.M:
+            return
         
         pair = L.Tuple([node.target, node.value])
         var = next(self.fresh_vars)
@@ -40,12 +42,18 @@ class PairDomainImporter(L.NodeTransformer):
     visit_SetClear = badnode
     
     def visit_DictAssign(self, node):
+        if not self.objrels.MAP:
+            return
+        
         triple = L.Tuple([node.target, node.key, node.value])
         var = next(self.fresh_vars)
         return (L.Assign(var, triple),
                 L.RelUpdate(N.MAP, L.SetAdd(), var))
     
     def visit_DictDelete(self, node):
+        if not self.objrels.MAP:
+            return
+        
         lookup = L.DictLookup(node.target, node.key, None)
         triple = L.Tuple([node.target, node.key, lookup])
         var = next(self.fresh_vars)
@@ -55,12 +63,18 @@ class PairDomainImporter(L.NodeTransformer):
     visit_DictClear = badnode
     
     def visit_AttrAssign(self, node):
+        if node.attr not in self.objrels.Fs:
+            return
+        
         pair = L.Tuple([node.obj, node.value])
         var = next(self.fresh_vars)
         return (L.Assign(var, pair),
                 L.RelUpdate(N.F(node.attr), L.SetAdd(), var))
     
     def visit_AttrDelete(self, node):
+        if node.attr not in self.objrels.Fs:
+            return
+        
         lookup = L.Attribute(node.obj, node.attr)
         pair = L.Tuple([node.obj, lookup])
         var = next(self.fresh_vars)
