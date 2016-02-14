@@ -148,22 +148,34 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_Assign(self, node):
         if len(node.targets) != 1:
             raise ASTErr('IncAST does not allow multiple assignment')
-        # Try for simple assignment, then decomposing assignment,
-        # then dictionary assignment.
+        
+        result = None
+        
+        # Simple variable assignment.
         if isinstance(node.targets[0], P.Name):
             result = L.Assign(node.targets[0].id, self.visit(node.value))
-        else:
+        
+        # Decomposing tuple assignment.
+        if result is None:
             try:
                 vars = self.match_store_vars(node.targets[0])
                 result = L.DecompAssign(vars, self.visit(node.value))
             except ASTErr:
-                try:
-                    dict, key = self.match_dictlookup(node.targets[0])
-                    result = L.DictAssign(self.visit(dict), self.visit(key),
-                                          self.visit(node.value))
-                except ASTErr:
-                    raise ASTErr('IncAST assignment does not fit '
-                                 'allowed forms') from None
+                pass
+        
+        # Dictionary assignment.
+        if result is None:
+            try:
+                dict, key = self.match_dictlookup(node.targets[0])
+                result = L.DictAssign(self.visit(dict), self.visit(key),
+                                      self.visit(node.value))
+            except ASTErr:
+                pass
+        
+        if result is None:
+            raise ASTErr('IncAST assignment does not fit '
+                         'allowed forms') from None
+        
         return result
     
     def visit_For(self, node):
