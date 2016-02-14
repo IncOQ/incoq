@@ -206,12 +206,15 @@ class SetClearCase(unittest.TestCase):
         tree = L.Parser.p('''
             def main():
                 S.clear()
+                M.dictclear()
             ''')
-        tree = preprocess_setclear(tree, N.fresh_name_generator())
+        tree = preprocess_clear(tree, N.fresh_name_generator())
         exp_tree = L.Parser.p('''
             def main():
                 for _v1 in list(S):
                     S.remove(_v1)
+                for _v2 in list(M):
+                    del M[_v2]
             ''')
         self.assertEqual(tree, exp_tree)
         
@@ -220,7 +223,7 @@ class SetClearCase(unittest.TestCase):
             def main():
                 (1+1).clear()
             ''')
-        tree = preprocess_setclear(tree, N.fresh_name_generator())
+        tree = preprocess_clear(tree, N.fresh_name_generator())
         exp_tree = L.Parser.p('''
             def main():
                 for _v1 in list(1+1):

@@ -17,7 +17,7 @@ __all__ = [
     'preprocess_rels_and_maps',
     'postprocess_rels_and_maps',
     
-    'preprocess_setclear',
+    'preprocess_clear',
     
     'disallow_features',
     
@@ -359,15 +359,21 @@ preprocess_rels_and_maps = RelMapImporter.run
 postprocess_rels_and_maps = RelMapExporter.run
 
 
-clear_template = '''
+setclear_template = '''
 for _ELEM in list(_TARGET):
     _TARGET.remove(_ELEM)
 '''
 
-class SetClearExpander(L.NodeTransformer):
+dictclear_template = '''
+for _ELEM in list(_TARGET):
+    del _TARGET[_ELEM]
+
+'''
+
+class ClearExpander(L.NodeTransformer):
     
-    """Expand SetClear nodes (but not RelClear nodes) into elementary
-    update operations.
+    """Expand SetClear and DictClear nodes (but not RelClear and
+    MapClear nodes) into elementary update operations.
     """
     
     def __init__(self, fresh_vars):
@@ -376,13 +382,20 @@ class SetClearExpander(L.NodeTransformer):
     
     def visit_SetClear(self, node):
         var = next(self.fresh_vars)
-        code = L.Parser.pc(clear_template,
+        code = L.Parser.pc(setclear_template,
+                           subst={'_TARGET': node.target,
+                                  '_ELEM': var})
+        return code
+    
+    def visit_DictClear(self, node):
+        var = next(self.fresh_vars)
+        code = L.Parser.pc(dictclear_template,
                            subst={'_TARGET': node.target,
                                   '_ELEM': var})
         return code
 
 
-preprocess_setclear = SetClearExpander.run
+preprocess_clear = ClearExpander.run
 
 
 class FeatureDisallower(L.NodeVisitor):
@@ -412,8 +425,8 @@ def incast_preprocess(tree, *, fresh_vars, rels, maps, query_name_map):
     # Recognize relation updates.
     tree = preprocess_rels_and_maps(tree, fresh_vars, rels, maps)
     
-    # Expand SetClear.
-    tree = preprocess_setclear(tree, fresh_vars)
+    # Expand SetClear and DictClear.
+    tree = preprocess_clear(tree, fresh_vars)
     
     # Check to make sure certain general-case IncAST nodes
     # aren't used.
