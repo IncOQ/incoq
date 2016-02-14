@@ -37,8 +37,9 @@ __all__ = [
 ]
 
 
-from simplestruct import Struct, TypedField
+from simplestruct import Struct, Field, TypedField
 
+from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
 from incoq.mars.symbol import S
 
@@ -49,6 +50,33 @@ class ObjRelations(Struct):
     Fs = TypedField(str, seq=True)
     MAP = TypedField(bool)
     TUPs = TypedField(int, seq=True)
+    
+    @classmethod
+    def empty(cls):
+        """Return an empty ObjRelations."""
+        return ObjRelations(False, [], False, [])
+    
+    def union(self, other):
+        """Return an ObjRelations value that combines this one with
+        another.
+        """
+        M = self.M or other.M
+        Fs = OrderedSet(self.Fs + other.Fs)
+        MAP = self.MAP or other.MAP
+        TUPs = OrderedSet(self.TUPs + other.TUPs)
+        return ObjRelations(M, Fs, MAP, TUPs)
+
+class MutableObjRelations(Struct):
+    _immutable = False
+    
+    M = Field()
+    Fs = Field()
+    MAP = Field()
+    TUPs = Field()
+    
+    @classmethod
+    def empty(cls):
+        return MutableObjRelations(False, [], False, [])
 
 
 class ReplaceableRewriterBase(L.NodeTransformer):
@@ -60,6 +88,9 @@ class ReplaceableRewriterBase(L.NodeTransformer):
     for each part of a comprehension. A new variable and clause will
     not be emitted if a replaceable expression has already been seen
     in a prior run.
+    
+    The objrels attribute tracks all object relations that have been
+    observed to be needed.
     """
     
     # Make sure to handle replaceables in a post-recursive manner, so
@@ -73,6 +104,9 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         
         self.cache = {}
         """Map from replaceable expression to its replacement variable."""
+        
+        self.objrels = MutableObjRelations.empty()
+        """MutableObjRelations representing what relations are needed."""
     
     def process(self, tree):
         self.before_clauses = []
@@ -85,7 +119,8 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         return node
     
     # The helpers break apart the replaceable node, insert the
-    # new clause, and return the replacement variable name.
+    # new clause, update objrels, and return the replacement variable
+    # name.
     #
     # Attribute and DictLookup insert the clause to the before list,
     # Tuple to the after list.
@@ -99,6 +134,7 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         
         name = self.field_namer(obj, attr)
         clause = L.FMember(obj, name, node.attr)
+        self.objrels.Fs.append(attr)
         self.before_clauses.append(clause)
         return name
     
@@ -112,6 +148,7 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         
         name = self.map_namer(map, key)
         clause = L.MAPMember(map, key, name)
+        self.objrels.MAP |= True
         self.before_clauses.append(clause)
         return name
     
@@ -123,6 +160,7 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         
         name = self.tuple_namer(elts)
         clause = L.TUPMember(name, elts)
+        self.objrels.TUPs.append(len(elts))
         self.after_clauses.append(clause)
         return name
     
@@ -180,7 +218,8 @@ class ReplaceableRewriter(ReplaceableRewriterBase):
 
 def flatten_replaceables(comp):
     """Transform the comprehension to rewrite replaceables and add new
-    clauses for them.
+    clauses for them. Also return an ObjRelations indicating what object
+    relations are needed.
     """
     field_namer = lambda obj, attr: obj + '_' + attr
     map_namer = lambda map, key: map + '_' + key
@@ -189,14 +228,20 @@ def flatten_replaceables(comp):
     rewriter = ReplaceableRewriter(field_namer, map_namer, tuple_namer)
     tree = L.rewrite_comp(comp, rewriter.process)
     
-    return tree
+    # Go from MutableObjRelations to an immutable one.
+    objrels = ObjRelations(*rewriter.objrels)
+    
+    return tree, objrels
 
 
 def flatten_memberships(comp):
     """Transform the comprehension to rewrite set memberships (Member
-    nodes) as MMember clauses.
+    nodes) as MMember clauses. Return an ObjRelations indicating whether
+    an M set is needed.
     """
+    M = False
     def process(clause):
+        nonlocal M
         if isinstance(clause, L.Member):
             if not (isinstance(clause.target, L.Name) and
                     isinstance(clause.iter, L.Name)):
@@ -204,23 +249,33 @@ def flatten_memberships(comp):
                                      .format(clause))
             set_ = clause.iter.id
             elem = clause.target.id
+            M = True
             return L.MMember(set_, elem), [], []
         
         return clause, [], []
     
     tree = L.rewrite_comp(comp, process)
-    return tree
+    objrels = ObjRelations(M, [], False, [])
+    return tree, objrels
 
 
 def flatten_all_comps(tree, symtab):
+    """Flatten all comprehension queries with non-Normal impl. Return
+    the transformed tree and an ObjRelations indicating what new
+    relations are needed.
+    """
+    objrels = ObjRelations.empty()
+    
     class Rewriter(S.QueryRewriter):
         def rewrite(self, symbol, name, expr):
+            nonlocal objrels
             if not isinstance(expr, L.Comp):
                 return
             if symbol.impl is not S.Normal:
-                comp = flatten_replaceables(expr)
-                comp = flatten_memberships(comp)
+                comp, objrels1 = flatten_replaceables(expr)
+                comp, objrels2 = flatten_memberships(comp)
+                objrels = objrels.union(objrels1).union(objrels2)
                 return comp
     
     tree = Rewriter.run(tree, symtab)
-    return tree
+    return tree, objrels

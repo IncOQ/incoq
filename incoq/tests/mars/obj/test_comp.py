@@ -6,7 +6,7 @@ import unittest
 from incoq.mars.incast import L
 from incoq.mars.symbol import S, N
 from incoq.mars.obj.comp import *
-from incoq.mars.obj.comp import ReplaceableRewriterBase
+from incoq.mars.obj.comp import ReplaceableRewriterBase, MutableObjRelations
 
 
 class ClauseCase(unittest.TestCase):
@@ -17,6 +17,13 @@ class ClauseCase(unittest.TestCase):
             lambda m, k: 'MAP' + m + k,
             lambda elts: 'TUP' + str(len(elts)) + ''.join(elts),
         ]
+    
+    def test_objrelations(self):
+        objrels1 = ObjRelations(True, ['f'], False, [2])
+        objrels2 = ObjRelations(False, ['g', 'f'], True, [3])
+        objrels = objrels1.union(objrels2)
+        exp_objrels = ObjRelations(True, ['f', 'g'], True, [2, 3])
+        self.assertEqual(objrels, exp_objrels)
     
     def test_replaceablerewriterbase(self):
         rewriter = ReplaceableRewriterBase(*self.namers)
@@ -52,6 +59,9 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(before_clauses, exp_before_clauses)
         self.assertSequenceEqual(after_clauses, exp_after_clauses)
         
+        exp_objrels = MutableObjRelations(False, ['b', 'c'], True, [2, 1])
+        self.assertEqual(rewriter.objrels, exp_objrels)
+        
         # Don't rewrite subqueries.
         orig_tree = L.VarsMember(['x'], L.Parser.pe('''
             QUERY('Q1', {p.f for p in S})
@@ -76,23 +86,27 @@ class ClauseCase(unittest.TestCase):
     
     def test_flatten_replaceables(self):
         comp = L.Parser.pe('{o.f for o in P.s if m[o] > o.f}')
-        comp = flatten_replaceables(comp)
+        comp, objrels = flatten_replaceables(comp)
         exp_comp = L.Parser.pe('''
             {o_f for (P, P_s) in F(s) for o in P_s
                  for (m, o, m_o) in MAP() for (o, o_f) in F(f)
                  if (m_o > o_f)}
             ''')
+        exp_objrels = ObjRelations(False, ['s', 'f'], True, [])
         self.assertEqual(comp, exp_comp)
+        self.assertEqual(objrels, exp_objrels)
     
     def test_flatten_memberships(self):
         comp = L.Parser.pe('''
             {o_f for o in S for (o, o_f) in F(f) if o_f > 5}
             ''')
-        comp = flatten_memberships(comp)
+        comp, objrels = flatten_memberships(comp)
         exp_comp = L.Parser.pe('''
             {o_f for (S, o) in M() for (o, o_f) in F(f) if o_f > 5}
             ''')
+        exp_objrels = ObjRelations(True, [], False, [])
         self.assertEqual(comp, exp_comp)
+        self.assertEqual(objrels, exp_objrels)
     
     def test_flatten_all_comps(self):
         comp1 = L.Parser.pe('''
@@ -110,14 +124,16 @@ class ClauseCase(unittest.TestCase):
                 print(QUERY('Q2', {x + o.f for o in S
                     for (x,) in VARS(QUERY('Q1', {(z,) for z in T}))}))
             ''')
-        tree = flatten_all_comps(tree, symtab)
+        tree, objrels = flatten_all_comps(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
                 print(QUERY('Q2', {(x + o_f) for (S, o) in M()
                     for (x,) in VARS(QUERY('Q1', {(z,) for (T, z) in M()}))
                     for (o, o_f) in F(f)}))
             ''')
+        exp_objrels = ObjRelations(True, ['f'], False, [])
         self.assertEqual(tree, exp_tree)
+        self.assertEqual(objrels, exp_objrels)
     
     def test_flatten_all_comps_impl(self):
         # Ignore queries with Normal impl.
@@ -136,13 +152,15 @@ class ClauseCase(unittest.TestCase):
                 print(QUERY('Q2', {x + o.f for o in S
                     for (x,) in VARS(QUERY('Q1', {(z,) for z in T}))}))
             ''')
-        tree = flatten_all_comps(tree, symtab)
+        tree, objrels = flatten_all_comps(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
                 print(QUERY('Q2', {x + o.f for o in S
                     for (x,) in VARS(QUERY('Q1', {(z,) for (T, z) in M()}))}))
             ''')
+        exp_objrels = ObjRelations(True, [], False, [])
         self.assertEqual(tree, exp_tree)
+        self.assertEqual(objrels, exp_objrels)
 
 
 if __name__ == '__main__':
