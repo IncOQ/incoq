@@ -12,6 +12,8 @@ module IncAST
            -- Python strips comments during lexing.
            -- We keep it in the AST.
          
+         | Assert(expr test)
+         
          | Return(expr? value)
          
            -- Loops have no else clause.

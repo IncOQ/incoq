@@ -243,6 +243,11 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         return L.While(self.visit(node.test),
                        self.visit(node.body))
     
+    def visit_Assert(self, node):
+        if node.msg is not None:
+            raise ASTErr('IncAST does not allow msg for assert')
+        return L.Assert(self.visit(node.test))
+    
     def visit_SetComp(self, node):
         clauses = []
         for gen in node.generators:
@@ -786,6 +791,9 @@ class IncLangNodeExporter(NodeMapper):
         return P.Expr(P.Call(self.name_helper('COMMENT'),
                              [P.Str(node.text)],
                              [], None, None))
+    
+    def visit_Assert(self, node):
+        return P.Assert(self.visit(node.test), None)
     
     def visit_For(self, node):
         target = self.name_helper(node.target)

@@ -165,6 +165,11 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.DecompAssign(['a'], L.Name('c'))
         self.assertEqual(tree, exp_tree)
     
+    def test_assert(self):
+        tree = Parser.ps('assert t')
+        exp_tree = L.Assert(L.Name('t'))
+        self.assertEqual(tree, exp_tree)
+    
     def test_setupdates(self):
         tree = Parser.ps('S.add(x)')
         exp_tree = L.SetUpdate(L.Name('S'), L.SetAdd(), L.Name('x'))
@@ -419,6 +424,9 @@ class RoundTripCase(unittest.TestCase):
             def f(a, b):
                 print(a, b)
             ''')
+    
+    def test_assert(self):
+        self.trip.ps('assert t')
     
     def test_loops(self):
         self.trip.ps('for x in S: continue')
