@@ -21,6 +21,9 @@ from incoq.mars.comp import (
     CoreClauseTools, incrementalize_comp, expand_maintjoins,
     rewrite_all_comps_with_patterns, rewrite_all_comp_memberconds)
 from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
+from incoq.mars.obj import (ObjClauseVisitor, flatten_all_comps,
+                            PairDomainImporter, PairDomainExporter,
+                            define_obj_relations)
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
@@ -28,6 +31,10 @@ from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
                              transform_demand)
 from .misc_rewritings import relationalize_comp_queries
+
+
+class ObjClauseTools(CoreClauseTools, ObjClauseVisitor):
+    pass
 
 
 def debug_symbols(symtab, illtyped, badsyms):
@@ -229,7 +236,6 @@ def transform_ast(input_ast, *, options=None):
     config.update(**options)
     
     symtab = S.SymbolTable()
-    symtab.clausetools = CoreClauseTools()
     tree = preprocess_tree(tree, symtab, config)
     
     illtyped, badsyms = symtab.run_type_inference(tree)
@@ -240,6 +246,16 @@ def transform_ast(input_ast, *, options=None):
     # Rewrite membership conditions in all comprehensions that are to
     # be incrementalized.
     tree = rewrite_all_comp_memberconds(tree, symtab)
+    
+    # Rewrite in the pair-domain, if the program is object-domain.
+    if config.obj:
+        tree, objrels = flatten_all_comps(tree, symtab)
+        tree = PairDomainImporter.run(tree, symtab.fresh_names.vars, objrels)
+        symtab.objrels = objrels
+        define_obj_relations(symtab, objrels)
+        symtab.clausetools = ObjClauseTools()
+    else:
+        symtab.clausetools = CoreClauseTools()
     
     # Before we can transform for demand, we need to know the demand
     # params. Before we can do that, we need to rewrite patterns in
@@ -272,6 +288,9 @@ def transform_ast(input_ast, *, options=None):
     
     # Incrementalize image-set lookups with auxiliary maps.
     tree = transform_auxmaps(tree, symtab)
+    
+    if config.obj:
+        tree = PairDomainExporter.run(tree)
     
     if config.unwrap_singletons:
         tree, rel_names = unwrap_singletons(tree, symtab)

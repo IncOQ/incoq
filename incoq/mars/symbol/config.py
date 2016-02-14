@@ -51,6 +51,10 @@ all_attributes = [
         'print transformation information to standard output',
         {'action': 'store_true'}),
     
+    ConfigAttribute('obj', False,
+        'whether or not the program is in the object-domain',
+        {'action': 'store_true'}),
+    
     ConfigAttribute('unwrap_singletons', False,
         'rewrite singleton relations to eliminate unneeded tuples',
         {'action': 'store_true'})

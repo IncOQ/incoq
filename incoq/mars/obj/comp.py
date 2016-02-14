@@ -34,6 +34,8 @@ __all__ = [
     'flatten_replaceables',
     'flatten_memberships',
     'flatten_all_comps',
+    
+    'define_obj_relations',
 ]
 
 
@@ -41,7 +43,8 @@ from simplestruct import Struct, Field, TypedField
 
 from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
-from incoq.mars.symbol import S
+from incoq.mars.type import T
+from incoq.mars.symbol import S, N
 
 
 class ObjRelations(Struct):
@@ -279,3 +282,18 @@ def flatten_all_comps(tree, symtab):
     
     tree = Rewriter.run(tree, symtab)
     return tree, objrels
+
+
+def define_obj_relations(symtab, objrels):
+    """Define object relations in the symbol table."""
+    pairset = T.Set(T.Tuple([T.Top, T.Top]))
+    tripleset = T.Set(T.Tuple([T.Top, T.Top, T.Top]))
+    if objrels.M:
+        symtab.define_relation(N.M, type=pairset)
+    for attr in objrels.Fs:
+        symtab.define_relation(N.F(attr), type=pairset)
+    if objrels.MAP:
+        symtab.define_relation(N.MAP, type=pairset)
+    for arity in objrels.TUPs:
+        t = T.Set(T.Tuple([T.Top] * (len(arity) + 1)))
+        symtab.define_relation(N.TUP(arity), type=t)
