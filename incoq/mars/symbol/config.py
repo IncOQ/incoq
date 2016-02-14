@@ -51,7 +51,7 @@ all_attributes = [
         'print transformation information to standard output',
         {'action': 'store_true'}),
     
-    ConfigAttribute('obj', False,
+    ConfigAttribute('obj_domain', False,
         'whether or not the program is in the object-domain',
         {'action': 'store_true'}),
     

@@ -248,7 +248,7 @@ def transform_ast(input_ast, *, options=None):
     tree = rewrite_all_comp_memberconds(tree, symtab)
     
     # Rewrite in the pair-domain, if the program is object-domain.
-    if config.obj:
+    if config.obj_domain:
         tree, objrels = flatten_all_comps(tree, symtab)
         tree = PairDomainImporter.run(tree, symtab.fresh_names.vars, objrels)
         symtab.objrels = objrels
@@ -289,7 +289,7 @@ def transform_ast(input_ast, *, options=None):
     # Incrementalize image-set lookups with auxiliary maps.
     tree = transform_auxmaps(tree, symtab)
     
-    if config.obj:
+    if config.obj_domain:
         tree = PairDomainExporter.run(tree)
     
     if config.unwrap_singletons:
