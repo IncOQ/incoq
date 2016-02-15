@@ -121,9 +121,13 @@ def preprocess_tree(tree, symtab, config):
         else:
             assert()
     
-    # Create query names for parsed query info.
-    query_name_map = {q: next(symtab.fresh_names.queries)
-                      for q, _ in info.query_info}
+    # Create query names for parsed query info, and note the attributes.
+    query_name_map = {}
+    query_name_attrs = {}
+    for q, d in info.query_info:
+        name = next(symtab.fresh_names.queries)
+        query_name_map[q] = name
+        query_name_attrs[name] = d
     
     # Continue preprocessing.
     # Maps in the input program aren't currently handled.
@@ -141,6 +145,8 @@ def preprocess_tree(tree, symtab, config):
     for d in info.config_info:
         config.update(**d)
     for name, d in info.symconfig_info:
+        symtab.apply_symconfig(name, d)
+    for name, d in query_name_attrs.items():
         symtab.apply_symconfig(name, d)
     
     # Make symbols for non-relation, non-map variables.
