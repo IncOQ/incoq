@@ -4,6 +4,7 @@
 import unittest
 
 from incoq.mars.incast import L
+from incoq.mars.type import T
 from incoq.mars.symbol import S, N
 from incoq.mars.obj.comp import *
 from incoq.mars.obj.comp import ReplaceableRewriterBase, MutableObjRelations
@@ -161,6 +162,28 @@ class ClauseCase(unittest.TestCase):
         exp_objrels = ObjRelations(True, [], False, [])
         self.assertEqual(tree, exp_tree)
         self.assertEqual(objrels, exp_objrels)
+    
+    def test_rewrite_aggregates(self):
+        symtab = S.SymbolTable()
+        aggr = L.Parser.pe('sum(s)')
+        symtab.define_query('Q', node=aggr, impl=S.Inc)
+        symtab.define_var('s', type=T.Set(T.Number))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', sum(s)))
+            ''')
+        tree = rewrite_aggregates(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', sum(QUERY('Q_oper', {(_v1,) for _v1 in s}))))
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        t = symtab.get_queries()['Q_oper'].type
+        exp_t = T.Set(T.Tuple([T.Number]))
+        self.assertEqual(t, exp_t)
+        
+        self.assertEqual(symtab.get_queries()['Q_oper'].impl, S.Inc)
 
 
 if __name__ == '__main__':

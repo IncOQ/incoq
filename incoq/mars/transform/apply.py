@@ -23,7 +23,7 @@ from incoq.mars.comp import (
 from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
 from incoq.mars.obj import (ObjClauseVisitor, flatten_all_comps,
                             PairDomainImporter, PairDomainExporter,
-                            define_obj_relations)
+                            define_obj_relations, rewrite_aggregates)
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
@@ -255,6 +255,7 @@ def transform_ast(input_ast, *, options=None):
     
     # Rewrite in the pair-domain, if the program is object-domain.
     if config.obj_domain:
+        tree = rewrite_aggregates(tree, symtab)
         tree, objrels = flatten_all_comps(tree, symtab)
         tree = PairDomainImporter.run(tree, symtab.fresh_names.vars, objrels)
         symtab.objrels = objrels

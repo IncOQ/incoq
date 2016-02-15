@@ -36,6 +36,8 @@ __all__ = [
     'flatten_all_comps',
     
     'define_obj_relations',
+    
+    'rewrite_aggregates',
 ]
 
 
@@ -297,3 +299,40 @@ def define_obj_relations(symtab, objrels):
     for arity in objrels.TUPs:
         t = T.Set(T.Tuple([T.Top] * (len(arity) + 1)))
         symtab.define_relation(N.TUP(arity), type=t)
+
+
+def rewrite_aggregates(tree, symtab):
+    """Rewrite all incrementalizable aggregate queries whose operand is
+    not a relation or a subquery, such that the operand is now a
+    comprehension subquery.
+    """
+    class Rewriter(S.QueryRewriter):
+        def rewrite(self, symbol, name, expr):
+            if not isinstance(expr, L.Aggr):
+                return
+            if symbol.impl is S.Normal:
+                return
+            operand = expr.value
+            
+            if (isinstance(operand, L.Name) and
+                operand.id in symtab.get_relations()):
+                return
+            if isinstance(operand, L.Query):
+                return
+            
+            oper_name = symbol.name + '_oper'
+            elem = next(symtab.fresh_names.vars)
+            t_oper_orig = symtab.analyze_expr_type(operand)
+            assert isinstance(t_oper_orig, T.Set)
+            t_oper = T.Set(T.Tuple([t_oper_orig.elt]))
+            
+            comp = L.Comp(L.Tuple([L.Name(elem)]),
+                          [L.Member(L.Name(elem), operand)])
+            oper_query = L.Query(oper_name, comp)
+            symtab.define_query(oper_name, node=comp, type=t_oper,
+                                impl=symbol.impl)
+            expr = expr._replace(value=oper_query)
+            return expr
+    
+    tree = Rewriter.run(tree, symtab)
+    return tree

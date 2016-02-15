@@ -155,6 +155,7 @@ class MinMaxHandler(AggrOpHandler):
     
     def result_type(self, t_oper):
         t_oper = t_oper.join(T.Set(T.Bottom))
+        assert t_oper.issmaller(T.Set(T.Top))
         return t_oper.elt
 
 class MinHandler(MinMaxHandler):
