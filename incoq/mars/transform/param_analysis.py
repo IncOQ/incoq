@@ -8,7 +8,7 @@ __all__ = [
     'make_demand_query',
     
     'ScopeBuilder',
-    'CompContextTracker',
+    'ContextTracker',
     
     'ParamAnalyzer',
     'DemandParamAnalyzer',
@@ -229,15 +229,19 @@ class ScopeBuilder(L.NodeVisitor):
         self.generic_visit(node)
 
 
-class CompContextTracker(L.NodeTransformer):
+class ContextTracker(L.NodeTransformer):
     
-    """Mixin for tracking what clauses we have already seen while
-    processing a transformable comprehension query. A subclass can
-    access this list by calling get_left_clauses().
+    """Mixin for tracking what clauses form the context for inner
+    queries. A subclass can access this list by calling
+    get_left_clauses().
     
-    Comprehensions that are not the immediate child of a Query node,
-    and comprehensions whose impl attribute is Normal, are not tracked
-    in this manner.
+    For comprehensions, an inner query's context consists of the
+    clauses appearing to the left of its occurrence in the outer query.
+    For aggregates (AggrRestr nodes only), the context is a single
+    clause over the restriction set.
+    
+    Queries whose impl attribute is Normal are not tracked in this
+    manner.
     """
     
     def __init__(self, symtab):
@@ -245,42 +249,43 @@ class CompContextTracker(L.NodeTransformer):
         self.symtab = symtab
     
     def process(self, tree):
-        self.comp_stack = []
+        self.context_stack = []
         """Each stack entry corresponds to a level of nesting of a
         Query node for a comprehension whose impl is not Normal.
-        The value of each entry is a list of the clauses at that
-        level that have already been fully processed.
+        The value of each entry is a list of the clauses at that level
+        that have already been fully processed (for a Comp node) or a
+        clause over a restriction set (for an AggrRestr node).
         """
-        self.push_next_comp = False
-        """Flag indicating whether the next call to visit_Comp should
-        affect the comp stack. This is set when we are in the Query node
-        just before we recurse. It helps us distinguish transformable
-        comprehension queries from non-transformable ones and stray
-        non-Query Comp nodes.
+        self.enter_query_flag = False
+        """Flag indicating whether the next call to visit_Comp or
+        visit_AggrRestr should affect the context stack. This is set
+        when we are in the Query node just before we recurse. It helps
+        us distinguish transformable queries from non-transformable
+        ones and stray non-Query Comp nodes.
         """
         
         tree = super().process(tree)
         
-        assert len(self.comp_stack) == 0
+        assert len(self.context_stack) == 0
         return tree
     
-    def push_comp(self):
-        self.comp_stack.append([])
+    def push_context(self):
+        self.context_stack.append([])
     
-    def pop_comp(self):
-        self.comp_stack.pop()
+    def pop_context(self):
+        self.context_stack.pop()
     
     def add_clause(self, cl):
-        if len(self.comp_stack) > 0:
-            self.comp_stack[-1].append(cl)
+        if len(self.context_stack) > 0:
+            self.context_stack[-1].append(cl)
     
     def get_left_clauses(self):
         """Get the sequence of clauses to the left of the current
         containing comprehension query, or None if there is no such
         query.
         """
-        if len(self.comp_stack) > 0:
-            return tuple(self.comp_stack[-1])
+        if len(self.context_stack) > 0:
+            return tuple(self.context_stack[-1])
         else:
             return None
     
@@ -295,11 +300,11 @@ class CompContextTracker(L.NodeTransformer):
         return node._replace(resexp=resexp, clauses=clauses)
     
     def visit_Comp(self, node):
-        if self.push_next_comp:
-            self.push_next_comp = False
-            self.push_comp()
+        if self.enter_query_flag:
+            self.enter_query_flag = False
+            self.push_context()
             node = self.comp_visit_helper(node)
-            self.pop_comp()
+            self.pop_context()
         else:
             node = self.generic_visit(node)
         return node
@@ -308,7 +313,7 @@ class CompContextTracker(L.NodeTransformer):
         query_sym = self.symtab.get_queries()[node.name]
         if (isinstance(node.query, L.Comp) and
             query_sym.impl != S.Normal):
-            self.push_next_comp = True
+            self.enter_query_flag = True
         
         return self.generic_visit(node)
 
@@ -360,12 +365,12 @@ class ParamAnalyzer(L.NodeVisitor):
         self.generic_visit(node)
 
 
-class DemandParamAnalyzer(CompContextTracker):
+class DemandParamAnalyzer(ContextTracker):
     
     """Annotate all query symbols with demand_params attribute info."""
     
     # This is written as a NodeTransformer so that we can use
-    # CompContextTracker without having to make a NodeVisitor version
+    # ContextTracker without having to make a NodeVisitor version
     # of it, but we don't actually modify the tree at all.
     
     # We work on queries innermost-first so that at the time we process
@@ -430,7 +435,7 @@ class DemandParamAnalyzer(CompContextTracker):
             self.determine_demand_params(node)
 
 
-class DemandTransformer(CompContextTracker):
+class DemandTransformer(ContextTracker):
     
     """Modify each query appearing in the tree to add demand. For
     comprehensions, this means adding a new clause, while for
@@ -517,7 +522,7 @@ class DemandTransformer(CompContextTracker):
             node = L.AggrRestr(node.op, node.value, demand_params, dem_node)
         else:
             raise AssertionError('No rule for handling demand for {} node'
-                                 .format(query.node.__class__.__name__))
+                                 .format(node.__class__.__name__))
         
         return node
     

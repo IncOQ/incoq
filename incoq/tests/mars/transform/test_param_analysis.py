@@ -105,9 +105,9 @@ class ParamAnalysisCase(unittest.TestCase):
         # Check the contents of the scopes.
         self.assertCountEqual(scopes, exp_scopes)
     
-    def test_comp_context_tracker(self):
+    def test_context_tracker(self):
         _self = self
-        class Tracker(CompContextTracker):
+        class Tracker(ContextTracker):
             def process(self, tree):
                 orig_tree = tree
                 self.result = []
@@ -162,6 +162,35 @@ class ParamAnalysisCase(unittest.TestCase):
                                                         if B})))
                 '''))),
             None
+        ]
+        self.assertEqual(result, exp_result)
+    
+    def test_context_tracker_aggr(self):
+        _self = self
+        class Tracker(ContextTracker):
+            def process(self, tree):
+                orig_tree = tree
+                self.result = []
+                tree = super().process(tree)
+                _self.assertEqual(tree, orig_tree)
+                return self.result
+            def visit_Name(self, node):
+                if node.id == 'B':
+                    self.result.append(self.get_left_clauses())
+        
+        aggr = L.Parser.pe('''
+            count(QUERY('Q1', B))
+            ''')
+        symtab = S.SymbolTable()
+        query_sym1 = symtab.define_query('Q1', node=aggr,
+                                         impl=S.Inc)
+        tree = L.Parser.p('''
+            def main():
+                print(count(QUERY('Q1', B)))
+            ''')
+        result = Tracker.run(tree, symtab)
+        exp_result = [
+            (L.RelMember(('z',), 'S'),),
         ]
         self.assertEqual(result, exp_result)
     
