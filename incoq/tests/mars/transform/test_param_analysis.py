@@ -179,18 +179,18 @@ class ParamAnalysisCase(unittest.TestCase):
                     self.result.append(self.get_left_clauses())
         
         aggr = L.Parser.pe('''
-            count(QUERY('Q1', B))
+            count(B)
             ''')
         symtab = S.SymbolTable()
         query_sym1 = symtab.define_query('Q1', node=aggr,
                                          impl=S.Inc)
         tree = L.Parser.p('''
             def main():
-                print(count(QUERY('Q1', B)))
+                print(QUERY('Q1', count(B, (x,), U)))
             ''')
         result = Tracker.run(tree, symtab)
         exp_result = [
-            (L.RelMember(('z',), 'S'),),
+            (L.VarsMember(('x',), L.Name('U')),),
         ]
         self.assertEqual(result, exp_result)
     
@@ -446,8 +446,9 @@ class ParamAnalysisCase(unittest.TestCase):
                       QUERY('Q3', {z for (y,) in REL(_U_Q3) for (z,) in REL(S)
                                      if (z > QUERY('Q2', count(QUERY('Q1',
                       {(x,) for (y,) in VARS(QUERY('_QU_Q1',
-                          {(_v2y,) for (_v2y,) in REL(_U_Q3)
-                                   for (_v2z,) in REL(S)}))
+                          {(_v2y,) for (_v2y,) in VARS(QUERY('_QU_Q2',
+                                       {(_v1y,) for (_v1y,) in REL(_U_Q3)
+                                       for (_v1z,) in REL(S)}))}))
                             for (x,) in REL(R) if x > y}),
                       (y,),
                       QUERY('_QU_Q2', {(_v1y,) for (_v1y,) in REL(_U_Q3)

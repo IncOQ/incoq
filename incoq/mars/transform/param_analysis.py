@@ -290,7 +290,7 @@ class ContextTracker(L.NodeTransformer):
             return None
     
     def comp_visit_helper(self, node):
-        """Visit while marking clauses in the comp stack."""
+        """Visit while marking clauses in the context stack."""
         clauses = []
         for cl in node.clauses:
             cl = self.visit(cl)
@@ -309,9 +309,26 @@ class ContextTracker(L.NodeTransformer):
             node = self.generic_visit(node)
         return node
     
+    def aggr_visit_helper(self, node):
+        """Visit after setting a context for the restriction set."""
+        cl = L.VarsMember(node.params, node.restr)
+        self.add_clause(cl)
+        node = self.generic_visit(node)
+        return node
+    
+    def visit_AggrRestr(self, node):
+        if self.enter_query_flag:
+            self.enter_query_flag = False
+            self.push_context()
+            node = self.aggr_visit_helper(node)
+            self.pop_context()
+        else:
+            node = self.generic_visit(node)
+        return node
+    
     def visit_Query(self, node):
         query_sym = self.symtab.get_queries()[node.name]
-        if (isinstance(node.query, L.Comp) and
+        if (isinstance(node.query, (L.Comp, L.AggrRestr)) and
             query_sym.impl != S.Normal):
             self.enter_query_flag = True
         
