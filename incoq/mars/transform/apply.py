@@ -27,6 +27,7 @@ from incoq.mars.obj import (ObjClauseVisitor, flatten_all_comps,
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
+from .misc_rewritings import rewrite_vars_clauses
 from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
                              transform_demand)
@@ -262,6 +263,7 @@ def transform_ast(input_ast, *, options=None):
         symtab.clausetools = ObjClauseTools()
     else:
         symtab.clausetools = CoreClauseTools()
+        tree = rewrite_vars_clauses(tree, symtab)
     
     # Before we can transform for demand, we need to know the demand
     # params. Before we can do that, we need to rewrite patterns in

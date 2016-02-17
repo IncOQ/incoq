@@ -85,7 +85,7 @@ class ClauseCase(unittest.TestCase):
             def main():
                 {x for (x, y) in S for (x, y) in REL(R)
                    for (x, y) in SING(e) for (x, y) in WITHOUT(R, e)
-                   for (x, y) in VARS(QUERY('Q', 1 + 1))}
+                   for (x, y) in QUERY('Q', 1 + 1)}
             ''')
         self.assertEqual(tree, exp_tree)
         

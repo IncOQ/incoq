@@ -1,11 +1,11 @@
 # Q1 : {(a,) for (a, a) in REL(S)} : {(Number)}
-# Q2 : {(v,) for (v,) in VARS(R_Q1) if (v > 1)} : {(Number)}
+# Q2 : {(v,) for (v,) in VARS(R_Q1) if (v > 1)} : {(Bottom)}
 from incoq.mars.runtime import *
 # S : {(Number, Number)}
 S = Set()
 # R_Q1 : {(Number)}
 R_Q1 = CSet()
-# R_Q2 : {(Number)}
+# R_Q2 : {(Bottom)}
 R_Q2 = CSet()
 def _maint_R_Q2_for_R_Q1_add(_elem):
     (_v4_v,) = _elem
