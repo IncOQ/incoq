@@ -193,7 +193,7 @@ def main():
         _maint_R_Q1_for_S_add(_v1)
     k = 2
     j = 4
-    print(sorted(((_demand_Q2((k, j)) or True) and R_Q2_bbu.get((k, j), Set()).unwrap())))
+    print(sorted(((_demand_Q2((k, j)) or True) and R_Q2_bbu.get((k, j), Set()))))
 
 if (__name__ == '__main__'):
     main()

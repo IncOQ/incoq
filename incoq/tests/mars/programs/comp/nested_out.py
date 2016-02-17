@@ -50,7 +50,7 @@ def main():
         _v1 = (x, y)
         S.add(_v1)
         _maint_R_Q1_for_S_add(_v1)
-    print(sorted(R_Q2.unwrap()))
+    print(sorted(R_Q2))
 
 if (__name__ == '__main__'):
     main()

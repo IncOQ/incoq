@@ -70,7 +70,7 @@ def main():
     _v2 = (1,)
     R.add(_v2)
     _maint_R_Q_for_R_add(_v2)
-    print(sorted(R_Q.unwrap()))
+    print(sorted(R_Q))
 
 if (__name__ == '__main__'):
     main()

@@ -16,8 +16,8 @@ def main():
         S.add((x,))
     k = 2
     j = 4
-    print(sorted(QUERY('Q2', {b for (b,) in QUERY('Q1', {(a,) for (a,) in S
-                                                              if a >= k})
+    print(sorted(QUERY('Q2', {(b,) for (b,) in QUERY('Q1',
+                                   {(a,) for (a,) in S if a >= k})
                                 if b <= j})))
 
 if __name__ == '__main__':

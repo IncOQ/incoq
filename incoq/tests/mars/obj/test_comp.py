@@ -109,13 +109,22 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(comp, exp_comp)
         self.assertEqual(objrels, exp_objrels)
     
+    def test_tuplify_resexp(self):
+        comp = L.Parser.pe('{x for x in s}')
+        symtab = S.SymbolTable()
+        symbol = symtab.define_query('Q', node=comp, type=T.Set(T.Number))
+        comp = tuplify_resexp(symbol, comp)
+        exp_comp = L.Parser.pe('{(x,) for x in s}')
+        self.assertEqual(comp, exp_comp)
+        self.assertEqual(symbol.type, T.Set(T.Tuple([T.Number])))
+    
     def test_flatten_all_comps(self):
         comp1 = L.Parser.pe('''
-            {(z,) for z in T}
+            {z for z in T}
             ''')
         comp2 = L.Parser.pe('''
             {x + o.f for o in S for (x,) in VARS(QUERY('Q1',
-                {(z,) for z in T}))}
+                {z for z in T}))}
             ''')
         symtab = S.SymbolTable()
         symtab.define_query('Q1', node=comp1, impl=S.Inc)
@@ -123,14 +132,15 @@ class ClauseCase(unittest.TestCase):
         tree = L.Parser.p('''
             def main():
                 print(QUERY('Q2', {x + o.f for o in S
-                    for (x,) in VARS(QUERY('Q1', {(z,) for z in T}))}))
+                    for (x,) in VARS(QUERY('Q1', {z for z in T}))}))
             ''')
         tree, objrels = flatten_all_comps(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
-                print(QUERY('Q2', {(x + o_f) for (S, o) in M()
-                    for (x,) in VARS(QUERY('Q1', {(z,) for (T, z) in M()}))
-                    for (o, o_f) in F(f)}))
+                print(QUERY('Q2', {(x + o_f,) for (S, o) in M()
+                    for (x,) in VARS(QUERY('Q1',
+                    {(z,) for (T, z) in M()}).unwrap())
+                    for (o, o_f) in F(f)}).unwrap())
             ''')
         exp_objrels = ObjRelations(True, ['f'], False, [])
         self.assertEqual(tree, exp_tree)
@@ -139,11 +149,11 @@ class ClauseCase(unittest.TestCase):
     def test_flatten_all_comps_impl(self):
         # Ignore queries with Normal impl.
         comp1 = L.Parser.pe('''
-            {(z,) for z in T}
+            {z for z in T}
             ''')
         comp2 = L.Parser.pe('''
             {x + o.f for o in S for (x,) in VARS(QUERY('Q1',
-                {(z,) for z in T}))}
+                {z for z in T}))}
             ''')
         symtab = S.SymbolTable()
         symtab.define_query('Q1', node=comp1, impl=S.Inc)
@@ -151,13 +161,14 @@ class ClauseCase(unittest.TestCase):
         tree = L.Parser.p('''
             def main():
                 print(QUERY('Q2', {x + o.f for o in S
-                    for (x,) in VARS(QUERY('Q1', {(z,) for z in T}))}))
+                    for (x,) in VARS(QUERY('Q1', {z for z in T}))}))
             ''')
         tree, objrels = flatten_all_comps(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
                 print(QUERY('Q2', {x + o.f for o in S
-                    for (x,) in VARS(QUERY('Q1', {(z,) for (T, z) in M()}))}))
+                    for (x,) in VARS(QUERY('Q1',
+                    {(z,) for (T, z) in M()}).unwrap())}))
             ''')
         exp_objrels = ObjRelations(True, [], False, [])
         self.assertEqual(tree, exp_tree)

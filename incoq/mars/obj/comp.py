@@ -33,6 +33,7 @@ __all__ = [
     'ReplaceableRewriter',
     'flatten_replaceables',
     'flatten_memberships',
+    'tuplify_resexp',
     'flatten_all_comps',
     
     'define_obj_relations',
@@ -264,25 +265,52 @@ def flatten_memberships(comp):
     return tree, objrels
 
 
+def tuplify_resexp(symbol, comp):
+    """Wrap the result expression in a singleton tuple. Update the
+    symbol's type.
+    """
+    comp = comp._replace(resexp=L.Tuple([comp.resexp]))
+    t = symbol.type
+    t = t.join(T.Set(T.Bottom))
+    assert t.issmaller(T.Set(T.Top))
+    symbol.type = T.Set(T.Tuple([t.elt]))
+    return comp
+
+
 def flatten_all_comps(tree, symtab):
-    """Flatten all comprehension queries with non-Normal impl. Return
-    the transformed tree and an ObjRelations indicating what new
+    """Flatten all comprehension queries with non-Normal impl. Also
+    tuplify their result expression and wrap with a call to unwrap().
+    Return the transformed tree and an ObjRelations indicating what new
     relations are needed.
     """
     objrels = ObjRelations.empty()
     
-    class Rewriter(S.QueryRewriter):
+    class FlattenRewriter(S.QueryRewriter):
         def rewrite(self, symbol, name, expr):
             nonlocal objrels
             if not isinstance(expr, L.Comp):
                 return
-            if symbol.impl is not S.Normal:
-                comp, objrels1 = flatten_replaceables(expr)
-                comp, objrels2 = flatten_memberships(comp)
-                objrels = objrels.union(objrels1).union(objrels2)
-                return comp
+            if symbol.impl is S.Normal:
+                return
+            
+            comp, objrels1 = flatten_replaceables(expr)
+            comp, objrels2 = flatten_memberships(comp)
+            objrels = objrels.union(objrels1).union(objrels2)
+            return comp
     
-    tree = Rewriter.run(tree, symtab)
+    class TuplifyRewriter(S.QueryRewriter):
+        def rewrite(self, symbol, name, expr):
+            if not isinstance(expr, L.Comp):
+                return
+            if symbol.impl is S.Normal:
+                return
+            
+            expr = tuplify_resexp(symbol, expr)
+            symbol.node = expr
+            return L.Unwrap(L.Query(symbol.name, expr))
+    
+    tree = FlattenRewriter.run(tree, symtab)
+    tree = TuplifyRewriter.run(tree, symtab, expand=True)
     return tree, objrels
 
 
