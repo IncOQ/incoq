@@ -190,12 +190,12 @@ class ClauseCase(unittest.TestCase):
         tree = rewrite_aggregates(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
-                print(QUERY('Q', sum(QUERY('Q_oper', {(_v1,) for _v1 in s}))))
+                print(QUERY('Q', sum(QUERY('Q_oper', {_v1 for _v1 in s}))))
             ''')
         self.assertEqual(tree, exp_tree)
         
         t = symtab.get_queries()['Q_oper'].type
-        exp_t = T.Set(T.Tuple([T.Number]))
+        exp_t = T.Set(T.Number)
         self.assertEqual(t, exp_t)
         
         self.assertEqual(symtab.get_queries()['Q_oper'].impl, S.Inc)

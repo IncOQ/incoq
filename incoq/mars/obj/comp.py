@@ -356,12 +356,10 @@ def rewrite_aggregates(tree, symtab):
             
             oper_name = symbol.name + '_oper'
             elem = next(symtab.fresh_names.vars)
-            t_oper_orig = symtab.analyze_expr_type(operand)
-            assert isinstance(t_oper_orig, T.Set)
-            t_oper = T.Set(T.Tuple([t_oper_orig.elt]))
+            t_oper = symtab.analyze_expr_type(operand)
+            assert isinstance(t_oper, T.Set)
             
-            comp = L.Comp(L.Tuple([L.Name(elem)]),
-                          [L.Member(L.Name(elem), operand)])
+            comp = L.Comp(L.Name(elem), [L.Member(L.Name(elem), operand)])
             oper_query = L.Query(oper_name, comp)
             symtab.define_query(oper_name, node=comp, type=t_oper,
                                 impl=symbol.impl)
