@@ -21,9 +21,8 @@ from incoq.mars.comp import (
     CoreClauseTools, incrementalize_comp, expand_maintjoins,
     rewrite_all_comps_with_patterns, rewrite_all_comp_memberconds)
 from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
-from incoq.mars.obj import (ObjClauseVisitor, flatten_all_comps,
-                            PairDomainImporter, PairDomainExporter,
-                            define_obj_relations, rewrite_aggregates)
+from incoq.mars.obj import (ObjClauseVisitor, flatten_objdomain,
+                            unflatten_objdomain)
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
@@ -255,15 +254,14 @@ def transform_ast(input_ast, *, options=None):
     
     # Rewrite in the pair-domain, if the program is object-domain.
     if config.obj_domain:
-        tree = rewrite_aggregates(tree, symtab)
-        tree, objrels = flatten_all_comps(tree, symtab)
-        tree = PairDomainImporter.run(tree, symtab.fresh_names.vars, objrels)
-        symtab.objrels = objrels
-        define_obj_relations(symtab, objrels)
+        tree = flatten_objdomain(tree, symtab)
         symtab.clausetools = ObjClauseTools()
     else:
-        symtab.clausetools = CoreClauseTools()
+        # Rewrite memberships over subqueries as VARS clauses.
+        # (In the object domain, this would be done differently
+        # due to tuple wrapping/unwrapping.)
         tree = rewrite_vars_clauses(tree, symtab)
+        symtab.clausetools = CoreClauseTools()
     
     # Before we can transform for demand, we need to know the demand
     # params. Before we can do that, we need to rewrite patterns in
@@ -295,7 +293,7 @@ def transform_ast(input_ast, *, options=None):
     tree = transform_auxmaps(tree, symtab)
     
     if config.obj_domain:
-        tree = PairDomainExporter.run(tree)
+        tree = unflatten_objdomain(tree, symtab)
     
     if config.unwrap_singletons:
         tree, rel_names = unwrap_singletons(tree, symtab)
