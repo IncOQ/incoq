@@ -242,21 +242,33 @@ def flatten_replaceables(comp):
 
 def flatten_memberships(comp):
     """Transform the comprehension to rewrite set memberships (Member
-    nodes) as MMember clauses. Return an ObjRelations indicating whether
-    an M set is needed.
+    nodes) as MMember clauses, and clauses over unwraps() as VarsMember
+    clauses. Return an ObjRelations indicating whether an M set is
+    needed.
     """
     M = False
     def process(clause):
         nonlocal M
         if isinstance(clause, L.Member):
-            if not (isinstance(clause.target, L.Name) and
-                    isinstance(clause.iter, L.Name)):
+            # MMember.
+            if (isinstance(clause.target, L.Name) and
+                isinstance(clause.iter, L.Name)):
+                set_ = clause.iter.id
+                elem = clause.target.id
+                M = True
+                clause = L.MMember(set_, elem)
+            
+            # VarsMember.
+            elif (isinstance(clause.target, L.Name) and
+                  isinstance(clause.iter, L.Unwrap)):
+                iter = clause.iter.value
+                vars = [clause.target.id]
+                clause = L.VarsMember(vars, iter)
+            
+            else:
                 raise L.ProgramError('Cannot flatten Member clause: {}'
                                      .format(clause))
-            set_ = clause.iter.id
-            elem = clause.target.id
-            M = True
-            return L.MMember(set_, elem), [], []
+            
         
         return clause, [], []
     
@@ -293,24 +305,18 @@ def flatten_all_comps(tree, symtab):
             if symbol.impl is S.Normal:
                 return
             
-            comp, objrels1 = flatten_replaceables(expr)
+            comp = expr
+            comp, objrels1 = flatten_replaceables(comp)
             comp, objrels2 = flatten_memberships(comp)
             objrels = objrels.union(objrels1).union(objrels2)
-            return comp
-    
-    class TuplifyRewriter(S.QueryRewriter):
-        def rewrite(self, symbol, name, expr):
-            if not isinstance(expr, L.Comp):
-                return
-            if symbol.impl is S.Normal:
-                return
             
-            expr = tuplify_resexp(symbol, expr)
-            symbol.node = expr
-            return L.Unwrap(L.Query(symbol.name, expr))
+            comp = tuplify_resexp(symbol, comp)
+            symbol.node = comp
+            expr = L.Unwrap(L.Query(symbol.name, comp))
+            
+            return expr
     
-    tree = FlattenRewriter.run(tree, symtab)
-    tree = TuplifyRewriter.run(tree, symtab, expand=True)
+    tree = FlattenRewriter.run(tree, symtab, expand=True)
     return tree, objrels
 
 
