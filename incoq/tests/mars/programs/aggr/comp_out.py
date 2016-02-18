@@ -1,5 +1,5 @@
 # Q1 : a -> {(b,) for (a, b) in REL(S)} : {(Number, Number)}
-# Q2 : a -> sum(R_Q1.imglookup('bu', (a,))) : Number
+# Q2 : a -> sum(unwrap(R_Q1.imglookup('bu', (a,)))) : Top
 from incoq.mars.runtime import *
 # S : {(Number, Number)}
 S = Set()
@@ -10,9 +10,9 @@ A_Q2 = Map()
 def _maint_A_Q2_for_R_Q1_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v5_key = (_elem_v1,)
-    _v5_value = (_elem_v2,)
+    _v5_value = _elem_v2
     _v5_state = A_Q2.get(_v5_key, (0, 0))
-    _v5_state = ((index(_v5_state, 0) + index(_v5_value, 0)), (index(_v5_state, 1) + 1))
+    _v5_state = ((index(_v5_state, 0) + _v5_value), (index(_v5_state, 1) + 1))
     if (_v5_key in A_Q2):
         del A_Q2[_v5_key]
     A_Q2[_v5_key] = _v5_state
@@ -20,9 +20,9 @@ def _maint_A_Q2_for_R_Q1_add(_elem):
 def _maint_A_Q2_for_R_Q1_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v6_key = (_elem_v1,)
-    _v6_value = (_elem_v2,)
+    _v6_value = _elem_v2
     _v6_state = A_Q2[_v6_key]
-    _v6_state = ((index(_v6_state, 0) - index(_v6_value, 0)), (index(_v6_state, 1) - 1))
+    _v6_state = ((index(_v6_state, 0) - _v6_value), (index(_v6_state, 1) - 1))
     del A_Q2[_v6_key]
     if (not (index(_v6_state, 1) == 0)):
         A_Q2[_v6_key] = _v6_state

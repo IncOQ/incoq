@@ -45,6 +45,11 @@ class AggrInvariant(Struct):
     restr = TypedField(str, or_none=True)
     """Name of demand set, or None if not using demand."""
     
+    def __init__(self, *args, **kargs):
+        if self.unwrap and self.mask.m.count('u') != 1:
+            raise L.ProgramError('Aggregates of unwrap() expressions must '
+                                 'have arity 1')
+    
     def get_oper_maint_func_name(self, op):
         op_name = L.set_update_name(op)
         return N.get_maint_func_name(self.map, self.rel, op_name)
@@ -80,6 +85,12 @@ def make_aggr_oper_maint_func(fresh_vars, aggrinv, op):
     value = fresh_var_prefix + '_value'
     state = fresh_var_prefix + '_state'
     
+    if aggrinv.unwrap:
+        assert len(vvars) == 1
+        value_expr = L.Name(vvars[0])
+    else:
+        value_expr = vtuple
+    
     # Logic specific to aggregate operator.
     handler = aggrinv.get_handler()
     zero = handler.make_zero_expr()
@@ -87,7 +98,7 @@ def make_aggr_oper_maint_func(fresh_vars, aggrinv, op):
                                                       state, op, value)
     
     subst = {'_KEY': key, '_KEY_EXPR': ktuple,
-             '_VALUE': value, '_VALUE_EXPR': vtuple,
+             '_VALUE': value, '_VALUE_EXPR': value_expr,
              '_MAP': aggrinv.map, '_STATE': state,
              '_ZERO': zero}
     
@@ -187,17 +198,30 @@ def make_aggr_restr_maint_func(fresh_vars, aggrinv, op):
         updatestate_code = handler.make_update_state_code(fresh_var_prefix,
                                                           state, op, value)
         
+        if aggrinv.unwrap:
+            loop_template = '''
+                for (_VALUE,) in _RELLOOKUP:
+                    _UPDATESTATE
+                '''
+        else:
+            loop_template = '''
+                for _VALUE in _RELLOOKUP:
+                    _UPDATESTATE
+                '''
+        
+        loop_code = L.Parser.pc(loop_template, subst={
+            '_VALUE': value, '_RELLOOKUP': rellookup,
+            '<c>_UPDATESTATE': updatestate_code})
+        
         maint_code = L.Parser.pc('''
             _STATE = _ZERO
             _DECOMP_KEY
-            for _VALUE in _RELLOOKUP:
-                _UPDATESTATE
+            _LOOP
             _MAP.mapassign(_KEY, _STATE)
             ''', subst={'_MAP': aggrinv.map, '_KEY': '_key',
                         '_STATE': state, '_ZERO': zero,
                         '<c>_DECOMP_KEY': decomp_key_code,
-                        '_VALUE': value, '_RELLOOKUP': rellookup,
-                        '<c>_UPDATESTATE': updatestate_code})
+                        '<c>_LOOP': loop_code})
     
     else:
         maint_code = L.Parser.pc('''

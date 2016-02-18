@@ -50,6 +50,24 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
     
+    def test_aggr_oper_maint_func_unwrap(self):
+        aggrinv = AggrInvariant('A', L.Count(), 'R', L.mask('bu'),
+                                True, ['x'], None)
+        func = make_aggr_oper_maint_func(N.fresh_name_generator(),
+                                         aggrinv, L.SetAdd())
+        exp_func = L.Parser.ps('''
+            def _maint_A_for_R_add(_elem):
+                (_elem_v1, _elem_v2) = _elem
+                _v1_key = (_elem_v1,)
+                _v1_value = _elem_v2
+                _v1_state = A.get(_v1_key, 0)
+                _v1_state = (_v1_state + 1)
+                if (_v1_key in A):
+                    A.mapdelete(_v1_key)
+                A.mapassign(_v1_key, _v1_state)
+            ''')
+        self.assertEqual(func, exp_func)
+    
     def test_aggr_oper_maint_func_add_withdemand(self):
         aggrinv = AggrInvariant('A', L.Count(), 'R', L.mask('bu'),
                                 False, ['x'], 'U')
@@ -96,6 +114,21 @@ class TransCase(unittest.TestCase):
                 _v1_state = 0
                 (_key_v1,) = _key
                 for _v1_value in R.imglookup('bu', (_key_v1,)):
+                    _v1_state = (_v1_state + 1)
+                A.mapassign(_key, _v1_state)
+            ''')
+        self.assertEqual(func, exp_func)
+    
+    def test_aggr_restr_maint_func_add_unwrap(self):
+        aggrinv = AggrInvariant('A', L.Count(), 'R', L.mask('bu'),
+                                True, ['x'], 'U')
+        func = make_aggr_restr_maint_func(N.fresh_name_generator(),
+                                          aggrinv, L.SetAdd())
+        exp_func = L.Parser.ps('''
+            def _maint_A_for_U_add(_key):
+                _v1_state = 0
+                (_key_v1,) = _key
+                for (_v1_value,) in R.imglookup('bu', (_key_v1,)):
                     _v1_state = (_v1_state + 1)
                 A.mapassign(_key, _v1_state)
             ''')
@@ -205,12 +238,20 @@ class TransCase(unittest.TestCase):
         # Unwrap operand.
         symtab = S.SymbolTable()
         aggr = L.Parser.pe('count(unwrap(R))')
-        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
+        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number])))
         query = symtab.define_query('Q', node=aggr)
         aggrinv = aggrinv_from_query(symtab, query, 'A')
-        exp_aggrinv = AggrInvariant('A', L.Count(), 'R', L.mask('uu'),
+        exp_aggrinv = AggrInvariant('A', L.Count(), 'R', L.mask('u'),
                                     True, (), None)
         self.assertEqual(aggrinv, exp_aggrinv)
+        
+        # Unwrap with non-1 arity.
+        symtab = S.SymbolTable()
+        aggr = L.Parser.pe('count(unwrap(R))')
+        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
+        query = symtab.define_query('Q', node=aggr)
+        with self.assertRaises(L.ProgramError):
+            aggrinv_from_query(symtab, query, 'A')
     
     def test_incrementalize_aggr(self):
         symtab = S.SymbolTable()

@@ -65,7 +65,7 @@ class CountSumHandler(AggrOpHandler):
     def make_update_state_code(self, prefix, state, op, value):
         opcls = {L.SetAdd: L.Add, L.SetRemove: L.Sub}[op.__class__]
         by = {'count': L.Num(1),
-              'sum': L.Subscript(L.Name(value), L.Num(0))}[self.kind]
+              'sum': L.Name(value)}[self.kind]
         return (L.Assign(state, L.BinOp(L.Name(state), opcls(), by)),)
     
     def make_projection_expr(self, state):
@@ -90,7 +90,7 @@ class CountedSumHandler(AggrOpHandler):
         return L.Parser.pe('(0, 0)')
     
     def make_update_state_code(self, prefix, state, op, value):
-        value = L.Subscript(L.Name(value), L.Num(0))
+        value = L.Name(value)
         if isinstance(op, L.SetAdd):
             template = '''
                 _STATE = (index(_STATE, 0) + _VALUE, index(_STATE, 1) + 1)

@@ -1,6 +1,6 @@
 # Q1 : x -> {(w,) for (x, w) in REL(S)} : {(Number, Number)}
-# Q2 : x -> min(R_Q1.imglookup('bu', (x,)), (x,), R__QU_Q2) : (Number)
-# Q3 : x -> {(z,) for (x, y) in REL(S) for (y, z) in REL(S) for (x, _v10) in SETFROMMAP(SA_Q2, A_Q2, 'bu') if ((y,) <= index(_v10, 1))} : {(Number, Number)}
+# Q2 : x -> min(unwrap(R_Q1.imglookup('bu', (x,))), (x,), R__QU_Q2) : Top
+# Q3 : x -> {(z,) for (x, y) in REL(S) for (y, z) in REL(S) for (x, _v10) in SETFROMMAP(SA_Q2, A_Q2, 'bu') if (y <= index(_v10, 1))} : {(Number, Number)}
 # _QU_Q2 : {(_v2x,) for (_v2x, _v2y) in REL(S) for (_v2y, _v2z) in REL(S)} : {(Number)}
 from incoq.mars.runtime import *
 # S : {(Number, Number)}
@@ -95,7 +95,7 @@ def _maint_R_Q3_for_S_add(_elem):
     (_v13_x, _v13_y) = _elem
     if ((_v13_x,) in A_Q2):
         _v13__v10 = A_Q2[(_v13_x,)]
-        if ((_v13_y,) <= index(_v13__v10, 1)):
+        if (_v13_y <= index(_v13__v10, 1)):
             for (_v13_z,) in S_bu.get((_v13_y,), Set()):
                 if ((_v13_y, _v13_z) != _elem):
                     _v13_result = (_v13_x, _v13_z)
@@ -108,7 +108,7 @@ def _maint_R_Q3_for_S_add(_elem):
     for (_v13_x,) in S_ub.get((_v13_y,), Set()):
         if ((_v13_x,) in A_Q2):
             _v13__v10 = A_Q2[(_v13_x,)]
-            if ((_v13_y,) <= index(_v13__v10, 1)):
+            if (_v13_y <= index(_v13__v10, 1)):
                 _v13_result = (_v13_x, _v13_z)
                 if (_v13_result not in R_Q3):
                     R_Q3.add(_v13_result)
@@ -120,7 +120,7 @@ def _maint_R_Q3_for_S_remove(_elem):
     (_v14_x, _v14_y) = _elem
     if ((_v14_x,) in A_Q2):
         _v14__v10 = A_Q2[(_v14_x,)]
-        if ((_v14_y,) <= index(_v14__v10, 1)):
+        if (_v14_y <= index(_v14__v10, 1)):
             for (_v14_z,) in S_bu.get((_v14_y,), Set()):
                 if ((_v14_y, _v14_z) != _elem):
                     _v14_result = (_v14_x, _v14_z)
@@ -133,7 +133,7 @@ def _maint_R_Q3_for_S_remove(_elem):
     for (_v14_x,) in S_ub.get((_v14_y,), Set()):
         if ((_v14_x,) in A_Q2):
             _v14__v10 = A_Q2[(_v14_x,)]
-            if ((_v14_y,) <= index(_v14__v10, 1)):
+            if (_v14_y <= index(_v14__v10, 1)):
                 _v14_result = (_v14_x, _v14_z)
                 if (R_Q3.getcount(_v14_result) == 1):
                     _maint_R_Q3_bu_for_R_Q3_remove(_v14_result)
@@ -144,7 +144,7 @@ def _maint_R_Q3_for_S_remove(_elem):
 def _maint_R_Q3_for_SA_Q2_add(_elem):
     (_v15_x, _v15__v10) = _elem
     for (_v15_y,) in S_bu.get((_v15_x,), Set()):
-        if ((_v15_y,) <= index(_v15__v10, 1)):
+        if (_v15_y <= index(_v15__v10, 1)):
             for (_v15_z,) in S_bu.get((_v15_y,), Set()):
                 _v15_result = (_v15_x, _v15_z)
                 if (_v15_result not in R_Q3):
@@ -156,7 +156,7 @@ def _maint_R_Q3_for_SA_Q2_add(_elem):
 def _maint_R_Q3_for_SA_Q2_remove(_elem):
     (_v16_x, _v16__v10) = _elem
     for (_v16_y,) in S_bu.get((_v16_x,), Set()):
-        if ((_v16_y,) <= index(_v16__v10, 1)):
+        if (_v16_y <= index(_v16__v10, 1)):
             for (_v16_z,) in S_bu.get((_v16_y,), Set()):
                 _v16_result = (_v16_x, _v16_z)
                 if (R_Q3.getcount(_v16_result) == 1):
@@ -181,7 +181,7 @@ def _maint_SA_Q2_for_A_Q2_delete(_key):
 def _maint_A_Q2_for_R_Q1_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v7_key = (_elem_v1,)
-    _v7_value = (_elem_v2,)
+    _v7_value = _elem_v2
     if (_v7_key in R__QU_Q2):
         _v7_state = A_Q2[_v7_key]
         (_v7tree, _) = _v7_state
@@ -195,7 +195,7 @@ def _maint_A_Q2_for_R_Q1_add(_elem):
 def _maint_A_Q2_for_R_Q1_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v8_key = (_elem_v1,)
-    _v8_value = (_elem_v2,)
+    _v8_value = _elem_v2
     if (_v8_key in R__QU_Q2):
         _v8_state = A_Q2[_v8_key]
         (_v8tree, _) = _v8_state
@@ -209,7 +209,7 @@ def _maint_A_Q2_for_R_Q1_remove(_elem):
 def _maint_A_Q2_for_R__QU_Q2_add(_key):
     _v9_state = (Tree(), None)
     (_key_v1,) = _key
-    for _v9_value in R_Q1_bu.get((_key_v1,), Set()):
+    for (_v9_value,) in R_Q1_bu.get((_key_v1,), Set()):
         (_v9tree, _) = _v9_state
         _v9tree[_v9_value] = None
         _v9_state = (_v9tree, _v9tree.__min__())
