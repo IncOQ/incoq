@@ -15,6 +15,17 @@ class ParamAnalysisCase(unittest.TestCase):
     def setUp(self):
         self.ct = CoreClauseTools()
     
+    def test_find_nested_queries(self):
+        tree = L.Parser.pe('''
+            QUERY('Q1', QUERY('Q2', 1) + QUERY('Q3', 2))
+            ''')
+        queries = find_nested_queries(tree)
+        exp_queries = [
+            L.Parser.pe("QUERY('Q2', 1)"),
+            L.Parser.pe("QUERY('Q3', 2)"),
+        ]
+        self.assertSequenceEqual(queries, exp_queries)
+    
     def test_make_demand_func(self):
         tree = make_demand_func('Q')
         exp_tree = L.Parser.ps('''

@@ -357,7 +357,10 @@ def rewrite_aggregates(tree, symtab):
             oper_name = symbol.name + '_oper'
             elem = next(symtab.fresh_names.vars)
             t_oper = symtab.analyze_expr_type(operand)
-            assert isinstance(t_oper, T.Set)
+            # We're tolerant of type misinformation here, since our object
+            # type inference isn't in place at the moment.
+            if not t_oper.issmaller(T.Set(T.Top)):
+                t_oper = T.Set(T.Top)
             
             comp = L.Comp(L.Name(elem), [L.Member(L.Name(elem), operand)])
             oper_query = L.Query(oper_name, comp)

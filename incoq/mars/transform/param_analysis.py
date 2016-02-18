@@ -2,6 +2,7 @@
 
 
 __all__ = [
+    'find_nested_queries',
     'make_demand_func',
     'determine_comp_demand_params',
     'make_demand_set',
@@ -26,6 +27,24 @@ from incoq.util.collections import OrderedSet
 from incoq.mars.type import T
 from incoq.mars.symbol import S, N
 from incoq.mars.incast import L
+
+
+def find_nested_queries(node):
+    """Return a list of all Query nodes that are properly contained
+    inside the given node.
+    """
+    class Finder(L.NodeVisitor):
+        def process(self, tree):
+            self.start = tree
+            self.queries = []
+            super().process(tree)
+            return self.queries
+        def visit_Query(self, node):
+            self.generic_visit(node)
+            if node != self.start:
+                self.queries.append(node)
+    
+    return Finder.run(node)
 
 
 def make_demand_func(query):
@@ -415,17 +434,15 @@ class DemandParamAnalyzer(ContextTracker):
             uses_demand = len(demand_params) > 0
         
         elif isinstance(node.query, L.Aggr):
-            # If the operand is a comprehension that is demand-driven,
-            # or if the aggregate appears in a transformed
-            # comprehension, then the aggregate must be demand-driven
-            # for all parameters.
+            # If the operand contains a demand-driven query, or if the
+            # aggregate appears in a transformed comprehension, then the
+            # aggregate must be demand-driven for all parameters.
             operand_uses_demand = False
             aggr_in_comp = self.get_left_clauses() is not None
             
-            operand = node.query.value
-            if isinstance(operand, L.Query):
-                oper_sym = symtab.get_queries()[operand.name]
-                if oper_sym.uses_demand:
+            for q in find_nested_queries(node):
+                inner_sym = symtab.get_queries()[q.name]
+                if inner_sym.uses_demand:
                     operand_uses_demand = True
             
             if operand_uses_demand or aggr_in_comp:
