@@ -18,6 +18,8 @@ __all__ = [
     'ismap',
     'hasarity',
     
+    'unwrap',
+    
     'IncOQType',
     'Set',
     'CSet',
@@ -100,6 +102,16 @@ def hasarity(value, k):
     return isinstance(value, tuple) and len(value) == k
 
 
+def unwrap(set_):
+    """Given a set of singleton tuples, return a Set consisting of the
+    tuples' contents.
+    """
+    result = Set()
+    for (elem,) in set_:
+        result.add(elem)
+    return result
+
+
 class IncOQType:
     
     """Base class for user-manipulated and queried collections."""
@@ -129,9 +141,8 @@ class IncOQType:
 
 class ImgLookupMixin:
     
-    """Mixin for giving a set-like class the imglookup() and unwrap()
-    operations. For CSets, the underlying count information is
-    discarded.
+    """Mixin for giving a set-like class the imglookup() operation.
+    For CSets, the underlying count information is discarded.
     """
     
     def imglookup(self, mask, bounds):
@@ -155,15 +166,6 @@ class ImgLookupMixin:
             us = [part for c, part in zip(mask, item) if c == 'u']
             if bs == bounds:
                 result.add(tuple(us))
-        return result
-    
-    def unwrap(self):
-        """Assuming this set consists of singleton tuples (tuples with
-        arity 1), return a new set consisting of the tuples' contents.
-        """
-        result = Set()
-        for elem, in self:
-            result.add(elem)
         return result
 
 

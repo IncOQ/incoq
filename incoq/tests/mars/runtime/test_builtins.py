@@ -46,6 +46,12 @@ class BuiltinsCase(unittest.TestCase):
         self.assertFalse(hasarity((1, 2), 3))
         self.assertFalse(hasarity(object(), 2))
     
+    def test_unwrap(self):
+        s = Set({(1,), (2,)})
+        unwrapped = unwrap(s)
+        exp_unwrapped = {1, 2}
+        self.assertCountEqual(unwrapped, exp_unwrapped)
+    
     def test_set_identity(self):
         s1 = Set()
         s2 = Set()
@@ -127,12 +133,6 @@ class BuiltinsCase(unittest.TestCase):
         img = s.imglookup('', ())
         exp_img = {()}
         self.assertCountEqual(img, exp_img)
-    
-    def test_set_unwrap(self):
-        s = Set({(1,), (2,)})
-        unwrapped = s.unwrap()
-        exp_unwrapped = {1, 2}
-        self.assertCountEqual(unwrapped, exp_unwrapped)
     
     def test_cset_repr(self):
         r = repr(CSet())

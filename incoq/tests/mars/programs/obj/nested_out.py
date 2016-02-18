@@ -228,9 +228,9 @@ def main():
         index(_v2, 0).add(index(_v2, 1))
         _maint_R_Q2_for__M_add(_v2)
     z = s
-    print(sorted(((_demand_Q1((z,)) or True) and R_Q1_bu.get((z,), Set())).unwrap()))
+    print(sorted(unwrap(((_demand_Q1((z,)) or True) and R_Q1_bu.get((z,), Set())))))
     z = t
-    print(sorted(((_demand_Q1((z,)) or True) and R_Q1_bu.get((z,), Set())).unwrap()))
+    print(sorted(unwrap(((_demand_Q1((z,)) or True) and R_Q1_bu.get((z,), Set())))))
 
 if (__name__ == '__main__'):
     main()

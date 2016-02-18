@@ -539,7 +539,7 @@ class IncLangSpecialImporter(L.MacroExpander):
             raise ASTErr('Invalid mask string for setfrommap operation')
         return L.SetFromMap(map, mask)
     
-    def handle_me_unwrap(self, _func, set_):
+    def handle_fe_unwrap(self, _func, set_):
         return L.Unwrap(set_)
     
     def handle_fe_isset(self, _func, value):
@@ -702,7 +702,7 @@ class IncLangSpecialExporter(L.NodeTransformer):
     def visit_Unwrap(self, node):
         node = self.generic_visit(node)
         
-        return L.GeneralCall(L.Attribute(node.value, 'unwrap'), [])
+        return L.Call('unwrap', [node.value])
     
     def visit_IsSet(self, node):
         node = self.generic_visit(node)

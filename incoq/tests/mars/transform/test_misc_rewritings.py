@@ -11,7 +11,7 @@ from incoq.mars.transform.misc_rewritings import *
 
 class MiscRewritingsCase(unittest.TestCase):
     
-    def test_relationalize_comp_queires(self):
+    def test_relationalize_comp_queries(self):
         comp1 = L.Parser.pe('{2 * y for (x, y) in REL(R)}')
         comp2 = L.Parser.pe('{(y,) for (x, y) in REL(R)}')
         symtab = S.SymbolTable()
@@ -26,7 +26,7 @@ class MiscRewritingsCase(unittest.TestCase):
         tree = relationalize_comp_queries(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
-                print(QUERY('Q1', {(2 * y,) for (x, y) in REL(R)}).unwrap())
+                print(unwrap(QUERY('Q1', {(2 * y,) for (x, y) in REL(R)})))
                 print(QUERY('Q2', {(y,) for (x, y) in REL(R)}))
             ''')
         self.assertEqual(tree, exp_tree)
