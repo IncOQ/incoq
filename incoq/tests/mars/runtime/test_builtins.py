@@ -16,11 +16,8 @@ class BuiltinsCase(unittest.TestCase):
         self.assertEqual(QUERY('Q', 5), 5)
     
     def test_aggregates(self):
-        self.assertEqual(count(range(3)), 3)
-        
+        self.assertEqual(count([1, 2, 3]), 3)
         self.assertEqual(sum([1, 2, 3]), 6)
-        self.assertEqual(sum([(1,), (2,), (3,)]), 6)
-        
         self.assertEqual(min([2, 1, 3]), 1)
         self.assertEqual(max([2, 1, 3]), 3)
         self.assertEqual(min([]), None)

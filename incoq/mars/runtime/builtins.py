@@ -67,22 +67,12 @@ def index(seq, ind):
 # Aggregate functions.
 #
 # - count() is aliased to len()
-# - sum() is overloaded to also work on numbers wrapped in singleton tuples
+# - sum() is the same as the Python built-in
 # - min() and max() are the same as the Python built-ins, except
-#   that they return None when the input is empty.
+#   that they return None when the input is empty
 
-count = len
-
-def sum(nums):
-    s = 0
-    for n in nums:
-        if isinstance(n, tuple):
-            if len(n) != 1:
-                raise ValueError
-            (n,) = n
-        s += n
-    return s
-
+count = builtins.len
+sum = builtins.sum
 min = partial(builtins.min, default=None)
 max = partial(builtins.max, default=None)
 
