@@ -23,9 +23,8 @@ def main():
     x = 1
     print(sorted(QUERY('Q3', {(z,) for (x2, y) in S for (y2, z) in S
                                    if x == x2 if y == y2
-                 if (y,) <= QUERY('Q2', min(QUERY('Q1',
-                                  {(w,) for (x3, w) in S if x3 == x})))})))
-
+                 if y <= QUERY('Q2', min(unwrap(QUERY('Q1',
+                                  {(w,) for (x3, w) in S if x3 == x}))))})))
 
 if __name__ == '__main__':
     main()
