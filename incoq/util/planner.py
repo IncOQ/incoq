@@ -60,7 +60,7 @@ class Planner:
         results = []
         succ = state.get_successors()
         for state in succ:
-            subresults, cut = self.process(state)
+            subresults, cut = self.process(state, first_only=first_only)
             if cut:
                 # Propagate the lone result and cut flag.
                 return subresults, True

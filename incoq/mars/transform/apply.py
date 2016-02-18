@@ -13,6 +13,7 @@ __all__ = [
 
 from itertools import chain
 from collections import OrderedDict
+import builtins
 
 from incoq.mars.incast import L, P
 from incoq.mars.symbol import S
@@ -30,6 +31,10 @@ from .misc_rewritings import rewrite_vars_clauses
 from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
                              transform_demand)
+
+
+def print(*args, **kargs):
+    builtins.print(*args, flush=True, **kargs)
 
 
 class ObjClauseTools(CoreClauseTools, ObjClauseVisitor):
@@ -98,7 +103,7 @@ class QueryNodeFinder(L.NodeVisitor):
             self.queries[node.name] = node.query
 
 
-def preprocess_tree(tree, symtab, config):
+def preprocess_tree(tree, symtab):
     """Take in a Python AST tree, as well as a symbol table and global
     configuration. Populate the symbol table and configuration, and
     return the preprocessed IncAST tree.
@@ -142,7 +147,7 @@ def preprocess_tree(tree, symtab, config):
     # Use parsed directive info to update the global config and
     # symbol-specific config.
     for d in info.config_info:
-        config.update(**d)
+        symtab.config.update(**d)
     for name, d in info.symconfig_info:
         symtab.apply_symconfig(name, d)
     for name, d in query_name_attrs.items():
@@ -223,10 +228,15 @@ def transform_queries(tree, symtab):
     result = findnext()
     while result is not None:
         query_name, _query_node = result
+        if symtab.config.verbose:
+            print('Incrementalizing {}...'.format(query_name), end='')
         query = symtab.get_queries()[query_name]
         tree, success = transform_query(tree, symtab, query)
         if not success:
+            print('  FAILED')
             symtab.ignored_queries.add(query_name)
+        else:
+            print()
         result = findnext()
     return tree
 
@@ -241,7 +251,8 @@ def transform_ast(input_ast, *, options=None):
     config.update(**options)
     
     symtab = S.SymbolTable()
-    tree = preprocess_tree(tree, symtab, config)
+    symtab.config = config
+    tree = preprocess_tree(tree, symtab)
     
     illtyped, badsyms = symtab.run_type_inference(tree)
     
@@ -288,6 +299,9 @@ def transform_ast(input_ast, *, options=None):
             if sym.name in symtab.ignored_queries:
                 print('{:<10} {}'.format(sym.name + ':',
                                         L.Parser.ts(sym.node)))
+    
+    if config.verbose:
+        print('Incrementalizing auxiliary maps')
     
     # Incrementalize image-set lookups with auxiliary maps.
     tree = transform_auxmaps(tree, symtab)
