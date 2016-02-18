@@ -732,30 +732,14 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     def visit_Cond(self, node, *, type=None):
         self.visit(node.cond)
     
-    def aggr_helper(self, node):
-        # If join(value, Set<Bottom>) != Set<T>:
-        #   Fail
-        # If T == Bottom:
-        #   Return Bottom
-        # Elif T != Tuple<T1, ..., Tn>:
-        #   Fail
-        #
+    def aggrop_helper(self, node, op, t_elt):
         # If op is count or op is sum:
-        #   If n != 1:
-        #     Fail
-        #   Check T1 <= Number
+        #   Check t_elt <= Number
         #   Return Number
         # Elif op is min or op is max:
-        #   Return T
-        t_value = self.visit(node.value)
-        t_elt = self.get_sequence_elt(node, t_value, Set)
-        if not isinstance(t_elt, Tuple):
-            self.mark_bad(node)
-            return Top
-        
+        #   Return t_elt
         if isinstance(node.op, (L.Count, L.Sum)):
-            if not (len(t_elt.elts) == 1 and
-                    t_elt.elts[0].issmaller(Number)):
+            if not t_elt.issmaller(Number):
                 self.mark_bad(node)
                 return Top
             return Number
@@ -766,19 +750,30 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     
     @readonly
     def visit_Aggr(self, node, *, type=None):
-        # Rules are exactly those of aggr_helper() above.
-        return self.aggr_helper(node)
+        # If join(value, Set<Bottom>) == Set<T>:
+        #   Return aggrop_helper(op, T)
+        # Else:
+        #   Return Top
+        # Check value <= Set<Top>
+        t_value = self.visit(node.value)
+        t_elt = self.get_sequence_elt(node, t_value, Set)
+        return self.aggrop_helper(node, node.op, t_elt)
     
     @readonly
     def visit_AggrRestr(self, node, *, type=None):
         # As for Aggr, except we have the additional condition:
         #
         # Check restr <= Set<Tuple<Top, ..., Top>> of arity |params|
+        t_value = self.visit(node.value)
+        t_elt = self.get_sequence_elt(node, t_value, Set)
+        t = self.aggrop_helper(node, node.op, t_elt)
+        
         n = len(node.params)
         t_restr = self.visit(node.restr)
         if not t_restr.issmaller(Set(Tuple([Top] * n))):
             self.mark_bad(node)
-        return self.aggr_helper(node)
+        
+        return t
     
     # Remaining nodes require no handler.
 

@@ -665,8 +665,8 @@ class TypeAnalysisCase(unittest.TestCase):
                 a = count(S)
                 b = sum(S)
             ''',
-            {'S': Set(Tuple([Number])), 'a': Bottom, 'b': Bottom},
-            {'S': Set(Tuple([Number])), 'a': Number, 'b': Number},
+            {'S': Set(Number), 'a': Bottom, 'b': Bottom},
+            {'S': Set(Number), 'a': Number, 'b': Number},
             False)
         self.check('''
             def main():
@@ -701,18 +701,18 @@ class TypeAnalysisCase(unittest.TestCase):
             def main():
                 a = count(S, (x,), R)
             ''',
-            {'S': Set(Tuple([Number])), 'x': String,
+            {'S': Set(Number), 'x': String,
              'R': Set(Tuple([String])), 'a': Bottom},
-            {'S': Set(Tuple([Number])), 'x': String,
+            {'S': Set(Number), 'x': String,
              'R': Set(Tuple([String])), 'a': Number},
             False)
         self.check('''
             def main():
                 a = count(S, (x,), R)
             ''',
-            {'S': Set(Tuple([Number])), 'x': String,
+            {'S': Set(Number), 'x': String,
              'R': Set(Top), 'a': Bottom},
-            {'S': Set(Tuple([Number])), 'x': String,
+            {'S': Set(Number), 'x': String,
              'R': Set(Top), 'a': Number},
             True)
     
