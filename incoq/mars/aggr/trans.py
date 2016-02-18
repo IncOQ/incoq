@@ -19,8 +19,8 @@ from .aggrop import get_handler_for_op
 
 class AggrInvariant(Struct):
     
-    """Invariant for an aggregate over a relation or an ImgLookup of
-    a relation.
+    """Invariant for an aggregate over a relation, an ImgLookup of a
+    relation, or an Unwrap of either of these.
     """
     
     map = TypedField(str)
@@ -35,6 +35,9 @@ class AggrInvariant(Struct):
     mask = TypedField(L.mask)
     """Mask for ImgLookup of operand. If there is no ImgLookup, the mask
     is all unbound."""
+    
+    unwrap = TypedField(bool)
+    """Whether or not the operand is in an Unwrap node."""
     
     params = TypedField(str, seq=True)
     """Parameter variables for ImgLookup."""
@@ -286,6 +289,12 @@ def aggrinv_from_query(symtab, query, result_var):
     oper = node.value
     op = node.op
     
+    if isinstance(oper, L.Unwrap):
+        unwrap = True
+        oper = oper.value
+    else:
+        unwrap = False
+    
     # Get rel, mask, and param info.
     if isinstance(oper, L.Name):
         rel = oper.id
@@ -322,7 +331,7 @@ def aggrinv_from_query(symtab, query, result_var):
     else:
         restr = None
     
-    return AggrInvariant(result_var, op, rel, mask, params, restr)
+    return AggrInvariant(result_var, op, rel, mask, unwrap, params, restr)
 
 
 def incrementalize_aggr(tree, symtab, query, result_var):
