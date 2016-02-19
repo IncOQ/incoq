@@ -105,6 +105,22 @@ class N:
     def get_TUP(cls, name):
         assert cls.is_TUP(name)
         return int(name[len(cls.TUPprefix):])
+    
+    @classmethod
+    def get_tag_name(cls, query, var, n=None):
+        s = query + '_T_' + var
+        if n is not None:
+            assert isinstance(n, int)
+            s += '_' + str(n)
+        return s
+    
+    @classmethod
+    def get_filter_name(cls, query, rel, n=None):
+        s = query + '_d' + rel
+        if n is not None:
+            assert isinstance(n, int)
+            s += '_' + str(n)
+        return s
 
 
 class SymbolTable:
