@@ -26,15 +26,15 @@ class FilterCase(unittest.TestCase):
             ''')
         structures = generate_structures(self.visitor, comp, 'Q')
         exp_structures = [
-            Tag(0, 'Q_T_s', 's', ('s', 't'), 'U'),
-            Tag(0, 'Q_T_t', 't', ('s', 't'), 'U'),
-            Filter(1, 'Q_d_M_1', ('s', 'o'), '_M', ('Q_T_s',)),
-            Tag(1, 'Q_T_o_1', 'o', ('s', 'o'), 'Q_d_M_1'),
-            Filter(2, 'Q_d_M_2', ('t', 'o'), '_M', ('Q_T_t',)),
-            Tag(2, 'Q_T_o_2', 'o', ('t', 'o'), 'Q_d_M_2'),
-            Filter(3, 'Q_d_F_f', ('o', 'o_f'), '_F_f',
-                   ('Q_T_o_1', 'Q_T_o_2')),
-            Tag(3, 'Q_T_o_f', 'o_f', ('o', 'o_f'), 'Q_d_F_f')
+            Tag(0, 'Q_T_s', 's', L.RelMember(['s', 't'], 'U')),
+            Tag(0, 'Q_T_t', 't', L.RelMember(['s', 't'], 'U')),
+            Filter(1, 'Q_d_M_1', L.MMember('s', 'o'), ['Q_T_s']),
+            Tag(1, 'Q_T_o_1', 'o', L.RelMember(['s', 'o'], 'Q_d_M_1')),
+            Filter(2, 'Q_d_M_2', L.MMember('t', 'o'), ['Q_T_t']),
+            Tag(2, 'Q_T_o_2', 'o', L.RelMember(['t', 'o'], 'Q_d_M_2')),
+            Filter(3, 'Q_d_F_f', L.FMember('o', 'o_f', 'f'),
+                   ['Q_T_o_1', 'Q_T_o_2']),
+            Tag(3, 'Q_T_o_f', 'o_f', L.RelMember(['o', 'o_f'], 'Q_d_F_f')),
         ]
         self.assertEqual(structures, exp_structures)
 
