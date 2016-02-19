@@ -16,7 +16,7 @@ from collections import OrderedDict
 import builtins
 
 from incoq.mars.incast import L, P
-from incoq.mars.symbol import S
+from incoq.mars.symbol import S, N
 from incoq.mars.auxmap import transform_auxmaps
 from incoq.mars.comp import (
     CoreClauseTools, incrementalize_comp, expand_maintjoins,
@@ -190,7 +190,7 @@ def transform_query(tree, symtab, query):
         
         elif query.impl == S.Inc:
             # Incrementalize the query.
-            result_var = 'R_' + query.name
+            result_var = N.get_resultset_name(query.name)
             tree = incrementalize_comp(tree, symtab, query, result_var)
             symtab.define_relation(result_var, counted=True,
                                    type=query.type)

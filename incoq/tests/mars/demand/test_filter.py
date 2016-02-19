@@ -15,15 +15,13 @@ class ClauseVisitor(CoreClauseVisitor, ObjClauseVisitor):
 
 class FilterCase(unittest.TestCase):
     
-    def setUp(self):
-        self.visitor = ClauseVisitor()
-    
     def test_make_structs(self):
-        comp = L.Parser.pe('''
+        generator = StructureGenerator(
+            ClauseVisitor(),
+            L.Parser.pe('''
             {(o_f,) for (s, t) in REL(U) for (s, o) in M()
                     for (t, o) in M () for (o, o_f) in F(f)}
-            ''')
-        generator = StructureGenerator(self.visitor, comp, 'Q')
+            '''), 'Q')
         
         generator.make_structs()
         exp_structs = [
@@ -41,11 +39,12 @@ class FilterCase(unittest.TestCase):
         self.assertEqual(generator.structs, exp_structs)
     
     def test_simplify_names(self):
-        comp = L.Parser.pe('''
+        generator = StructureGenerator(
+            ClauseVisitor(),
+            L.Parser.pe('''
             {(o_f,) for (s, t) in REL(U) for (s, o) in M()
                     for (t, o) in M () for (o, o_f) in F(f)}
-            ''')
-        generator = StructureGenerator(self.visitor, comp, 'Q')
+            '''), 'Q')
         generator.make_structs()
         
         generator.simplify_names()
@@ -61,6 +60,36 @@ class FilterCase(unittest.TestCase):
             Tag(3, 'Q_T_o_f', 'o_f', L.RelMember(['o', 'o_f'], 'Q_d_F_f')),
         ]
         self.assertEqual(generator.structs, exp_structs)
+    
+    def test_make_comp(self):
+        generator = StructureGenerator(
+            ClauseVisitor(),
+            L.Parser.pe('''
+            {(o_f,) for (s, t) in REL(U) for (s, x) in M()}
+            '''), 'Q')
+        generator.make_structs()
+        generator.simplify_names()
+        
+        filter = Filter(1, 'Q_d_M', L.MMember('s', 'x'), ['Q_T_s'])
+        comp = generator.make_comp(filter)
+        exp_comp = L.Parser.pe('''
+            {(s, x) for (s,) in REL(R_Q_T_s) for (s, x) in M()}
+            ''')
+        self.assertEqual(comp, exp_comp)
+        
+        tag = Tag(0, 'Q_T_s', 's', L.RelMember(['s', 't'], 'U'))
+        comp = generator.make_comp(tag)
+        exp_comp = L.Parser.pe('''
+            {(s,) for (s, t) in REL(U)}
+            ''')
+        self.assertEqual(comp, exp_comp)
+        
+        tag = Tag(1, 'Q_T_x', 'x', L.RelMember(['s', 'x'], 'Q_d_M'))
+        comp = generator.make_comp(tag)
+        exp_comp = L.Parser.pe('''
+            {(x,) for (s, x) in REL(Q_d_M)}
+            ''')
+        self.assertEqual(comp, exp_comp)
 
 
 if __name__ == '__main__':

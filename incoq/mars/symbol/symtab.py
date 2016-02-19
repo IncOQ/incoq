@@ -35,6 +35,10 @@ class N:
         return [prefix + '_v' + str(i) for i in range(1, num + 1)]
     
     @classmethod
+    def get_resultset_name(cls, query):
+        return 'R_{}'.format(query)
+    
+    @classmethod
     def get_auxmap_name(cls, map, mask):
         return '{}_{}'.format(map, mask.m)
     

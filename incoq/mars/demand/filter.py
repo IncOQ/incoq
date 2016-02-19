@@ -43,6 +43,11 @@ class Tag(Struct):
 
 class StructureGenerator:
     
+    # The process is broken up into several phases, each in their own
+    # method. First we create Tag and Filter structures in the structs
+    # attribute and its indices. Then we simplify tag and filter names
+    # where possible. Next we produce comprehensions for the structures.
+    
     def __init__(self, clausetools, comp, query_name):
         self.clausetools = clausetools
         assert isinstance(comp, L.Comp)
@@ -63,6 +68,7 @@ class StructureGenerator:
         self.tags = []
         self.tags_by_var = defaultdict(lambda: [])
         self.tags_by_i = defaultdict(lambda: [])
+        self.tags_by_name = {}
     
     def maint_indices_for_add(self, struct):
         """Maintain all indices when a new tag or filter structure
@@ -83,6 +89,8 @@ class StructureGenerator:
             self.tags.append(tag)
             self.tags_by_var[tag.tag_var].append(tag)
             self.tags_by_i[tag.i].append(tag)
+            assert tag.name not in self.tags_by_name
+            self.tags_by_name[tag.name] = tag
         
         else:
             assert()
@@ -183,3 +191,25 @@ class StructureGenerator:
                                     for t in filter.preds]
         
         self.recompute_indices()
+    
+    def make_comp(self, struct):
+        """Return the Comp node corresponding to a structure."""
+        ct = self.clausetools
+        resname = N.get_resultset_name
+        
+        if isinstance(struct, Filter):
+            filter = struct
+            vars = ct.lhs_vars(filter.clause)
+            pred_clauses = []
+            for t in filter.preds:
+                tag = self.tags_by_name[t]
+                pred_cl = L.RelMember([tag.tag_var], resname(tag.name))
+                pred_clauses.append(pred_cl)
+            return L.Comp(L.tuplify(vars), pred_clauses + [filter.clause])
+        
+        elif isinstance(struct, Tag):
+            tag = struct
+            return L.Comp(L.tuplify([tag.tag_var]), [tag.clause])
+        
+        else:
+            assert()
