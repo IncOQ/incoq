@@ -17,6 +17,10 @@ from incoq.mars.comp import (ClauseVisitor, RelMemberHandler,
                              Priority, assert_unique)
 
 
+# rename_rhs_rel() can be used to go from an object clause to an
+# ordinary RelMember clause, but not vice versa.
+
+
 class MMemberHandler(RelMemberHandler):
     
     use_typecheck = True

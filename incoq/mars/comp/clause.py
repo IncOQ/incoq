@@ -156,6 +156,13 @@ class ClauseHandler(BaseClauseHandler):
         """
         raise NotImplementedError
     
+    def rename_rhs_rel(self, cl, renamer):
+        """For a membership clause, apply a renamer function to the
+        RHS relation and return the new clause. For condition clauses,
+        no effect.
+        """
+        raise NotImplementedError
+    
     def singletonize(self, cl, value):
         """For a membership clause over a relation, return a clause that
         has the same structure but whose right-hand side is a singleton
@@ -208,6 +215,7 @@ for op in [
     'get_priority',
     'get_code',
     'rename_lhs_vars',
+    'rename_rhs_rel',
     'singletonize',
     'subtract',
     ]:
@@ -270,6 +278,11 @@ class RelMemberHandler(ClauseHandler):
         new_vars = tuple(renamer(v) for v in cl.vars)
         return cl._replace(vars=new_vars)
     
+    def rename_rhs_rel(self, cl, renamer):
+        # Implementation shared by object-clause subclasses.
+        new_rel = renamer(self.rhs_rel(cl))
+        return L.RelMember(self.lhs_vars(cl), new_rel)
+    
     def singletonize(self, cl, value):
         return L.SingMember(self.lhs_vars(cl), value)
 
@@ -312,6 +325,9 @@ class SingMemberHandler(ClauseHandler):
     def rename_lhs_vars(self, cl, renamer):
         new_vars = tuple(renamer(v) for v in cl.vars)
         return cl._replace(vars=new_vars)
+    
+    def rename_rhs_rel(self, cl, renamer):
+        return cl
 
 
 class WithoutMemberHandler(ClauseHandler):
@@ -347,6 +363,10 @@ class WithoutMemberHandler(ClauseHandler):
         new_inner = self.visitor.rename_lhs_vars(cl.cl, renamer)
         return cl._replace(cl=new_inner)
     
+    def rename_rhs_rel(self, cl, renamer):
+        new_inner = self.visitor.rename_rhs_rel(cl.cl, renamer)
+        return cl._replace(cl=new_inner)
+    
     def singletonize(self, cl, value):
         new_inner = self.visitor.singletonize(cl.cl, value)
         return cl._replace(cl=new_inner)
@@ -372,6 +392,9 @@ class VarsMemberHandler(ClauseHandler):
     def rename_lhs_vars(self, cl, renamer):
         new_vars = tuple(renamer(v) for v in cl.vars)
         return cl._replace(vars=new_vars)
+    
+    def rename_rhs_rel(self, cl, renamer):
+        return cl
 
 
 class SetFromMapMemberHandler(RelMemberHandler):
@@ -442,6 +465,9 @@ class CondHandler(ClauseHandler):
     def rename_lhs_vars(self, cl, renamer):
         new_cond = L.apply_renamer(cl.cond, renamer)
         return cl._replace(cond=new_cond)
+    
+    def rename_rhs_rel(self, cl, renamer):
+        return cl
 
 
 class CoreClauseVisitor(ClauseVisitor):

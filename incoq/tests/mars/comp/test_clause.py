@@ -27,13 +27,20 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.uncon_lhs_vars(cl), ['y'])
         self.assertSequenceEqual(v.uncon_vars(cl), ['y'])
     
-    def check_rename_lhs_vars(self, cl):
+    def check_rename(self, cl):
         v = self.visitor
         
+        # lhs_vars.
         init_vars = v.lhs_vars(cl)
         cl2 = v.rename_lhs_vars(cl, lambda x: '_' + x)
         exp_vars = tuple('_' + x for x in init_vars)
         self.assertSequenceEqual(v.lhs_vars(cl2), exp_vars)
+        
+        # rhs_rel.
+        init_rel = v.rhs_rel(cl)
+        cl2 = v.rename_rhs_rel(cl, lambda x: '_' + x)
+        exp_rel = '_' + init_rel if init_rel is not None else None
+        self.assertEqual(v.rhs_rel(cl2), exp_rel)
     
     def test_handler(self):
         self.assertIsInstance(self.visitor.handle_RelMember,
@@ -96,7 +103,7 @@ class ClauseCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
         
-        self.check_rename_lhs_vars(cl)
+        self.check_rename(cl)
         
         cl2 = v.singletonize(cl, L.Name('e'))
         exp_cl2 = L.SingMember(['x', 'y', 'z'], L.Name('e'))
@@ -140,7 +147,7 @@ class ClauseCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
         
-        self.check_rename_lhs_vars(cl)
+        self.check_rename(cl)
         
         with self.assertRaises(NotImplementedError):
             v.singletonize(cl, L.Name('f'))
@@ -167,7 +174,7 @@ class ClauseCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
         
-        self.check_rename_lhs_vars(cl)
+        self.check_rename(cl)
         
         cl2 = v.singletonize(cl, L.Name('f'))
         exp_cl2 = L.WithoutMember(L.SingMember(['x', 'y', 'z'], L.Name('f')),
@@ -190,7 +197,7 @@ class ClauseCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             v.get_code(cl, [], (L.Pass(),))
         
-        self.check_rename_lhs_vars(cl)
+        self.check_rename(cl)
         
         with self.assertRaises(NotImplementedError):
             v.singletonize(cl, L.Name('f'))

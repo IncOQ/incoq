@@ -51,6 +51,8 @@ class ClauseCase(unittest.TestCase):
         
         cl2 = v.rename_lhs_vars(cl, lambda x: '_' + x)
         self.assertEqual(cl2, L.MMember('_s', '_e'))
+        cl2 = v.rename_rhs_rel(cl, lambda x: '_' + x)
+        self.assertEqual(cl2, L.RelMember(['s', 'e'], '__M'))
     
     def test_fmember(self):
         v = self.visitor
@@ -93,6 +95,8 @@ class ClauseCase(unittest.TestCase):
         
         cl2 = v.rename_lhs_vars(cl, lambda x: '_' + x)
         self.assertEqual(cl2, L.FMember('_o', '_v', 'f'))
+        cl2 = v.rename_rhs_rel(cl, lambda x: '_' + x)
+        self.assertEqual(cl2, L.RelMember(['o', 'v'], '__F_f'))
     
     def test_mapmember(self):
         v = self.visitor
@@ -143,6 +147,8 @@ class ClauseCase(unittest.TestCase):
         
         cl2 = v.rename_lhs_vars(cl, lambda x: '_' + x)
         self.assertEqual(cl2, L.MAPMember('_m', '_k', '_v'))
+        cl2 = v.rename_rhs_rel(cl, lambda x: '_' + x)
+        self.assertEqual(cl2, L.RelMember(['m', 'k', 'v'], '__MAP'))
     
     def test_tupmember(self):
         v = self.visitor
@@ -199,6 +205,8 @@ class ClauseCase(unittest.TestCase):
         
         cl2 = v.rename_lhs_vars(cl, lambda x: '_' + x)
         self.assertEqual(cl2, L.TUPMember('_t', ['_v1', '_v2']))
+        cl2 = v.rename_rhs_rel(cl, lambda x: '_' + x)
+        self.assertEqual(cl2, L.RelMember(['t', 'v1', 'v2'], '__TUP_2'))
 
 
 if __name__ == '__main__':
