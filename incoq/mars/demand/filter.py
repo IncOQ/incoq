@@ -13,6 +13,7 @@ from simplestruct import Struct, TypedField
 
 from incoq.mars.incast import L
 from incoq.mars.symbol import N
+from incoq.mars.comp import Kind
 
 
 class Filter(Struct):
@@ -137,6 +138,9 @@ class StructureGenerator:
         
         # Generate for each clause.
         for i, cl in enumerate(self.comp.clauses):
+            if ct.kind(cl) is not Kind.Member:
+                continue
+            
             vars = ct.lhs_vars(cl)
             in_vars = ct.uncon_lhs_vars(cl)
             out_vars = ct.con_lhs_vars(cl)
