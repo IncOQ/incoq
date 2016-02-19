@@ -16,9 +16,11 @@ OPTARG=
 
 # Courtesy http://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
 INCOQ_DIR=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
-DEPS_DIR=`dirname $INCOQ_DIR`/deps
+#DEPS_DIR=`dirname $INCOQ_DIR`/deps
+DEPS_DIR="/home/Jon/jon/Code"
 
-NEWENTRIES="$INCOQ_DIR:$DEPS_DIR/simplestruct:$DEPS_DIR/iast:$DEPS_DIR/frexp:$DEPS_DIR/distalgo:$DEPS_DIR/gendb:$DEPS_DIR/osq"
+#NEWENTRIES="$INCOQ_DIR:$DEPS_DIR/simplestruct:$DEPS_DIR/iast:$DEPS_DIR/frexp:$DEPS_DIR/distalgo:$DEPS_DIR/gendb:$DEPS_DIR/osq"
+NEWENTRIES="$INCOQ_DIR:$DEPS_DIR/simplestruct:$DEPS_DIR/iast:$DEPS_DIR/frexp:$INCOQ_DIR/distalgo:$INCOQ_DIR/gendb:$INCOQ_DIR/osq"
 
 if [ $WINPATH = "w" ]; then
     NEWENTRIES=`cygpath -wp $NEWENTRIES`
