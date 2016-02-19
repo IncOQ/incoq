@@ -1,5 +1,5 @@
-# Q1 : {(a,) for (a, a) in REL(S)} : {(Number)}
-# Q2 : {(v,) for (v,) in VARS(R_Q1) if (v > 1)} : {(Bottom)}
+# Q1 : {(a,) for (a, a_2) in REL(S) if (a == a_2)} : {(Number)}
+# Q2 : {(v,) for (v,) in REL(R_Q1) if (v > 1)} : {(Bottom)}
 from incoq.mars.runtime import *
 # S : {(Number, Number)}
 S = Set()

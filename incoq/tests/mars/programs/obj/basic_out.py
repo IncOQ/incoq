@@ -1,4 +1,4 @@
-# Q : z -> {(o_f,) for (z,) in REL(_U_Q) for (z, o) in M() for (o, o_f) in F(f)} : {({Bottom}, Top)}
+# Q : z -> {(z, o_f) for (z,) in REL(_U_Q) for (z, o) in M() for (o, o_f) in F(f)} : {({Bottom}, Top)}
 from incoq.mars.runtime import *
 # _M : {(Top, Top)}
 _M = Set()

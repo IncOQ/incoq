@@ -128,6 +128,31 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(tree, exp_tree)
     
+    def test_preprocess_comp(self):
+        comp = L.Parser.pe('{(2 * y,) for (x, y) in REL(R)}')
+        symtab = S.SymbolTable()
+        symtab.clausetools = CoreClauseTools()
+        symtab.define_var('x', type=T.Number)
+        symtab.define_var('y', type=T.Number)
+        symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
+        query = symtab.define_query('Q', node=comp, params=('x',),
+                                    type=T.Set(T.Tuple([T.Number])))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', {(2 * y,) for (x, y) in REL(R)}))
+            ''')
+        
+        tree = preprocess_comp(tree, symtab, query)
+        exp_tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', {(x, 2 * y,) for (x, y) in REL(R)}))
+            ''')
+        comp = symtab.get_queries()['Q'].node
+        exp_comp = L.Parser.pe('{(x, 2 * y) for (x, y) in REL(R)}')
+        self.assertEqual(tree, exp_tree)
+        self.assertEqual(comp, exp_comp)
+        self.assertEqual(query.type, T.Set(T.Tuple([T.Number, T.Number])))
+    
     def test_incrementalize_comp(self):
         comp = L.Parser.pe('{(x,) for (x,) in REL(R)}')
         symtab = S.SymbolTable()
@@ -154,19 +179,19 @@ class TransCase(unittest.TestCase):
         self.assertEqual(func, exp_func)
     
     def test_incrementalize_comp_with_params(self):
-        comp = L.Parser.pe('{(2 * y,) for (x, y) in REL(R)}')
+        comp = L.Parser.pe('{(x, 2 * y,) for (x, y) in REL(R)}')
         symtab = S.SymbolTable()
         symtab.clausetools = CoreClauseTools()
         symtab.define_var('x', type=T.Number)
         symtab.define_var('y', type=T.Number)
         symtab.define_relation('R', type=T.Set(T.Tuple([T.Number, T.Number])))
         query = symtab.define_query('Q', node=comp, params=('x',),
-                                    type=T.Set(T.Tuple([T.Number])))
+                                    type=T.Set(T.Tuple([T.Number, T.Number])))
         
         tree = L.Parser.p('''
             def main():
                 R.reladd(e)
-                print(QUERY('Q', {(2 * y,) for (x, y) in REL(R)}))
+                print(QUERY('Q', {(x, 2 * y,) for (x, y) in REL(R)}))
             ''')
         tree = incrementalize_comp(tree, symtab, query, 'R_Q')
         for decl in tree.decls:

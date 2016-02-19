@@ -7,8 +7,10 @@ __all__ = [
     'convert_subquery_clauses',
     'make_comp_maint_func',
     'CompMaintainer',
+    'preprocess_comp',
     'incrementalize_comp',
     'expand_maintjoins',
+    'transform_comp_query',
     'rewrite_all_comps_with_patterns',
     'match_member_cond',
     'rewrite_all_comp_memberconds',
@@ -196,6 +198,46 @@ class CompMaintainer(L.NodeTransformer):
         return code
 
 
+def rewrite_comp_resexp(symtab, query, comp):
+    """Rewrite a comprehension query to add the parameters to the result
+    expression. Update the symbol's type and return the new Comp AST,
+    but don't change the symbol's node attribute.
+    """
+    ct = symtab.clausetools
+    if query.params != ():
+        assert isinstance(comp.resexp, L.Tuple)
+        comp = ct.rewrite_resexp_with_params(comp, query.params)
+        
+        # Update the query symbol type.
+        assert (isinstance(query.type, T.Set) and
+                isinstance(query.type.elt, T.Tuple))
+        query.type = symtab.analyze_expr_type(comp)
+    
+    return comp
+
+
+def preprocess_comp(tree, symtab, query):
+    """Preprocess a comprehension query for incrementalization."""
+    ct = symtab.clausetools
+    comp = query.node
+    
+    # Rewrite uses of subquery results.
+    comp = convert_subquery_clauses(comp)
+    # Even though we already ran this in a preprocessing step,
+    # do it again to get any equality patterns introduced by other
+    # rewritings (such as convert_subquery_clauses() above).
+    comp = ct.elim_sameclause_eqs(comp)
+    # Broaden to express result for all parameter values.
+    comp = rewrite_comp_resexp(symtab, query, comp)
+    
+    class Rewriter(S.QueryRewriter):
+        def rewrite(self, symbol, name, expr):
+            if name == query.name:
+                return comp
+    
+    return Rewriter.run(tree, symtab)
+
+
 def incrementalize_comp(tree, symtab, query, result_var):
     """Incrementalize the given comprehension query symbol. Insert
     maintenance functions and calls at updates, and replace all
@@ -205,23 +247,6 @@ def incrementalize_comp(tree, symtab, query, result_var):
     clausetools = symtab.clausetools
     fresh_vars = symtab.fresh_names.vars
     comp = query.node
-    
-    comp = convert_subquery_clauses(comp)
-    
-    # Even though we already ran this in a preprocessing step,
-    # do it again to get any equality patterns introduced by other
-    # rewritings (such as convert_subquery_clauses() above).
-    comp = clausetools.elim_sameclause_eqs(comp)
-    
-    if query.params != ():
-        assert isinstance(comp.resexp, L.Tuple)
-        orig_arity = len(comp.resexp.elts)
-        comp = clausetools.rewrite_resexp_with_params(comp, query.params)
-        
-        # Update the query symbol type.
-        assert (isinstance(query.type, T.Set) and
-                isinstance(query.type.elt, T.Tuple))
-        query.type = symtab.analyze_expr_type(comp)
     
     query.maint_joins = []
     
@@ -250,6 +275,8 @@ def incrementalize_comp(tree, symtab, query, result_var):
     
     MaintJoinDefiner.run(tree)
     
+    orig_arity = len(comp.resexp.elts) - len(query.params)
+    
     class CompExpander(S.QueryRewriter):
         
         def rewrite(self, symbol, name, expr):
@@ -269,6 +296,22 @@ def expand_maintjoins(tree, symtab, query):
     """Expand the maintenance joins for the given query symbol."""
     join_names = [join.name for join in query.maint_joins]
     tree = JoinExpander.run(tree, symtab.clausetools, join_names)
+    return tree
+
+
+def transform_comp_query(tree, symtab, query):
+    """Do all the transformation associated with incrementalizing a
+    comprehension query.
+    """
+    # Incrementalize the query.
+    result_var = N.get_resultset_name(query.name)
+    tree = preprocess_comp(tree, symtab, query)
+    tree = incrementalize_comp(tree, symtab, query, result_var)
+    symtab.define_relation(result_var, counted=True,
+                           type=query.type)
+    
+    # Expand the maintenance joins.
+    tree = expand_maintjoins(tree, symtab, query)
     return tree
 
 

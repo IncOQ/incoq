@@ -1,6 +1,6 @@
 # Q : o -> sum(unwrap(R_Q_oper.imglookup('bu', (o,))), (o,), _U_Q) : Top
-# Q_oper : o -> {(_v1,) for (o,) in VARS(R__QU_Q_oper) for (o, o_f) in F(f) for (o_f, _v1) in M()} : {(Top, Top)}
-# _QU_Q_oper : {(_v5o,) for (_v5o,) in VARS(_U_Q)} : {(Top)}
+# Q_oper : o -> {(o, _v1) for (o,) in REL(R__QU_Q_oper) for (o, o_f) in F(f) for (o_f, _v1) in M()} : {(Top, Top)}
+# _QU_Q_oper : {(_v5o,) for (_v5o,) in REL(_U_Q)} : {(Top)}
 from incoq.mars.runtime import *
 # _M : {(Top, Top)}
 _M = Set()

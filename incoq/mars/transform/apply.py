@@ -19,7 +19,7 @@ from incoq.mars.incast import L, P
 from incoq.mars.symbol import S, N
 from incoq.mars.auxmap import transform_auxmaps
 from incoq.mars.comp import (
-    CoreClauseTools, incrementalize_comp, expand_maintjoins,
+    CoreClauseTools, transform_comp_query,
     rewrite_all_comps_with_patterns, rewrite_all_comp_memberconds)
 from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
 from incoq.mars.obj import (ObjClauseVisitor, flatten_objdomain,
@@ -189,15 +189,7 @@ def transform_query(tree, symtab, query):
             success = False
         
         elif query.impl == S.Inc:
-            # Incrementalize the query.
-            result_var = N.get_resultset_name(query.name)
-            tree = incrementalize_comp(tree, symtab, query, result_var)
-            symtab.define_relation(result_var, counted=True,
-                                   type=query.type)
-            
-            # Expand the maintenance joins.
-            tree = expand_maintjoins(tree, symtab, query)
-            
+            tree = transform_comp_query(tree, symtab, query)
             success = True
     
     elif isinstance(query.node, (L.Aggr, L.AggrRestr)):

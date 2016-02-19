@@ -1,4 +1,4 @@
-# Q1 : a -> {(b,) for (a, b) in REL(S)} : {(Number, Number)}
+# Q1 : a -> {(a, b) for (a, b) in REL(S)} : {(Number, Number)}
 # Q2 : a -> sum(unwrap(R_Q1.imglookup('bu', (a,)))) : Top
 from incoq.mars.runtime import *
 # S : {(Number, Number)}
