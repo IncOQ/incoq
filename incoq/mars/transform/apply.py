@@ -221,6 +221,12 @@ def transform_query(tree, symtab, query):
 
 
 def transform_queries(tree, symtab):
+    if symtab.config.verbose:
+        print_verbose = print
+    else:
+        def print_verbose(*args, **kargs):
+            pass
+    
     def findnext():
         return QueryNodeFinder.run(tree, first=True,
                                    ignore=symtab.ignored_queries)
@@ -228,15 +234,14 @@ def transform_queries(tree, symtab):
     result = findnext()
     while result is not None:
         query_name, _query_node = result
-        if symtab.config.verbose:
-            print('Incrementalizing {}...'.format(query_name), end='')
+        print_verbose('Incrementalizing {}...'.format(query_name), end='')
         query = symtab.get_queries()[query_name]
         tree, success = transform_query(tree, symtab, query)
         if not success:
-            print('  FAILED')
+            print_verbose('  FAILED')
             symtab.ignored_queries.add(query_name)
         else:
-            print()
+            print_verbose()
         result = findnext()
     return tree
 
