@@ -137,6 +137,23 @@ class JoinCase(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.ct.rewrite_resexp_with_params(comp, ('x',))
     
+    def test_filter_clauses(self):
+        class DummyHandler(RelMemberHandler):
+            def constrained_mask(self, cl):
+                return [False, True]
+        self.ct.handle_RelMember = DummyHandler(self.ct)
+        
+        clauses = L.Parser.pe('''{z for (x, y) in REL(R)
+                                    if x < y
+                                    for (y, z) in REL(S)}''').clauses
+        filters = L.Parser.pe('''{z for (x, y) in REL(dR)
+                                    for (y, z) in REL(dS)}''').clauses
+        clauses = self.ct.filter_clauses(clauses, filters, [])
+        exp_clauses = L.Parser.pe('''{z for (x, y) in REL(dR)
+                                        if x < y
+                                        for (y, z) in REL(S)}''').clauses
+        self.assertSequenceEqual(clauses, exp_clauses)
+    
     def test_get_code_for_clauses(self):
         comp = L.Parser.pe('''{z for (x, y) in REL(R)
                                  for (y, z) in REL(S)}''')

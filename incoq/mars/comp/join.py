@@ -23,7 +23,7 @@ from enum import Enum
 from incoq.util.collections import OrderedSet, Partitioning
 from incoq.mars.incast import L
 
-from .clause import ClauseVisitor, CoreClauseVisitor
+from .clause import ClauseVisitor, CoreClauseVisitor, Kind
 
 
 eq_cond_pattern = L.Cond(L.Compare(L.Name(L.PatVar('LEFT')), L.Eq(),
@@ -232,6 +232,36 @@ class ClauseTools(ClauseVisitor):
         new_resexp = L.Tuple(tuple(L.Name(p) for p in params) +
                              comp.resexp.elts)
         return comp._replace(resexp=new_resexp)
+    
+    def filter_clauses(self, clauses, filters, bindenv):
+        """Given a sequence of clauses and a corresponding sequence of
+        filtered versions for those clauses, return a list that selects
+        the original or filter clause at each position as appropriate,
+        using the given initial binding environment. Condition clauses
+        in the first clauses list are emitted unchanged, and skipped
+        for the purpose of comparing indices between the two lists.
+        """
+        result = []
+        bindenvs = [set(bindenv)]
+        cl_it = iter(clauses)
+        f_it = iter(filters)
+        for cl, f in zip(cl_it, f_it):
+            while self.kind(cl) is not Kind.Member:
+                # Append and skip until we find a membership clause.
+                # Since there is at least one remaining filter, there
+                # is at least one remaining membership.
+                result.append(cl)
+                cl = next(cl_it)
+            
+            env = set(bindenvs[-1])
+            if self.needs_filtering(cl, env):
+                result.append(f)
+            else:
+                result.append(cl)
+            env.update(self.lhs_vars(cl))
+            bindenvs.append(env)
+        
+        return result
     
     def get_code_for_clauses(self, clauses, bindenv, body):
         """Produce code for running body once for each combination of

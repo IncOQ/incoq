@@ -26,6 +26,17 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.con_lhs_vars(cl), ['x', 'z'])
         self.assertSequenceEqual(v.uncon_lhs_vars(cl), ['y'])
         self.assertSequenceEqual(v.uncon_vars(cl), ['y'])
+        self.assertTrue(v.needs_filtering(cl, ['x', 'z']))
+        self.assertFalse(v.needs_filtering(cl, ['y']))
+        
+        cl2 = L.Cond(L.Parser.pe('True'))
+        with self.assertRaises(ValueError):
+            v.needs_filtering(cl2, [])
+        
+        # Clauses never need filtering once they're turned into
+        # singleton clauses.
+        cl3 = v.singletonize(cl, L.Name('e'))
+        self.assertFalse(v.needs_filtering(cl3, []))
     
     def check_rename(self, cl):
         v = self.visitor

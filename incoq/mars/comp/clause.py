@@ -135,6 +135,17 @@ class ClauseHandler(BaseClauseHandler):
         """
         return self.uncon_lhs_vars(cl)
     
+    def needs_filtering(self, cl, bindenv):
+        """For a membership clause, return whether a demand-filtered
+        version of this clause should be used for a given binding
+        environment. For a condition clause, raise ValueError.
+        """
+        if self.kind(cl) is not Kind.Member:
+            raise ValueError
+        # By default, use a filter if any unconstrained position is
+        # not bound.
+        return not set(self.uncon_lhs_vars(cl)).issubset(bindenv)
+    
     def get_priority(self, cl, bindenv):
         """Return a priority for the cost heuristic based on the given
         binding environment, or None if running the clause in that
@@ -212,6 +223,7 @@ for op in [
     'uncon_lhs_vars',
     'constrained_mask',
     'uncon_vars',
+    'needs_filtering',
     'get_priority',
     'get_code',
     'rename_lhs_vars',
