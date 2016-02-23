@@ -121,6 +121,14 @@ class ClauseTools(ClauseVisitor):
             return False
         return sorted(res_vars) == sorted(lhs_vars)
     
+    def clauses_rename_lhs_vars(self, clauses, renamer):
+        lhs_vars = self.lhs_vars_from_clauses(clauses)
+        lhsonly_renamer = lambda x: renamer(x) if x in lhs_vars else x
+        
+        new_clauses = [self.rename_lhs_vars(cl, lhsonly_renamer)
+                       for cl in clauses]
+        return new_clauses
+    
     def comp_rename_lhs_vars(self, comp, renamer):
         # Don't apply to non-lhs vars in condition and result
         # expressions.

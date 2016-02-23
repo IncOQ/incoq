@@ -95,15 +95,21 @@ class JoinCase(unittest.TestCase):
                                  for (y, z) in REL(S)}''')
         self.assertFalse(self.ct.is_join(comp))
     
-    def test_comp_rename_lhs_vars(self):
+    def test_rename_lhs_vars(self):
         comp = L.Parser.pe('''{(a, x, y, z) for (x, y) in REL(R)
                                             for (y, z) in REL(S)
                                             if a}''')
-        comp = self.ct.comp_rename_lhs_vars(comp, lambda x: '_' + x)
         exp_comp = L.Parser.pe('''{(a, _x, _y, _z) for (_x, _y) in REL(R)
                                                    for (_y, _z) in REL(S)
                                                    if a}''')
-        self.assertEqual(comp, exp_comp) 
+        exp_clauses = exp_comp.clauses
+        
+        renamer = lambda x: '_' + x
+        clauses = self.ct.clauses_rename_lhs_vars(comp.clauses, renamer)
+        comp = self.ct.comp_rename_lhs_vars(comp, renamer)
+        
+        self.assertSequenceEqual(clauses, exp_clauses)
+        self.assertEqual(comp, exp_comp)
     
     def test_rewrite_with_patterns(self):
         orig_comp = L.Parser.pe('''{a for (a, b) in REL(R)
