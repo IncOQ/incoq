@@ -17,15 +17,18 @@ __all__ = [
 ]
 
 
-from itertools import tee
+from itertools import tee, zip_longest
 
 
-def zip_strict(seq1, seq2):
-    """Like zip(), but raises AssertionError if the sequences are not
-    of equal length.
+def zip_strict(*iterables):
+    """Like zip(), but raise AssertionError if all iterables do not
+    exhaust at the same time.
     """
-    assert len(seq1) == len(seq2), 'Sequences have unequal length'
-    return zip(seq1, seq2)
+    sentinel = object()
+    for elem in zip_longest(*iterables, fillvalue=sentinel):
+        if sentinel in elem:
+            raise AssertionError('Iterables not exhausted at same time')
+        yield elem
 
 
 def no_duplicates(seq):

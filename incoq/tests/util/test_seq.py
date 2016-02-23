@@ -14,10 +14,17 @@ from incoq.util.seq import *
 class TestSeq(unittest.TestCase):
     
     def test_zip_strict(self):
-        zip_strict([1, 2], [3, 4])
+        seq = list(zip_strict([1, 2], [3, 4]))
+        exp_seq = [(1, 3), (2, 4)]
+        self.assertEqual(seq, exp_seq)
         
         with self.assertRaises(AssertionError):
-            zip_strict([1, 2], [3, 4, 5])
+            list(zip_strict([1, 2], [3, 4, 5]))
+        
+        it1 = iter([1])
+        it2 = iter([1, 2])
+        with self.assertRaises(AssertionError):
+            list(zip_strict(it1, it2))
     
     def test_no_duplicates(self):
         self.assertTrue(no_duplicates([1, 2, 3]))
