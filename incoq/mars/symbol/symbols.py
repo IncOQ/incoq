@@ -305,6 +305,10 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         doc='List of query symbols of maintenance joins used to help '
             'incrementally compute this comprehension query')
     
+    filters = SymbolAttribute(
+        doc='List of filtered clauses to use in place of corresponding '
+            'normal membership clauses')
+    
     display = SymbolAttribute(
         doc='Whether or not to include this query\'s description in '
             'the comment header of the output program',

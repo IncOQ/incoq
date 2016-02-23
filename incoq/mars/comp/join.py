@@ -119,7 +119,7 @@ class ClauseTools(ClauseVisitor):
             res_vars = L.detuplify(comp.resexp)
         except ValueError:
             return False
-        return res_vars == lhs_vars
+        return sorted(res_vars) == sorted(lhs_vars)
     
     def comp_rename_lhs_vars(self, comp, renamer):
         # Don't apply to non-lhs vars in condition and result

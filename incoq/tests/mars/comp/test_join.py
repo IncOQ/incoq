@@ -80,8 +80,13 @@ class JoinCase(unittest.TestCase):
                                          for (y, z) in REL(S)}''')
         self.assertTrue(self.ct.is_join(comp))
         
-        # Wrong order.
+        # Different order.
         comp = L.Parser.pe('''{(x, z, y) for (x, y) in REL(R)
+                                         for (y, z) in REL(S)}''')
+        self.assertTrue(self.ct.is_join(comp))
+        
+        # Different variables.
+        comp = L.Parser.pe('''{(x, z, y) for (a, y) in REL(R)
                                          for (y, z) in REL(S)}''')
         self.assertFalse(self.ct.is_join(comp))
         

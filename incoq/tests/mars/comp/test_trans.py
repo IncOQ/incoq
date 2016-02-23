@@ -6,6 +6,7 @@ import unittest
 from incoq.mars.incast import L
 from incoq.mars.type import T
 from incoq.mars.symbol import S, N
+from incoq.mars.comp.clause import RelMemberHandler
 from incoq.mars.comp.join import CoreClauseTools
 from incoq.mars.comp.trans import *
 
@@ -40,6 +41,40 @@ class TransCase(unittest.TestCase):
                 for z in QUERY('Q2', {(x,) for (x,) in REL(R)}):
                     pass
                 for z in QUERY('Q3', {True for (x,) in REL(R)}):
+                    pass
+            ''')
+        self.assertEqual(tree, exp_tree)
+    
+    def test_process_maintjoins(self):
+        class DummyHandler(RelMemberHandler):
+            def constrained_mask(self, cl):
+                return [True, False, True]
+        self.ct.handle_RelMember = DummyHandler(self.ct)
+        
+        comp = L.Parser.pe('''{z for (x, y) in REL(R)
+                                 for (y, z) in REL(S)}''')
+        maint_comp = L.Parser.pe('''{(x, y, z) for (x, y) in SING(e)
+                                               for (y, z) in REL(S)}''')
+        filters = L.Parser.pe('''{z for (x, y) in REL(dR)
+                                    for (y, z) in REL(dS)}''').clauses
+        symtab = S.SymbolTable()
+        symtab.clausetools = self.ct
+        query = symtab.define_query('Q', node=comp)
+        join = symtab.define_query('J', node=maint_comp)
+        query.maint_joins = [join]
+        query.filters = filters
+        
+        tree = L.Parser.p('''
+            def main():
+                for (x, y, z) in QUERY('J',
+                    {(x, y, z) for (x, y) in SING(e) for (y, z) in REL(S)}):
+                    pass
+            ''')
+        tree = process_maintjoins(tree, symtab, query)
+        exp_tree = L.Parser.p('''
+            def main():
+                for (x, y, z) in QUERY('J',
+                    {(x, y, z) for (x, y) in SING(e) for (y, z) in REL(dS)}):
                     pass
             ''')
         self.assertEqual(tree, exp_tree)
@@ -206,28 +241,6 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
         self.assertEqual(query.type, T.Set(T.Tuple([T.Number, T.Number])))
-    
-    def test_expand_maintjoins(self):
-        comp = L.Parser.pe('{x for (x,) in REL(R)}')
-        maint_comp = L.Parser.pe('{(x,) for (x,) in SING(e)}')
-        symtab = S.SymbolTable()
-        symtab.clausetools = CoreClauseTools()
-        query = symtab.define_query('Q', node=comp)
-        join = symtab.define_query('J', node=maint_comp)
-        query.maint_joins = [join]
-        
-        tree = L.Parser.p('''
-            def main():
-                for (x,) in QUERY('J', _MAINT_COMP):
-                    pass
-            ''', subst={'_MAINT_COMP': maint_comp})
-        tree = expand_maintjoins(tree, symtab, query)
-        exp_tree = L.Parser.p('''
-            def main():
-                (x,) = e
-                pass
-            ''')
-        self.assertEqual(tree, exp_tree)
     
     def test_match_member_cond(self):
         cond = L.Cond(L.Parser.pe('(x, y) in R'))

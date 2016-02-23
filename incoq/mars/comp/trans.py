@@ -3,13 +3,13 @@
 
 __all__ = [
     'JoinExpander',
+    'process_maintjoins',
     'convert_subquery_clause',
     'convert_subquery_clauses',
     'make_comp_maint_func',
     'CompMaintainer',
     'preprocess_comp',
     'incrementalize_comp',
-    'expand_maintjoins',
     'transform_comp_query',
     'rewrite_all_comps_with_patterns',
     'match_member_cond',
@@ -61,14 +61,32 @@ class JoinExpander(L.NodeTransformer):
         
         # Check that it's a join and the variables match the loop target.
         if not (ct.is_join(comp) and
-                ct.lhs_vars_from_comp(comp) == node.vars):
+                L.detuplify(comp.resexp) == node.vars):
             return node
         
-        # Reorder the clauses according to the greedy heuristic.
-        clauses = order_clauses(self.clausetools, comp.clauses)
-        comp = comp._replace(clauses=clauses)
-        
         return ct.get_code_for_clauses(comp.clauses, (), node.body)
+
+
+def process_maintjoins(tree, symtab, query):
+    """Order and filter maintenance joins for a query."""
+    ct = symtab.clausetools
+    maint_joins = [join.name for join in query.maint_joins]
+    filters = query.filters
+    
+    class Rewriter(S.QueryRewriter):
+        def rewrite(self, symbol, name, expr):
+            if name not in maint_joins:
+                return
+            assert isinstance(expr, L.Comp)
+            
+            clauses = expr.clauses
+            clauses = order_clauses(ct, clauses)
+            if filters is not None:
+                clauses = ct.filter_clauses(clauses, filters, [])
+            return expr._replace(clauses=clauses)
+    
+    tree = Rewriter.run(tree, symtab)
+    return tree
 
 
 def convert_subquery_clause(clause):
@@ -292,13 +310,6 @@ def incrementalize_comp(tree, symtab, query, result_var):
     return tree
 
 
-def expand_maintjoins(tree, symtab, query):
-    """Expand the maintenance joins for the given query symbol."""
-    join_names = [join.name for join in query.maint_joins]
-    tree = JoinExpander.run(tree, symtab.clausetools, join_names)
-    return tree
-
-
 def transform_comp_query(tree, symtab, query):
     """Do all the transformation associated with incrementalizing a
     comprehension query.
@@ -310,8 +321,10 @@ def transform_comp_query(tree, symtab, query):
     symtab.define_relation(result_var, counted=True,
                            type=query.type)
     
-    # Expand the maintenance joins.
-    tree = expand_maintjoins(tree, symtab, query)
+    # Process and expand the maintenance joins.
+    tree = process_maintjoins(tree, symtab, query)
+    join_names = [join.name for join in query.maint_joins]
+    tree = JoinExpander.run(tree, symtab.clausetools, join_names)
     return tree
 
 
