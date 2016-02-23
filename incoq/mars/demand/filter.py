@@ -66,6 +66,8 @@ class StructureGenerator:
         self.filters = []
         self.filters_by_rel = defaultdict(lambda: [])
         self.filters_by_pred = defaultdict(lambda: [])
+        self.filters_by_i = {}
+        self.clause_over_filter = {}
         self.tags = []
         self.tags_by_var = defaultdict(lambda: [])
         self.tags_by_i = defaultdict(lambda: [])
@@ -84,6 +86,11 @@ class StructureGenerator:
             self.filters_by_rel[rel].append(filter)
             for p in filter.preds:
                 self.filters_by_pred[p].append(filter)
+            assert filter.i not in self.filters_by_i
+            self.filters_by_i[filter.i] = filter
+            assert filter.name not in self.clause_over_filter
+            self.clause_over_filter[filter.name] = \
+                self.change_rhs(filter.clause, filter.name)
         
         elif isinstance(struct, Tag):
             tag = struct
@@ -156,7 +163,7 @@ class StructureGenerator:
                 preds = self.get_preds(i, in_vars)
                 filter = Filter(i, name, cl, preds)
                 self.add_struct(filter)
-                filtered_cl = self.change_rhs(cl, name)
+                filtered_cl = self.clause_over_filter[name]
             else:
                 # First clause acts as its own filter; no new structure.
                 filtered_cl = cl
@@ -217,3 +224,18 @@ class StructureGenerator:
         
         else:
             assert()
+    
+    def make_filter_list(self):
+        """Get the list of filtered clauses corresponding to the query's
+        clauses, accounting for the fact that some clauses are their own
+        filters (e.g. the U-set clause).
+        """
+        result = []
+        clauses = self.comp.clauses
+        for i in range(len(clauses)):
+            if i in self.filters_by_i:
+                filter = self.filters_by_i[i]
+                result.append(self.clause_over_filter[filter.name])
+            else:
+                result.append(clauses[i])
+        return result

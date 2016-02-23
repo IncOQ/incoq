@@ -90,6 +90,22 @@ class FilterCase(unittest.TestCase):
             {(x,) for (s, x) in REL(Q_d_M)}
             ''')
         self.assertEqual(comp, exp_comp)
+    
+    def test_make_filter_list(self):
+        generator = StructureGenerator(
+            ClauseVisitor(),
+            L.Parser.pe('''
+            {(o_f,) for (s, t) in REL(U) for (s, x) in M()}
+            '''), 'Q')
+        generator.make_structs()
+        generator.simplify_names()
+        
+        filters = generator.make_filter_list()
+        exp_filters = [
+            L.RelMember(['s', 't'], 'U'),
+            L.RelMember(['s', 'x'], 'Q_d_M'),
+        ]
+        self.assertEqual(filters, exp_filters)
 
 
 if __name__ == '__main__':
