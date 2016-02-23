@@ -305,6 +305,9 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         doc='List of query symbols of maintenance joins used to help '
             'incrementally compute this comprehension query')
     
+    join_prefix = SymbolAttribute(
+        doc='Prefix used for maintenance join to rename query variables')
+    
     filters = SymbolAttribute(
         doc='List of filtered clauses to use in place of corresponding '
             'normal membership clauses')

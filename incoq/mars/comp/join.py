@@ -343,7 +343,7 @@ class ClauseTools(ClauseVisitor):
                 joins.append(join)
         return tuple(joins)
     
-    def get_maint_code(self, fresh_vars, fresh_join_names,
+    def get_maint_code(self, fresh_var_prefix, fresh_join_names,
                        comp, result_var, update, *,
                        selfjoin=SelfJoin.Without,
                        counted):
@@ -357,7 +357,6 @@ class ClauseTools(ClauseVisitor):
         assert isinstance(update, L.RelUpdate)
         assert isinstance(update.op, (L.SetAdd, L.SetRemove))
         
-        fresh_var_prefix = next(fresh_vars)
         result_elem_var = fresh_var_prefix + '_result'
         # Prefix LHS vars in the comp to guarantee fresh names for their
         # use in maintenance code.

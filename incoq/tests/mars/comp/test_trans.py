@@ -53,28 +53,32 @@ class TransCase(unittest.TestCase):
         
         comp = L.Parser.pe('''{z for (x, y) in REL(R)
                                  for (y, z) in REL(S)}''')
-        maint_comp = L.Parser.pe('''{(x, y, z) for (x, y) in SING(e)
-                                               for (y, z) in REL(S)}''')
+        maint_comp = L.Parser.pe('''
+            {(v_x, v_y, v_z) for (v_x, v_y) in SING(e)
+                             for (v_y, v_z) in REL(S)}
+            ''')
         filters = L.Parser.pe('''{z for (x, y) in REL(dR)
                                     for (y, z) in REL(dS)}''').clauses
         symtab = S.SymbolTable()
         symtab.clausetools = self.ct
         query = symtab.define_query('Q', node=comp)
-        join = symtab.define_query('J', node=maint_comp)
+        join = symtab.define_query('J', node=maint_comp, join_prefix='v')
         query.maint_joins = [join]
         query.filters = filters
         
         tree = L.Parser.p('''
             def main():
-                for (x, y, z) in QUERY('J',
-                    {(x, y, z) for (x, y) in SING(e) for (y, z) in REL(S)}):
+                for (v_x, v_y, v_z) in QUERY('J',
+                    {(v_x, v_y, v_z) for (v_x, v_y) in SING(e)
+                                     for (v_y, v_z) in REL(S)}):
                     pass
             ''')
         tree = process_maintjoins(tree, symtab, query)
         exp_tree = L.Parser.p('''
             def main():
-                for (x, y, z) in QUERY('J',
-                    {(x, y, z) for (x, y) in SING(e) for (y, z) in REL(dS)}):
+                for (v_x, v_y, v_z) in QUERY('J',
+                    {(v_x, v_y, v_z) for (v_x, v_y) in SING(e)
+                                     for (v_y, v_z) in REL(dS)}):
                     pass
             ''')
         self.assertEqual(tree, exp_tree)
@@ -104,7 +108,7 @@ class TransCase(unittest.TestCase):
     def test_make_comp_maint_func(self):
         comp = L.Parser.pe('''{x + z for (x, y) in REL(R)
                                      for (y, z) in REL(S)}''')
-        func = make_comp_maint_func(self.ct, N.fresh_name_generator(),
+        func = make_comp_maint_func(self.ct, '_v1',
                                     iter(['J']),
                                     comp, 'Q', 'R', L.SetAdd(),
                                     counted=True)

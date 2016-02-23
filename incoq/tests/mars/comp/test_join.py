@@ -218,7 +218,7 @@ class JoinCase(unittest.TestCase):
         comp = L.Parser.pe('''
             {w + z for (w, x) in REL(R) for (x, y) in REL(S)
                    for (y, z) in REL(R)}''')
-        code = self.ct.get_maint_code(N.fresh_name_generator(),
+        code = self.ct.get_maint_code('_v1',
                                       N.fresh_name_generator('J{}'),
                                       comp, 'Q',
                                       L.RelUpdate('R', L.SetAdd(), 'e'),

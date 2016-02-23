@@ -81,8 +81,12 @@ def process_maintjoins(tree, symtab, query):
             
             clauses = expr.clauses
             clauses = order_clauses(ct, clauses)
+            
             if filters is not None:
-                clauses = ct.filter_clauses(clauses, filters, [])
+                renamer = lambda x: symbol.join_prefix + '_' + x
+                renamed_filters = ct.clauses_rename_lhs_vars(filters, renamer)
+                clauses = ct.filter_clauses(clauses, renamed_filters, [])
+            
             return expr._replace(clauses=clauses)
     
     tree = Rewriter.run(tree, symtab)
@@ -134,7 +138,7 @@ def convert_subquery_clauses(comp):
     return comp._replace(clauses=new_clauses)
 
 
-def make_comp_maint_func(clausetools, fresh_vars, fresh_join_names,
+def make_comp_maint_func(clausetools, fresh_var_prefix, fresh_join_names,
                          comp, result_var, rel, op, *,
                          counted):
     """Make maintenance function for a comprehension."""
@@ -144,7 +148,7 @@ def make_comp_maint_func(clausetools, fresh_vars, fresh_join_names,
     func_name = N.get_maint_func_name(result_var, rel, op_name)
     
     update = L.RelUpdate(rel, op, '_elem')
-    code = clausetools.get_maint_code(fresh_vars, fresh_join_names,
+    code = clausetools.get_maint_code(fresh_var_prefix, fresh_join_names,
                                       comp, result_var, update,
                                       counted=counted)
     func = L.Parser.ps('''
@@ -183,8 +187,9 @@ class CompMaintainer(L.NodeTransformer):
         funcs = []
         for rel in self.rels:
             for op in [L.SetAdd(), L.SetRemove()]:
+                fresh_var_prefix = next(self.fresh_vars)
                 func = make_comp_maint_func(
-                        ct, self.fresh_vars, self.fresh_join_names,
+                        ct, fresh_var_prefix, self.fresh_join_names,
                         self.comp, self.result_var, rel, op,
                         counted=self.counted)
                 funcs.append(func)
@@ -268,14 +273,25 @@ def incrementalize_comp(tree, symtab, query, result_var):
     
     query.maint_joins = []
     
+    # Some hackery for tracking the names of maintenance joins and
+    # their corresponding variable prefixes.
+    current_prefix = None
     used_join_names = []
+    join_prefixes = {}
+    
+    def fresh_vars():
+        nonlocal current_prefix
+        for v in symtab.fresh_names.vars:
+            current_prefix = v
+            yield v
     
     def fresh_join_names():
         for join_name in N.fresh_name_generator(query.name + '_J{}'):
             used_join_names.append(join_name)
+            join_prefixes[join_name] = current_prefix
             yield join_name
     
-    tree = CompMaintainer.run(tree, clausetools, fresh_vars,
+    tree = CompMaintainer.run(tree, clausetools, fresh_vars(),
                               fresh_join_names(),
                               comp, result_var,
                               counted=True)
@@ -287,8 +303,9 @@ def incrementalize_comp(tree, symtab, query, result_var):
             
             if (node.name in used_join_names and
                 node.name not in symtab.get_symbols()):
-                sym = symtab.define_query(node.name, node=node.query,
-                                          display=False)
+                sym = symtab.define_query(
+                    node.name, node=node.query,
+                    display=False, join_prefix=join_prefixes[node.name])
                 query.maint_joins.append(sym)
     
     MaintJoinDefiner.run(tree)
