@@ -263,7 +263,7 @@ class ClauseTools(ClauseVisitor):
                 cl = next(cl_it)
             
             env = set(bindenvs[-1])
-            if self.needs_filtering(cl, env):
+            if self.may_filter(cl, env):
                 result.append(f)
             else:
                 result.append(cl)

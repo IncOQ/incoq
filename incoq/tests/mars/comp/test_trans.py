@@ -46,11 +46,6 @@ class TransCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
     
     def test_process_maintjoins(self):
-        class DummyHandler(RelMemberHandler):
-            def constrained_mask(self, cl):
-                return [True, False, True]
-        self.ct.handle_RelMember = DummyHandler(self.ct)
-        
         comp = L.Parser.pe('''{z for (x, y) in REL(R)
                                  for (y, z) in REL(S)}''')
         maint_comp = L.Parser.pe('''

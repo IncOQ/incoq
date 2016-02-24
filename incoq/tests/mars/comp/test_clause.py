@@ -26,17 +26,16 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.con_lhs_vars(cl), ['x', 'z'])
         self.assertSequenceEqual(v.uncon_lhs_vars(cl), ['y'])
         self.assertSequenceEqual(v.uncon_vars(cl), ['y'])
-        self.assertTrue(v.needs_filtering(cl, ['x', 'z']))
-        self.assertFalse(v.needs_filtering(cl, ['y']))
+        self.assertTrue(v.must_filter(cl, ['x', 'z']))
+        self.assertTrue(v.may_filter(cl, ['x', 'z']))
+        self.assertFalse(v.must_filter(cl, ['y']))
+        self.assertFalse(v.may_filter(cl, ['y']))
         
         cl2 = L.Cond(L.Parser.pe('True'))
         with self.assertRaises(ValueError):
-            v.needs_filtering(cl2, [])
-        
-        # Clauses never need filtering once they're turned into
-        # singleton clauses.
-        cl3 = v.singletonize(cl, L.Name('e'))
-        self.assertFalse(v.needs_filtering(cl3, []))
+            v.must_filter(cl2, [])
+        with self.assertRaises(ValueError):
+            v.may_filter(cl2, [])
     
     def check_rename(self, cl):
         v = self.visitor
@@ -130,6 +129,9 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(v.rhs_rel(cl), None)
         self.assertSequenceEqual(v.uncon_vars(cl), ['e'])
         
+        self.assertFalse(v.must_filter(cl, []))
+        self.assertFalse(v.may_filter(cl, []))
+        
         pri = v.get_priority(cl, ['a', 'x', 'y'])
         self.assertEqual(pri, Priority.Constant)
         
@@ -191,6 +193,8 @@ class ClauseCase(unittest.TestCase):
         exp_cl2 = L.WithoutMember(L.SingMember(['x', 'y', 'z'], L.Name('f')),
                                   L.Name('e'))
         self.assertEqual(cl2, exp_cl2)
+        self.assertFalse(v.must_filter(cl2, []))
+        self.assertFalse(v.may_filter(cl2, []))
     
     def test_varsmember(self):
         v = self.visitor

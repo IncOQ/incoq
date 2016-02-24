@@ -135,16 +135,35 @@ class ClauseHandler(BaseClauseHandler):
         """
         return self.uncon_lhs_vars(cl)
     
-    def needs_filtering(self, cl, bindenv):
+    # By default, we assume that if there are no unconstrained
+    # components, then filtering may or may not be used, and if there
+    # are any unconstrained components, then 1) filtering must be
+    # used when any of them are unbound, and 2) filtering must not
+    # be used if all of them are bound. This approximates how we want
+    # to avoid filtered forward lookups and unfiltered inverse lookups
+    # for object clauses.
+    
+    def must_filter(self, cl, bindenv):
         """For a membership clause, return whether a demand-filtered
-        version of this clause should be used for a given binding
+        version of this clause must be used for a given binding
         environment. For a condition clause, raise ValueError.
         """
         if self.kind(cl) is not Kind.Member:
             raise ValueError
-        # By default, use a filter if any unconstrained position is
-        # not bound.
-        return not set(self.uncon_lhs_vars(cl)).issubset(bindenv)
+        uncon = self.uncon_lhs_vars(cl)
+        return (len(uncon) > 0 and
+                not set(uncon).issubset(bindenv))
+    
+    def may_filter(self, cl, bindenv):
+        """For a membership clause, return whether a demand-filtered
+        version of this clause may be used for a given binding
+        environment. For a condition clause, raise ValueError.
+        """
+        if self.kind(cl) is not Kind.Member:
+            raise ValueError
+        uncon = self.uncon_lhs_vars(cl)
+        return (len(uncon) == 0 or
+                not set(uncon).issubset(bindenv))
     
     def get_priority(self, cl, bindenv):
         """Return a priority for the cost heuristic based on the given
@@ -223,7 +242,8 @@ for op in [
     'uncon_lhs_vars',
     'constrained_mask',
     'uncon_vars',
-    'needs_filtering',
+    'must_filter',
+    'may_filter',
     'get_priority',
     'get_code',
     'rename_lhs_vars',
@@ -313,6 +333,12 @@ class SingMemberHandler(ClauseHandler):
     def uncon_vars(self, cl):
         return tuple(L.IdentFinder.find_vars(cl.value))
     
+    def must_filter(self, cl, bindenv):
+        return False
+    
+    def may_filter(self, cl, bindenv):
+        return False
+    
     def get_priority(self, cl, bindenv):
         return Priority.Constant
     
@@ -357,6 +383,12 @@ class WithoutMemberHandler(ClauseHandler):
         inner_result = self.visitor.uncon_vars(cl.cl)
         outer_result = tuple(L.IdentFinder.find_vars(cl.value))
         return inner_result + outer_result
+    
+    def must_filter(self, cl, bindenv):
+        return self.visitor.must_filter(cl.cl, bindenv)
+    
+    def may_filter(self, cl, bindenv):
+        return self.visitor.may_filter(cl.cl, bindenv)
     
     def get_priority(self, cl, bindenv):
         return self.visitor.get_priority(cl.cl, bindenv)
