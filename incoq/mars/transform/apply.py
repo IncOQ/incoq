@@ -21,6 +21,7 @@ from incoq.mars.auxmap import transform_auxmaps
 from incoq.mars.comp import (
     CoreClauseTools, transform_comp_query,
     rewrite_all_comps_with_patterns, rewrite_all_comp_memberconds)
+from incoq.mars.demand import transform_comp_query_with_filtering
 from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
 from incoq.mars.obj import (ObjClauseVisitor, flatten_objdomain,
                             unflatten_objdomain)
@@ -191,6 +192,13 @@ def transform_query(tree, symtab, query):
         elif query.impl == S.Inc:
             tree = transform_comp_query(tree, symtab, query)
             success = True
+        
+        elif query.impl == S.Filtered:
+            tree = transform_comp_query_with_filtering(tree, symtab, query)
+            success = True
+        
+        else:
+            assert()
     
     elif isinstance(query.node, (L.Aggr, L.AggrRestr)):
         
@@ -205,6 +213,9 @@ def transform_query(tree, symtab, query):
             # additional comp clauses.
             tree = transform_comps_with_maps(tree, symtab)
             success = True
+        
+        else:
+            assert()
     
     else:
         raise L.ProgramError('Unknown query kind: {}'.format(

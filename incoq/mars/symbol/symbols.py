@@ -31,6 +31,7 @@ class Constants(Enum):
     # impl
     Normal = 1
     Inc = 2
+    Filtered = 3
     
     # demand_param_strat
     Unconstrained = 10
@@ -280,7 +281,7 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
     impl = EnumSymbolAttribute(
         doc='Implementation strategy',
         default=Normal,
-        allowed_values=[Normal, Inc])
+        allowed_values=[Normal, Inc, Filtered])
     
     uses_demand = SymbolAttribute(
         doc='Whether or not the query uses demand',
