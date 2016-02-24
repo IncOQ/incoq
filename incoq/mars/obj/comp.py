@@ -92,7 +92,8 @@ def rewrite_memberconds(comp):
     """
     def process(cl):
         if (isinstance(cl, L.Cond) and
-            isinstance(cl.cond, L.Compare)):
+            isinstance(cl.cond, L.Compare) and
+            isinstance(cl.cond.op, L.In)):
             return L.Member(cl.cond.left, cl.cond.right), [], []
     tree = L.rewrite_comp(comp, process)
     return tree
