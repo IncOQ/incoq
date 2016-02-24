@@ -6,7 +6,6 @@ import unittest
 from incoq.mars.incast import L
 from incoq.mars.type import T
 from incoq.mars.symbol import S, N
-from incoq.mars.comp.clause import RelMemberHandler
 from incoq.mars.comp.join import CoreClauseTools
 from incoq.mars.comp.trans import *
 

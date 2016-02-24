@@ -48,8 +48,7 @@ class ClauseCase(unittest.TestCase):
         self.assertFalse(v.should_filter(cl, ['x', 'y']))
         
         cl = L.Cond(L.Parser.pe('True'))
-        with self.assertRaises(ValueError):
-            v.should_filter(cl, [])
+        self.assertFalse(v.should_filter(cl, []))
     
     def check_rename(self, cl):
         v = self.visitor

@@ -246,22 +246,11 @@ class ClauseTools(ClauseVisitor):
         """Given a sequence of clauses and a corresponding sequence of
         filtered versions for those clauses, return a list that selects
         the original or filter clause at each position as appropriate,
-        using the given initial binding environment. Condition clauses
-        in the first clauses list are emitted unchanged, and skipped
-        for the purpose of comparing indices between the two lists.
+        using the given initial binding environment.
         """
         result = []
         bindenvs = [set(bindenv)]
-        cl_it = iter(clauses)
-        f_it = iter(filters)
-        for cl, f in zip_strict(cl_it, f_it):
-            while self.kind(cl) is not Kind.Member:
-                # Append and skip until we find a membership clause.
-                # Since there is at least one remaining filter, there
-                # is at least one remaining membership.
-                result.append(cl)
-                cl = next(cl_it)
-            
+        for cl, f in zip_strict(clauses, filters):
             env = set(bindenvs[-1])
             if self.should_filter(cl, env):
                 result.append(f)

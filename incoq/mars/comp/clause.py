@@ -162,10 +162,8 @@ class ClauseHandler(BaseClauseHandler):
     def should_filter(self, cl, bindenv):
         """For a membership clause, return whether a demand-filtered
         version of this clause should be used for a given binding
-        environment. For a condition clause, raise ValueError.
+        environment. For a condition clause, return False.
         """
-        if self.kind(cl) is not Kind.Member:
-            raise ValueError
         return not set(self.tagsin_lhs_vars(cl)).issubset(bindenv)
     
     def get_priority(self, cl, bindenv):
@@ -507,6 +505,9 @@ class CondHandler(ClauseHandler):
     
     def uncon_vars(self, cl):
         return tuple(L.IdentFinder.find_vars(cl.cond))
+    
+    def should_filter(self, cl, bindenv):
+        return False
     
     def get_priority(self, cl, bindenv):
         vars = L.IdentFinder.find_vars(cl.cond)

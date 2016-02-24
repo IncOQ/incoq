@@ -158,6 +158,7 @@ class JoinCase(unittest.TestCase):
                                     if x < y
                                     for (y, z) in REL(S)}''').clauses
         filters = L.Parser.pe('''{z for (x, y) in REL(dR)
+                                    if x < y
                                     for (y, z) in REL(dS)}''').clauses
         clauses = self.ct.filter_clauses(clauses, filters, [])
         exp_clauses = L.Parser.pe('''{z for (x, y) in REL(dR)
