@@ -267,15 +267,13 @@ def transform_ast(input_ast, *, options=None):
     if config.verbose:
         debug_symbols(symtab, illtyped, badsyms)
     
-    # Rewrite membership conditions in all comprehensions that are to
-    # be incrementalized.
-    tree = rewrite_all_comp_memberconds(tree, symtab)
-    
     # Rewrite in the pair-domain, if the program is object-domain.
     if config.obj_domain:
         tree = flatten_objdomain(tree, symtab)
         symtab.clausetools = ObjClauseTools()
     else:
+        # Rewrite membership conditions.
+        tree = rewrite_all_comp_memberconds(tree, symtab)
         # Rewrite memberships over subqueries as VARS clauses.
         # (In the object domain, this would be done differently
         # due to tuple wrapping/unwrapping.)
