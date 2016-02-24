@@ -79,10 +79,6 @@ class ClauseHandler(BaseClauseHandler):
     
     """Base class for clause handlers."""
     
-    # Mask functions like constrained_mask() return sequences of
-    # booleans, one per LHS var, identifying whether or not that
-    # position satisfies a property. 
-    
     def kind(self, cl):
         """Return the kind of clause this is."""
         raise NotImplementedError
@@ -102,31 +98,29 @@ class ClauseHandler(BaseClauseHandler):
         """
         raise NotImplementedError
     
-    # Note that the same variable can be returned by both con_lhs_vars()
-    # and uncon_lhs_vars() if it appears in both kinds of positions.
+    # Mask functions like constrained_mask() return sequences of
+    # booleans, one per LHS var, identifying whether or not that
+    # position satisfies a property. lhsvars_in_varmask() is used
+    # to translate these to the variables at those positions.
     
-    def con_lhs_vars(self, cl):
-        """For a membership clause, return a tuple of just those LHS
-        vars that are in a position that is constrained by this clause
-        (e.g., omitting sets and objects for M and F clauses). For
-        condition clauses return the empty tuple.
+    def lhsvars_in_varmask(self, cl, mask, invert=False):
+        """Helper for defining methods that return LHS vars that are in
+        a position covered by the appropriate mask.
         """
-        return tuple(v for v, m in zip(self.lhs_vars(cl),
-                                       self.constrained_mask(cl))
-                       if m)
-    
-    def uncon_lhs_vars(self, cl):
-        """As above, but return LHS vars that are in a position that is
-        not constrained by this clause.
-        """
-        return tuple(v for v, m in zip(self.lhs_vars(cl),
-                                       self.constrained_mask(cl))
-                       if not m)
+        return tuple(v for v, m in zip(self.lhs_vars(cl), mask)
+                       if m ^ invert)
     
     def constrained_mask(self, cl):
         """Bool mask identifying positions of constrained LHS vars."""
         # Default behavior: All LHS vars are constrained.
         return tuple(True for _ in self.lhs_vars(cl))
+    
+    def con_lhs_vars(self, cl):
+        return self.lhsvars_in_varmask(cl, self.constrained_mask(cl))
+    
+    def uncon_lhs_vars(self, cl):
+        return self.lhsvars_in_varmask(cl, self.constrained_mask(cl),
+                                       invert=True)
     
     def uncon_vars(self, cl):
         """Return a tuple of all variables appearing in the clause,
@@ -238,9 +232,9 @@ for op in [
     'kind',
     'lhs_vars',
     'rhs_rel',
+    'constrained_mask',
     'con_lhs_vars',
     'uncon_lhs_vars',
-    'constrained_mask',
     'uncon_vars',
     'must_filter',
     'may_filter',
