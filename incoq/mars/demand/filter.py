@@ -132,11 +132,12 @@ class StructureGenerator:
                 result.append(t.name)
         return result
     
-    def change_rhs(self, cl, rel):
-        """Generate a new clause whose RHS rel is as given. This will
-        turn object clauses into RelMember clauses.
+    def change_rhs(self, cl, query_name):
+        """Generate a new clause whose RHS rel is the name of a result
+        set over the given query name.
         """
-        return self.clausetools.rename_rhs_rel(cl, lambda x: rel)
+        rel_name = N.get_resultset_name(query_name)
+        return self.clausetools.rename_rhs_rel(cl, lambda x: rel_name)
     
     def make_structs(self):
         """Populate the structures based on the comprehension."""

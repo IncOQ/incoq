@@ -28,13 +28,13 @@ class FilterCase(unittest.TestCase):
             Tag(0, 'Q_T_s_1', 's', L.RelMember(['s', 't'], 'U')),
             Tag(0, 'Q_T_t_1', 't', L.RelMember(['s', 't'], 'U')),
             Filter(1, 'Q_d_M_1', L.MMember('s', 'o'), ['Q_T_s_1']),
-            Tag(1, 'Q_T_o_1', 'o', L.RelMember(['s', 'o'], 'Q_d_M_1')),
+            Tag(1, 'Q_T_o_1', 'o', L.RelMember(['s', 'o'], 'R_Q_d_M_1')),
             Filter(2, 'Q_d_M_2', L.MMember('t', 'o'), ['Q_T_t_1']),
-            Tag(2, 'Q_T_o_2', 'o', L.RelMember(['t', 'o'], 'Q_d_M_2')),
+            Tag(2, 'Q_T_o_2', 'o', L.RelMember(['t', 'o'], 'R_Q_d_M_2')),
             Filter(3, 'Q_d_F_f_1', L.FMember('o', 'o_f', 'f'),
                    ['Q_T_o_1', 'Q_T_o_2']),
             Tag(3, 'Q_T_o_f_1', 'o_f',
-                L.RelMember(['o', 'o_f'], 'Q_d_F_f_1')),
+                L.RelMember(['o', 'o_f'], 'R_Q_d_F_f_1')),
         ]
         self.assertEqual(generator.structs, exp_structs)
     
@@ -52,12 +52,12 @@ class FilterCase(unittest.TestCase):
             Tag(0, 'Q_T_s', 's', L.RelMember(['s', 't'], 'U')),
             Tag(0, 'Q_T_t', 't', L.RelMember(['s', 't'], 'U')),
             Filter(1, 'Q_d_M_1', L.MMember('s', 'o'), ['Q_T_s']),
-            Tag(1, 'Q_T_o_1', 'o', L.RelMember(['s', 'o'], 'Q_d_M_1')),
+            Tag(1, 'Q_T_o_1', 'o', L.RelMember(['s', 'o'], 'R_Q_d_M_1')),
             Filter(2, 'Q_d_M_2', L.MMember('t', 'o'), ['Q_T_t']),
-            Tag(2, 'Q_T_o_2', 'o', L.RelMember(['t', 'o'], 'Q_d_M_2')),
+            Tag(2, 'Q_T_o_2', 'o', L.RelMember(['t', 'o'], 'R_Q_d_M_2')),
             Filter(3, 'Q_d_F_f', L.FMember('o', 'o_f', 'f'),
                    ['Q_T_o_1', 'Q_T_o_2']),
-            Tag(3, 'Q_T_o_f', 'o_f', L.RelMember(['o', 'o_f'], 'Q_d_F_f')),
+            Tag(3, 'Q_T_o_f', 'o_f', L.RelMember(['o', 'o_f'], 'R_Q_d_F_f')),
         ]
         self.assertEqual(generator.structs, exp_structs)
     
@@ -84,10 +84,10 @@ class FilterCase(unittest.TestCase):
             ''')
         self.assertEqual(comp, exp_comp)
         
-        tag = Tag(1, 'Q_T_x', 'x', L.RelMember(['s', 'x'], 'Q_d_M'))
+        tag = Tag(1, 'Q_T_x', 'x', L.RelMember(['s', 'x'], 'R_Q_d_M'))
         comp = generator.make_comp(tag)
         exp_comp = L.Parser.pe('''
-            {(x,) for (s, x) in REL(Q_d_M)}
+            {(x,) for (s, x) in REL(R_Q_d_M)}
             ''')
         self.assertEqual(comp, exp_comp)
     
@@ -103,7 +103,7 @@ class FilterCase(unittest.TestCase):
         filters = generator.make_filter_list()
         exp_filters = [
             L.RelMember(['s', 't'], 'U'),
-            L.RelMember(['s', 'x'], 'Q_d_M'),
+            L.RelMember(['s', 'x'], 'R_Q_d_M'),
         ]
         self.assertEqual(filters, exp_filters)
 
