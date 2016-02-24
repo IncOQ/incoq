@@ -17,13 +17,15 @@ def transform_comp_query_with_filtering(tree, symtab, query):
     comprehension query using filtering.
     """
     ct = symtab.clausetools
-    generator = StructureGenerator(ct, query.node, query.name)
     
     # Incrementalize the query as normal, but don't process maintenance
     # joins yet.
     tree = transform_firsthalf(tree, symtab, query)
     
     # Define tag and filter structures and incrementalize them in order.
+    # Note that query.node is changed by the first half of
+    # incrementalization.
+    generator = StructureGenerator(ct, query.node, query.name)
     generator.make_structs()
     generator.simplify_names()
     for struct in generator.structs:
