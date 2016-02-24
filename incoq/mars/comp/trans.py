@@ -78,14 +78,21 @@ def process_maintjoins(tree, symtab, query):
             if name not in maint_joins:
                 return
             assert isinstance(expr, L.Comp)
-            
             clauses = expr.clauses
+            
+            clause_indices = {cl: i for i, cl in enumerate(clauses)}
             clauses = order_clauses(ct, clauses)
             
             if filters is not None:
+                # Rename filters so that query variable prefixes match.
                 renamer = lambda x: symbol.join_prefix + '_' + x
                 renamed_filters = ct.clauses_rename_lhs_vars(filters, renamer)
-                clauses = ct.filter_clauses(clauses, renamed_filters, [])
+                # Reorder filters so that they correspond to reordered
+                # clauses.
+                reordered_filters = [renamed_filters[clause_indices[cl]]
+                                     for cl in clauses]
+                # Apply filtering.
+                clauses = ct.filter_clauses(clauses, reordered_filters, [])
             
             return expr._replace(clauses=clauses)
     

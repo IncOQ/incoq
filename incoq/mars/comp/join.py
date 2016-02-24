@@ -20,6 +20,7 @@ __all__ = [
 
 from enum import Enum
 
+from incoq.util.seq import zip_strict
 from incoq.util.collections import OrderedSet, Partitioning
 from incoq.mars.incast import L
 
@@ -253,7 +254,7 @@ class ClauseTools(ClauseVisitor):
         bindenvs = [set(bindenv)]
         cl_it = iter(clauses)
         f_it = iter(filters)
-        for cl, f in zip(cl_it, f_it):
+        for cl, f in zip_strict(cl_it, f_it):
             while self.kind(cl) is not Kind.Member:
                 # Append and skip until we find a membership clause.
                 # Since there is at least one remaining filter, there
