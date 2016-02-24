@@ -150,8 +150,8 @@ class StructureGenerator:
                 continue
             
             vars = ct.lhs_vars(cl)
-            in_vars = ct.uncon_lhs_vars(cl)
-            out_vars = ct.con_lhs_vars(cl)
+            in_vars = ct.tagsin_lhs_vars(cl)
+            out_vars = ct.tagsout_lhs_vars(cl)
             rel = ct.rhs_rel(cl)
             if rel is None:
                 raise L.TransformationError('Cannot generate tags and filter '

@@ -26,16 +26,30 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.con_lhs_vars(cl), ['x', 'z'])
         self.assertSequenceEqual(v.uncon_lhs_vars(cl), ['y'])
         self.assertSequenceEqual(v.uncon_vars(cl), ['y'])
-        self.assertTrue(v.must_filter(cl, ['x', 'z']))
-        self.assertTrue(v.may_filter(cl, ['x', 'z']))
-        self.assertFalse(v.must_filter(cl, ['y']))
-        self.assertFalse(v.may_filter(cl, ['y']))
+    
+    def test_tags(self):
+        v = self.visitor
         
-        cl2 = L.Cond(L.Parser.pe('True'))
+        cl = L.RelMember(['x', 'y', 'z'], 'R')
+        self.assertSequenceEqual(v.tagsin_mask(cl), [True, True, True])
+        self.assertSequenceEqual(v.tagsout_mask(cl), [True, True, True])
+        self.assertTrue(v.should_filter(cl, ['x', 'y']))
+        self.assertFalse(v.should_filter(cl, ['x', 'y', 'z']))
+        
+        class DummyHandler(RelMemberHandler):
+            def constrained_mask(self, cl):
+                return [True, False, True]
+        v.handle_RelMember = DummyHandler(v)
+        
+        self.assertSequenceEqual(v.tagsin_mask(cl), [False, True, False])
+        self.assertSequenceEqual(v.tagsout_mask(cl), [True, False, True])
+        self.assertTrue(v.should_filter(cl, ['x', 'z']))
+        self.assertFalse(v.should_filter(cl, ['y']))
+        self.assertFalse(v.should_filter(cl, ['x', 'y']))
+        
+        cl = L.Cond(L.Parser.pe('True'))
         with self.assertRaises(ValueError):
-            v.must_filter(cl2, [])
-        with self.assertRaises(ValueError):
-            v.may_filter(cl2, [])
+            v.should_filter(cl, [])
     
     def check_rename(self, cl):
         v = self.visitor
@@ -129,8 +143,7 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(v.rhs_rel(cl), None)
         self.assertSequenceEqual(v.uncon_vars(cl), ['e'])
         
-        self.assertFalse(v.must_filter(cl, []))
-        self.assertFalse(v.may_filter(cl, []))
+        self.assertFalse(v.should_filter(cl, []))
         
         pri = v.get_priority(cl, ['a', 'x', 'y'])
         self.assertEqual(pri, Priority.Constant)
@@ -193,8 +206,7 @@ class ClauseCase(unittest.TestCase):
         exp_cl2 = L.WithoutMember(L.SingMember(['x', 'y', 'z'], L.Name('f')),
                                   L.Name('e'))
         self.assertEqual(cl2, exp_cl2)
-        self.assertFalse(v.must_filter(cl2, []))
-        self.assertFalse(v.may_filter(cl2, []))
+        self.assertFalse(v.should_filter(cl2, []))
     
     def test_varsmember(self):
         v = self.visitor

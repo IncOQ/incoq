@@ -129,35 +129,44 @@ class ClauseHandler(BaseClauseHandler):
         """
         return self.uncon_lhs_vars(cl)
     
-    # By default, we assume that if there are no unconstrained
-    # components, then filtering may or may not be used, and if there
-    # are any unconstrained components, then 1) filtering must be
-    # used when any of them are unbound, and 2) filtering must not
-    # be used if all of them are bound. This approximates how we want
-    # to avoid filtered forward lookups and unfiltered inverse lookups
-    # for object clauses.
+    # For filtering purposes, if there are no unconstrained components
+    # then tags can be used to filter, and can be defined for, any
+    # component. If there is at least one unconstrained component, then
+    # tags can only filter the unconstrained components, and can only
+    # be defined for the constrained components.
     
-    def must_filter(self, cl, bindenv):
+    def tagsin_mask(self, cl):
+        """Mask for positions that can be used to filter the clause."""
+        uncon = self.uncon_lhs_vars(cl)
+        if len(uncon) == 0:
+            return tuple(True for _ in self.lhs_vars(cl))
+        else:
+            return tuple(not m for m in self.constrained_mask(cl))
+    
+    def tagsout_mask(self, cl):
+        """Mask for positions that can define new filters from this
+        clause.
+        """
+        uncon = self.uncon_lhs_vars(cl)
+        if len(uncon) == 0:
+            return tuple(True for _ in self.lhs_vars(cl))
+        else:
+            return self.constrained_mask(cl)
+    
+    def tagsin_lhs_vars(self, cl):
+        return self.lhsvars_in_varmask(cl, self.tagsin_mask(cl))
+    
+    def tagsout_lhs_vars(self, cl):
+        return self.lhsvars_in_varmask(cl, self.tagsout_mask(cl))
+    
+    def should_filter(self, cl, bindenv):
         """For a membership clause, return whether a demand-filtered
-        version of this clause must be used for a given binding
+        version of this clause should be used for a given binding
         environment. For a condition clause, raise ValueError.
         """
         if self.kind(cl) is not Kind.Member:
             raise ValueError
-        uncon = self.uncon_lhs_vars(cl)
-        return (len(uncon) > 0 and
-                not set(uncon).issubset(bindenv))
-    
-    def may_filter(self, cl, bindenv):
-        """For a membership clause, return whether a demand-filtered
-        version of this clause may be used for a given binding
-        environment. For a condition clause, raise ValueError.
-        """
-        if self.kind(cl) is not Kind.Member:
-            raise ValueError
-        uncon = self.uncon_lhs_vars(cl)
-        return (len(uncon) == 0 or
-                not set(uncon).issubset(bindenv))
+        return not set(self.tagsin_lhs_vars(cl)).issubset(bindenv)
     
     def get_priority(self, cl, bindenv):
         """Return a priority for the cost heuristic based on the given
@@ -236,8 +245,11 @@ for op in [
     'con_lhs_vars',
     'uncon_lhs_vars',
     'uncon_vars',
-    'must_filter',
-    'may_filter',
+    'tagsin_mask',
+    'tagsout_mask',
+    'tagsin_lhs_vars',
+    'tagsout_lhs_vars',
+    'should_filter',
     'get_priority',
     'get_code',
     'rename_lhs_vars',
@@ -327,10 +339,13 @@ class SingMemberHandler(ClauseHandler):
     def uncon_vars(self, cl):
         return tuple(L.IdentFinder.find_vars(cl.value))
     
-    def must_filter(self, cl, bindenv):
-        return False
+    def tagsin_mask(self, cl):
+        return tuple(False for _ in self.lhs_vars(cl))
     
-    def may_filter(self, cl, bindenv):
+    def tagsout_mask(self, cl):
+        return tuple(False for _ in self.lhs_vars(cl))
+    
+    def should_filter(self, cl, bindenv):
         return False
     
     def get_priority(self, cl, bindenv):
@@ -378,11 +393,14 @@ class WithoutMemberHandler(ClauseHandler):
         outer_result = tuple(L.IdentFinder.find_vars(cl.value))
         return inner_result + outer_result
     
-    def must_filter(self, cl, bindenv):
-        return self.visitor.must_filter(cl.cl, bindenv)
+    def tagsin_mask(self, cl, bindenv):
+        return self.visitor.tagsin_mask(cl.cl, bindenv)
     
-    def may_filter(self, cl, bindenv):
-        return self.visitor.may_filter(cl.cl, bindenv)
+    def tagsout_mask(self, cl, bindenv):
+        return self.visitor.tagsout_mask(cl.cl, bindenv)
+    
+    def should_filter(self, cl, bindenv):
+        return self.visitor.should_filter(cl.cl, bindenv)
     
     def get_priority(self, cl, bindenv):
         return self.visitor.get_priority(cl.cl, bindenv)
