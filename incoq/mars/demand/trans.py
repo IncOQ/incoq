@@ -1,0 +1,40 @@
+"""Filtering and filtered incrementalization."""
+
+
+__all__ = [
+    'transform_comp_query_with_filtering',
+]
+
+
+from incoq.mars.comp.trans import (
+    transform_firsthalf, transform_secondhalf, transform_comp_query)
+
+from .filter import StructureGenerator
+
+
+def transform_comp_query_with_filtering(tree, symtab, query):
+    """Do all the transformation associated with incrementalizing a
+    comprehension query using filtering.
+    """
+    ct = symtab.clausetools
+    generator = StructureGenerator(ct, query.node, query.name)
+    
+    # Incrementalize the query as normal, but don't process maintenance
+    # joins yet.
+    tree = transform_firsthalf(tree, symtab, query)
+    
+    # Define tag and filter structures and incrementalize them in order.
+    generator.make_structs()
+    generator.simplify_names()
+    for struct in generator.structs:
+        comp = generator.make_comp(struct)
+        maint_join_query = symtab.define_query(struct.name, node=comp)
+        tree = transform_comp_query(tree, symtab, maint_join_query)
+    
+    # Associate query with filters.
+    query.filters = generator.make_filter_list()
+    
+    # Now process maintenance joins.
+    tree = transform_secondhalf(tree, symtab, query)
+    
+    return tree

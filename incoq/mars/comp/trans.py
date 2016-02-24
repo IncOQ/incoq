@@ -334,21 +334,28 @@ def incrementalize_comp(tree, symtab, query, result_var):
     return tree
 
 
-def transform_comp_query(tree, symtab, query):
-    """Do all the transformation associated with incrementalizing a
-    comprehension query.
-    """
-    # Incrementalize the query.
+def transform_firsthalf(tree, symtab, query):
     result_var = N.get_resultset_name(query.name)
     tree = preprocess_comp(tree, symtab, query)
     tree = incrementalize_comp(tree, symtab, query, result_var)
     symtab.define_relation(result_var, counted=True,
                            type=query.type)
-    
-    # Process and expand the maintenance joins.
+    return tree
+
+def transform_secondhalf(tree, symtab, query):
     tree = process_maintjoins(tree, symtab, query)
     join_names = [join.name for join in query.maint_joins]
     tree = JoinExpander.run(tree, symtab.clausetools, join_names)
+    return tree
+
+def transform_comp_query(tree, symtab, query):
+    """Do all the transformation associated with incrementalizing a
+    comprehension query.
+    """
+    # Incrementalize the query.
+    tree = transform_firsthalf(tree, symtab, query)
+    # Process and expand the maintenance joins.
+    tree = transform_secondhalf(tree, symtab, query)
     return tree
 
 
