@@ -39,14 +39,8 @@ def relationalize_comp_queries(tree, symtab):
             
             return expr
     
-    class UnwrapAdder(S.QueryRewriter):
-        def rewrite(self, symbol, name, expr):
-            if name in changed_queries:
-                return L.Unwrap(L.Query(name, expr))
-            return None
-    
     tree = CompRewriter.run(tree, symtab)
-    tree = UnwrapAdder.run(tree, symtab, expand=True)
+    tree = L.Unwrapper.run(tree, changed_queries)
     
     return tree
 

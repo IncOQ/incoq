@@ -118,6 +118,18 @@ class UtilCase(unittest.TestCase):
         tree = apply_renamer(tree, lambda x: '_' + x)
         exp_tree = Parser.pc('_a + _b')
         self.assertEqual(tree, exp_tree)
+    
+    def test_unwrapper(self):
+        tree = Parser.p('''
+            def main():
+                print(QUERY('Q1', 1 + QUERY('Q2', 2)))
+            ''')
+        tree = Unwrapper.run(tree, ['Q2'])
+        exp_tree = Parser.p('''
+            def main():
+                print(QUERY('Q1', 1 + unwrap(QUERY('Q2', 2))))
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':

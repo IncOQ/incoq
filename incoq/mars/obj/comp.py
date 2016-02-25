@@ -311,13 +311,23 @@ def flatten_all_comps(tree, symtab):
     """
     objrels = ObjRelations.empty()
     
+    flattened_queries = set()
+    
     class FlattenRewriter(S.QueryRewriter):
+        def visit_Query(self, node):
+            node = super().visit_Query(node)
+            # Wrap flattened queries in an Unwrap node.
+            if node.name in flattened_queries:
+                node = L.Unwrap(node)
+            return node
+        
         def rewrite(self, symbol, name, expr):
             nonlocal objrels
             if not isinstance(expr, L.Comp):
                 return
             if symbol.impl is S.Normal:
                 return
+            flattened_queries.add(name)
             
             comp = expr
             comp = rewrite_memberconds(comp)
@@ -326,12 +336,10 @@ def flatten_all_comps(tree, symtab):
             objrels = objrels.union(objrels1).union(objrels2)
             
             comp = tuplify_resexp(symbol, comp)
-            symbol.node = comp
-            expr = L.Unwrap(L.Query(symbol.name, comp))
             
-            return expr
+            return comp
     
-    tree = FlattenRewriter.run(tree, symtab, expand=True)
+    tree = FlattenRewriter.run(tree, symtab)
     return tree, objrels
 
 

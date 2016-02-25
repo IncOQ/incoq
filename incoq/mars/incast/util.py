@@ -8,6 +8,7 @@ __all__ = [
     'insert_rel_maint_call',
     'set_update_name',
     'apply_renamer',
+    'Unwrapper',
 ]
 
 
@@ -86,3 +87,20 @@ def apply_renamer(tree, renamer):
             new_id = renamer(node.id)
             return node._replace(id=new_id)
     return Trans.run(tree)
+
+
+class Unwrapper(L.NodeTransformer):
+    
+    """Add an Unwrap node around all Query nodes with one of the
+    specified names.
+    """
+    
+    def __init__(self, names):
+        super().__init__()
+        self.names = names
+    
+    def visit_Query(self, node):
+        node = self.generic_visit(node)
+        if node.name in self.names:
+            node = L.Unwrap(node)
+        return node
