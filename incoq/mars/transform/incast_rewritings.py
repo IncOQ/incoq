@@ -46,7 +46,8 @@ class QueryMarker(L.NodeTransformer):
         A(... B ...)
         B
     
-    Then the occurrence of B in A must be marked, as in
+    Then the occurrence of B in A must be marked (with no annotations),
+    as in
     
         A(... QUERY(<name>, B) ...)
         B
@@ -85,7 +86,7 @@ class QueryMarker(L.NodeTransformer):
         name = self.query_name_map.get(node, None)
         if name is not None:
             self.found.add(node)
-            node = L.Query(name, node)
+            node = L.Query(name, node, None)
         
         return node
     

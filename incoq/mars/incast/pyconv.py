@@ -558,12 +558,14 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_me_getcount(self, _func, set_, elem):
         return L.BinOp(set_, L.GetCount(), elem)
     
-    def handle_fe_QUERY(self, _func, name, query):
+    def handle_fe_QUERY(self, _func, name, query, ann=None):
         if not (isinstance(name, L.Str) and
                 is_valid_identifier(name.s)):
             raise ASTErr('QUERY annotation first argument must be a '
                          'string literal containing a valid identifier')
-        return L.Query(name.s, query)
+        if ann is not None:
+            ann = L.literal_eval(ann)
+        return L.Query(name.s, query, ann)
     
     def aggr_helper(self, _func, value, params=None, restr=None):
         op = {'count': L.Count(),
@@ -883,9 +885,13 @@ class IncLangNodeExporter(NodeMapper):
                           [], None, None)
     
     def visit_Query(self, node):
-        return P.Call(self.name_helper('QUERY'),
-                      [P.Str(node.name),
-                       self.visit(node.query)],
+        args = [P.Str(node.name), self.visit(node.query)]
+        if node.ann is not None:
+            ann = P.Parser.pe(repr(node.ann))
+            ann = self.visit(ann)
+            args.append(ann)
+        
+        return P.Call(self.name_helper('QUERY'), args,
                       [], None, None)
     
     def visit_Comp(self, node):

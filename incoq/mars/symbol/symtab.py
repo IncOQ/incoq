@@ -258,6 +258,9 @@ class QueryRewriter(L.NodeTransformer):
     rewrite() is called only once per unique query appearing in the
     program.
     
+    Annotations in each Query node are unaffected by rewrite(), and may
+    be different across the occurrences.
+    
     When queries are nested, the innermost ones are processed first,
     and the outer query definitions are rewritten to reflect the new
     inner query.

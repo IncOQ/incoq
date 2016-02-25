@@ -91,7 +91,7 @@ module IncAST
            -- Queries.
          
            -- Named query expression.
-         | Query(identifier name, expr query)
+         | Query(identifier name, expr query, object ann)
          
            -- Comprehension clauses are flattened compared to Python's
            -- format, where conditions are nested underneath memberships.

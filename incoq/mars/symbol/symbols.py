@@ -325,8 +325,10 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         return s
     
     def make_node(self):
-        """Return a Query node for this query symbol."""
-        return L.Query(self.name, self.node)
+        """Return a Query node for this query symbol, with no
+        annotation.
+        """
+        return L.Query(self.name, self.node, None)
     
     @property
     def decl_comment(self):

@@ -6,6 +6,8 @@ __all__ = [
     
     'ident_fields',
     
+    'literal_eval',
+    
     # Programmatically include IncAST nodes.
     # ...
     
@@ -17,6 +19,7 @@ __all__ = [
 from os.path import join, dirname
 from iast import parse_asdl, nodes_from_asdl
 from iast.node import ASDLImporter
+from iast.python.python34 import literal_eval as _literal_eval
 
 from incoq.util.misc import flood_namespace
 
@@ -32,6 +35,7 @@ incast_nodes = nodes_from_asdl(incast_asdl,
                                module=__name__,
                                typed=True)
 
+
 # Generate a list of locations of fields that have "identifier" type.
 # This is used to help visitors grab all occurrences of identifiers,
 # filtering by context.
@@ -42,12 +46,19 @@ for node, (fields, _base) in asdl_info.items():
         if ft == 'identifier':
             ident_fields.setdefault(node, []).append(fn)
 
+
 # Patch the auto-generated node classes.
 def mask_init(self, m):
     if not all(c == 'b' or c == 'u' for c in m):
         raise ValueError('Bad mask string: ' + repr(m))
     self.m = m
 incast_nodes['mask'].__init__ = mask_init
+
+
+# As it happens, the implementation of iAST's literal_eval() can be
+# reused for IncAST.
+literal_eval = _literal_eval
+
 
 # Flood the module namespace with node definitions and iAST exports.
 flood_namespace(globals(), incast_nodes)

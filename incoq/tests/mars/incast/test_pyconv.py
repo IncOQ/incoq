@@ -321,7 +321,11 @@ class ParseImportCase(unittest.TestCase):
     
     def test_query(self):
         tree = Parser.pe("QUERY('A', 5)")
-        exp_tree = L.Query('A', L.Num(5))
+        exp_tree = L.Query('A', L.Num(5), None)
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.pe("QUERY('A', 5, 1 + 1)")
+        exp_tree = L.Query('A', L.Num(5), 2)
         self.assertEqual(tree, exp_tree)
     
     def test_clauses(self):
@@ -509,6 +513,8 @@ class RoundTripCase(unittest.TestCase):
     
     def test_query(self):
         self.trip.pe("QUERY('A', 5)")
+        self.trip.pe("QUERY('A', 5, 2)")
+        self.trip.pe("QUERY('A', 5, {1: [2, 'b']})")
     
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')

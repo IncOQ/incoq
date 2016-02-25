@@ -289,7 +289,7 @@ class ClauseTools(ClauseVisitor):
         """
         assert self.is_join(comp)
         vars = self.lhs_vars_from_comp(comp)
-        return (L.DecompFor(vars, L.Query(query_name, comp), body),)
+        return (L.DecompFor(vars, L.Query(query_name, comp, None), body),)
     
     def get_maint_join(self, comp, i, value, *,
                        selfjoin=SelfJoin.Without):

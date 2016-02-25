@@ -195,7 +195,7 @@ class QueryRewriterCase(unittest.TestCase):
         class Rewriter(QueryRewriter):
             def rewrite(self, symbol, name, expr):
                 if name == 'Q1':
-                    return L.Query('Q2', L.Parser.pe('2'))
+                    return L.Query('Q2', L.Parser.pe('2'), None)
         
         symtab = SymbolTable()
         symtab.define_query('Q1', node=L.Parser.pe('1'))

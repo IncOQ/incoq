@@ -386,7 +386,7 @@ def rewrite_aggregates(tree, symtab):
                 t_oper = T.Set(T.Top)
             
             comp = L.Comp(L.Name(elem), [L.Member(L.Name(elem), operand)])
-            oper_query = L.Query(oper_name, comp)
+            oper_query = L.Query(oper_name, comp, None)
             symtab.define_query(oper_name, node=comp, type=t_oper,
                                 impl=symbol.impl)
             expr = expr._replace(value=oper_query)
