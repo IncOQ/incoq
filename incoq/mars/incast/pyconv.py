@@ -37,7 +37,7 @@ trivial_nodes = [
     'Return', 'If', 'Expr', 'Pass', 'Break', 'Continue',
     
     'UnaryOp', 'BoolOp', 'BinOp', 'IfExp',
-    'Num', 'Str', 'NameConstant',
+    'Num', 'Str', 'NameConstant', 'Set', 'Dict',
     
     'And', 'Or',
     'Add', 'Sub', 'Mult', 'Div', 'Mod', 'Pow', 'LShift',
@@ -409,9 +409,6 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     
     def visit_List(self, node):
         return L.List(self.visit(node.elts))
-    
-    def visit_Set(self, node):
-        return L.Set(self.visit(node.elts))
     
     def visit_Tuple(self, node):
         return L.Tuple(self.visit(node.elts))
@@ -859,9 +856,6 @@ class IncLangNodeExporter(NodeMapper):
     
     def visit_List(self, node):
         return P.List(self.visit(node.elts), P.Load())
-    
-    def visit_Set(self, node):
-        return P.Set(self.visit(node.elts))
     
     def visit_Tuple(self, node):
         return P.Tuple(self.visit(node.elts), P.Load())

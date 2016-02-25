@@ -70,6 +70,7 @@ module IncAST
          | Name(identifier id)
          | List(expr* elts)
          | Set(expr* elts)
+         | Dict(expr* keys, expr* values)
          | Tuple(expr* elts)
          | Attribute(expr value, identifier attr)
          | Subscript(expr value, expr index)

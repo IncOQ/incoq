@@ -258,6 +258,11 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.AttrDelete(L.Attribute(L.Name('o'), 'f'), 'g')
         self.assertEqual(tree, exp_tree)
     
+    def test_set(self):
+        tree = Parser.pe('{1, 2}')
+        exp_tree = L.Set([L.Num(1), L.Num(2)])
+        self.assertEqual(tree, exp_tree)
+    
     def test_subscript(self):
         tree = Parser.pe('index(t, i)')
         exp_tree = L.Subscript(L.Name('t'), L.Name('i'))
@@ -470,6 +475,9 @@ class RoundTripCase(unittest.TestCase):
     
     def test_listssets(self):
         self.trip.pe('[1, 2]')
+        self.trip.pe('{1, 2}')
+    
+    def test_set(self):
         self.trip.pe('{1, 2}')
     
     def test_subscript(self):
