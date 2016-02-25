@@ -21,13 +21,17 @@ __all__ = [
     
     'disallow_features',
     
+    'check_annotations',
+    
     # Main exports.
     'incast_preprocess',
     'incast_postprocess',
 ]
 
 
+from incoq.util.collections import frozendict
 from incoq.mars.incast import L
+from incoq.mars.symbol import S
 
 
 class QueryMarker(L.NodeTransformer):
@@ -397,14 +401,29 @@ preprocess_clear = ClearExpander.run
 
 class FeatureDisallower(L.NodeVisitor):
     
-    """Fail if there are any GeneralCall nodes in the tree.
-    """
+    """Fail if there are any GeneralCall nodes in the tree."""
     
     def visit_GeneralCall(self, node):
         raise TypeError('IncAST function calls must be directly '
                         'by function name')
 
 disallow_features = FeatureDisallower.run
+
+
+class AnnotationChecker(L.NodeVisitor):
+    
+    def visit_Query(self, node):
+        self.generic_visit(node)
+        if node.ann is not None:
+            if not isinstance(node.ann, (dict, frozendict)):
+                raise L.ProgramError('Query annotation must be a '
+                                     'dictionary')
+            for key in node.ann.keys():
+                if key not in S.annotations:
+                    raise L.ProgramError('Unknown annotation key "{}"'.
+                                         format(key))
+
+check_annotations = AnnotationChecker.run
 
 
 def incast_preprocess(tree, *, fresh_vars, rels, maps, query_name_map):
@@ -428,6 +447,9 @@ def incast_preprocess(tree, *, fresh_vars, rels, maps, query_name_map):
     # Check to make sure certain general-case IncAST nodes
     # aren't used.
     disallow_features(tree)
+    
+    # Check to make sure annotations are well-formed.
+    check_annotations(tree)
     
     return tree
 

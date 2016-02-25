@@ -242,5 +242,17 @@ class DisallowCase(unittest.TestCase):
             disallow_features(L.Parser.pc('o.f(a)'))
 
 
+class AnnotationCase(unittest.TestCase):
+    
+    def test_annotation(self):
+        check_annotations(L.Parser.pe("QUERY('Q', 1, {'nodemand': 2})"))
+        
+        with self.assertRaises(L.ProgramError):
+            check_annotations(L.Parser.pe("QUERY('Q', 1, 2)"))
+        
+        with self.assertRaises(L.ProgramError):
+            check_annotations(L.Parser.pe("QUERY('Q', 1, {'foo': 2})"))
+
+
 if __name__ == '__main__':
     unittest.main()

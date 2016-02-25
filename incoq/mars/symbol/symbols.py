@@ -14,6 +14,8 @@ __all__ = [
     'MapSymbol',
     'VarSymbol',
     'QuerySymbol',
+    
+    'annotations',
 ]
 
 
@@ -338,3 +340,8 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
                    if len(self.params) > 0 else '',
             node=L.Parser.ts(self.node),
             type=' : ' + str(self.type) if self.type is not None else '')
+
+
+annotations = [
+    'nodemand',         # Do not call the demand function for this occurrence
+]
