@@ -356,7 +356,7 @@ class DirectiveReader(P.MacroProcessor):
     def handle_fs_CONFIG(self, _func, **kargs):
         d = {}
         for k, v in kargs.items():
-            d[k] = P.LiteralEvaluator.run(v)
+            d[k] = P.literal_eval(v)
         self.info.config_info.append(d)
         return ()
     
@@ -365,7 +365,7 @@ class DirectiveReader(P.MacroProcessor):
         name = symbol.s
         d = {}
         for k, v in kargs.items():
-            d[k] = P.LiteralEvaluator.run(v)
+            d[k] = P.literal_eval(v)
         self.info.symconfig_info.append((name, d))
         return ()
     
@@ -373,7 +373,7 @@ class DirectiveReader(P.MacroProcessor):
     def handle_fs_QUERY(self, _func, query, **kargs):
         d = {}
         for k, v in kargs.items():
-            d[k] = P.LiteralEvaluator.run(v)
+            d[k] = P.literal_eval(v)
         self.info.query_info.append((query, d))
         return ()
 

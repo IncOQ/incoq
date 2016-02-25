@@ -19,7 +19,7 @@ __all__ = [
     'structToPy',
     'MacroProcessor',
     'ContextSetter',
-    'LiteralEvaluator',
+    'literal_eval',
 ]
 
 
@@ -27,7 +27,7 @@ from iast.python.python34 import (parse as _parse, extract_tree,
                                   make_pattern, Templater,
                                   pyToStruct, structToPy,
                                   MacroProcessor, ContextSetter,
-                                  LiteralEvaluator,
+                                  literal_eval,
                                   py_nodes as python_nodes)
 
 from incoq.util.misc import flood_namespace, new_namespace
