@@ -9,6 +9,7 @@ import unittest
 import string
 from random import shuffle
 
+from incoq.util.collections import frozendict
 from incoq.mars.incast import nodes as L
 from incoq.mars.incast.tools import *
 from incoq.mars.incast import pynodes as P
@@ -16,6 +17,15 @@ from incoq.mars.incast.pyconv import Parser, IncLangNodeImporter
 
 
 class IdentFinderCase(unittest.TestCase):
+    
+    def test_literal_unparse(self):
+        tree = literal_unparse([(1, 2), {'a': {True}}])
+        exp_tree = Parser.pe("[(1, 2), {'a': {True}}]")
+        self.assertEqual(tree, exp_tree)
+        
+        tree = literal_unparse(frozenset({frozendict({1: 2})}))
+        exp_tree = Parser.pe('{{1:2}}')
+        self.assertEqual(tree, exp_tree)
     
     def test_identfinder(self):
         # Exclude function name main, updated relation R,

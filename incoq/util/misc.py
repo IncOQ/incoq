@@ -4,10 +4,14 @@
 __all__ = [
     'flood_namespace',
     'new_namespace',
+    
+    'freeze',
 ]
 
 
 from types import ModuleType, SimpleNamespace
+
+from .collections import frozendict
 
 
 def flood_namespace(target, *sources):
@@ -49,3 +53,22 @@ def new_namespace(*sources):
     ns = {}
     flood_namespace(ns, *sources)
     return SimpleNamespace(**ns)
+
+
+def freeze(value):
+    """Return a frozen version of the given value, which may be composed
+    of lists, sets, dictionaries, tuples, and primitive immutable
+    non-collection types. The frozen version replaces lists with tuples,
+    sets with frozensets, and dicts with frozendicts.
+    """
+    if isinstance(value, list):
+        value = tuple(freeze(e) for e in value)
+    elif isinstance(value, set):
+        value = frozenset(freeze(e) for e in value)
+    elif isinstance(value, dict):
+        value = frozendict({k: freeze(v) for k, v in value.items()})
+    elif isinstance(value, tuple):
+        value = tuple(freeze(e) for e in value)
+    else:
+        pass
+    return value

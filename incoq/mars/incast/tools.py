@@ -2,6 +2,7 @@
 
 
 __all__ = [
+    'literal_unparse',
     'IdentFinder',
     'Templater',
     'MacroExpander',
@@ -11,10 +12,40 @@ __all__ = [
 
 
 from functools import partial
+from numbers import Number
 
-from incoq.util.collections import OrderedSet
+from incoq.util.collections import OrderedSet, frozendict
 
 from . import nodes as L
+
+
+def literal_unparse(value):
+    """Given a value, return its unparsed AST representation. The value
+    may consist of lists, sets, dictionaries, tuples, frozensets,
+    frozendicts, numbers, strings, and singletons (True/False/None).
+    Frozendicts and frozensets are converted to dicts and sets, even
+    when the resulting value would not be nestable due to unhashability.
+    """
+    un = literal_unparse
+    if isinstance(value, list):
+        tree = L.List([un(e) for e in value])
+    elif isinstance(value, (set, frozenset)):
+        tree = L.Set([un(e) for e in value])
+    elif isinstance(value, (dict, frozendict)):
+        items = value.items()
+        tree = L.Dict([un(k) for k, _v in items],
+                      [un(v) for _k, v in items])
+    elif isinstance(value, tuple):
+        tree = L.Tuple([un(e) for e in value])
+    elif isinstance(value, str):
+        tree = L.Str(value)
+    elif value is True or value is False or value is None:
+        # Must use identity comparison because 1 == True but 1 is not True.
+        tree = L.NameConstant(value)
+    elif isinstance(value, Number):
+        # Must be last because True/False are numbers.
+        tree = L.Num(value)
+    return tree
 
 
 class IdentFinder(L.NodeVisitor):

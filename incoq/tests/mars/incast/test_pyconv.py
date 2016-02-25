@@ -514,7 +514,7 @@ class RoundTripCase(unittest.TestCase):
     def test_query(self):
         self.trip.pe("QUERY('A', 5)")
         self.trip.pe("QUERY('A', 5, 2)")
-        self.trip.pe("QUERY('A', 5, {1: [2, 'b']})")
+        self.trip.pe("QUERY('A', 5, {1: (2, 'b')})")
     
     def test_comp(self):
         self.trip.pe('{f(x) for (x, y) in S if y in T}')

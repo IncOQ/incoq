@@ -7,6 +7,7 @@ __all__ = [
     'ident_fields',
     
     'literal_eval',
+    'frozen_literal_eval',
     
     # Programmatically include IncAST nodes.
     # ...
@@ -21,7 +22,7 @@ from iast import parse_asdl, nodes_from_asdl
 from iast.node import ASDLImporter
 from iast.python.python34 import literal_eval as _literal_eval
 
-from incoq.util.misc import flood_namespace
+from incoq.util.misc import flood_namespace, freeze
 
 from . import iast_common
 
@@ -58,6 +59,11 @@ incast_nodes['mask'].__init__ = mask_init
 # As it happens, the implementation of iAST's literal_eval() can be
 # reused for IncAST.
 literal_eval = _literal_eval
+
+def frozen_literal_eval(tree):
+    value = literal_eval(tree)
+    value = freeze(value)
+    return value
 
 
 # Flood the module namespace with node definitions and iAST exports.

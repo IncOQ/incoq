@@ -564,7 +564,7 @@ class IncLangSpecialImporter(L.MacroExpander):
             raise ASTErr('QUERY annotation first argument must be a '
                          'string literal containing a valid identifier')
         if ann is not None:
-            ann = L.literal_eval(ann)
+            ann = L.frozen_literal_eval(ann)
         return L.Query(name.s, query, ann)
     
     def aggr_helper(self, _func, value, params=None, restr=None):
@@ -887,7 +887,7 @@ class IncLangNodeExporter(NodeMapper):
     def visit_Query(self, node):
         args = [P.Str(node.name), self.visit(node.query)]
         if node.ann is not None:
-            ann = P.Parser.pe(repr(node.ann))
+            ann = L.literal_unparse(node.ann)
             ann = self.visit(ann)
             args.append(ann)
         
