@@ -501,12 +501,15 @@ class DemandTransformer(ContextTracker):
         
         return super().process(tree)
     
-    def add_demand_function_call(self, query_sym, query_node):
+    def add_demand_function_call(self, query_sym, query_node, ann):
         """Return a Query node wrapped with a call to a demand function,
         if needed.
         """
         # Skip if there's no demand set associated with this query.
         if query_sym.name not in self.queries_with_usets:
+            return query_node
+        # Skip if we have a nodemand annotation.
+        if ann is not None and ann.get('nodemand', False):
             return query_node
         
         demand_call = L.Call(N.get_query_demand_func_name(query_sym.name),
@@ -566,11 +569,15 @@ class DemandTransformer(ContextTracker):
         if node.name in self.demand_queries:
             return node
         
+        query_sym = self.symtab.get_queries()[node.name]
+        
         # If we've seen it before, reuse previous result.
         if node.name in self.rewrite_cache:
-            return self.rewrite_cache[node.name]
-        
-        query_sym = self.symtab.get_queries()[node.name]
+            # Possibly wrap with a call to the demand function.
+            ann = node.ann
+            node = self.rewrite_cache[node.name]
+            node = self.add_demand_function_call(query_sym, node, ann)
+            return node
         
         # Rewrite to use demand.
         inner_node = self.rewrite_with_demand(query_sym, query_sym.node)
@@ -582,11 +589,11 @@ class DemandTransformer(ContextTracker):
         # Update symbol.
         query_sym.node = node.query
         
-        # Wrap with a call to the demand function.
-        node = self.add_demand_function_call(query_sym, node)
-        
         # Update cache.
         self.rewrite_cache[query_sym.name] = node
+        
+        # Possibly wrap with a call to the demand function.
+        node = self.add_demand_function_call(query_sym, node, node.ann)
         
         return node
 

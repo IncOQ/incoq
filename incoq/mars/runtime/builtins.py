@@ -56,7 +56,8 @@ def QUERY(*args, **kargs):
     # where we have two positional arguments, the first of which
     # is a string (query name). In that case, return the wrapped
     # expression (second argument). Otherwise, no-op.
-    if len(args) == 2 and isinstance(args[0], str):
+    if ((len(args) == 2 or len(args) == 3) and
+        isinstance(args[0], str)):
         return args[1]
     else:
         pass
