@@ -20,6 +20,9 @@ __all__ = [
     
     'unwrap',
     
+    'get_size',
+    'get_size_for_namespace',
+    
     'IncOQType',
     'Set',
     'CSet',
@@ -102,6 +105,31 @@ def unwrap(set_):
     return result
 
 
+def get_size(value):
+    """Return an integer representing the abstract size of a given
+    value. For IncOQType instances, this is the number of elements,
+    keys, values, etc., that are recursively contained. (The precise
+    value is not too important.) For all other types of values this
+    is 1.
+    
+    If an IncOQType value is indirectly contained inside a non-IncOQType
+    value, it will not be counted.
+    """
+    if isinstance(value, IncOQType):
+        return value.get_size()
+    else:
+        return 1
+
+
+def get_size_for_namespace(namespace):
+    """Return the total sum of get_size() for each IncOQType value in
+    the given namespace. Non-IncOQType values at the top-level are not
+    counted.
+    """
+    return sum(get_size(value) for value in namespace.values()
+                               if isinstance(value, IncOQType))
+
+
 class IncOQType:
     
     """Base class for user-manipulated and queried collections."""
@@ -127,6 +155,9 @@ class IncOQType:
     __hash__ = object.__hash__
     __eq__ = object.__eq__
     __ne__ = object.__ne__
+    
+    def get_size(self):
+        raise NotImplementedError
 
 
 class ImgLookupMixin:
@@ -211,6 +242,9 @@ class Set(IncOQType, set, ImgLookupMixin):
         if self is not other:
             self.clear()
             self.update(other)
+    
+    def get_size(self):
+        return 1 + sum(get_size(elem) for elem in self)
 
 
 class CSet(IncOQType, Counter, ImgLookupMixin):
@@ -264,6 +298,10 @@ class CSet(IncOQType, Counter, ImgLookupMixin):
         self[item] -= 1
     
     # elements(), update(), and clear() are provided by Counter.
+    
+    def get_size(self):
+        # Counts are not counted in size.
+        return 1 + sum(get_size(elem) for elem in self)
 
 
 class Map(IncOQType, dict, SetFromMapMixin):
@@ -278,6 +316,11 @@ class Map(IncOQType, dict, SetFromMapMixin):
     # syntactically conflict with the name of the set clearing
     # operation.
     dictclear = dict.clear
+    
+    def get_size(self):
+        # Both map and key sizes matter, and both are counted even if
+        # they are both primitive.
+        return 1 + sum(get_size(k) + get_size(v) for k, v in self.items())
 
 
 class Obj(IncOQType):
@@ -288,11 +331,19 @@ class Obj(IncOQType):
         for k, v in init.items():
             setattr(self, k, v)
     
+    def get_fields(self):
+        """Return a list of (name, value) pairs for each field defined
+        on this object (instance), in alphabetic order.
+        """
+        return [(attr, value) for attr, value in sorted(self.__dict__.items())
+                              if not attr.startswith('_')]
+    
     def _fmt_helper(self, fmt):
         return ', '.join(attr + '=' + fmt(value)
-                         for attr, value in sorted(self.__dict__.items())
-                         if not attr.startswith('_'))
+                         for attr, value in self.get_fields())
     
     def asdict(self):
-        return {attr: value for attr, value in self.__dict__.items()
-                            if not attr.startswith('_')}
+        return dict(self.get_fields())
+    
+    def get_size(self):
+        return 1 + sum(get_size(value) for _attr, value in self.get_fields())

@@ -49,6 +49,18 @@ class BuiltinsCase(unittest.TestCase):
         exp_unwrapped = {1, 2}
         self.assertCountEqual(unwrapped, exp_unwrapped)
     
+    def test_get_size(self):
+        n = get_size(object())
+        self.assertEqual(n, 1)
+        n = get_size({1, 2, 3})
+        self.assertEqual(n, 1)
+        n = get_size(Set({1, 2, 3}))
+        self.assertEqual(n, 4)
+        
+        ns = {'a': 1, 'b': {1, 2, 3}, 'c': Set({1, 2, 3})}
+        n = get_size_for_namespace(ns)
+        self.assertEqual(n, 4)
+    
     def test_set_identity(self):
         s1 = Set()
         s2 = Set()
@@ -131,6 +143,15 @@ class BuiltinsCase(unittest.TestCase):
         exp_img = {()}
         self.assertCountEqual(img, exp_img)
     
+    def test_set_size(self):
+        s = Set({1, 2, 3})
+        n = s.get_size()
+        self.assertEqual(n, 4)
+        
+        s = Set({1, 2, Set({3, 4, 5})})
+        n = s.get_size()
+        self.assertEqual(n, 7)
+    
     def test_cset_repr(self):
         r = repr(CSet())
         exp_r = 'CSet({})'
@@ -190,10 +211,23 @@ class BuiltinsCase(unittest.TestCase):
     def test_cset_imglookup(self):
         # Throw in some reference counts for the heck of it.
         # No effect on result.
-        s = CSet({(1, 2): 3, (1, 3): 2, (2, 3) : 2, (2, 4) :1})
+        s = CSet({(1, 2): 3, (1, 3): 2, (2, 3): 2, (2, 4): 1})
         img = s.imglookup('bu', (1,))
         exp_img = {(2,), (3,)}
         self.assertCountEqual(img, exp_img)
+    
+    def test_cset_size(self):
+        s = CSet({1, 2, 3})
+        n = s.get_size()
+        self.assertEqual(n, 4)
+        
+        s = CSet({1, 2, CSet({3, 4, 5})})
+        n = s.get_size()
+        self.assertEqual(n, 7)
+        
+        s = CSet({1: 5, 2: 5})
+        n = s.get_size()
+        self.assertEqual(n, 3)
     
     def test_map_repr(self):
         r = repr(Map())
@@ -236,6 +270,15 @@ class BuiltinsCase(unittest.TestCase):
         exp_s = {(1,)}
         self.assertCountEqual(s, exp_s)
     
+    def test_map_size(self):
+        m = Map({'a': 1, 'b': 2})
+        n = m.get_size()
+        self.assertEqual(n, 5)
+        
+        m = Map({'a': Set({1, 2}), 'b': Set({3, 4})})
+        n = m.get_size()
+        self.assertEqual(n, 9)
+    
     def test_obj_repr(self):
         r = repr(Obj())
         exp_r = 'Obj()'
@@ -265,6 +308,15 @@ class BuiltinsCase(unittest.TestCase):
         b = pickle.dumps(o)
         o2 = pickle.loads(b)
         self.assertEqual(o.asdict(), o2.asdict())
+    
+    def test_obj_size(self):
+        o = Obj(f=5, g=6)
+        n = o.get_size()
+        self.assertEqual(n, 3)
+        
+        o = Obj(f=Obj(x=1, y=2), g=6)
+        n = o.get_size()
+        self.assertEqual(n, 5)
 
 
 if __name__ == '__main__':
