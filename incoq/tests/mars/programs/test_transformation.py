@@ -43,7 +43,7 @@ def make_transform_test(base_name, in_name, outpy_name, outtxt_name):
             in_source = in_file.read()
             exp_source = outpy_file.read()
         
-        result_source = transform_source(in_source)
+        result_source, _symtab = transform_source(in_source)
         
         self.assertEqual(result_source, exp_source)
     
@@ -60,7 +60,7 @@ def make_behavior_test(base_name, in_name, outpy_name, outtxt_name):
             in_source = in_file.read()
             exp_txt = outtxt_file.read()
         
-        result_source = transform_source(in_source)
+        result_source, _symtab = transform_source(in_source)
         
         in_txt = pyexec_source(in_source)
         result_txt = pyexec_source(result_source)

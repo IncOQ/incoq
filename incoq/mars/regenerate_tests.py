@@ -18,7 +18,7 @@ test_root_path = join(dirname(__file__), '../tests/mars/programs')
 test_root_path = normpath(test_root_path)
 
 
-def regenerate_test(test_name, *, verbose=None, pretend=False):
+def regenerate_test(test_name, *):
     """Regenerate the *_out.py file for the given test. Tests are
     specified by the path to their *_in.py file, omitting the _in.py
     suffix, and relative to the incoq/tests/mars/programs directory.
@@ -39,10 +39,7 @@ def regenerate_test(test_name, *, verbose=None, pretend=False):
     if verbose is not None:
         options['verbose'] = verbose
     
-    if pretend:
-        out_path = '-'
-    else:
-        print('Regenerating {}...'.format(test_name), flush=True)
+    print('Regenerating {}...'.format(test_name), flush=True)
     
     main.invoke(in_path, out_path, options=options)
 

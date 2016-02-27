@@ -11,6 +11,7 @@ __all__ = [
 ]
 
 
+import sys
 from itertools import chain
 from collections import OrderedDict
 import builtins
@@ -250,7 +251,9 @@ def transform_queries(tree, symtab):
 
 
 def transform_ast(input_ast, *, options=None):
-    """Take in a Python AST and return the transformed AST."""
+    """Take in a Python AST and return the transformed AST and the
+    symbol table.
+    """
     tree = input_ast
     if options is None:
         options = {}
@@ -322,37 +325,67 @@ def transform_ast(input_ast, *, options=None):
     
     tree = postprocess_tree(tree, symtab)
     
-    return tree
+    return tree, symtab
 
 
 def transform_source(input_source, *, options=None):
     """Take in the Python source code to a module and return the
-    transformed source code.
+    transformed source code and the symbol table.
     """
     tree = P.Parser.p(input_source)
-    tree = transform_ast(tree, options=options)
+    tree, symtab = transform_ast(tree, options=options)
     source = P.Parser.ts(tree)
     # All good human beings have trailing newlines in their
     # text files.
     source = source + '\n'
-    return source
+    return source, symtab
 
 
 def transform_file(input_file, output_file, *, options=None):
     """Take in input and output file-like objects, and write to the
     output the transformed Python code corresponding to the input.
+    Return the symbol table.
     """
     source = input_file.read()
-    source = transform_source(source, options=options)
+    source, symtab = transform_source(source, options=options)
     output_file.write(source)
+    return symtab
 
 
 def transform_filename(input_filename, output_filename, *, options=None):
     """Take in an input and output path, and write to the output
-    the transformed Python file for the given input file.
+    the transformed Python file for the given input file. Return the
+    symbol table.
+    
+    If the pretend option is given, write to standard output instead of
+    the output file. If "-" is given as the input or output filename,
+    use standard input or standard output respectively. If there is an
+    error reading or transforming the input file, do not open, write to,
+    or truncate the output file.
     """
-    with open(input_filename, 'rt') as file:
-        source = file.read()
-    source = transform_source(source, options=options)
-    with open(output_filename, 'wt') as file:
-        file.write(source)
+    input_file = None
+    output_file = None
+    
+    stdinput = input_filename == '-'
+    try:
+        if stdinput:
+            input_file = sys.stdin
+        else:
+            input_file = open(input_filename, 'rt')
+        source = input_file.read()
+    finally:
+        if input_file is not None and not stdinput:
+            input_file.close()
+    
+    source, symtab = transform_source(source, options=options)
+    
+    stdoutput = output_filename == '-' or symtab.config.pretend
+    try:
+        if stdoutput:
+            output_file = sys.stdout
+        else:
+            output_file = open(output_filename, 'wt')
+        output_file.write(source)
+    finally:
+        if output_file is not None and not stdoutput:
+            output_file.close()

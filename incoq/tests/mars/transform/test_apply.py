@@ -57,7 +57,7 @@ class ApplyCase(unittest.TestCase):
             def main():
                 a = b = c
             ''')
-        source = transform_source(source)
+        source, _symtab = transform_source(source)
         exp_source = P.trim('''
             from incoq.mars.runtime import *
             # S : {Bottom}
