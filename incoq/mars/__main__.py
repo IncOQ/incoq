@@ -28,7 +28,6 @@ def run(args):
     
     ns = parser.parse_args(args)
     
-    # Parse out config attribute options.
     options = extract_options(ns)
     
     invoke(ns.in_file, ns.out_file, options=options)

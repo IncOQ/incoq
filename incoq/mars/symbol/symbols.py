@@ -30,6 +30,8 @@ class Constants(Enum):
     
     """Enumeration for symbol attribute constants."""
     
+    Unspecified = 0
+    
     # impl
     Normal = 1
     Inc = 2
@@ -282,8 +284,8 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
     
     impl = EnumSymbolAttribute(
         doc='Implementation strategy',
-        default=Normal,
-        allowed_values=[Normal, Inc, Filtered])
+        default=Unspecified,
+        allowed_values=[Unspecified, Normal, Inc, Filtered])
     
     uses_demand = SymbolAttribute(
         doc='Whether or not the query uses demand',

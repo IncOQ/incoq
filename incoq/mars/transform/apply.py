@@ -155,6 +155,11 @@ def preprocess_tree(tree, symtab):
     for name, d in query_name_attrs.items():
         symtab.apply_symconfig(name, d)
     
+    # Set global default values.
+    for q in symtab.get_queries().values():
+        if q.impl is S.Unspecified:
+            q.impl = symtab.config.default_impl
+    
     # Make symbols for non-relation, non-map variables.
     names = L.IdentFinder.find_vars(tree)
     names.difference_update(symtab.get_relations().keys(),
@@ -185,6 +190,8 @@ def postprocess_tree(tree, symtab):
 
 
 def transform_query(tree, symtab, query):
+    assert query.impl is not S.Unspecified
+    
     if isinstance(query.node, L.Comp):
         
         if query.impl == S.Normal:

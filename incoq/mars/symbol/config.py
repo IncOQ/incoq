@@ -12,6 +12,13 @@ __all__ = [
 import argparse
 from simplestruct import Struct, Field
 
+from .symbols import Constants
+
+
+def parse_constant(v):
+    d = {k.lower(): v for k, v in Constants.__members__.items()}
+    return d[v]
+
 
 # Each configuration attribute is a descriptor, listed in the
 # all_attributes list, and put in the class namespace for Config.
@@ -61,6 +68,10 @@ all_attributes = [
     ConfigAttribute('obj_domain', False,
         'whether or not the program is in the object-domain',
         {'action': 'store_true'}),
+    
+    ConfigAttribute('default_impl', Constants.Normal,
+        'default implementation strategy',
+        {'type': parse_constant}),
     
     ConfigAttribute('unwrap_singletons', False,
         'rewrite singleton relations to eliminate unneeded tuples',

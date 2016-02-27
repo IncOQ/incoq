@@ -3,8 +3,8 @@
 
 from incoq.util.misc import new_namespace
 
-from . import config
 from . import symbols
+from . import config
 from . import symtab
 
 
