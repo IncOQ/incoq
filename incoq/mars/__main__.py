@@ -10,7 +10,7 @@ __all__ = [
 import sys
 import argparse
 
-from incoq.mars.symbol.config import all_attributes
+from incoq.mars.symbol.config import get_argparser, extract_options
 from incoq.mars.transform import transform_filename
 
 
@@ -21,24 +21,15 @@ def invoke(in_filename, out_filename, *, options=None):
 
 def run(args):
     """Entry point for incoq.mars."""
-    parser = argparse.ArgumentParser(prog='incoq.mars')
+    parent = get_argparser()
+    parser = argparse.ArgumentParser(prog='incoq.mars', parents=[parent])
     parser.add_argument('in_file')
     parser.add_argument('out_file')
-    
-    # Programmatically add options for each config attribute.
-    for attr in all_attributes:
-        parser.add_argument('--' + attr.name,
-                            help=attr.docstring,
-                            **attr.argparse_kargs)
     
     ns = parser.parse_args(args)
     
     # Parse out config attribute options.
-    options = {}
-    for attr in all_attributes:
-        val = getattr(ns, attr.name)
-        if val is not None:
-            options[attr.name] = val
+    options = extract_options(ns)
     
     invoke(ns.in_file, ns.out_file, options=options)
 

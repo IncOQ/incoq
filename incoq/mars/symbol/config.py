@@ -4,9 +4,12 @@
 __all__ = [
     'ConfigAttribute',
     'Config',
+    'get_argparser',
+    'extract_options',
 ]
 
 
+import argparse
 from simplestruct import Struct, Field
 
 
@@ -61,7 +64,7 @@ all_attributes = [
     
     ConfigAttribute('unwrap_singletons', False,
         'rewrite singleton relations to eliminate unneeded tuples',
-        {'action': 'store_true'})
+        {'action': 'store_true'}),
 ]
 
 
@@ -86,3 +89,22 @@ class Config:
 
 for attr in all_attributes:
     setattr(Config, attr.name, attr)
+
+
+def get_argparser():
+    """Return a parent parser for the configuration options."""
+    parser = argparse.ArgumentParser(add_help=False)
+    for attr in all_attributes:
+        parser.add_argument('--' + attr.name,
+                            help=attr.docstring,
+                            default=attr.default,
+                            **attr.argparse_kargs)
+    return parser
+
+
+def extract_options(namespace):
+    """Given an argument parser namespace, return an options dictionary
+    for all configuration options.
+    """
+    return {attr.name: getattr(namespace, attr.name)
+            for attr in all_attributes}

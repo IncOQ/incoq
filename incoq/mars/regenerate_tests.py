@@ -10,6 +10,7 @@ import sys
 import argparse
 from os.path import join, dirname, basename, normpath, relpath
 
+from incoq.mars.symbol.config import get_argparser, extract_options
 from incoq.tests.mars.programs.test_transformation import get_test_entries
 from . import __main__ as main
 
@@ -18,7 +19,7 @@ test_root_path = join(dirname(__file__), '../tests/mars/programs')
 test_root_path = normpath(test_root_path)
 
 
-def regenerate_test(test_name, *):
+def regenerate_test(test_name, *, options=None):
     """Regenerate the *_out.py file for the given test. Tests are
     specified by the path to their *_in.py file, omitting the _in.py
     suffix, and relative to the incoq/tests/mars/programs directory.
@@ -35,16 +36,12 @@ def regenerate_test(test_name, *):
     out_path = join(test_dir, out_base)
     out_path = normpath(out_path)
     
-    options = {}
-    if verbose is not None:
-        options['verbose'] = verbose
-    
     print('Regenerating {}...'.format(test_name), flush=True)
     
     main.invoke(in_path, out_path, options=options)
 
 
-def regenerate_all():
+def regenerate_all(*, options=None):
     """Regenerate *_out.py files for all tests in the whole-program
     tests directory.
     """
@@ -52,26 +49,23 @@ def regenerate_all():
     for test_dir, test_base, *_ in test_entries:
         test_name_abs = join(test_dir, test_base)
         test_name = relpath(test_name_abs, test_root_path)
-        regenerate_test(test_name)
+        regenerate_test(test_name, options=options)
 
 
 def run(args):
-    parser = argparse.ArgumentParser(prog='incoq.mars.regenerate_tests')
+    parent = get_argparser()
+    parser = argparse.ArgumentParser(prog='incoq.mars.regenerate_tests',
+                                     parents=[parent])
     parser.add_argument('test_name', nargs='?', default=None)
-    parser.add_argument('--verbose', action='store_true', default=None)
-    parser.add_argument('--pretend', action='store_true', default=None)
     
     ns = parser.parse_args(args)
     
+    options = extract_options(ns)
+    
     if ns.test_name is None:
-        if ns.pretend:
-            raise ValueError('Cannot use --pretend when regenerating '
-                             'all tests')
-        regenerate_all()
+        regenerate_all(options=options)
     else:
-        regenerate_test(ns.test_name,
-                        verbose=ns.verbose,
-                        pretend=ns.pretend)
+        regenerate_test(ns.test_name, options=options)
 
 
 if __name__ == '__main__':

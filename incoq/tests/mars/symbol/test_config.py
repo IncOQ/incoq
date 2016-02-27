@@ -2,6 +2,7 @@
 
 
 import unittest
+import argparse
 
 from incoq.mars.symbol.config import *
 from incoq.mars.symbol.config import all_attributes
@@ -38,6 +39,21 @@ class ConfigCase(unittest.TestCase):
         # Bad attr name.
         with self.assertRaises(ValueError):
             config.update(_bad=True)
+    
+    def test_argparser(self):
+        parent = get_argparser()
+        child = argparse.ArgumentParser(parents=[parent])
+        child.add_argument('foo')
+        
+        ns = child.parse_args(['abc', '--verbose'])
+        self.assertEqual(ns.verbose, True)
+        self.assertEqual(ns.pretend, False)
+        self.assertEqual(ns.foo, 'abc')
+        
+        options = extract_options(ns)
+        self.assertEqual(options.get('verbose', None), True)
+        self.assertEqual(options.get('pretend', None), False)
+        self.assertNotIn('foo', options)
 
 
 if __name__ == '__main__':
