@@ -354,7 +354,7 @@ def define_obj_relations(symtab, objrels):
     if objrels.MAP:
         symtab.define_relation(N.MAP, type=pairset)
     for arity in objrels.TUPs:
-        t = T.Set(T.Tuple([T.Top] * (len(arity) + 1)))
+        t = T.Set(T.Tuple([T.Top] * (arity + 1)))
         symtab.define_relation(N.TUP(arity), type=t)
 
 
