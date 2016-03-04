@@ -1,19 +1,13 @@
-# Twitter example.
+# Social network example.
 
-# Celebs to their set of followers is 1-to-1, but this
-# fact doesn't really change the join orders.
+from incoq.mars.runtime import *
 
-from incoq.runtime import *
-
-OPTIONS(
+CONFIG(
     obj_domain = True,
 )
 
-QUERYOPTIONS(
-    '{user.email for user in celeb.followers if user in group if user.loc == "NYC"}',
-    params = ['celeb', 'group'],
-    uset_mode = 'all',
-    no_rc = True,
+SYMCONFIG('Q',
+#    no_rc = True,
 )
 
 def make_user(email, loc):
@@ -48,9 +42,10 @@ def change_loc(u, loc):
     u.loc = loc
 
 def do_query(celeb, group):
-    return {user.email for user in celeb.followers if user in group
-                       if user.loc == 'NYC'}
+    return QUERY('Q', {user.email for user in celeb.followers if user in group
+                                  if user.loc == 'NYC'})
 
 def do_query_nodemand(celeb, group):
-    return NODEMAND({user.email for user in celeb.followers if user in group
-                                if user.loc == 'NYC'})
+    return QUERY('Q', {user.email for user in celeb.followers if user in group
+                                  if user.loc == 'NYC'},
+                 {'nodemand': True})

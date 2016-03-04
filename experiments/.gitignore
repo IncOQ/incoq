@@ -1,5 +1,14 @@
-# Ignore this folder for Mars branch
-*
+# Ignore un-converted experiments for mars branch.
+cache
+distalgo
+django
+graddb
+jql
+mars
+other
+rbac
+wifi
+backup_run.py
 
 # Generated files.
 *_aux.py

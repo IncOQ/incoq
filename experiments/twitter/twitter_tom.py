@@ -1,9 +1,7 @@
-# This example DOES NOT WORK. The current OSQ system implementation
-# does not generate clauses over U, so the computed maintenance join
-# is actually incorrect. In this example, this manifests as a
-# reference count error. 
+# Old version of Tom's system didn't work, new version untested on this
+# example. 
 
-from incoq.runtime import *
+from incoq.mars.runtime import *
 from osq import query
 
 def make_user(email, loc):
