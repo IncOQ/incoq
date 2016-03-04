@@ -101,7 +101,8 @@ class IdentFinder(L.NodeVisitor):
                 ids = getattr(node, f)
                 if isinstance(ids, str):
                     ids = [ids]
-                self.names.update(ids)
+                if ids is not None:
+                    self.names.update(ids)
 
 
 class Templater(L.NodeTransformer):

@@ -138,6 +138,22 @@ class ParseImportCase(unittest.TestCase):
         with self.assertRaises(IncASTConversionError):
             Parser.p('x = 1')
     
+    def test_imports(self):
+        tree = Parser.p('''
+            import foo
+            from foo import bar
+            ''')
+        exp_tree = L.Module([L.Import([L.alias('foo', None)]),
+                             L.ImportFrom('foo', [L.alias('bar', None)], 0)])
+        self.assertEqual(tree, exp_tree)
+        
+        # Disallow non-top-level imports.
+        with self.assertRaises(IncASTConversionError):
+            Parser.p('''
+                def f():
+                    import foo
+                ''')
+    
     def test_comment(self):
         tree = Parser.ps("COMMENT('Text')")
         exp_tree = L.Comment('Text')
@@ -433,6 +449,10 @@ class RoundTripCase(unittest.TestCase):
             def f(a, b):
                 print(a, b)
             ''')
+    
+    def test_imports(self):
+        self.trip.ps('import foo')
+        self.trip.ps('from foo import bar')
     
     def test_assert(self):
         self.trip.ps('assert t')

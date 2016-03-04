@@ -7,6 +7,8 @@ module IncAST
     -- Function definition omits fancy Python features like
     -- decorators, annotations, and special kinds of arguments.
     decl = Fun(identifier name, identifier* args, stmt* body)
+         | Import(alias* names)
+         | ImportFrom(identifier? module, alias* names, int? level)
     
     stmt = Comment(string text)
            -- Python strips comments during lexing.
@@ -116,6 +118,8 @@ module IncAST
            | Cond(expr cond)
     
     mask = (string m)
+    
+    alias = (identifier name, identifier? asname)
     
     boolop = And | Or
     
