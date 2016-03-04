@@ -54,7 +54,7 @@ class IdentFinder(L.NodeVisitor):
     contexts.
     """
     
-    fun_ctxs = ('fun.name', 'Call.func')
+    fun_ctxs = ('Fun.name', 'Call.func')
     query_ctxs = ('Query.name',)
     
     @classmethod

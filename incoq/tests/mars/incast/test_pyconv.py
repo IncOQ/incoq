@@ -123,7 +123,7 @@ class ParseImportCase(unittest.TestCase):
             def f():
                 pass
             ''')
-        exp_tree = L.Module([L.fun('f', [], [L.Pass()])])
+        exp_tree = L.Module([L.Fun('f', [], [L.Pass()])])
         self.assertEqual(tree, exp_tree)
         
         # Disallow inner functions.

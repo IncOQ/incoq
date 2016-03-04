@@ -192,7 +192,7 @@ class ScopeBuilder(L.NodeVisitor):
         self.generic_visit(node)
         self.exit()
     
-    def visit_fun(self, node):
+    def visit_Fun(self, node):
         # Bind the name of the function in the outer scope,
         # its parameters in the inner scope.
         self.bind(node.name)

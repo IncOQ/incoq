@@ -39,7 +39,7 @@ class IdentFinderCase(unittest.TestCase):
                 R.reladd(a)
                 QUERY('Q', a)
             ''')
-        contexts = ['RelUpdate.rel', 'fun.name', 'Query.name']
+        contexts = ['RelUpdate.rel', 'Fun.name', 'Query.name']
         vars = sorted(IdentFinder.run(tree, contexts=contexts, invert=True))
         exp_vars = list(string.ascii_lowercase)[:10]
         self.assertEqual(vars, exp_vars)

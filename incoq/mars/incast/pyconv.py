@@ -148,7 +148,7 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
                          'default args, keyword-only args, '
                          '*args, or **kwargs')
         args = [a2.arg for a2 in a.args]
-        return L.fun(node.name, args, self.visit(node.body))
+        return L.Fun(node.name, args, self.visit(node.body))
     
     def visit_Delete(self, node):
         if len(node.targets) != 1:
@@ -780,7 +780,7 @@ class IncLangNodeExporter(NodeMapper):
     def visit_Module(self, node):
         return P.Module(self.visit(node.decls))
     
-    def visit_fun(self, node):
+    def visit_Fun(self, node):
         args = P.arguments([P.arg(a, None) for a in node.args],
                            None, [], [], None, [])
         return P.FunctionDef(node.name, args, self.visit(node.body),
