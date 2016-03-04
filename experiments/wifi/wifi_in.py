@@ -1,16 +1,13 @@
 # Wifi query from Tom's thesis.
-#
-#   wifi -> {ap.ssid : ap in wifi.scan, ap.strength > wifi.threshold}
 
-from incoq.runtime import *
+from incoq.mars.runtime import *
 
-OPTIONS(
+CONFIG(
     obj_domain = True,
 )
 
-QUERYOPTIONS(
-    '{ap.ssid for ap in wifi.scan if ap.strength > wifi.threshold}',
-    uset_mode = 'all',
+SYMCONFIG('Q',
+    demand_param_strat = 'all',
 )
 
 def make_wifi(threshold):
@@ -32,9 +29,10 @@ def remove_ap(wifi, ap):
     wifi.scan.remove(ap)
 
 def do_query(wifi):
-    return {ap.ssid for ap in wifi.scan
-                    if ap.strength > wifi.threshold}
+    return QUERY('Q', {ap.ssid for ap in wifi.scan
+                               if ap.strength > wifi.threshold})
 
 def do_query_nodemand(wifi):
-    return NODEMAND({ap.ssid for ap in wifi.scan
-                             if ap.strength > wifi.threshold})
+    return QUERY('Q', {ap.ssid for ap in wifi.scan
+                               if ap.strength > wifi.threshold},
+                 {'nodemand': True})

@@ -5,14 +5,20 @@ import argparse
 import os
 import traceback
 
-import experiments.mars.twitter as twitter
-import experiments.mars.distalgo as distalgo
+import experiments.twitter as twitter
+import experiments.wifi as wifi
+#import experiments.mars.distalgo as distalgo
 
 
 tasks = [
+    # Twitter.
     ('twitter_scale_time',              twitter.ScaleTime()),
     ('twitter_scale_size',              twitter.ScaleSize()),
-    ('lamutex_spec_unopt_procs',        distalgo.LAMutexSpecProcs()),
+    
+    # Wifi.
+    ('wifi',                            wifi.Wifi()),
+    
+#    ('lamutex_spec_unopt_procs',        distalgo.LAMutexSpecProcs()),
 ]
 
 

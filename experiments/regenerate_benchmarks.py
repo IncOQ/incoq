@@ -18,9 +18,16 @@ from incoq.mars import __main__ as main
 
 # Input file, output file, dictionary of config options.
 tasks = [
+    # Twitter.
     ('twitter/twitter_in', 'twitter/twitter_inc',
      {'default_impl': S.Inc}),
     ('twitter/twitter_in', 'twitter/twitter_dem',
+     {'default_impl': S.Filtered}),
+    
+    # Wifi.
+    ('wifi/wifi_in', 'wifi/wifi_inc',
+     {'default_impl': S.Inc}),
+    ('wifi/wifi_in', 'wifi/wifi_dem',
      {'default_impl': S.Filtered}),
 ]
 
