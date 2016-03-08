@@ -313,6 +313,11 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.Unwrap(L.Name('R'))
         self.assertEqual(tree, exp_tree)
     
+    def test_wrap(self):
+        tree = Parser.pe('wrap(R)')
+        exp_tree = L.Wrap(L.Name('R'))
+        self.assertEqual(tree, exp_tree)
+    
     def test_typechecks(self):
         tree = Parser.pe('isset(s)')
         exp_tree = L.IsSet(L.Name('s'))
@@ -522,6 +527,9 @@ class RoundTripCase(unittest.TestCase):
     
     def test_unwrap(self):
         self.trip.pe('unwrap(R)')
+    
+    def test_wrap(self):
+        self.trip.pe('wrap(R)')
     
     def test_typechecks(self):
         self.trip.pc('''

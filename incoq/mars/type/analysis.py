@@ -612,6 +612,7 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         return Set(Top)
     
     visit_Unwrap = default_expr_handler
+    visit_Wrap = default_expr_handler
     
     visit_IsSet = default_expr_handler
     visit_HasField = default_expr_handler

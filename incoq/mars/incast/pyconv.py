@@ -559,6 +559,9 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_fe_unwrap(self, _func, set_):
         return L.Unwrap(set_)
     
+    def handle_fe_wrap(self, _func, set_):
+        return L.Wrap(set_)
+    
     def handle_fe_isset(self, _func, value):
         return L.IsSet(value)
     
@@ -722,6 +725,11 @@ class IncLangSpecialExporter(L.NodeTransformer):
         node = self.generic_visit(node)
         
         return L.Call('unwrap', [node.value])
+    
+    def visit_Wrap(self, node):
+        node = self.generic_visit(node)
+        
+        return L.Call('wrap', [node.value])
     
     def visit_IsSet(self, node):
         node = self.generic_visit(node)

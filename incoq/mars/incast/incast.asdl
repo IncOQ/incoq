@@ -83,6 +83,7 @@ module IncAST
          | ImgLookup(expr set, mask mask, identifier* bounds)
          | SetFromMap(expr map, mask mask)
          | Unwrap(expr value)
+         | Wrap(expr value)
          
            -- Type checks.
          | IsSet(expr value)
