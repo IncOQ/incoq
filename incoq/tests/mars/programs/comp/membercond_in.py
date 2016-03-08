@@ -2,8 +2,8 @@
 
 from incoq.mars.runtime import *
 
-SYMCONFIG('Q',
-    impl = 'inc',
+CONFIG(
+    default_impl = 'inc',
 )
 
 S = Set()

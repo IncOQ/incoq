@@ -5,9 +5,7 @@ from itertools import product
 
 CONFIG(
     obj_domain = 'true',
-)
-SYMCONFIG('Q',
-    impl = 'filtered',
+    default_impl = 'filtered',
 )
 
 def main():

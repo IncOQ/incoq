@@ -4,9 +4,7 @@ from incoq.mars.runtime import *
 
 CONFIG(
     obj_domain = 'true',
-)
-SYMCONFIG('Q',
-    impl = 'inc',
+    default_impl = 'inc',
 )
 
 def main():

@@ -2,23 +2,8 @@
 
 from incoq.mars.runtime import *
 
-SYMCONFIG('Q1',
-    impl = 'inc',
-)
-SYMCONFIG('Q2',
-    impl = 'inc',
-)
-SYMCONFIG('Q3',
-    impl = 'inc',
-)
-SYMCONFIG('Q4',
-    impl = 'inc',
-)
-SYMCONFIG('Q5',
-    impl = 'inc',
-)
-SYMCONFIG('Q6',
-    impl = 'inc',
+CONFIG(
+    default_impl = 'inc',
 )
 
 S = Set()
