@@ -149,7 +149,7 @@ def preprocess_tree(tree, symtab):
     # Use parsed directive info to update the global config and
     # symbol-specific config.
     for d in info.config_info:
-        symtab.config.update(**d)
+        symtab.config.parse_and_update(**d)
     for name, d in info.symconfig_info:
         symtab.apply_symconfig(name, d)
     for name, d in query_name_attrs.items():

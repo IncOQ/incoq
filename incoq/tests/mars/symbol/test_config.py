@@ -40,6 +40,11 @@ class ConfigCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             config.update(_bad=True)
     
+    def test_parse_and_update(self):
+        config = Config()
+        config.parse_and_update(verbose='True')
+        self.assertEqual(config.verbose, True)
+    
     def test_argparser(self):
         parent = get_argparser()
         child = argparse.ArgumentParser(parents=[parent])

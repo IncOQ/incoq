@@ -3,6 +3,7 @@
 
 from incoq.util.misc import new_namespace
 
+from . import common
 from . import symbols
 from . import config
 from . import symtab

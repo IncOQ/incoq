@@ -4,7 +4,7 @@ from incoq.mars.runtime import *
 from itertools import product
 
 CONFIG(
-    obj_domain = True,
+    obj_domain = 'true',
 )
 SYMCONFIG('Q',
     impl = 'filtered',

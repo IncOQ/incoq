@@ -12,12 +12,8 @@ __all__ = [
 import argparse
 from simplestruct import Struct, Field
 
+from .common import parse_bool
 from .symbols import Constants
-
-
-def parse_constant(v):
-    d = {k.lower(): v for k, v in Constants.__members__.items()}
-    return d[v]
 
 
 # Each configuration attribute is a descriptor, listed in the
@@ -40,6 +36,11 @@ class ConfigAttribute(Struct):
     """Default value."""
     docstring = Field()
     """User documentation."""
+    parser = Field()
+    """Callable that takes a string to a value for this attribute. If
+    None, this attribute is internal and should not be populated by the
+    user.
+    """
     argparse_kargs = Field()
     """Dictionary to pass along as **kargs to argparse's add_argument()
     function.
@@ -59,22 +60,27 @@ class ConfigAttribute(Struct):
 all_attributes = [
     ConfigAttribute('verbose', False,
         'print transformation information to standard output',
+        parse_bool,
         {'action': 'store_true'}),
     
     ConfigAttribute('pretend', False,
         'write to standard output instead of the output file',
+        parse_bool,
         {'action': 'store_true'}),
     
     ConfigAttribute('obj_domain', False,
         'whether or not the program is in the object-domain',
+        parse_bool,
         {'action': 'store_true'}),
     
     ConfigAttribute('default_impl', Constants.Normal,
         'default implementation strategy',
-        {'type': parse_constant}),
+        Constants.parse,
+        {'type': Constants.parse}),
     
     ConfigAttribute('unwrap_singletons', False,
         'rewrite singleton relations to eliminate unneeded tuples',
+        parse_bool,
         {'action': 'store_true'}),
 ]
 
@@ -90,13 +96,20 @@ class Config:
         return '\n'.join('{}: {}'.format(attr.name, getattr(self, attr.name))
                          for attr in all_attributes)
     
-    def update(self, **kargs):
+    def update(self, *, parse=False, **kargs):
         """Assign to each attribute as specified in keyword arguments."""
         for attr, value in kargs.items():
             descriptor = getattr(type(self), attr, None)
             if not isinstance(descriptor, ConfigAttribute):
                 raise ValueError('Unknown config attribute "{}"'.format(attr))
+            
+            if parse:
+                value = descriptor.parser(value)
+            
             setattr(self, attr, value)
+    
+    def parse_and_update(self, **kargs):
+        return self.update(parse=True, **kargs)
 
 for attr in all_attributes:
     setattr(Config, attr.name, attr)

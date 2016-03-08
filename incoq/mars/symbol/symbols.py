@@ -25,8 +25,10 @@ from collections import OrderedDict
 from incoq.mars.incast import L
 from incoq.mars.type import T
 
+from .common import parse_bool, parse_list, ParseableEnumMixin
 
-class Constants(Enum):
+
+class Constants(ParseableEnumMixin, Enum):
     
     """Enumeration for symbol attribute constants."""
     
@@ -63,9 +65,9 @@ class SymbolAttribute:
         """
         if parser is not self._Missing:
             self.parser = parser
-        """Callable that takes a literal value (e.g. a string supplied
-        by the user) to a value for this attribute. If None, this
-        attribute is internal and should not be populated by the user.
+        """Callable that takes a string value to a value for this
+        attribute. If None, this attribute is internal and should not be
+        populated by the user.
         """
     
     def __get__(self, inst, owner):
@@ -175,7 +177,8 @@ class Symbol(metaclass=MetaSymbol):
             if not isinstance(desc, SymbolAttribute):
                 raise KeyError('Unknown symbol attribute "{}"'.format(attr))
             if desc.parser is None:
-                raise KeyError('Attribute "{}" cannot be parsed'.format(attr))
+                raise ValueError('Attribute "{}" cannot be parsed'
+                                 .format(attr))
             value = desc.parser(value)
             setattr(self, attr, value)
     
@@ -229,7 +232,8 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
     
     counted = SymbolAttribute(
         doc='Allow duplicates, associate a count with each element',
-        default=False)
+        default=False,
+        parser=parse_bool)
     
     min_type = T.Set(T.Bottom)
     max_type = T.Set(T.Top)
@@ -280,7 +284,8 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
     
     params = SymbolAttribute(
         doc='Tuple of parameter identifiers for this query',
-        default=())
+        default=(),
+        parser=parse_list)
     
     impl = EnumSymbolAttribute(
         doc='Implementation strategy',
@@ -289,7 +294,8 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
     
     uses_demand = SymbolAttribute(
         doc='Whether or not the query uses demand',
-        default=False)
+        default=False,
+        parser=parse_bool)
     
     demand_set = SymbolAttribute(
         doc='Name of demand set, or None if not used',
@@ -297,7 +303,8 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
     
     demand_params = SymbolAttribute(
         doc='Tuple of demand parameter identifiers, or None if not used',
-        default=None)
+        default=None,
+        parser=parse_list)
     
     demand_param_strat = EnumSymbolAttribute(
         doc='Strategy to use for determining demand parameters',

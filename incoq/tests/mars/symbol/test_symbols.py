@@ -62,7 +62,7 @@ class MetaCase(unittest.TestCase):
         self.assertEqual(s.A, 1)
         s.parse_and_update(B=2)
         self.assertEqual(s.B, 5)
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ValueError):
             s.parse_and_update(C=3)
     
     def test_symbol_clone_attrs(self):
