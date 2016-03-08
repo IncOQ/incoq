@@ -1,14 +1,31 @@
-"""Unit tests for update_rewritings.py."""
+"""Unit tests for relation_rewritings.py."""
 
 
 import unittest
 
 from incoq.mars.incast import L
 from incoq.mars.symbol import S, N
-from incoq.mars.transform.update_rewritings import *
+from incoq.mars.transform.relation_rewritings import *
 
 
 class UpdateRewritingsCase(unittest.TestCase):
+    
+    def test_rewrite_memberconds(self):
+        comp = L.Parser.pe('{a for x in s if x in t if (x, y) in o.f}')
+        symtab = S.SymbolTable()
+        symtab.define_query('Q', node=comp)
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', _COMP))
+            ''', subst={'_COMP': comp})
+        
+        tree = rewrite_memberconds(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', {a for x in s for x in t
+                                    for (x, y) in o.f}))
+            ''')
+        self.assertEqual(tree, exp_tree)
     
     def test_expand_bulkupdates(self):
         symtab = S.SymbolTable()

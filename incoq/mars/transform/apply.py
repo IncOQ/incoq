@@ -29,7 +29,7 @@ from incoq.mars.obj import (ObjClauseVisitor, flatten_objdomain,
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
-from . import update_rewritings
+from . import relation_rewritings
 from .misc_rewritings import rewrite_vars_clauses
 from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
@@ -261,11 +261,11 @@ def transform_ast(input_ast, *, options=None):
     
     # Expand bulk updates. SetClear is not expanded until after we
     # convert occurrences to RelClear.
-    tree = update_rewritings.expand_bulkupdates(tree, symtab)
+    tree = relation_rewritings.expand_bulkupdates(tree, symtab)
     # Recognize relation updates.
-    tree = update_rewritings.specialize_rels_and_maps(tree, symtab)
+    tree = relation_rewritings.specialize_rels_and_maps(tree, symtab)
     # Expand SetClear and DictClear.
-    tree = update_rewritings.expand_clear(tree, symtab)
+    tree = relation_rewritings.expand_clear(tree, symtab)
     
     # Make symbols for non-relation, non-map variables.
     names = L.IdentFinder.find_vars(tree)
@@ -341,7 +341,7 @@ def transform_ast(input_ast, *, options=None):
     symtab.header = header
     
     # Turn relation updates back into set updates.
-    tree = update_rewritings.unspecialize_rels_and_maps(tree, symtab)
+    tree = relation_rewritings.unspecialize_rels_and_maps(tree, symtab)
     
     tree = postprocess_tree(tree, symtab)
     

@@ -1,7 +1,8 @@
-"""Rewritings for updates."""
+"""Rewritings for relations and maps."""
 
 
 __all__ = [
+    'rewrite_memberconds',
     'expand_bulkupdates',
     'specialize_rels_and_maps',
     'unspecialize_rels_and_maps',
@@ -10,6 +11,33 @@ __all__ = [
 
 
 from incoq.mars.incast import L
+from incoq.mars.symbol import S
+
+
+def rewrite_memberconds(tree, symtab):
+    """For all comprehension queries, replace membership condition
+    clauses (Cond nodes) with membership clauses (Member nodes).
+    """
+    def process(cl):
+        if (isinstance(cl, L.Cond) and
+            isinstance(cl.cond, L.Compare) and
+            isinstance(cl.cond.op, L.In)):
+            cl = L.Member(cl.cond.left, cl.cond.right)
+            return cl, [], []
+    
+    class WrapRewriter(S.QueryRewriter):
+        def rewrite(self, symbol, name, expr):
+            if not isinstance(expr, L.Comp):
+                return
+            if symbol.impl is S.Normal:
+                return
+            comp = expr
+            
+            comp = L.rewrite_comp(comp, process)
+            return comp
+    
+    tree = WrapRewriter.run(tree, symtab)
+    return tree
 
 
 # Templates for expanding bulk update operations.
