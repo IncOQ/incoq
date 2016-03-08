@@ -29,6 +29,7 @@ from incoq.mars.obj import (ObjClauseVisitor, flatten_objdomain,
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
+from . import update_rewritings
 from .misc_rewritings import rewrite_vars_clauses
 from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
@@ -138,7 +139,6 @@ def preprocess_tree(tree, symtab):
     # Continue preprocessing.
     # Maps in the input program aren't currently handled.
     tree = incast_preprocess(tree, fresh_vars=symtab.fresh_names.vars,
-                             rels=rels, maps=maps,
                              query_name_map=query_name_map)
     
     # Define symbols for queries.
@@ -160,13 +160,6 @@ def preprocess_tree(tree, symtab):
         if q.impl is S.Unspecified:
             q.impl = symtab.config.default_impl
     
-    # Make symbols for non-relation, non-map variables.
-    names = L.IdentFinder.find_vars(tree)
-    names.difference_update(symtab.get_relations().keys(),
-                            symtab.get_maps().keys())
-    for name in names:
-        symtab.define_var(name)
-    
     return tree
 
 
@@ -178,14 +171,8 @@ def postprocess_tree(tree, symtab):
                      symtab.get_maps().values()):
         decls.append((sym.name, sym.decl_constructor, sym.decl_comment))
     
-    # Get comment header.
-    header = []
-    for query in symtab.get_queries().values():
-        if query.display:
-            header.append(query.decl_comment)
-    
     tree = incast_postprocess(tree)
-    tree = py_postprocess(tree, decls=decls, header=header)
+    tree = py_postprocess(tree, decls=decls, header=symtab.header)
     return tree
 
 
@@ -272,6 +259,22 @@ def transform_ast(input_ast, *, options=None):
     symtab.config = config
     tree = preprocess_tree(tree, symtab)
     
+    # Expand bulk updates. SetClear is not expanded until after we
+    # convert occurrences to RelClear.
+    tree = update_rewritings.expand_bulkupdates(tree, symtab)
+    # Recognize relation updates.
+    tree = update_rewritings.specialize_rels_and_maps(tree, symtab)
+    # Expand SetClear and DictClear.
+    tree = update_rewritings.expand_clear(tree, symtab)
+    
+    # Make symbols for non-relation, non-map variables.
+    names = L.IdentFinder.find_vars(tree)
+    names.difference_update(symtab.get_relations().keys(),
+                            symtab.get_maps().keys())
+    for name in names:
+        symtab.define_var(name)
+    
+    # Run type inference.
     illtyped, badsyms = symtab.run_type_inference(tree)
     
     if config.verbose:
@@ -329,6 +332,16 @@ def transform_ast(input_ast, *, options=None):
         tree, rel_names = unwrap_singletons(tree, symtab)
         if config.verbose and len(rel_names) > 0:
             print('Unwrapped relations: ' + ', '.join(sorted(rel_names)))
+    
+    # Get comment header.
+    header = []
+    for query in symtab.get_queries().values():
+        if query.display:
+            header.append(query.decl_comment)
+    symtab.header = header
+    
+    # Turn relation updates back into set updates.
+    tree = update_rewritings.unspecialize_rels_and_maps(tree, symtab)
     
     tree = postprocess_tree(tree, symtab)
     
