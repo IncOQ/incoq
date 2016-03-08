@@ -26,12 +26,6 @@ class ClauseCase(unittest.TestCase):
         exp_objrels = ObjRelations(True, ['f', 'g'], True, [2, 3])
         self.assertEqual(objrels, exp_objrels)
     
-    def test_rewrite_memberconds(self):
-        comp = L.Parser.pe('{a for x in s if x in t if (x, y) in o.f}')
-        comp = rewrite_memberconds(comp)
-        exp_comp = L.Parser.pe('{a for x in s for x in t for (x, y) in o.f}')
-        self.assertEqual(comp, exp_comp)
-    
     def test_replaceablerewriterbase(self):
         rewriter = ReplaceableRewriterBase(*self.namers)
         

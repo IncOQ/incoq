@@ -30,7 +30,6 @@ there is a membership clause that does not fit the form of RelMember.
 __all__ = [
     'ObjRelations',
     
-    'rewrite_memberconds',
     'ReplaceableRewriter',
     'flatten_replaceables',
     'flatten_memberships',
@@ -84,19 +83,6 @@ class MutableObjRelations(Struct):
     @classmethod
     def empty(cls):
         return MutableObjRelations(False, [], False, [])
-
-
-def rewrite_memberconds(comp):
-    """Replace membership condition clauses (Cond nodes) with membership
-    clauses (Member nodes).
-    """
-    def process(cl):
-        if (isinstance(cl, L.Cond) and
-            isinstance(cl.cond, L.Compare) and
-            isinstance(cl.cond.op, L.In)):
-            return L.Member(cl.cond.left, cl.cond.right), [], []
-    tree = L.rewrite_comp(comp, process)
-    return tree
 
 
 class ReplaceableRewriterBase(L.NodeTransformer):
@@ -330,7 +316,6 @@ def flatten_all_comps(tree, symtab):
             flattened_queries.add(name)
             
             comp = expr
-            comp = rewrite_memberconds(comp)
             comp, objrels1 = flatten_replaceables(comp)
             comp, objrels2 = flatten_memberships(comp)
             objrels = objrels.union(objrels1).union(objrels2)

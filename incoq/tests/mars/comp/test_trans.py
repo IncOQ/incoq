@@ -239,20 +239,6 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
         self.assertEqual(query.type, T.Set(T.Tuple([T.Number, T.Number])))
-    
-    def test_match_member_cond(self):
-        cond = L.Cond(L.Parser.pe('(x, y) in R'))
-        result = match_member_cond(cond)
-        exp_result = (('x', 'y'), 'R')
-        self.assertEqual(result, exp_result)
-        
-        cond = L.Cond(L.Parser.pe('x in R'))
-        result = match_member_cond(cond)
-        self.assertIsNone(result)
-        
-        cond = L.Cond(L.Parser.pe('(x, y) in 1 + 1'))
-        result = match_member_cond(cond)
-        self.assertIsNone(result)
 
 
 if __name__ == '__main__':

@@ -21,7 +21,7 @@ from incoq.mars.symbol import S, N
 from incoq.mars.auxmap import transform_auxmaps
 from incoq.mars.comp import (
     CoreClauseTools, transform_comp_query,
-    rewrite_all_comps_with_patterns, rewrite_all_comp_memberconds)
+    rewrite_all_comps_with_patterns)
 from incoq.mars.demand import transform_comp_query_with_filtering
 from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
 from incoq.mars.obj import (ObjClauseVisitor, flatten_objdomain,
@@ -259,6 +259,8 @@ def transform_ast(input_ast, *, options=None):
     symtab.config = config
     tree = preprocess_tree(tree, symtab)
     
+    # Replace membership conditions with membership clauses.
+    tree = relation_rewritings.rewrite_memberconds(tree, symtab)
     # Expand bulk updates. SetClear is not expanded until after we
     # convert occurrences to RelClear.
     tree = relation_rewritings.expand_bulkupdates(tree, symtab)
@@ -285,8 +287,6 @@ def transform_ast(input_ast, *, options=None):
         tree = flatten_objdomain(tree, symtab)
         symtab.clausetools = ObjClauseTools()
     else:
-        # Rewrite membership conditions.
-        tree = rewrite_all_comp_memberconds(tree, symtab)
         # Rewrite memberships over subqueries as VARS clauses.
         # (In the object domain, this would be done differently
         # due to tuple wrapping/unwrapping.)
