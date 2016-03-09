@@ -3,6 +3,7 @@
 
 __all__ = [
     'rewrite_vars_clauses',
+    'lift_firstthen',
 ]
 
 
@@ -39,3 +40,20 @@ def rewrite_vars_clauses(tree, symtab):
             return VarsClausesRewriter.run(expr)
     
     return Rewriter.run(tree, symtab)
+
+
+def lift_firstthen(tree, symtab):
+    """Lift FirstThen nodes outside of Unwrap nodes."""
+    class Trans(L.NodeTransformer):
+        def visit_Unwrap(self, node):
+            node = self.generic_visit(node)
+            
+            if isinstance(node.value, L.FirstThen):
+                # Shuffle the Unwrap and FirstThen's then child.
+                firstthen = node.value
+                new_unwrap = node._replace(value=firstthen.then)
+                node = firstthen._replace(then=new_unwrap)
+            
+            return node
+    
+    return Trans.run(tree)

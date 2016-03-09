@@ -30,7 +30,7 @@ from incoq.mars.obj import (ObjClauseVisitor, flatten_objdomain,
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
 from . import relation_rewritings
-from .misc_rewritings import rewrite_vars_clauses
+from .misc_rewritings import rewrite_vars_clauses, lift_firstthen
 from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
                              transform_demand)
@@ -324,6 +324,10 @@ def transform_ast(input_ast, *, options=None):
     
     if config.verbose:
         print('Incrementalizing auxiliary maps')
+    
+    # Lift FirstThen nodes above Unwrap nodes so Unwraps can be
+    # incrementalized.
+    tree = lift_firstthen(tree, symtab)
     
     # Incrementalize image-set lookups with auxiliary maps.
     tree = transform_auxmaps(tree, symtab)

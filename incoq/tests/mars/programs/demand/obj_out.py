@@ -294,9 +294,9 @@ def main():
         _maint_R_Q_d_M_for__M_add(_v2)
         _maint_R_Q_for__M_add(_v2)
     z = s
-    print(sorted(unwrap(((_demand_Q((z,)) or True) and R_Q_bu.get(z, Set())))))
+    print(sorted(((_demand_Q((z,)) or True) and unwrap(R_Q_bu.get(z, Set())))))
     z = t
-    print(sorted(unwrap(((_demand_Q((z,)) or True) and R_Q_bu.get(z, Set())))))
+    print(sorted(((_demand_Q((z,)) or True) and unwrap(R_Q_bu.get(z, Set())))))
 
 if (__name__ == '__main__'):
     main()

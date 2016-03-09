@@ -30,6 +30,19 @@ class MiscRewritingsCase(unittest.TestCase):
                     {(a, b) for (a, b) in REL(R)}))}))
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_lift_firstthen(self):
+        symtab = S.SymbolTable()
+        tree = L.Parser.p('''
+            def main():
+                unwrap(FIRSTTHEN(a, b))
+            ''')
+        tree = lift_firstthen(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                FIRSTTHEN(a, unwrap(b))
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':
