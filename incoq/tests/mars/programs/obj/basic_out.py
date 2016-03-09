@@ -19,9 +19,9 @@ _U_Q2_bu = Map()
 _U_Q2_ub = Map()
 # _M_ub : {Top: {(Top)}}
 _M_ub = Map()
-# R_Q1_bu : {{Top}: {(Top)}}
+# R_Q1_bu : {{Top}: {Top}}
 R_Q1_bu = Map()
-# R_Q2_bbu : {({Top}, {Top}): {(Top)}}
+# R_Q2_bbu : {({Top}, {Top}): {Top}}
 R_Q2_bbu = Map()
 def _maint__U_Q2_bu_for__U_Q2_add(_elem):
     (_elem_v1, _elem_v2) = _elem
@@ -77,7 +77,7 @@ def _maint__M_ub_for__M_remove(_elem):
 def _maint_R_Q1_bu_for_R_Q1_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v29_key = _elem_v1
-    _v29_value = (_elem_v2,)
+    _v29_value = _elem_v2
     if (_v29_key not in R_Q1_bu):
         _v30 = Set()
         R_Q1_bu[_v29_key] = _v30
@@ -86,7 +86,7 @@ def _maint_R_Q1_bu_for_R_Q1_add(_elem):
 def _maint_R_Q1_bu_for_R_Q1_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v31_key = _elem_v1
-    _v31_value = (_elem_v2,)
+    _v31_value = _elem_v2
     R_Q1_bu[_v31_key].remove(_v31_value)
     if (len(R_Q1_bu[_v31_key]) == 0):
         del R_Q1_bu[_v31_key]
@@ -94,7 +94,7 @@ def _maint_R_Q1_bu_for_R_Q1_remove(_elem):
 def _maint_R_Q2_bbu_for_R_Q2_add(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
     _v32_key = (_elem_v1, _elem_v2)
-    _v32_value = (_elem_v3,)
+    _v32_value = _elem_v3
     if (_v32_key not in R_Q2_bbu):
         _v33 = Set()
         R_Q2_bbu[_v32_key] = _v33
@@ -103,7 +103,7 @@ def _maint_R_Q2_bbu_for_R_Q2_add(_elem):
 def _maint_R_Q2_bbu_for_R_Q2_remove(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
     _v34_key = (_elem_v1, _elem_v2)
-    _v34_value = (_elem_v3,)
+    _v34_value = _elem_v3
     R_Q2_bbu[_v34_key].remove(_v34_value)
     if (len(R_Q2_bbu[_v34_key]) == 0):
         del R_Q2_bbu[_v34_key]
@@ -333,17 +333,17 @@ def main():
     _maint_R_Q2_for__M_add(_v6)
     _maint_R_Q1_for__M_add(_v6)
     z = s
-    print(sorted(unwrap(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set())))))
+    print(sorted(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set()))))
     z = t
-    print(sorted(unwrap(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set())))))
-    print(sorted(unwrap(((_demand_Q2((s, t)) or True) and R_Q2_bbu.get((s, t), Set())))))
+    print(sorted(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set()))))
+    print(sorted(((_demand_Q2((s, t)) or True) and R_Q2_bbu.get((s, t), Set()))))
     for _v1 in list(t):
         _v7 = (t, _v1)
         _maint_R_Q1_for__M_remove(_v7)
         _maint_R_Q2_for__M_remove(_v7)
         _maint__M_ub_for__M_remove(_v7)
         index(_v7, 0).remove(index(_v7, 1))
-    print(sorted(unwrap(((_demand_Q2((s, t)) or True) and R_Q2_bbu.get((s, t), Set())))))
+    print(sorted(((_demand_Q2((s, t)) or True) and R_Q2_bbu.get((s, t), Set()))))
 
 if (__name__ == '__main__'):
     main()

@@ -25,7 +25,7 @@ R_Q_d_F_f = CSet()
 R_Q_T_o_f = CSet()
 # R_Q_d_M_ub : {Bottom: {(Bottom)}}
 R_Q_d_M_ub = Map()
-# R_Q_bu : {{Bottom}: {(Top)}}
+# R_Q_bu : {{Bottom}: {Top}}
 R_Q_bu = Map()
 def _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_elem):
     (_elem_v1, _elem_v2) = _elem
@@ -47,7 +47,7 @@ def _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_elem):
 def _maint_R_Q_bu_for_R_Q_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v26_key = _elem_v1
-    _v26_value = (_elem_v2,)
+    _v26_value = _elem_v2
     if (_v26_key not in R_Q_bu):
         _v27 = Set()
         R_Q_bu[_v26_key] = _v27
@@ -56,7 +56,7 @@ def _maint_R_Q_bu_for_R_Q_add(_elem):
 def _maint_R_Q_bu_for_R_Q_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v28_key = _elem_v1
-    _v28_value = (_elem_v2,)
+    _v28_value = _elem_v2
     R_Q_bu[_v28_key].remove(_v28_value)
     if (len(R_Q_bu[_v28_key]) == 0):
         del R_Q_bu[_v28_key]
@@ -294,9 +294,9 @@ def main():
         _maint_R_Q_d_M_for__M_add(_v2)
         _maint_R_Q_for__M_add(_v2)
     z = s
-    print(sorted(((_demand_Q((z,)) or True) and unwrap(R_Q_bu.get(z, Set())))))
+    print(sorted(((_demand_Q((z,)) or True) and R_Q_bu.get(z, Set()))))
     z = t
-    print(sorted(((_demand_Q((z,)) or True) and unwrap(R_Q_bu.get(z, Set())))))
+    print(sorted(((_demand_Q((z,)) or True) and R_Q_bu.get(z, Set()))))
 
 if (__name__ == '__main__'):
     main()

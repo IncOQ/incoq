@@ -18,7 +18,7 @@ R_Q1 = CSet()
 R_Q2_bu = Map()
 # R_Q2_ub : {Bottom: {({Bottom})}}
 R_Q2_ub = Map()
-# R_Q1_bu : {{Bottom}: {(Top)}}
+# R_Q1_bu : {{Bottom}: {Top}}
 R_Q1_bu = Map()
 def _maint_R_Q2_bu_for_R_Q2_add(_elem):
     (_elem_v1, _elem_v2) = _elem
@@ -57,7 +57,7 @@ def _maint_R_Q2_ub_for_R_Q2_remove(_elem):
 def _maint_R_Q1_bu_for_R_Q1_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v22_key = _elem_v1
-    _v22_value = (_elem_v2,)
+    _v22_value = _elem_v2
     if (_v22_key not in R_Q1_bu):
         _v23 = Set()
         R_Q1_bu[_v22_key] = _v23
@@ -66,7 +66,7 @@ def _maint_R_Q1_bu_for_R_Q1_add(_elem):
 def _maint_R_Q1_bu_for_R_Q1_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v24_key = _elem_v1
-    _v24_value = (_elem_v2,)
+    _v24_value = _elem_v2
     R_Q1_bu[_v24_key].remove(_v24_value)
     if (len(R_Q1_bu[_v24_key]) == 0):
         del R_Q1_bu[_v24_key]
@@ -228,9 +228,9 @@ def main():
         index(_v2, 0).add(index(_v2, 1))
         _maint_R_Q2_for__M_add(_v2)
     z = s
-    print(sorted(unwrap(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set())))))
+    print(sorted(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set()))))
     z = t
-    print(sorted(unwrap(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set())))))
+    print(sorted(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set()))))
 
 if (__name__ == '__main__'):
     main()

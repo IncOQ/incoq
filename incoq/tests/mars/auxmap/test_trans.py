@@ -137,6 +137,7 @@ class AuxmapCase(unittest.TestCase):
                 M.setfrommap('bu')
                 R.imglookup('ubb', (y, z))
                 S.imglookup('bu', (x,))
+                unwrap(R.imglookup('ubb', (y, z)))
                 unwrap(S)
                 wrap(R)
             ''')
@@ -145,6 +146,7 @@ class AuxmapCase(unittest.TestCase):
             AuxmapInvariant('R_bu', 'R', L.mask('bu'), True, False),
             AuxmapInvariant('R_ubb', 'R', L.mask('ubb'), False, False),
             AuxmapInvariant('S_bu', 'S', L.mask('bu'), True, False),
+            AuxmapInvariant('R_ubb', 'R', L.mask('ubb'), False, True),
         ]
         exp_setfrommaps = [
             SetFromMapInvariant('SM', 'M', L.mask('bu')),
@@ -160,6 +162,7 @@ class AuxmapCase(unittest.TestCase):
     def test_invariant_transformer(self):
         auxmaps = [
             AuxmapInvariant('R_bu', 'R', L.mask('bu'), True, False),
+            AuxmapInvariant('R_bu_2', 'R', L.mask('bu'), False, True),
         ]
         setfrommaps = [
             SetFromMapInvariant('S', 'M', L.mask('bu')),
@@ -181,6 +184,7 @@ class AuxmapCase(unittest.TestCase):
                 M.mapdelete(k)
                 M.mapclear()
                 print(M.setfrommap('bu'))
+                print(unwrap(R.imglookup('bu', (x,))))
             ''')
         tree = InvariantTransformer.run(tree, N.fresh_name_generator(),
                                         auxmaps, setfrommaps, wraps)
@@ -202,37 +206,55 @@ class AuxmapCase(unittest.TestCase):
                 if (len(R_bu[_v3_key]) == 0):
                     R_bu.mapdelete(_v3_key)
             
+            def _maint_R_bu_2_for_R_add(_elem):
+                (_elem_v1, _elem_v2) = _elem
+                _v4_key = (_elem_v1,)
+                _v4_value = _elem_v2
+                if (_v4_key not in R_bu_2):
+                    _v5 = Set()
+                    R_bu_2.mapassign(_v4_key, _v5)
+                R_bu_2[_v4_key].add(_v4_value)
+            
+            def _maint_R_bu_2_for_R_remove(_elem):
+                (_elem_v1, _elem_v2) = _elem
+                _v6_key = (_elem_v1,)
+                _v6_value = _elem_v2
+                R_bu_2[_v6_key].remove(_v6_value)
+                if (len(R_bu_2[_v6_key]) == 0):
+                    R_bu_2.mapdelete(_v6_key)
+            
             def _maint_S_for_M_assign(_key, _val):
                 (_key_v1,) = _key
-                _v4_elem = (_key_v1, _val)
-                S.reladd(_v4_elem)
+                _v7_elem = (_key_v1, _val)
+                S.reladd(_v7_elem)
             
             def _maint_S_for_M_delete(_key):
                 _val = M[_key]
                 (_key_v1,) = _key
-                _v5_elem = (_key_v1, _val)
-                S.relremove(_v5_elem)
+                _v8_elem = (_key_v1, _val)
+                S.relremove(_v8_elem)
             
             def _maint_Q1_for_R_add(_elem):
-                _v6_v = (_elem,)
-                Q1.reladd(_v6_v)
+                _v9_v = (_elem,)
+                Q1.reladd(_v9_v)
             
             def _maint_Q1_for_R_remove(_elem):
-                _v7_v = (_elem,)
-                Q1.relremove(_v7_v)
+                _v10_v = (_elem,)
+                Q1.relremove(_v10_v)
             
             def _maint_Q2_for_R_add(_elem):
-                _v8_v = index(_elem, 0)
-                Q2.reladd(_v8_v)
+                _v11_v = index(_elem, 0)
+                Q2.reladd(_v11_v)
             
             def _maint_Q2_for_R_remove(_elem):
-                _v9_v = index(_elem, 0)
-                Q2.relremove(_v9_v)
+                _v12_v = index(_elem, 0)
+                Q2.relremove(_v12_v)
             
             def f():
                 elem = (1, 2)
                 R.reladd(elem)
                 _maint_R_bu_for_R_add(elem)
+                _maint_R_bu_2_for_R_add(elem)
                 _maint_Q1_for_R_add(elem)
                 _maint_Q2_for_R_add(elem)
                 print(R_bu.get(x, Set()))
@@ -241,6 +263,7 @@ class AuxmapCase(unittest.TestCase):
                 R.relinccount(elem)
                 Q2.relclear()
                 Q1.relclear()
+                R_bu_2.mapclear()
                 R_bu.mapclear()
                 R.relclear()
                 M.mapassign(k, v)
@@ -250,6 +273,7 @@ class AuxmapCase(unittest.TestCase):
                 S.relclear()
                 M.mapclear()
                 print(S)
+                print(R_bu_2.get((x,), Set()))
             ''')
         self.assertEqual(tree, exp_tree)
     

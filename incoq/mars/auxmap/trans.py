@@ -47,6 +47,10 @@ class AuxmapInvariant(Struct):
     unwrap_value = TypedField(bool)
     """Whether the unbound part is a single unwrapped component."""
     
+    def __init__(self, map, rel, mask, unwrap_key, unwrap_value):
+        assert not (unwrap_key and mask.m.count('b') > 1)
+        assert not (unwrap_value and mask.m.count('u') > 1)
+    
     def get_maint_func_name(self, op):
         op_name = L.set_update_name(op)
         return N.get_maint_func_name(self.map, self.rel, op_name)
@@ -247,17 +251,26 @@ class InvariantFinder(L.NodeVisitor):
         
         return self.auxmaps, self.setfrommaps, self.wraps
     
-    def visit_ImgLookup(self, node):
-        self.generic_visit(node)
-        
+    def imglookup_helper(self, node):
+        """Create an AuxmapInvariant for this node if applicable.
+        Return the invariant, or None if not applicable. Do not add
+        the invariant yet.
+        """
         if not isinstance(node.set, L.Name):
-            return
+            return None
         rel = node.set.id
         
         map = N.get_auxmap_name(rel, node.mask)
         unwrap_key = len(node.bounds) == 1
         auxmap = AuxmapInvariant(map, rel, node.mask, unwrap_key, False)
-        self.auxmaps.add(auxmap)
+        return auxmap
+    
+    def visit_ImgLookup(self, node):
+        self.generic_visit(node)
+        
+        auxmap = self.imglookup_helper(node)
+        if auxmap is not None:
+            self.auxmaps.add(auxmap)
     
     def visit_SetFromMap(self, node):
         self.generic_visit(node)
@@ -271,6 +284,22 @@ class InvariantFinder(L.NodeVisitor):
         self.setfrommaps.add(setfrommap)
     
     def visit_Unwrap(self, node):
+        # Catch case where the immediate child is an ImgLookup, in which
+        # case we can generate an AuxmapInvariant with the unwrap_value
+        # flag set.
+        if isinstance(node.value, L.ImgLookup):
+            # Recurse over children below the ImgLookup.
+            self.generic_visit(node.value)
+            
+            auxmap = self.imglookup_helper(node.value)
+            if auxmap is not None:
+                auxmap = auxmap._replace(unwrap_value=True)
+                self.auxmaps.add(auxmap)
+                return
+        
+        # Couldn't construct auxmap for ourselves + child;
+        # treat this as normal unwrap.
+        
         self.generic_visit(node)
         
         if not isinstance(node.value, L.Name):
@@ -312,7 +341,12 @@ class InvariantTransformer(L.NodeTransformer):
         self.auxmaps_by_relmask = OrderedDict()
         for auxmap in auxmaps:
             self.auxmaps_by_rel.setdefault(auxmap.rel, []).append(auxmap)
-            self.auxmaps_by_relmask[(auxmap.rel, auxmap.mask)] = auxmap
+            # Index by relation, mask, and whether value is a singleton.
+            # Not indexed by whether key is a singleton; if there are
+            # two separate invariants that differ only on that, we may
+            # end up only using one but maintaining both.
+            stats = (auxmap.rel, auxmap.mask, auxmap.unwrap_value)
+            self.auxmaps_by_relmask[stats] = auxmap
         
         # Index over setfrommaps.
         self.setfrommaps_by_map = sfm_by_map = OrderedDict()
@@ -416,21 +450,32 @@ class InvariantTransformer(L.NodeTransformer):
         code = L.insert_rel_maint(code, clear_code, L.SetRemove())
         return code
     
-    def visit_ImgLookup(self, node):
-        node = self.generic_visit(node)
-        
+    def imglookup_helper(self, node, *, in_unwrap):
+        """Return the replacement for an ImgLookup node, or None if
+        no replacement is applicable.
+        """
         if not isinstance(node.set, L.Name):
-            return node
+            return None
         rel = node.set.id
         
-        auxmap = self.auxmaps_by_relmask.get((rel, node.mask), None)
+        stats = (rel, node.mask, in_unwrap)
+        auxmap = self.auxmaps_by_relmask.get(stats, None)
         if auxmap is None:
-            return node
+            return None
         
         key = L.tuplify(node.bounds, unwrap=auxmap.unwrap_key)
         return L.Parser.pe('_MAP.get(_KEY, Set())',
                            subst={'_MAP': auxmap.map,
                                   '_KEY': key})
+    
+    def visit_ImgLookup(self, node):
+        node = self.generic_visit(node)
+        
+        repl = self.imglookup_helper(node, in_unwrap=False)
+        if repl is not None:
+            node = repl
+        
+        return node
     
     def visit_SetFromMap(self, node):
         node = self.generic_visit(node)
@@ -463,7 +508,19 @@ class InvariantTransformer(L.NodeTransformer):
         
         return node
     
-    visit_Unwrap = wrap_helper
+    def visit_Unwrap(self, node):
+        # Handle special case of an auxmap with the unwrap_value flag.
+        if isinstance(node.value, L.ImgLookup):
+            # Recurse over children below the ImgLookup.
+            node = self.generic_visit(node.value)
+            # See if an auxmap invariant applies.
+            repl = self.imglookup_helper(node, in_unwrap=True)
+            if repl is not None:
+                return repl
+        
+        # Fall back on normal unwrap invariant if applicable.
+        return self.wrap_helper(node)
+    
     visit_Wrap = wrap_helper
 
 
