@@ -3,7 +3,7 @@
 from incoq.mars.runtime import *
 
 CONFIG(
-    obj_domain = True,
+    obj_domain = 'true',
 )
 
 SYMCONFIG('Q',
