@@ -287,13 +287,14 @@ def transform_ast(input_ast, *, options=None):
         tree = flatten_objdomain(tree, symtab)
         symtab.clausetools = ObjClauseTools()
     else:
-        # Normalize to relations.
-        tree = relation_rewritings.relationalize_comp_queries(tree, symtab)
-        # Rewrite memberships over subqueries as VARS clauses.
-        # (In the object domain, this would be done differently
-        # due to tuple wrapping/unwrapping.)
-        tree = rewrite_vars_clauses(tree, symtab)
         symtab.clausetools = CoreClauseTools()
+    
+    # Normalize to relations.
+    tree = relation_rewritings.relationalize_comp_queries(tree, symtab)
+    # Rewrite memberships over subqueries as VARS clauses.
+    # (In the object domain, this would be done differently
+    # due to tuple wrapping/unwrapping.)
+    tree = rewrite_vars_clauses(tree, symtab)
     
     # Before we can transform for demand, we need to know the demand
     # params. Before we can do that, we need to rewrite patterns in

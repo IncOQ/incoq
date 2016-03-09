@@ -1,4 +1,4 @@
-# Q : m, k -> {(m, k, (x_f, y_f)) for (m,) in REL(_U_Q) for (m, k, m_k) in MAP() for (m_k, t_x_y) in M() for (t_x_y, x, y) in TUP() for (x, x_f) in F(f) for (y, y_f) in F(f)} : {(Top, Number, (Top, Top))}
+# Q : m, k -> {(m, k, x_f, y_f) for (m,) in REL(_U_Q) for (m, k, m_k) in MAP() for (m_k, t_x_y) in M() for (t_x_y, x, y) in TUP() for (x, x_f) in F(f) for (y, y_f) in F(f)} : {(Top, Number, Top, Top)}
 # Q_T_m : {(m,) for (m,) in REL(_U_Q)} : Bottom
 # Q_d_MAP : {(m, k, m_k) for (m,) in REL(R_Q_T_m) for (m, k, m_k) in MAP()} : Bottom
 # Q_T_k : {(k,) for (m, k, m_k) in REL(R_Q_d_MAP)} : Bottom
@@ -23,7 +23,7 @@ _MAP = Set()
 _TUP_2 = Set()
 # _U_Q : {(Top)}
 _U_Q = Set()
-# R_Q : {(Top, Number, (Top, Top))}
+# R_Q : {(Top, Number, Top, Top)}
 R_Q = CSet()
 # R_Q_T_m : Bottom
 R_Q_T_m = CSet()
@@ -61,8 +61,8 @@ R_Q_d_M_ub = Map()
 R_Q_d_TUP_2_ubu = Map()
 # R_Q_d_TUP_2_uub : {(Bottom): {(Bottom, Bottom)}}
 R_Q_d_TUP_2_uub = Map()
-# R_Q_bbu : {(Top, Number): {((Top, Top))}}
-R_Q_bbu = Map()
+# R_Q_bbuu : {(Top, Number): {(Top, Top)}}
+R_Q_bbuu = Map()
 def _maint__MAP_buu_for__MAP_add(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
     _v57_key = (_elem_v1,)
@@ -148,22 +148,22 @@ def _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_remove(_elem):
     if (len(R_Q_d_TUP_2_uub[_v71_key]) == 0):
         del R_Q_d_TUP_2_uub[_v71_key]
 
-def _maint_R_Q_bbu_for_R_Q_add(_elem):
-    (_elem_v1, _elem_v2, _elem_v3) = _elem
+def _maint_R_Q_bbuu_for_R_Q_add(_elem):
+    (_elem_v1, _elem_v2, _elem_v3, _elem_v4) = _elem
     _v72_key = (_elem_v1, _elem_v2)
-    _v72_value = (_elem_v3,)
-    if (_v72_key not in R_Q_bbu):
+    _v72_value = (_elem_v3, _elem_v4)
+    if (_v72_key not in R_Q_bbuu):
         _v73 = Set()
-        R_Q_bbu[_v72_key] = _v73
-    R_Q_bbu[_v72_key].add(_v72_value)
+        R_Q_bbuu[_v72_key] = _v73
+    R_Q_bbuu[_v72_key].add(_v72_value)
 
-def _maint_R_Q_bbu_for_R_Q_remove(_elem):
-    (_elem_v1, _elem_v2, _elem_v3) = _elem
+def _maint_R_Q_bbuu_for_R_Q_remove(_elem):
+    (_elem_v1, _elem_v2, _elem_v3, _elem_v4) = _elem
     _v74_key = (_elem_v1, _elem_v2)
-    _v74_value = (_elem_v3,)
-    R_Q_bbu[_v74_key].remove(_v74_value)
-    if (len(R_Q_bbu[_v74_key]) == 0):
-        del R_Q_bbu[_v74_key]
+    _v74_value = (_elem_v3, _elem_v4)
+    R_Q_bbuu[_v74_key].remove(_v74_value)
+    if (len(R_Q_bbuu[_v74_key]) == 0):
+        del R_Q_bbuu[_v74_key]
 
 def _maint_R_Q_T_y_f_for_R_Q_d_F_f_2_add(_elem):
     (_v55_y, _v55_y_f) = _elem
@@ -546,10 +546,10 @@ def _maint_R_Q_for__U_Q_add(_elem):
                         _v11_x_f = _v11_x.f
                         if hasfield(_v11_y, 'f'):
                             _v11_y_f = _v11_y.f
-                            _v11_result = (_v11_m, _v11_k, (_v11_x_f, _v11_y_f))
+                            _v11_result = (_v11_m, _v11_k, _v11_x_f, _v11_y_f)
                             if (_v11_result not in R_Q):
                                 R_Q.add(_v11_result)
-                                _maint_R_Q_bbu_for_R_Q_add(_v11_result)
+                                _maint_R_Q_bbuu_for_R_Q_add(_v11_result)
                             else:
                                 R_Q.inccount(_v11_result)
 
@@ -564,9 +564,9 @@ def _maint_R_Q_for__U_Q_remove(_elem):
                         _v12_x_f = _v12_x.f
                         if hasfield(_v12_y, 'f'):
                             _v12_y_f = _v12_y.f
-                            _v12_result = (_v12_m, _v12_k, (_v12_x_f, _v12_y_f))
+                            _v12_result = (_v12_m, _v12_k, _v12_x_f, _v12_y_f)
                             if (R_Q.getcount(_v12_result) == 1):
-                                _maint_R_Q_bbu_for_R_Q_remove(_v12_result)
+                                _maint_R_Q_bbuu_for_R_Q_remove(_v12_result)
                                 R_Q.remove(_v12_result)
                             else:
                                 R_Q.deccount(_v12_result)
@@ -582,10 +582,10 @@ def _maint_R_Q_for__MAP_add(_elem):
                         _v13_x_f = _v13_x.f
                         if hasfield(_v13_y, 'f'):
                             _v13_y_f = _v13_y.f
-                            _v13_result = (_v13_m, _v13_k, (_v13_x_f, _v13_y_f))
+                            _v13_result = (_v13_m, _v13_k, _v13_x_f, _v13_y_f)
                             if (_v13_result not in R_Q):
                                 R_Q.add(_v13_result)
-                                _maint_R_Q_bbu_for_R_Q_add(_v13_result)
+                                _maint_R_Q_bbuu_for_R_Q_add(_v13_result)
                             else:
                                 R_Q.inccount(_v13_result)
 
@@ -600,9 +600,9 @@ def _maint_R_Q_for__MAP_remove(_elem):
                         _v14_x_f = _v14_x.f
                         if hasfield(_v14_y, 'f'):
                             _v14_y_f = _v14_y.f
-                            _v14_result = (_v14_m, _v14_k, (_v14_x_f, _v14_y_f))
+                            _v14_result = (_v14_m, _v14_k, _v14_x_f, _v14_y_f)
                             if (R_Q.getcount(_v14_result) == 1):
-                                _maint_R_Q_bbu_for_R_Q_remove(_v14_result)
+                                _maint_R_Q_bbuu_for_R_Q_remove(_v14_result)
                                 R_Q.remove(_v14_result)
                             else:
                                 R_Q.deccount(_v14_result)
@@ -617,10 +617,10 @@ def _maint_R_Q_for__M_add(_elem):
                 _v15_y_f = _v15_y.f
                 for (_v15_m, _v15_k) in R_Q_d_MAP_uub.get((_v15_m_k,), Set()):
                     if ((_v15_m,) in _U_Q):
-                        _v15_result = (_v15_m, _v15_k, (_v15_x_f, _v15_y_f))
+                        _v15_result = (_v15_m, _v15_k, _v15_x_f, _v15_y_f)
                         if (_v15_result not in R_Q):
                             R_Q.add(_v15_result)
-                            _maint_R_Q_bbu_for_R_Q_add(_v15_result)
+                            _maint_R_Q_bbuu_for_R_Q_add(_v15_result)
                         else:
                             R_Q.inccount(_v15_result)
 
@@ -634,9 +634,9 @@ def _maint_R_Q_for__M_remove(_elem):
                 _v16_y_f = _v16_y.f
                 for (_v16_m, _v16_k) in R_Q_d_MAP_uub.get((_v16_m_k,), Set()):
                     if ((_v16_m,) in _U_Q):
-                        _v16_result = (_v16_m, _v16_k, (_v16_x_f, _v16_y_f))
+                        _v16_result = (_v16_m, _v16_k, _v16_x_f, _v16_y_f)
                         if (R_Q.getcount(_v16_result) == 1):
-                            _maint_R_Q_bbu_for_R_Q_remove(_v16_result)
+                            _maint_R_Q_bbuu_for_R_Q_remove(_v16_result)
                             R_Q.remove(_v16_result)
                         else:
                             R_Q.deccount(_v16_result)
@@ -650,10 +650,10 @@ def _maint_R_Q_for__TUP_2_add(_elem):
             for (_v17_m_k,) in R_Q_d_M_ub.get((_v17_t_x_y,), Set()):
                 for (_v17_m, _v17_k) in R_Q_d_MAP_uub.get((_v17_m_k,), Set()):
                     if ((_v17_m,) in _U_Q):
-                        _v17_result = (_v17_m, _v17_k, (_v17_x_f, _v17_y_f))
+                        _v17_result = (_v17_m, _v17_k, _v17_x_f, _v17_y_f)
                         if (_v17_result not in R_Q):
                             R_Q.add(_v17_result)
-                            _maint_R_Q_bbu_for_R_Q_add(_v17_result)
+                            _maint_R_Q_bbuu_for_R_Q_add(_v17_result)
                         else:
                             R_Q.inccount(_v17_result)
 
@@ -666,9 +666,9 @@ def _maint_R_Q_for__TUP_2_remove(_elem):
             for (_v18_m_k,) in R_Q_d_M_ub.get((_v18_t_x_y,), Set()):
                 for (_v18_m, _v18_k) in R_Q_d_MAP_uub.get((_v18_m_k,), Set()):
                     if ((_v18_m,) in _U_Q):
-                        _v18_result = (_v18_m, _v18_k, (_v18_x_f, _v18_y_f))
+                        _v18_result = (_v18_m, _v18_k, _v18_x_f, _v18_y_f)
                         if (R_Q.getcount(_v18_result) == 1):
-                            _maint_R_Q_bbu_for_R_Q_remove(_v18_result)
+                            _maint_R_Q_bbuu_for_R_Q_remove(_v18_result)
                             R_Q.remove(_v18_result)
                         else:
                             R_Q.deccount(_v18_result)
@@ -682,10 +682,10 @@ def _maint_R_Q_for__F_f_add(_elem):
                 for (_v19_m_k,) in R_Q_d_M_ub.get((_v19_t_x_y,), Set()):
                     for (_v19_m, _v19_k) in R_Q_d_MAP_uub.get((_v19_m_k,), Set()):
                         if ((_v19_m,) in _U_Q):
-                            _v19_result = (_v19_m, _v19_k, (_v19_x_f, _v19_y_f))
+                            _v19_result = (_v19_m, _v19_k, _v19_x_f, _v19_y_f)
                             if (_v19_result not in R_Q):
                                 R_Q.add(_v19_result)
-                                _maint_R_Q_bbu_for_R_Q_add(_v19_result)
+                                _maint_R_Q_bbuu_for_R_Q_add(_v19_result)
                             else:
                                 R_Q.inccount(_v19_result)
     (_v19_y, _v19_y_f) = _elem
@@ -695,10 +695,10 @@ def _maint_R_Q_for__F_f_add(_elem):
             for (_v19_m_k,) in R_Q_d_M_ub.get((_v19_t_x_y,), Set()):
                 for (_v19_m, _v19_k) in R_Q_d_MAP_uub.get((_v19_m_k,), Set()):
                     if ((_v19_m,) in _U_Q):
-                        _v19_result = (_v19_m, _v19_k, (_v19_x_f, _v19_y_f))
+                        _v19_result = (_v19_m, _v19_k, _v19_x_f, _v19_y_f)
                         if (_v19_result not in R_Q):
                             R_Q.add(_v19_result)
-                            _maint_R_Q_bbu_for_R_Q_add(_v19_result)
+                            _maint_R_Q_bbuu_for_R_Q_add(_v19_result)
                         else:
                             R_Q.inccount(_v19_result)
 
@@ -711,9 +711,9 @@ def _maint_R_Q_for__F_f_remove(_elem):
                 for (_v20_m_k,) in R_Q_d_M_ub.get((_v20_t_x_y,), Set()):
                     for (_v20_m, _v20_k) in R_Q_d_MAP_uub.get((_v20_m_k,), Set()):
                         if ((_v20_m,) in _U_Q):
-                            _v20_result = (_v20_m, _v20_k, (_v20_x_f, _v20_y_f))
+                            _v20_result = (_v20_m, _v20_k, _v20_x_f, _v20_y_f)
                             if (R_Q.getcount(_v20_result) == 1):
-                                _maint_R_Q_bbu_for_R_Q_remove(_v20_result)
+                                _maint_R_Q_bbuu_for_R_Q_remove(_v20_result)
                                 R_Q.remove(_v20_result)
                             else:
                                 R_Q.deccount(_v20_result)
@@ -724,9 +724,9 @@ def _maint_R_Q_for__F_f_remove(_elem):
             for (_v20_m_k,) in R_Q_d_M_ub.get((_v20_t_x_y,), Set()):
                 for (_v20_m, _v20_k) in R_Q_d_MAP_uub.get((_v20_m_k,), Set()):
                     if ((_v20_m,) in _U_Q):
-                        _v20_result = (_v20_m, _v20_k, (_v20_x_f, _v20_y_f))
+                        _v20_result = (_v20_m, _v20_k, _v20_x_f, _v20_y_f)
                         if (R_Q.getcount(_v20_result) == 1):
-                            _maint_R_Q_bbu_for_R_Q_remove(_v20_result)
+                            _maint_R_Q_bbuu_for_R_Q_remove(_v20_result)
                             R_Q.remove(_v20_result)
                         else:
                             R_Q.deccount(_v20_result)
@@ -773,10 +773,10 @@ def main():
     _maint_R_Q_for__F_f_add(_v5)
     m = a
     k = 0
-    print(sorted(unwrap(((_demand_Q((m,)) or True) and R_Q_bbu.get((m, k), Set())))))
+    print(sorted(((_demand_Q((m,)) or True) and R_Q_bbuu.get((m, k), Set()))))
     m = b
     k = 1
-    print(sorted(unwrap(((_demand_Q((m,)) or True) and R_Q_bbu.get((m, k), Set())))))
+    print(sorted(((_demand_Q((m,)) or True) and R_Q_bbuu.get((m, k), Set()))))
     _v6 = (b, 1, b[1])
     _maint_R_Q_for__MAP_remove(_v6)
     _maint_R_Q_d_MAP_for__MAP_remove(_v6)
@@ -803,7 +803,7 @@ def main():
     index(_v10, 0).add(index(_v10, 1))
     _maint_R_Q_d_M_for__M_add(_v10)
     _maint_R_Q_for__M_add(_v10)
-    print(sorted(unwrap(((_demand_Q((m,)) or True) and R_Q_bbu.get((m, k), Set())))))
+    print(sorted(((_demand_Q((m,)) or True) and R_Q_bbuu.get((m, k), Set()))))
 
 if (__name__ == '__main__'):
     main()

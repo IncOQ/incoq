@@ -33,7 +33,6 @@ __all__ = [
     'ReplaceableRewriter',
     'flatten_replaceables',
     'flatten_memberships',
-    'tuplify_resexp',
     'flatten_all_comps',
     
     'define_obj_relations',
@@ -242,9 +241,8 @@ def flatten_replaceables(comp):
 
 def flatten_memberships(comp):
     """Transform the comprehension to rewrite set memberships (Member
-    nodes) as MMember clauses, and clauses over unwraps() as VarsMember
-    clauses. Return an ObjRelations indicating whether an M set is
-    needed.
+    nodes) as MMember clauses. Return an ObjRelations indicating whether
+    an M set is needed.
     """
     M = False
     def process(clause):
@@ -258,12 +256,10 @@ def flatten_memberships(comp):
                 M = True
                 clause = L.MMember(set_, elem)
             
-            # VarsMember.
+            # Subquery clause, leave as Member for now.
             elif (isinstance(clause.target, L.Name) and
-                  isinstance(clause.iter, L.Unwrap)):
-                iter = clause.iter.value
-                vars = [clause.target.id]
-                clause = L.VarsMember(vars, iter)
+                  isinstance(clause.iter, L.Query)):
+                pass
             
             else:
                 raise L.ProgramError('Cannot flatten Member clause: {}'
@@ -277,18 +273,6 @@ def flatten_memberships(comp):
     return tree, objrels
 
 
-def tuplify_resexp(symbol, comp):
-    """Wrap the result expression in a singleton tuple. Update the
-    symbol's type.
-    """
-    comp = comp._replace(resexp=L.Tuple([comp.resexp]))
-    t = symbol.type
-    t = t.join(T.Set(T.Bottom))
-    assert t.issmaller(T.Set(T.Top))
-    symbol.type = T.Set(T.Tuple([t.elt]))
-    return comp
-
-
 def flatten_all_comps(tree, symtab):
     """Flatten all comprehension queries with non-Normal impl. Also
     tuplify their result expression and wrap with a call to unwrap().
@@ -300,12 +284,6 @@ def flatten_all_comps(tree, symtab):
     flattened_queries = set()
     
     class FlattenRewriter(S.QueryRewriter):
-        def visit_Query(self, node):
-            node = super().visit_Query(node)
-            # Wrap flattened queries in an Unwrap node.
-            if node.name in flattened_queries:
-                node = L.Unwrap(node)
-            return node
         
         def rewrite(self, symbol, name, expr):
             nonlocal objrels
@@ -319,8 +297,6 @@ def flatten_all_comps(tree, symtab):
             comp, objrels1 = flatten_replaceables(comp)
             comp, objrels2 = flatten_memberships(comp)
             objrels = objrels.union(objrels1).union(objrels2)
-            
-            comp = tuplify_resexp(symbol, comp)
             
             return comp
     

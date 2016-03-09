@@ -100,27 +100,18 @@ class ClauseCase(unittest.TestCase):
     def test_flatten_memberships(self):
         comp = L.Parser.pe('''
             {o_f for o in S for (o, o_f) in F(f)
-                 for x in unwrap(QUERY('Q', {(z,) for (z,) in T}))
+                 for x in QUERY('Q', {z for (z,) in T})
                  if o_f > 5}
             ''')
         comp, objrels = flatten_memberships(comp)
         exp_comp = L.Parser.pe('''
             {o_f for (S, o) in M() for (o, o_f) in F(f)
-                 for (x,) in VARS(QUERY('Q', {(z,) for (z,) in T}))
+                 for x in QUERY('Q', {z for (z,) in T})
                  if o_f > 5}
             ''')
         exp_objrels = ObjRelations(True, [], False, [])
         self.assertEqual(comp, exp_comp)
         self.assertEqual(objrels, exp_objrels)
-    
-    def test_tuplify_resexp(self):
-        comp = L.Parser.pe('{x for x in s}')
-        symtab = S.SymbolTable()
-        symbol = symtab.define_query('Q', node=comp, type=T.Set(T.Number))
-        comp = tuplify_resexp(symbol, comp)
-        exp_comp = L.Parser.pe('{(x,) for x in s}')
-        self.assertEqual(comp, exp_comp)
-        self.assertEqual(symbol.type, T.Set(T.Tuple([T.Number])))
     
     def test_flatten_all_comps(self):
         comp1 = L.Parser.pe('''
@@ -141,10 +132,10 @@ class ClauseCase(unittest.TestCase):
         tree, objrels = flatten_all_comps(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
-                print(unwrap(QUERY('Q2', {(x + o_f,) for (S, o) in M()
-                    for (x,) in VARS(unwrap(QUERY('Q1',
-                    {(z,) for (T, z) in M()})))
-                    for (o, o_f) in F(f)})))
+                print(QUERY('Q2', {x + o_f for (S, o) in M()
+                    for (x,) in VARS(QUERY('Q1',
+                    {z for (T, z) in M()}))
+                    for (o, o_f) in F(f)}))
             ''')
         exp_objrels = ObjRelations(True, ['f'], False, [])
         self.assertEqual(tree, exp_tree)
@@ -171,8 +162,8 @@ class ClauseCase(unittest.TestCase):
         exp_tree = L.Parser.p('''
             def main():
                 print(QUERY('Q2', {x + o.f for o in S
-                    for (x,) in VARS(unwrap(QUERY('Q1',
-                    {(z,) for (T, z) in M()})))}))
+                    for (x,) in VARS(QUERY('Q1',
+                    {z for (T, z) in M()}))}))
             ''')
         exp_objrels = ObjRelations(True, [], False, [])
         self.assertEqual(tree, exp_tree)
