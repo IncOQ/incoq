@@ -258,7 +258,7 @@ def flatten_memberships(comp):
             
             # Subquery clause, leave as Member for now.
             elif (isinstance(clause.target, L.Name) and
-                  isinstance(clause.iter, L.Query)):
+                  isinstance(clause.iter, L.Unwrap)):
                 pass
             
             else:
@@ -285,6 +285,13 @@ def flatten_all_comps(tree, symtab):
     
     class FlattenRewriter(S.QueryRewriter):
         
+        def visit_Query(self, node):
+            node = super().visit_Query(node)
+            # Add an Unwrap node.
+            if node.name in flattened_queries:
+                node = L.Unwrap(node)
+            return node
+        
         def rewrite(self, symbol, name, expr):
             nonlocal objrels
             if not isinstance(expr, L.Comp):
@@ -297,6 +304,13 @@ def flatten_all_comps(tree, symtab):
             comp, objrels1 = flatten_replaceables(comp)
             comp, objrels2 = flatten_memberships(comp)
             objrels = objrels.union(objrels1).union(objrels2)
+            
+            # Wrap result expression.
+            comp = comp._replace(resexp=L.Tuple([comp.resexp]))
+            t = symbol.type
+            t = t.join(T.Set(T.Bottom))
+            assert t.issmaller(T.Set(T.Top))
+            symbol.type = T.Set(T.Tuple([t.elt]))
             
             return comp
     
