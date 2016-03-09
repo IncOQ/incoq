@@ -21,16 +21,16 @@ R_Q_T_b_2 = CSet()
 R_Q_T_c = CSet()
 # R_Q_unwrapped : {Number}
 R_Q_unwrapped = Set()
-# S_bu : {Number: {(Number)}}
+# S_bu : {Number: {Number}}
 S_bu = Map()
-# R_Q_dS_bu : {Bottom: {(Bottom)}}
+# R_Q_dS_bu : {Bottom: {Bottom}}
 R_Q_dS_bu = Map()
-# S_ub : {Number: {(Number)}}
+# S_ub : {Number: {Number}}
 S_ub = Map()
 def _maint_S_bu_for_S_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v16_key = _elem_v1
-    _v16_value = (_elem_v2,)
+    _v16_value = _elem_v2
     if (_v16_key not in S_bu):
         _v17 = Set()
         S_bu[_v16_key] = _v17
@@ -39,7 +39,7 @@ def _maint_S_bu_for_S_add(_elem):
 def _maint_S_bu_for_S_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v18_key = _elem_v1
-    _v18_value = (_elem_v2,)
+    _v18_value = _elem_v2
     S_bu[_v18_key].remove(_v18_value)
     if (len(S_bu[_v18_key]) == 0):
         del S_bu[_v18_key]
@@ -47,7 +47,7 @@ def _maint_S_bu_for_S_remove(_elem):
 def _maint_S_ub_for_S_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v19_key = _elem_v2
-    _v19_value = (_elem_v1,)
+    _v19_value = _elem_v1
     if (_v19_key not in S_ub):
         _v20 = Set()
         S_ub[_v19_key] = _v20
@@ -56,7 +56,7 @@ def _maint_S_ub_for_S_add(_elem):
 def _maint_S_ub_for_S_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v21_key = _elem_v2
-    _v21_value = (_elem_v1,)
+    _v21_value = _elem_v1
     S_ub[_v21_key].remove(_v21_value)
     if (len(S_ub[_v21_key]) == 0):
         del S_ub[_v21_key]
@@ -64,7 +64,7 @@ def _maint_S_ub_for_S_remove(_elem):
 def _maint_R_Q_dS_bu_for_R_Q_dS_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v22_key = _elem_v1
-    _v22_value = (_elem_v2,)
+    _v22_value = _elem_v2
     if (_v22_key not in R_Q_dS_bu):
         _v23 = Set()
         R_Q_dS_bu[_v22_key] = _v23
@@ -73,7 +73,7 @@ def _maint_R_Q_dS_bu_for_R_Q_dS_add(_elem):
 def _maint_R_Q_dS_bu_for_R_Q_dS_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v24_key = _elem_v1
-    _v24_value = (_elem_v2,)
+    _v24_value = _elem_v2
     R_Q_dS_bu[_v24_key].remove(_v24_value)
     if (len(R_Q_dS_bu[_v24_key]) == 0):
         del R_Q_dS_bu[_v24_key]
@@ -120,7 +120,7 @@ def _maint_R_Q_T_b_2_for_R_Q_dS_remove(_elem):
 
 def _maint_R_Q_dS_for_R_Q_T_b_1_add(_elem):
     (_v8_b,) = _elem
-    for (_v8_c,) in S_bu.get(_v8_b, Set()):
+    for _v8_c in S_bu.get(_v8_b, Set()):
         _v8_result = (_v8_b, _v8_c)
         if (_v8_result not in R_Q_dS):
             R_Q_dS.add(_v8_result)
@@ -132,7 +132,7 @@ def _maint_R_Q_dS_for_R_Q_T_b_1_add(_elem):
 
 def _maint_R_Q_dS_for_R_Q_T_b_1_remove(_elem):
     (_v9_b,) = _elem
-    for (_v9_c,) in S_bu.get(_v9_b, Set()):
+    for _v9_c in S_bu.get(_v9_b, Set()):
         _v9_result = (_v9_b, _v9_c)
         if (R_Q_dS.getcount(_v9_result) == 1):
             _maint_R_Q_T_b_2_for_R_Q_dS_remove(_v9_result)
@@ -202,7 +202,7 @@ def _maint_R_Q_T_a_for_S_remove(_elem):
 
 def _maint_R_Q_for_S_add(_elem):
     (_v2_a, _v2_b) = _elem
-    for (_v2_c,) in R_Q_dS_bu.get(_v2_b, Set()):
+    for _v2_c in R_Q_dS_bu.get(_v2_b, Set()):
         _v2_result = (_v2_c,)
         if (_v2_result not in R_Q):
             R_Q.add(_v2_result)
@@ -210,7 +210,7 @@ def _maint_R_Q_for_S_add(_elem):
         else:
             R_Q.inccount(_v2_result)
     (_v2_b, _v2_c) = _elem
-    for (_v2_a,) in S_ub.get(_v2_b, Set()):
+    for _v2_a in S_ub.get(_v2_b, Set()):
         _v2_result = (_v2_c,)
         if (_v2_result not in R_Q):
             R_Q.add(_v2_result)
@@ -220,7 +220,7 @@ def _maint_R_Q_for_S_add(_elem):
 
 def _maint_R_Q_for_S_remove(_elem):
     (_v3_a, _v3_b) = _elem
-    for (_v3_c,) in R_Q_dS_bu.get(_v3_b, Set()):
+    for _v3_c in R_Q_dS_bu.get(_v3_b, Set()):
         _v3_result = (_v3_c,)
         if (R_Q.getcount(_v3_result) == 1):
             _maint_R_Q_unwrapped_for_R_Q_remove(_v3_result)
@@ -228,7 +228,7 @@ def _maint_R_Q_for_S_remove(_elem):
         else:
             R_Q.deccount(_v3_result)
     (_v3_b, _v3_c) = _elem
-    for (_v3_a,) in S_ub.get(_v3_b, Set()):
+    for _v3_a in S_ub.get(_v3_b, Set()):
         _v3_result = (_v3_c,)
         if (R_Q.getcount(_v3_result) == 1):
             _maint_R_Q_unwrapped_for_R_Q_remove(_v3_result)

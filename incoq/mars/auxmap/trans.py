@@ -297,10 +297,13 @@ class InvariantFinder(L.NodeVisitor):
                 self.auxmaps.add(auxmap)
                 return
         
+        else:
+            # Don't run in the case where we already did generic_visit()
+            # above but failed to return.
+            self.generic_visit(node)
+        
         # Couldn't construct auxmap for ourselves + child;
         # treat this as normal unwrap.
-        
-        self.generic_visit(node)
         
         if not isinstance(node.value, L.Name):
             return
@@ -494,8 +497,9 @@ class InvariantTransformer(L.NodeTransformer):
         return L.Name(sfm.rel)
     
     def wrap_helper(self, node):
-        node = self.generic_visit(node)
-        
+        """Process a wrap invariant at a Wrap or Unwrap node.
+        Don't recurse.
+        """
         if not isinstance(node.value, L.Name):
             return node
         rel = node.value.id
@@ -512,16 +516,24 @@ class InvariantTransformer(L.NodeTransformer):
         # Handle special case of an auxmap with the unwrap_value flag.
         if isinstance(node.value, L.ImgLookup):
             # Recurse over children below the ImgLookup.
-            node = self.generic_visit(node.value)
+            value = self.generic_visit(node.value)
+            node = node._replace(value=value)
             # See if an auxmap invariant applies.
-            repl = self.imglookup_helper(node, in_unwrap=True)
+            repl = self.imglookup_helper(value, in_unwrap=True)
             if repl is not None:
                 return repl
         
-        # Fall back on normal unwrap invariant if applicable.
+        else:
+            # Don't run in case we already did generic_visit() above
+            # and didn't return.
+            node = self.generic_visit(node)
+        
         return self.wrap_helper(node)
     
-    visit_Wrap = wrap_helper
+    def visit_Wrap(self, node):
+        node = self.generic_visit(node)
+        node = self.wrap_helper(node)
+        return node
 
 
 def make_auxmap_type(auxmapinv, reltype):

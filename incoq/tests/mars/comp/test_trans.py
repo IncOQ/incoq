@@ -35,7 +35,7 @@ class TransCase(unittest.TestCase):
         exp_tree = L.Parser.p('''
             def main():
                 for (x, y) in R:
-                    for (z,) in S.imglookup('bu', (y,)):
+                    for z in unwrap(S.imglookup('bu', (y,))):
                         pass
                 for z in QUERY('Q2', {(x,) for (x,) in REL(R)}):
                     pass

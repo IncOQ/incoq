@@ -126,6 +126,14 @@ class ClauseCase(unittest.TestCase):
             ''')
         self.assertEqual(code, exp_code)
         
+        # Mixed, one unbound.
+        code = v.get_code(cl, ['a', 'x', 'y'], (L.Pass(),))
+        exp_code = L.Parser.pc('''
+            for z in unwrap(R.imglookup('bbu', (x, y))):
+                pass
+            ''')
+        self.assertEqual(code, exp_code)
+        
         self.check_rename(cl)
         
         cl2 = v.singletonize(cl, L.Name('e'))

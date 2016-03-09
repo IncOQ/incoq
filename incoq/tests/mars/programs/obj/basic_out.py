@@ -13,11 +13,11 @@ _U_Q2 = Set()
 R_Q1 = CSet()
 # R_Q2 : {({Top}, {Top}, Top)}
 R_Q2 = CSet()
-# _U_Q2_bu : {{Top}: {({Top})}}
+# _U_Q2_bu : {{Top}: {{Top}}}
 _U_Q2_bu = Map()
-# _U_Q2_ub : {{Top}: {({Top})}}
+# _U_Q2_ub : {{Top}: {{Top}}}
 _U_Q2_ub = Map()
-# _M_ub : {Top: {(Top)}}
+# _M_ub : {Top: {Top}}
 _M_ub = Map()
 # R_Q1_bu : {{Top}: {Top}}
 R_Q1_bu = Map()
@@ -26,7 +26,7 @@ R_Q2_bbu = Map()
 def _maint__U_Q2_bu_for__U_Q2_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v20_key = _elem_v1
-    _v20_value = (_elem_v2,)
+    _v20_value = _elem_v2
     if (_v20_key not in _U_Q2_bu):
         _v21 = Set()
         _U_Q2_bu[_v20_key] = _v21
@@ -35,7 +35,7 @@ def _maint__U_Q2_bu_for__U_Q2_add(_elem):
 def _maint__U_Q2_bu_for__U_Q2_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v22_key = _elem_v1
-    _v22_value = (_elem_v2,)
+    _v22_value = _elem_v2
     _U_Q2_bu[_v22_key].remove(_v22_value)
     if (len(_U_Q2_bu[_v22_key]) == 0):
         del _U_Q2_bu[_v22_key]
@@ -43,7 +43,7 @@ def _maint__U_Q2_bu_for__U_Q2_remove(_elem):
 def _maint__U_Q2_ub_for__U_Q2_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v23_key = _elem_v2
-    _v23_value = (_elem_v1,)
+    _v23_value = _elem_v1
     if (_v23_key not in _U_Q2_ub):
         _v24 = Set()
         _U_Q2_ub[_v23_key] = _v24
@@ -52,7 +52,7 @@ def _maint__U_Q2_ub_for__U_Q2_add(_elem):
 def _maint__U_Q2_ub_for__U_Q2_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v25_key = _elem_v2
-    _v25_value = (_elem_v1,)
+    _v25_value = _elem_v1
     _U_Q2_ub[_v25_key].remove(_v25_value)
     if (len(_U_Q2_ub[_v25_key]) == 0):
         del _U_Q2_ub[_v25_key]
@@ -60,7 +60,7 @@ def _maint__U_Q2_ub_for__U_Q2_remove(_elem):
 def _maint__M_ub_for__M_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v26_key = _elem_v2
-    _v26_value = (_elem_v1,)
+    _v26_value = _elem_v1
     if (_v26_key not in _M_ub):
         _v27 = Set()
         _M_ub[_v26_key] = _v27
@@ -69,7 +69,7 @@ def _maint__M_ub_for__M_add(_elem):
 def _maint__M_ub_for__M_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v28_key = _elem_v2
-    _v28_value = (_elem_v1,)
+    _v28_value = _elem_v1
     _M_ub[_v28_key].remove(_v28_value)
     if (len(_M_ub[_v28_key]) == 0):
         del _M_ub[_v28_key]
@@ -142,7 +142,7 @@ def _maint_R_Q2_for__M_add(_elem):
     (_v16_s, _v16_o) = _elem
     if hasfield(_v16_o, 'f'):
         _v16_o_f = _v16_o.f
-        for (_v16_t,) in _U_Q2_bu.get(_v16_s, Set()):
+        for _v16_t in _U_Q2_bu.get(_v16_s, Set()):
             if isset(_v16_t):
                 if (_v16_o in _v16_t):
                     if ((_v16_t, _v16_o) != _elem):
@@ -155,7 +155,7 @@ def _maint_R_Q2_for__M_add(_elem):
     (_v16_t, _v16_o) = _elem
     if hasfield(_v16_o, 'f'):
         _v16_o_f = _v16_o.f
-        for (_v16_s,) in _U_Q2_ub.get(_v16_t, Set()):
+        for _v16_s in _U_Q2_ub.get(_v16_t, Set()):
             if isset(_v16_s):
                 if (_v16_o in _v16_s):
                     _v16_result = (_v16_s, _v16_t, _v16_o_f)
@@ -169,7 +169,7 @@ def _maint_R_Q2_for__M_remove(_elem):
     (_v17_s, _v17_o) = _elem
     if hasfield(_v17_o, 'f'):
         _v17_o_f = _v17_o.f
-        for (_v17_t,) in _U_Q2_bu.get(_v17_s, Set()):
+        for _v17_t in _U_Q2_bu.get(_v17_s, Set()):
             if isset(_v17_t):
                 if (_v17_o in _v17_t):
                     if ((_v17_t, _v17_o) != _elem):
@@ -182,7 +182,7 @@ def _maint_R_Q2_for__M_remove(_elem):
     (_v17_t, _v17_o) = _elem
     if hasfield(_v17_o, 'f'):
         _v17_o_f = _v17_o.f
-        for (_v17_s,) in _U_Q2_ub.get(_v17_t, Set()):
+        for _v17_s in _U_Q2_ub.get(_v17_t, Set()):
             if isset(_v17_s):
                 if (_v17_o in _v17_s):
                     _v17_result = (_v17_s, _v17_t, _v17_o_f)
@@ -194,8 +194,8 @@ def _maint_R_Q2_for__M_remove(_elem):
 
 def _maint_R_Q2_for__F_f_add(_elem):
     (_v18_o, _v18_o_f) = _elem
-    for (_v18_s,) in _M_ub.get(_v18_o, Set()):
-        for (_v18_t,) in _U_Q2_bu.get(_v18_s, Set()):
+    for _v18_s in _M_ub.get(_v18_o, Set()):
+        for _v18_t in _U_Q2_bu.get(_v18_s, Set()):
             if isset(_v18_t):
                 if (_v18_o in _v18_t):
                     _v18_result = (_v18_s, _v18_t, _v18_o_f)
@@ -207,8 +207,8 @@ def _maint_R_Q2_for__F_f_add(_elem):
 
 def _maint_R_Q2_for__F_f_remove(_elem):
     (_v19_o, _v19_o_f) = _elem
-    for (_v19_s,) in _M_ub.get(_v19_o, Set()):
-        for (_v19_t,) in _U_Q2_bu.get(_v19_s, Set()):
+    for _v19_s in _M_ub.get(_v19_o, Set()):
+        for _v19_t in _U_Q2_bu.get(_v19_s, Set()):
             if isset(_v19_t):
                 if (_v19_o in _v19_t):
                     _v19_result = (_v19_s, _v19_t, _v19_o_f)
@@ -270,7 +270,7 @@ def _maint_R_Q1_for__M_remove(_elem):
 
 def _maint_R_Q1_for__F_f_add(_elem):
     (_v12_o, _v12_o_f) = _elem
-    for (_v12_z,) in _M_ub.get(_v12_o, Set()):
+    for _v12_z in _M_ub.get(_v12_o, Set()):
         if ((_v12_z,) in _U_Q1):
             _v12_result = (_v12_z, _v12_o_f)
             if (_v12_result not in R_Q1):
@@ -281,7 +281,7 @@ def _maint_R_Q1_for__F_f_add(_elem):
 
 def _maint_R_Q1_for__F_f_remove(_elem):
     (_v13_o, _v13_o_f) = _elem
-    for (_v13_z,) in _M_ub.get(_v13_o, Set()):
+    for _v13_z in _M_ub.get(_v13_o, Set()):
         if ((_v13_z,) in _U_Q1):
             _v13_result = (_v13_z, _v13_o_f)
             if (R_Q1.getcount(_v13_result) == 1):

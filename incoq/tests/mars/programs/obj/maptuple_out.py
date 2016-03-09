@@ -55,7 +55,7 @@ R_Q_T_y_f = CSet()
 _MAP_buu = Map()
 # R_Q_d_MAP_uub : {Bottom: {(Bottom, Bottom)}}
 R_Q_d_MAP_uub = Map()
-# R_Q_d_M_ub : {Bottom: {(Bottom)}}
+# R_Q_d_M_ub : {Bottom: {Bottom}}
 R_Q_d_M_ub = Map()
 # R_Q_d_TUP_2_ubu : {Bottom: {(Bottom, Bottom)}}
 R_Q_d_TUP_2_ubu = Map()
@@ -100,7 +100,7 @@ def _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_remove(_elem):
 def _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v63_key = _elem_v2
-    _v63_value = (_elem_v1,)
+    _v63_value = _elem_v1
     if (_v63_key not in R_Q_d_M_ub):
         _v64 = Set()
         R_Q_d_M_ub[_v63_key] = _v64
@@ -109,7 +109,7 @@ def _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_elem):
 def _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v65_key = _elem_v2
-    _v65_value = (_elem_v1,)
+    _v65_value = _elem_v1
     R_Q_d_M_ub[_v65_key].remove(_v65_value)
     if (len(R_Q_d_M_ub[_v65_key]) == 0):
         del R_Q_d_M_ub[_v65_key]
@@ -647,7 +647,7 @@ def _maint_R_Q_for__TUP_2_add(_elem):
         _v17_x_f = _v17_x.f
         if hasfield(_v17_y, 'f'):
             _v17_y_f = _v17_y.f
-            for (_v17_m_k,) in R_Q_d_M_ub.get(_v17_t_x_y, Set()):
+            for _v17_m_k in R_Q_d_M_ub.get(_v17_t_x_y, Set()):
                 for (_v17_m, _v17_k) in R_Q_d_MAP_uub.get(_v17_m_k, Set()):
                     if ((_v17_m,) in _U_Q):
                         _v17_result = (_v17_m, _v17_k, (_v17_x_f, _v17_y_f))
@@ -663,7 +663,7 @@ def _maint_R_Q_for__TUP_2_remove(_elem):
         _v18_x_f = _v18_x.f
         if hasfield(_v18_y, 'f'):
             _v18_y_f = _v18_y.f
-            for (_v18_m_k,) in R_Q_d_M_ub.get(_v18_t_x_y, Set()):
+            for _v18_m_k in R_Q_d_M_ub.get(_v18_t_x_y, Set()):
                 for (_v18_m, _v18_k) in R_Q_d_MAP_uub.get(_v18_m_k, Set()):
                     if ((_v18_m,) in _U_Q):
                         _v18_result = (_v18_m, _v18_k, (_v18_x_f, _v18_y_f))
@@ -679,7 +679,7 @@ def _maint_R_Q_for__F_f_add(_elem):
         if hasfield(_v19_y, 'f'):
             _v19_y_f = _v19_y.f
             if ((_v19_y, _v19_y_f) != _elem):
-                for (_v19_m_k,) in R_Q_d_M_ub.get(_v19_t_x_y, Set()):
+                for _v19_m_k in R_Q_d_M_ub.get(_v19_t_x_y, Set()):
                     for (_v19_m, _v19_k) in R_Q_d_MAP_uub.get(_v19_m_k, Set()):
                         if ((_v19_m,) in _U_Q):
                             _v19_result = (_v19_m, _v19_k, (_v19_x_f, _v19_y_f))
@@ -692,7 +692,7 @@ def _maint_R_Q_for__F_f_add(_elem):
     for (_v19_t_x_y, _v19_x) in R_Q_d_TUP_2_uub.get(_v19_y, Set()):
         if hasfield(_v19_x, 'f'):
             _v19_x_f = _v19_x.f
-            for (_v19_m_k,) in R_Q_d_M_ub.get(_v19_t_x_y, Set()):
+            for _v19_m_k in R_Q_d_M_ub.get(_v19_t_x_y, Set()):
                 for (_v19_m, _v19_k) in R_Q_d_MAP_uub.get(_v19_m_k, Set()):
                     if ((_v19_m,) in _U_Q):
                         _v19_result = (_v19_m, _v19_k, (_v19_x_f, _v19_y_f))
@@ -708,7 +708,7 @@ def _maint_R_Q_for__F_f_remove(_elem):
         if hasfield(_v20_y, 'f'):
             _v20_y_f = _v20_y.f
             if ((_v20_y, _v20_y_f) != _elem):
-                for (_v20_m_k,) in R_Q_d_M_ub.get(_v20_t_x_y, Set()):
+                for _v20_m_k in R_Q_d_M_ub.get(_v20_t_x_y, Set()):
                     for (_v20_m, _v20_k) in R_Q_d_MAP_uub.get(_v20_m_k, Set()):
                         if ((_v20_m,) in _U_Q):
                             _v20_result = (_v20_m, _v20_k, (_v20_x_f, _v20_y_f))
@@ -721,7 +721,7 @@ def _maint_R_Q_for__F_f_remove(_elem):
     for (_v20_t_x_y, _v20_x) in R_Q_d_TUP_2_uub.get(_v20_y, Set()):
         if hasfield(_v20_x, 'f'):
             _v20_x_f = _v20_x.f
-            for (_v20_m_k,) in R_Q_d_M_ub.get(_v20_t_x_y, Set()):
+            for _v20_m_k in R_Q_d_M_ub.get(_v20_t_x_y, Set()):
                 for (_v20_m, _v20_k) in R_Q_d_MAP_uub.get(_v20_m_k, Set()):
                     if ((_v20_m,) in _U_Q):
                         _v20_result = (_v20_m, _v20_k, (_v20_x_f, _v20_y_f))

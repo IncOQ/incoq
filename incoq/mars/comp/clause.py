@@ -306,7 +306,11 @@ class RelMemberHandler(ClauseHandler):
         else:
             bvars, uvars = L.split_by_mask(mask, vars)
             lookup = L.ImgLookup(L.Name(rel), mask, bvars)
-            code = (L.DecompFor(uvars, lookup, body),)
+            # Optimize in the case where there's only one unbound.
+            if len(uvars) == 1:
+                code = (L.For(uvars[0], L.Unwrap(lookup), body),)
+            else:
+                code = (L.DecompFor(uvars, lookup, body),)
         
         return code
     

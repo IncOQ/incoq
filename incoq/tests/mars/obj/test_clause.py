@@ -44,7 +44,7 @@ class ClauseCase(unittest.TestCase):
         # Other use.
         code = v.get_code(cl, ['e'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            for (s,) in _M.imglookup('ub', (e,)):
+            for s in unwrap(_M.imglookup('ub', (e,))):
                 pass
             ''')
         self.assertEqual(code, exp_code)
@@ -88,7 +88,7 @@ class ClauseCase(unittest.TestCase):
         # Other use.
         code = v.get_code(cl, ['v'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            for (o,) in _F_f.imglookup('ub', (v,)):
+            for o in unwrap(_F_f.imglookup('ub', (v,))):
                 pass
             ''')
         self.assertEqual(code, exp_code)

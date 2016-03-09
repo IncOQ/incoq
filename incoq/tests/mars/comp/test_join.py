@@ -171,8 +171,8 @@ class JoinCase(unittest.TestCase):
                                  for (y, z) in REL(S)}''')
         code = self.ct.get_code_for_clauses(comp.clauses, ['x'], (L.Pass(),))
         exp_code = L.Parser.pc('''
-            for (y,) in R.imglookup('bu', (x,)):
-                for (z,) in S.imglookup('bu', (y,)):
+            for y in unwrap(R.imglookup('bu', (x,))):
+                for z in unwrap(S.imglookup('bu', (y,))):
                     pass
             ''')
         self.assertEqual(code, exp_code)
