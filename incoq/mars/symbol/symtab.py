@@ -47,6 +47,14 @@ class N:
         return 'S{}'.format(map)
     
     @classmethod
+    def get_wrap_name(cls, rel):
+        return '{}_wrapped'.format(rel)
+    
+    @classmethod
+    def get_unwrap_name(cls, rel):
+        return '{}_unwrapped'.format(rel)
+    
+    @classmethod
     def get_maint_func_name(cls, inv, param, op):
         return '_maint_{}_for_{}_{}'.format(inv, param, op)
     

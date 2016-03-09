@@ -4,15 +4,18 @@
 __all__ = [
     'AuxmapInvariant',
     'SetFromMapInvariant',
+    'WrapInvariant',
     
     'InvariantFinder',
     'InvariantTransformer',
     
     'make_auxmap_type',
     'make_setfrommap_type',
+    'make_wrap_type',
     
     'define_map',
     'define_set',
+    'define_wrap_set',
     'transform_setfrommap',
     'transform_auxmaps',
 ]
@@ -64,6 +67,22 @@ class SetFromMapInvariant(Struct):
     def get_maint_func_name(self, op):
         assert op in ['assign', 'delete']
         return N.get_maint_func_name(self.rel, self.map, op)
+
+
+class WrapInvariant(Struct):
+    
+    """Wrap invariant."""
+    
+    rel = TypedField(str)
+    """Name of variable holding the relation to be maintained."""
+    oper = TypedField(str)
+    """Name of variable holding the operand relation."""
+    unwrap = TypedField(bool)
+    """True for Unwrap, False for Wrap."""
+    
+    def get_maint_func_name(self, op):
+        op_name = L.set_update_name(op)
+        return N.get_maint_func_name(self.rel, self.oper, op_name)
 
 
 @typechecked
@@ -182,19 +201,46 @@ def make_setfrommap_maint_func(fresh_vars,
     return func
 
 
+def make_wrap_maint_func(fresh_vars,
+                         wrapinv: WrapInvariant,
+                         op: L.setupop):
+    fresh_var_prefix = next(fresh_vars)
+    v = fresh_var_prefix + '_v'
+    
+    update_code = (L.RelUpdate(wrapinv.rel, op, v),)
+    
+    func_name = wrapinv.get_maint_func_name(op)
+    
+    if wrapinv.unwrap:
+        v_code = L.Parser.pc('_V = _elem.index(0)',
+                             subst={'_V': v})
+    else:
+        v_code = L.Parser.pc('_V = (_elem,)',
+                             subst={'_V': v})
+    
+    func = L.Parser.ps('''
+        def _FUNC(_elem):
+            _V_CODE
+            _UPDATE
+        ''', subst={'_FUNC': func_name,
+                    '<c>_V_CODE': v_code,
+                    '<c>_UPDATE': update_code})
+    
+    return func
+
+
 class InvariantFinder(L.NodeVisitor):
     
-    """Find all auxiliary map and setfrommap invariants needed for
-    ImgLookup and SetFromMap expressions in the program.
-    """
+    """Find all set invariants needed in the program."""
     
     def process(self, tree):
         self.auxmaps = OrderedSet()
         self.setfrommaps = OrderedSet()
+        self.wraps = OrderedSet()
         
         super().process(tree)
         
-        return self.auxmaps, self.setfrommaps
+        return self.auxmaps, self.setfrommaps, self.wraps
     
     def visit_ImgLookup(self, node):
         self.generic_visit(node)
@@ -217,6 +263,28 @@ class InvariantFinder(L.NodeVisitor):
         rel = N.get_setfrommap_name(map, node.mask)
         setfrommap = SetFromMapInvariant(rel, map, node.mask)
         self.setfrommaps.add(setfrommap)
+    
+    def visit_Unwrap(self, node):
+        self.generic_visit(node)
+        
+        if not isinstance(node.value, L.Name):
+            return
+        oper = node.value.id
+        
+        rel = N.get_unwrap_name(oper)
+        wrapinv = WrapInvariant(rel, oper, True)
+        self.wraps.add(wrapinv)
+    
+    def visit_Wrap(self, node):
+        self.generic_visit(node)
+        
+        if not isinstance(node.value, L.Name):
+            return
+        oper = node.value.id
+        
+        rel = N.get_wrap_name(oper)
+        wrapinv = WrapInvariant(rel, oper, False)
+        self.wraps.add(wrapinv)
 
 
 class InvariantTransformer(L.NodeTransformer):
@@ -229,7 +297,7 @@ class InvariantTransformer(L.NodeTransformer):
     # Multiple distinct masks would have to differ on their arity,
     # which would be a type error.
     
-    def __init__(self, fresh_vars, auxmaps, setfrommaps):
+    def __init__(self, fresh_vars, auxmaps, setfrommaps, wraps):
         super().__init__()
         self.fresh_vars = fresh_vars
         
@@ -247,6 +315,10 @@ class InvariantTransformer(L.NodeTransformer):
                 raise L.ProgramError('Multiple SetFromMap invariants on '
                                      'same map {}'.format(sfm.map))
             sfm_by_map[sfm.map] = sfm
+        
+        self.wraps_by_rel = OrderedDict()
+        for wrap in wraps:
+            self.wraps_by_rel.setdefault(wrap.oper, []).append(wrap)
     
     def visit_Module(self, node):
         node = self.generic_visit(node)
@@ -261,6 +333,11 @@ class InvariantTransformer(L.NodeTransformer):
             for op in ['assign', 'delete']:
                 func = make_setfrommap_maint_func(self.fresh_vars, sfm, op)
                 funcs.append(func)
+        for wraps in self.wraps_by_rel.values():
+            for wrap in wraps:
+                for op in [L.SetAdd(), L.SetRemove()]:
+                    func = make_wrap_maint_func(self.fresh_vars, wrap, op)
+                    funcs.append(func)
         
         node = node._replace(decls=tuple(funcs) + node.decls)
         return node
@@ -269,20 +346,35 @@ class InvariantTransformer(L.NodeTransformer):
         if not isinstance(node.op, (L.SetAdd, L.SetRemove)):
             return node
         
-        auxmaps = self.auxmaps_by_rel.get(node.rel, set())
         code = (node,)
+        
+        auxmaps = self.auxmaps_by_rel.get(node.rel, set())
         for auxmap in auxmaps:
             func_name = auxmap.get_maint_func_name(node.op)
             call_code = (L.Expr(L.Call(func_name, [L.Name(node.elem)])),)
             code = L.insert_rel_maint(code, call_code, node.op)
+        
+        wraps = self.wraps_by_rel.get(node.rel, set())
+        for wrap in wraps:
+            func_name = wrap.get_maint_func_name(node.op)
+            call_code = (L.Expr(L.Call(func_name, [L.Name(node.elem)])),)
+            code = L.insert_rel_maint(code, call_code, node.op)
+        
         return code
     
     def visit_RelClear(self, node):
-        auxmaps = self.auxmaps_by_rel.get(node.rel, set())
         code = (node,)
+        
+        auxmaps = self.auxmaps_by_rel.get(node.rel, set())
         for auxmap in auxmaps:
             clear_code = (L.MapClear(auxmap.map),)
             code = L.insert_rel_maint(code, clear_code, L.SetRemove())
+        
+        wraps = self.wraps_by_rel.get(node.rel, set())
+        for wrap in wraps:
+            clear_code = (L.RelClear(wrap.rel),)
+            code = L.insert_rel_maint(code, clear_code, L.SetRemove())
+        
         return code
     
     def visit_MapAssign(self, node):
@@ -349,6 +441,22 @@ class InvariantTransformer(L.NodeTransformer):
             raise L.ProgramError('Multiple SetFromMap expressions on '
                                  'same map {}'.format(map))
         return L.Name(sfm.rel)
+    
+    def wrap_helper(self, node):
+        node = self.generic_visit(node)
+        
+        if not isinstance(node.value, L.Name):
+            return node
+        rel = node.value.id
+        
+        wrap = self.wraps_by_rel.get(rel, None)
+        if wrap is None:
+            return node
+        
+        return L.Name(wrap.rel)
+    
+    visit_Unwrap = wrap_helper
+    visit_Wrap = wrap_helper
 
 
 def make_auxmap_type(mask, reltype):
@@ -418,6 +526,39 @@ def make_setfrommap_type(mask, maptype):
     return rel_type
 
 
+def make_wrap_type(wrapinv, opertype):
+    """Given an operand type, determine the corresponding wrap or unwrap
+    type.
+    """
+    if wrapinv.unwrap:
+        top_opertype = T.Set(T.Tuple([T.Top]))
+        bottom_opertype = T.Set(T.Tuple([T.Bottom]))
+        
+        norm_type = opertype.join(bottom_opertype)
+        well_typed = norm_type.issmaller(top_opertype)
+        
+        if well_typed:
+            assert (isinstance(norm_type, T.Set) and
+                    isinstance(norm_type.elt, T.Tuple) and
+                    len(norm_type.elt.elts) == 1)
+            return T.Set(norm_type.elt.elts[0])
+        else:
+            return T.Set(T.Top)
+    
+    else:
+        top_opertype = T.Set(T.Top)
+        bottom_opertype = T.Set(T.Bottom)
+        
+        norm_type = opertype.join(bottom_opertype)
+        well_typed = norm_type.issmaller(top_opertype)
+        
+        if well_typed:
+            assert isinstance(norm_type, T.Set)
+            return T.Set(T.Tuple([norm_type.elt]))
+        else:
+            return T.Set(T.Top)
+
+
 def define_map(auxmap, symtab):
     """Add a map definition to the symbol table."""
     # Obtain relation symbol.
@@ -440,21 +581,39 @@ def define_set(setfrommap, symtab):
     symtab.define_relation(setfrommap.rel, type=rel_type)
 
 
+def define_wrap_set(wrapinv, symtab):
+    """Add a relation definition for a WrapInvariant."""
+    opersym = symtab.get_relations().get(wrapinv.oper, None)
+    if opersym is None:
+        raise L.TransformationError('No relation "{}" matching wrapped/'
+                                    'unwrapped relation "{}"'.format(
+                                    wrapinv.oper, wrapinv.rel))
+    
+    rel_type = make_wrap_type(wrapinv, opersym.type)
+    symtab.define_relation(wrapinv.rel, type=rel_type)
+
+
 def transform_setfrommap(tree, symtab, setfrommap):
     """Transform a single SetFromMapInvariant."""
     define_set(setfrommap, symtab)
     tree = InvariantTransformer.run(tree, symtab.fresh_names.vars,
-                                    [], [setfrommap])
+                                    [], [setfrommap], [])
     return tree
 
 
+def transform_wrap(tree, symtab, wrapinv):
+    """Transform a single WrapInvariant."""
+    define_wrap_set(wrapinv, symtab)
+    tree = InvariantTransformer.run(tree, symtab.fresh_names.vars,
+                                    [], [], [wrapinv])
+
+
 def transform_auxmaps_stepper(tree, symtab):
-    """Transform all auxmap and setfrommap expressions we can find that
-    are over Name nodes. Return the tree and whether any transformation
-    was done.
+    """Transform all set expressions we can find that are over Name
+    nodes. Return the tree and whether any transformation was done.
     """
-    auxmaps, setfrommaps = InvariantFinder.run(tree)
-    if len(auxmaps) == len(setfrommaps) == 0:
+    auxmaps, setfrommaps, wraps = InvariantFinder.run(tree)
+    if len(auxmaps) == len(setfrommaps) == 0: # len(wraps) == 0:
         return tree, False
     
     for auxmap in auxmaps:
@@ -466,8 +625,11 @@ def transform_auxmaps_stepper(tree, symtab):
         define_map(auxmap, symtab)
     for sfm in setfrommaps:
         define_set(sfm, symtab)
+    # wraps disabled
+#    for wrap in wraps:
+#        define_wrap_set(wrap, symtab)
     tree = InvariantTransformer.run(tree, symtab.fresh_names.vars,
-                                    auxmaps, setfrommaps)
+                                    auxmaps, setfrommaps, []) # wraps disabled
     return tree, True
 
 

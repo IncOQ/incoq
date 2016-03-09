@@ -9,7 +9,8 @@ from incoq.mars.symbol import S, N
 from incoq.mars.auxmap.trans import *
 from incoq.mars.auxmap.trans import (make_imgadd, make_imgremove,
                                      make_auxmap_maint_func,
-                                     make_setfrommap_maint_func)
+                                     make_setfrommap_maint_func,
+                                     make_wrap_maint_func)
 
 
 class AuxmapCase(unittest.TestCase):
@@ -89,6 +90,29 @@ class AuxmapCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
     
+    def test_wrap_maint(self):
+        # Wrap.
+        wrapinv = WrapInvariant('Q', 'R', False)
+        func = make_wrap_maint_func(N.fresh_name_generator(),
+                                    wrapinv, L.SetAdd())
+        exp_func = L.Parser.ps('''
+            def _maint_Q_for_R_add(_elem):
+                _v1_v = (_elem,)
+                Q.reladd(_v1_v)
+            ''')
+        self.assertEqual(func, exp_func)
+        
+        # Unwrap.
+        wrapinv = WrapInvariant('Q', 'R', True)
+        func = make_wrap_maint_func(N.fresh_name_generator(),
+                                    wrapinv, L.SetAdd())
+        exp_func = L.Parser.ps('''
+            def _maint_Q_for_R_add(_elem):
+                _v1_v = _elem.index(0)
+                Q.reladd(_v1_v)
+            ''')
+        self.assertEqual(func, exp_func)
+    
     def test_invariant_finder(self):
         tree = L.Parser.p('''
             def f():
@@ -97,8 +121,10 @@ class AuxmapCase(unittest.TestCase):
                 M.setfrommap('bu')
                 R.imglookup('ub', (y,))
                 S.imglookup('bu', (x,))
+                unwrap(S)
+                wrap(R)
             ''')
-        auxmaps, setfrommaps = InvariantFinder.run(tree)
+        auxmaps, setfrommaps, wraps = InvariantFinder.run(tree)
         exp_auxmaps = [
             AuxmapInvariant('R_bu', 'R', L.mask('bu')),
             AuxmapInvariant('R_ub', 'R', L.mask('ub')),
@@ -107,8 +133,13 @@ class AuxmapCase(unittest.TestCase):
         exp_setfrommaps = [
             SetFromMapInvariant('SM', 'M', L.mask('bu')),
         ]
+        exp_wraps = [
+            WrapInvariant('S_unwrapped', 'S', True),
+            WrapInvariant('R_wrapped', 'R', False),
+        ]
         self.assertSequenceEqual(list(auxmaps), exp_auxmaps)
         self.assertSequenceEqual(list(setfrommaps), exp_setfrommaps)
+        self.assertSequenceEqual(list(wraps), exp_wraps)
     
     def test_invariant_transformer(self):
         auxmaps = [
@@ -116,6 +147,10 @@ class AuxmapCase(unittest.TestCase):
         ]
         setfrommaps = [
             SetFromMapInvariant('S', 'M', L.mask('bu')),
+        ]
+        wraps = [
+            WrapInvariant('Q1', 'R', False),
+            WrapInvariant('Q2', 'R', True),
         ]
         tree = L.Parser.p('''
             def f():
@@ -132,7 +167,7 @@ class AuxmapCase(unittest.TestCase):
                 print(M.setfrommap('bu'))
             ''')
         tree = InvariantTransformer.run(tree, N.fresh_name_generator(),
-                                        auxmaps, setfrommaps)
+                                        auxmaps, setfrommaps, wraps)
         exp_tree = L.Parser.p('''
             def _maint_R_bu_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem
@@ -162,14 +197,34 @@ class AuxmapCase(unittest.TestCase):
                 _v5_elem = (_key_v1, _val)
                 S.relremove(_v5_elem)
             
+            def _maint_Q1_for_R_add(_elem):
+                _v6_v = (_elem,)
+                Q1.reladd(_v6_v)
+            
+            def _maint_Q1_for_R_remove(_elem):
+                _v7_v = (_elem,)
+                Q1.relremove(_v7_v)
+            
+            def _maint_Q2_for_R_add(_elem):
+                _v8_v = _elem.index(0)
+                Q2.reladd(_v8_v)
+            
+            def _maint_Q2_for_R_remove(_elem):
+                _v9_v = _elem.index(0)
+                Q2.relremove(_v9_v)
+            
             def f():
                 elem = (1, 2)
                 R.reladd(elem)
                 _maint_R_bu_for_R_add(elem)
+                _maint_Q1_for_R_add(elem)
+                _maint_Q2_for_R_add(elem)
                 print(R_bu.get((x,), Set()))
                 S.reladd(elem)
                 print(S.imglookup('bu', (x,)))
                 R.relinccount(elem)
+                Q2.relclear()
+                Q1.relclear()
                 R_bu.mapclear()
                 R.relclear()
                 M.mapassign(k, v)
@@ -224,6 +279,22 @@ class AuxmapCase(unittest.TestCase):
         t_map = T.Map(T.Tuple([T.Number]), T.Tuple([]))
         t = make_setfrommap_type(mask, t_map)
         exp_t = T.Set(T.Top)
+        self.assertEqual(t, exp_t)
+    
+    def test_make_wrap_type(self):
+        wrapinv1 = WrapInvariant('Q1', 'R', False)
+        wrapinv2 = WrapInvariant('Q2', 'R', True)
+        
+        # Normal case.
+        
+        t_oper = T.Set(T.Number)
+        t = make_wrap_type(wrapinv1, t_oper)
+        exp_t = T.Set(T.Tuple([T.Number]))
+        self.assertEqual(t, exp_t)
+        
+        t_oper = T.Set(T.Tuple([T.Number]))
+        t = make_wrap_type(wrapinv2, t_oper)
+        exp_t = T.Set(T.Number)
         self.assertEqual(t, exp_t)
     
     def test_define_map(self):
