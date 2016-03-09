@@ -212,7 +212,7 @@ def make_wrap_maint_func(fresh_vars,
     func_name = wrapinv.get_maint_func_name(op)
     
     if wrapinv.unwrap:
-        v_code = L.Parser.pc('_V = _elem.index(0)',
+        v_code = L.Parser.pc('_V = index(_elem, 0)',
                              subst={'_V': v})
     else:
         v_code = L.Parser.pc('_V = (_elem,)',
@@ -449,11 +449,13 @@ class InvariantTransformer(L.NodeTransformer):
             return node
         rel = node.value.id
         
-        wrap = self.wraps_by_rel.get(rel, None)
-        if wrap is None:
-            return node
+        wraps = self.wraps_by_rel.get(rel, None)
+        for wrap in wraps:
+            if ((isinstance(node, L.Wrap) and not wrap.unwrap) or
+                (isinstance(node, L.Unwrap) and wrap.unwrap)):
+                return L.Name(wrap.rel)
         
-        return L.Name(wrap.rel)
+        return node
     
     visit_Unwrap = wrap_helper
     visit_Wrap = wrap_helper
@@ -613,7 +615,7 @@ def transform_auxmaps_stepper(tree, symtab):
     nodes. Return the tree and whether any transformation was done.
     """
     auxmaps, setfrommaps, wraps = InvariantFinder.run(tree)
-    if len(auxmaps) == len(setfrommaps) == 0: # len(wraps) == 0:
+    if len(auxmaps) == len(setfrommaps) == len(wraps) == 0:
         return tree, False
     
     for auxmap in auxmaps:
@@ -625,11 +627,10 @@ def transform_auxmaps_stepper(tree, symtab):
         define_map(auxmap, symtab)
     for sfm in setfrommaps:
         define_set(sfm, symtab)
-    # wraps disabled
-#    for wrap in wraps:
-#        define_wrap_set(wrap, symtab)
+    for wrap in wraps:
+        define_wrap_set(wrap, symtab)
     tree = InvariantTransformer.run(tree, symtab.fresh_names.vars,
-                                    auxmaps, setfrommaps, []) # wraps disabled
+                                    auxmaps, setfrommaps, wraps)
     return tree, True
 
 

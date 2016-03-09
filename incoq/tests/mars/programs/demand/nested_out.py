@@ -27,6 +27,8 @@ R_Q2_T_w_1 = CSet()
 R_Q2_dT = CSet()
 # R_Q2_T_w_2 : Bottom
 R_Q2_T_w_2 = CSet()
+# R_Q2_unwrapped : {Number}
+R_Q2_unwrapped = Set()
 # S_bu : {(Number): {(Number)}}
 S_bu = Map()
 # R_Q2_dS_bu : {(Bottom): {(Bottom)}}
@@ -83,6 +85,14 @@ def _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_elem):
     R_Q2_dS_ub[_v35_key].remove(_v35_value)
     if (len(R_Q2_dS_ub[_v35_key]) == 0):
         del R_Q2_dS_ub[_v35_key]
+
+def _maint_R_Q2_unwrapped_for_R_Q2_add(_elem):
+    _v36_v = index(_elem, 0)
+    R_Q2_unwrapped.add(_v36_v)
+
+def _maint_R_Q2_unwrapped_for_R_Q2_remove(_elem):
+    _v37_v = index(_elem, 0)
+    R_Q2_unwrapped.remove(_v37_v)
 
 def _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_elem):
     (_v25_w,) = _elem
@@ -251,6 +261,7 @@ def _maint_R_Q2_for_R_Q1_add(_elem):
             _v5_result = (_v5_w,)
             if (_v5_result not in R_Q2):
                 R_Q2.add(_v5_result)
+                _maint_R_Q2_unwrapped_for_R_Q2_add(_v5_result)
             else:
                 R_Q2.inccount(_v5_result)
 
@@ -260,6 +271,7 @@ def _maint_R_Q2_for_R_Q1_remove(_elem):
         if ((_v6_w,) in T):
             _v6_result = (_v6_w,)
             if (R_Q2.getcount(_v6_result) == 1):
+                _maint_R_Q2_unwrapped_for_R_Q2_remove(_v6_result)
                 R_Q2.remove(_v6_result)
             else:
                 R_Q2.deccount(_v6_result)
@@ -271,6 +283,7 @@ def _maint_R_Q2_for_S_add(_elem):
             _v7_result = (_v7_w,)
             if (_v7_result not in R_Q2):
                 R_Q2.add(_v7_result)
+                _maint_R_Q2_unwrapped_for_R_Q2_add(_v7_result)
             else:
                 R_Q2.inccount(_v7_result)
 
@@ -280,6 +293,7 @@ def _maint_R_Q2_for_S_remove(_elem):
         if ((_v8_w,) in T):
             _v8_result = (_v8_w,)
             if (R_Q2.getcount(_v8_result) == 1):
+                _maint_R_Q2_unwrapped_for_R_Q2_remove(_v8_result)
                 R_Q2.remove(_v8_result)
             else:
                 R_Q2.deccount(_v8_result)
@@ -291,6 +305,7 @@ def _maint_R_Q2_for_T_add(_elem):
             _v9_result = (_v9_w,)
             if (_v9_result not in R_Q2):
                 R_Q2.add(_v9_result)
+                _maint_R_Q2_unwrapped_for_R_Q2_add(_v9_result)
             else:
                 R_Q2.inccount(_v9_result)
 
@@ -300,6 +315,7 @@ def _maint_R_Q2_for_T_remove(_elem):
         if ((_v10_v,) in R_Q1):
             _v10_result = (_v10_w,)
             if (R_Q2.getcount(_v10_result) == 1):
+                _maint_R_Q2_unwrapped_for_R_Q2_remove(_v10_result)
                 R_Q2.remove(_v10_result)
             else:
                 R_Q2.deccount(_v10_result)
@@ -338,7 +354,7 @@ def main():
     T.add(_v2)
     _maint_R_Q2_dT_for_T_add(_v2)
     _maint_R_Q2_for_T_add(_v2)
-    print(sorted(unwrap(R_Q2)))
+    print(sorted(R_Q2_unwrapped))
 
 if (__name__ == '__main__'):
     main()

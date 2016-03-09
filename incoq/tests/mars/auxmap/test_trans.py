@@ -108,7 +108,7 @@ class AuxmapCase(unittest.TestCase):
                                     wrapinv, L.SetAdd())
         exp_func = L.Parser.ps('''
             def _maint_Q_for_R_add(_elem):
-                _v1_v = _elem.index(0)
+                _v1_v = index(_elem, 0)
                 Q.reladd(_v1_v)
             ''')
         self.assertEqual(func, exp_func)
@@ -206,11 +206,11 @@ class AuxmapCase(unittest.TestCase):
                 Q1.relremove(_v7_v)
             
             def _maint_Q2_for_R_add(_elem):
-                _v8_v = _elem.index(0)
+                _v8_v = index(_elem, 0)
                 Q2.reladd(_v8_v)
             
             def _maint_Q2_for_R_remove(_elem):
-                _v9_v = _elem.index(0)
+                _v9_v = index(_elem, 0)
                 Q2.relremove(_v9_v)
             
             def f():

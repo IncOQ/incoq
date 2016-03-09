@@ -19,6 +19,8 @@ R_Q_dS = CSet()
 R_Q_T_b_2 = CSet()
 # R_Q_T_c : Bottom
 R_Q_T_c = CSet()
+# R_Q_unwrapped : {Number}
+R_Q_unwrapped = Set()
 # S_bu : {(Number): {(Number)}}
 S_bu = Map()
 # R_Q_dS_bu : {(Bottom): {(Bottom)}}
@@ -75,6 +77,14 @@ def _maint_R_Q_dS_bu_for_R_Q_dS_remove(_elem):
     R_Q_dS_bu[_v24_key].remove(_v24_value)
     if (len(R_Q_dS_bu[_v24_key]) == 0):
         del R_Q_dS_bu[_v24_key]
+
+def _maint_R_Q_unwrapped_for_R_Q_add(_elem):
+    _v25_v = index(_elem, 0)
+    R_Q_unwrapped.add(_v25_v)
+
+def _maint_R_Q_unwrapped_for_R_Q_remove(_elem):
+    _v26_v = index(_elem, 0)
+    R_Q_unwrapped.remove(_v26_v)
 
 def _maint_R_Q_T_c_for_R_Q_dS_add(_elem):
     (_v14_b, _v14_c) = _elem
@@ -196,6 +206,7 @@ def _maint_R_Q_for_S_add(_elem):
         _v2_result = (_v2_c,)
         if (_v2_result not in R_Q):
             R_Q.add(_v2_result)
+            _maint_R_Q_unwrapped_for_R_Q_add(_v2_result)
         else:
             R_Q.inccount(_v2_result)
     (_v2_b, _v2_c) = _elem
@@ -203,6 +214,7 @@ def _maint_R_Q_for_S_add(_elem):
         _v2_result = (_v2_c,)
         if (_v2_result not in R_Q):
             R_Q.add(_v2_result)
+            _maint_R_Q_unwrapped_for_R_Q_add(_v2_result)
         else:
             R_Q.inccount(_v2_result)
 
@@ -211,6 +223,7 @@ def _maint_R_Q_for_S_remove(_elem):
     for (_v3_c,) in R_Q_dS_bu.get((_v3_b,), Set()):
         _v3_result = (_v3_c,)
         if (R_Q.getcount(_v3_result) == 1):
+            _maint_R_Q_unwrapped_for_R_Q_remove(_v3_result)
             R_Q.remove(_v3_result)
         else:
             R_Q.deccount(_v3_result)
@@ -218,6 +231,7 @@ def _maint_R_Q_for_S_remove(_elem):
     for (_v3_a,) in S_ub.get((_v3_b,), Set()):
         _v3_result = (_v3_c,)
         if (R_Q.getcount(_v3_result) == 1):
+            _maint_R_Q_unwrapped_for_R_Q_remove(_v3_result)
             R_Q.remove(_v3_result)
         else:
             R_Q.deccount(_v3_result)
@@ -232,7 +246,7 @@ def main():
         _maint_R_Q_T_b_1_for_S_add(_v1)
         _maint_R_Q_T_a_for_S_add(_v1)
         _maint_R_Q_for_S_add(_v1)
-    print(sorted(unwrap(R_Q)))
+    print(sorted(R_Q_unwrapped))
 
 if (__name__ == '__main__'):
     main()
