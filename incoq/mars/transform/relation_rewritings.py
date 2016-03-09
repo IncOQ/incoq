@@ -15,6 +15,8 @@ from incoq.mars.incast import L
 from incoq.mars.type import T
 from incoq.mars.symbol import S
 
+from incoq.mars.auxmap import transform_all_wraps
+
 
 def rewrite_memberconds(tree, symtab):
     """For all comprehension queries, replace membership condition
@@ -331,4 +333,10 @@ def relationalize_comp_queries(tree, symtab):
     """
     tree = rewrite_with_unwraps(tree, symtab)
     tree = rewrite_with_wraps(tree, symtab)
+    # Transform all wraps introduced. There should only be wraps
+    # for relations, not inner comprehensions (or else the user screwed
+    # up by mismatching a bare var on the LHS with a comp with a tuple
+    # result expression on the RHS), so we don't need to incrementalize
+    # anything else first.
+    tree = transform_all_wraps(tree, symtab)
     return tree

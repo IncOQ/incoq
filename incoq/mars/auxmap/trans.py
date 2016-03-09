@@ -18,6 +18,7 @@ __all__ = [
     'define_wrap_set',
     'transform_setfrommap',
     'transform_auxmaps',
+    'transform_all_wraps',
 ]
 
 
@@ -449,7 +450,7 @@ class InvariantTransformer(L.NodeTransformer):
             return node
         rel = node.value.id
         
-        wraps = self.wraps_by_rel.get(rel, None)
+        wraps = self.wraps_by_rel.get(rel, [])
         for wrap in wraps:
             if ((isinstance(node, L.Wrap) and not wrap.unwrap) or
                 (isinstance(node, L.Unwrap) and wrap.unwrap)):
@@ -650,4 +651,18 @@ def transform_auxmaps(tree, symtab):
     while changed:
         tree, changed = transform_auxmaps_stepper(tree, symtab)
     Complainer.run(tree)
+    return tree
+
+
+def transform_all_wraps(tree, symtab):
+    """Transform for Wrap nodes only."""
+    _auxmaps, _setfrommaps, wraps = InvariantFinder.run(tree)
+    wraps = [w for w in wraps if not w.unwrap]
+    for wrap in wraps:
+        define_wrap_set(wrap, symtab)
+    trans = InvariantTransformer(symtab.fresh_names.vars,
+                                 [], [], wraps)
+    tree = trans.process(tree)
+    for q in symtab.get_queries().values():
+        q.node = trans.process(q.node)
     return tree

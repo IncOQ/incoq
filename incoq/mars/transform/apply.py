@@ -287,6 +287,8 @@ def transform_ast(input_ast, *, options=None):
         tree = flatten_objdomain(tree, symtab)
         symtab.clausetools = ObjClauseTools()
     else:
+        # Normalize to relations.
+        tree = relation_rewritings.relationalize_comp_queries(tree, symtab)
         # Rewrite memberships over subqueries as VARS clauses.
         # (In the object domain, this would be done differently
         # due to tuple wrapping/unwrapping.)

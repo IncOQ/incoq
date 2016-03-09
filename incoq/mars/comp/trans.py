@@ -132,7 +132,9 @@ def convert_subquery_clauses(comp):
     # We need a visitor in order to handle cases where clauses are
     # nested inside other clauses. The visitor should not reach into any
     # non-incrementalized subqueries (although there shouldn't be any
-    # at this stage).
+    # at this stage). We can't just use L.rewrite_comp() without a
+    # visitor because we need to recurse over nested clause structures
+    # (in the case of WithoutMember).
     class Trans(L.NodeTransformer):
         def visit_VarsMember(self, node):
             return convert_subquery_clause(node)
