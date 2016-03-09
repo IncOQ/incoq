@@ -3,11 +3,11 @@ from incoq.mars.runtime import *
 SM = Set()
 # M : {(Number, Number): str}
 M = Map()
-# SM_buu : {(Number): {(Number, str)}}
+# SM_buu : {Number: {(Number, str)}}
 SM_buu = Map()
 def _maint_SM_buu_for_SM_add(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v3_key = (_elem_v1,)
+    _v3_key = _elem_v1
     _v3_value = (_elem_v2, _elem_v3)
     if (_v3_key not in SM_buu):
         _v4 = Set()
@@ -16,7 +16,7 @@ def _maint_SM_buu_for_SM_add(_elem):
 
 def _maint_SM_buu_for_SM_remove(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v5_key = (_elem_v1,)
+    _v5_key = _elem_v1
     _v5_value = (_elem_v2, _elem_v3)
     SM_buu[_v5_key].remove(_v5_value)
     if (len(SM_buu[_v5_key]) == 0):
@@ -43,12 +43,12 @@ def main():
         _maint_SM_for_M_assign(k, v)
     x = 3
     print(sorted(SM))
-    print(sorted(SM_buu.get((x,), Set())))
+    print(sorted(SM_buu.get(x, Set())))
     k = (3, 4)
     _maint_SM_for_M_delete(k)
     del M[k]
     print(sorted(SM))
-    print(sorted(SM_buu.get((x,), Set())))
+    print(sorted(SM_buu.get(x, Set())))
     SM_buu.dictclear()
     SM.clear()
     M.dictclear()

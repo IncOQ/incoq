@@ -4,11 +4,11 @@ from incoq.mars.runtime import *
 S = Set()
 # R_Q : {(Number, Number)}
 R_Q = CSet()
-# R_Q_bu : {(Number): {(Number)}}
+# R_Q_bu : {Number: {(Number)}}
 R_Q_bu = Map()
 def _maint_R_Q_bu_for_R_Q_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v4_key = (_elem_v1,)
+    _v4_key = _elem_v1
     _v4_value = (_elem_v2,)
     if (_v4_key not in R_Q_bu):
         _v5 = Set()
@@ -17,7 +17,7 @@ def _maint_R_Q_bu_for_R_Q_add(_elem):
 
 def _maint_R_Q_bu_for_R_Q_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v6_key = (_elem_v1,)
+    _v6_key = _elem_v1
     _v6_value = (_elem_v2,)
     R_Q_bu[_v6_key].remove(_v6_value)
     if (len(R_Q_bu[_v6_key]) == 0):
@@ -47,11 +47,11 @@ def main():
         S.add(_v1)
         _maint_R_Q_for_S_add(_v1)
     a = 1
-    print(sorted(R_Q_bu.get((a,), Set())))
+    print(sorted(R_Q_bu.get(a, Set())))
     R_Q_bu.dictclear()
     R_Q.clear()
     S.clear()
-    print(sorted(R_Q_bu.get((a,), Set())))
+    print(sorted(R_Q_bu.get(a, Set())))
 
 if (__name__ == '__main__'):
     main()

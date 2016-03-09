@@ -35,7 +35,7 @@ class AuxmapCase(unittest.TestCase):
         self.assertEqual(code, exp_code)
     
     def test_auxmap_maint_add(self):
-        auxmap = AuxmapInvariant('m', 'R', L.mask('bu'))
+        auxmap = AuxmapInvariant('m', 'R', L.mask('bu'), False, False)
         func = make_auxmap_maint_func(N.fresh_name_generator(),
                                       auxmap, L.SetAdd())
         exp_func = L.Parser.ps('''
@@ -51,7 +51,7 @@ class AuxmapCase(unittest.TestCase):
         self.assertEqual(func, exp_func)
     
     def test_auxmap_maint_remove(self):
-        auxmap = AuxmapInvariant('m', 'R', L.mask('bu'))
+        auxmap = AuxmapInvariant('m', 'R', L.mask('bu'), False, False)
         func = make_auxmap_maint_func(N.fresh_name_generator(),
                                       auxmap, L.SetRemove())
         exp_func = L.Parser.ps('''
@@ -62,6 +62,22 @@ class AuxmapCase(unittest.TestCase):
                 m[_v1_key].remove(_v1_value)
                 if (len(m[_v1_key]) == 0):
                     m.mapdelete(_v1_key)
+            ''')
+        self.assertEqual(func, exp_func)
+    
+    def test_auxmap_maint_add_unwrap(self):
+        auxmap = AuxmapInvariant('m', 'R', L.mask('bu'), True, True)
+        func = make_auxmap_maint_func(N.fresh_name_generator(),
+                                      auxmap, L.SetAdd())
+        exp_func = L.Parser.ps('''
+            def _maint_m_for_R_add(_elem):
+                (_elem_v1, _elem_v2) = _elem
+                _v1_key = _elem_v1
+                _v1_value = _elem_v2
+                if (_v1_key not in m):
+                    _v2 = Set()
+                    m.mapassign(_v1_key, _v2)
+                m[_v1_key].add(_v1_value)
             ''')
         self.assertEqual(func, exp_func)
     
@@ -117,18 +133,18 @@ class AuxmapCase(unittest.TestCase):
         tree = L.Parser.p('''
             def f():
                 R.imglookup('bu', (x,))
-                R.imglookup('bu', (x,))
+                R.imglookup('bu', (y,))
                 M.setfrommap('bu')
-                R.imglookup('ub', (y,))
+                R.imglookup('ubb', (y, z))
                 S.imglookup('bu', (x,))
                 unwrap(S)
                 wrap(R)
             ''')
         auxmaps, setfrommaps, wraps = InvariantFinder.run(tree)
         exp_auxmaps = [
-            AuxmapInvariant('R_bu', 'R', L.mask('bu')),
-            AuxmapInvariant('R_ub', 'R', L.mask('ub')),
-            AuxmapInvariant('S_bu', 'S', L.mask('bu')),
+            AuxmapInvariant('R_bu', 'R', L.mask('bu'), True, False),
+            AuxmapInvariant('R_ubb', 'R', L.mask('ubb'), False, False),
+            AuxmapInvariant('S_bu', 'S', L.mask('bu'), True, False),
         ]
         exp_setfrommaps = [
             SetFromMapInvariant('SM', 'M', L.mask('bu')),
@@ -143,7 +159,7 @@ class AuxmapCase(unittest.TestCase):
     
     def test_invariant_transformer(self):
         auxmaps = [
-            AuxmapInvariant('R_bu', 'R', L.mask('bu')),
+            AuxmapInvariant('R_bu', 'R', L.mask('bu'), True, False),
         ]
         setfrommaps = [
             SetFromMapInvariant('S', 'M', L.mask('bu')),
@@ -171,7 +187,7 @@ class AuxmapCase(unittest.TestCase):
         exp_tree = L.Parser.p('''
             def _maint_R_bu_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem
-                _v1_key = (_elem_v1,)
+                _v1_key = _elem_v1
                 _v1_value = (_elem_v2,)
                 if (_v1_key not in R_bu):
                     _v2 = Set()
@@ -180,7 +196,7 @@ class AuxmapCase(unittest.TestCase):
             
             def _maint_R_bu_for_R_remove(_elem):
                 (_elem_v1, _elem_v2) = _elem
-                _v3_key = (_elem_v1,)
+                _v3_key = _elem_v1
                 _v3_value = (_elem_v2,)
                 R_bu[_v3_key].remove(_v3_value)
                 if (len(R_bu[_v3_key]) == 0):
@@ -219,7 +235,7 @@ class AuxmapCase(unittest.TestCase):
                 _maint_R_bu_for_R_add(elem)
                 _maint_Q1_for_R_add(elem)
                 _maint_Q2_for_R_add(elem)
-                print(R_bu.get((x,), Set()))
+                print(R_bu.get(x, Set()))
                 S.reladd(elem)
                 print(S.imglookup('bu', (x,)))
                 R.relinccount(elem)
@@ -238,25 +254,25 @@ class AuxmapCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
     
     def test_make_auxmap_type(self):
-        mask = L.mask('bbu')
+        auxmapinv = AuxmapInvariant('M', 'R', L.mask('bbu'), False, True)
         
         # Normal case.
         t_rel = T.Set(T.Tuple([T.Number, T.Top, T.String]))
-        t = make_auxmap_type(mask, t_rel)
+        t = make_auxmap_type(auxmapinv, t_rel)
         exp_t = T.Map(T.Tuple([T.Number, T.Top]),
-                      T.Set(T.Tuple([T.String])))
+                      T.Set(T.String))
         self.assertEqual(t, exp_t)
         
         # Bottom case.
         t_rel = T.Set(T.Bottom)
-        t = make_auxmap_type(mask, t_rel)
+        t = make_auxmap_type(auxmapinv, t_rel)
         exp_t = T.Map(T.Tuple([T.Bottom, T.Bottom]),
-                      T.Set(T.Tuple([T.Bottom])))
+                      T.Set(T.Bottom))
         self.assertEqual(t, exp_t)
         
         # Other case, incorrect arity.
         t_rel = T.Set(T.Tuple([T.Number]))
-        t = make_auxmap_type(mask, t_rel)
+        t = make_auxmap_type(auxmapinv, t_rel)
         exp_t = T.Map(T.Top, T.Top)
         self.assertEqual(t, exp_t)
     
@@ -303,9 +319,9 @@ class AuxmapCase(unittest.TestCase):
             'R', type=T.Set(T.Tuple([T.Number, T.Top, T.String])))
         symtab.define_relation('S')
         symtab.define_relation('T', type=T.Set(T.Top))
-        R_auxmap = AuxmapInvariant('R_bbu', 'R', L.mask('bbu'))
-        S_auxmap = AuxmapInvariant('S_bbu', 'S', L.mask('bbu'))
-        T_auxmap = AuxmapInvariant('T_bbu', 'T', L.mask('bbu'))
+        R_auxmap = AuxmapInvariant('R_bbu', 'R', L.mask('bbu'), False, False)
+        S_auxmap = AuxmapInvariant('S_bbu', 'S', L.mask('bbu'), False, False)
+        T_auxmap = AuxmapInvariant('T_bbu', 'T', L.mask('bbu'), False, False)
         
         # Normal relation type.
         define_map(R_auxmap, symtab)

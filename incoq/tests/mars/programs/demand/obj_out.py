@@ -23,13 +23,13 @@ R_Q_T_o = CSet()
 R_Q_d_F_f = CSet()
 # R_Q_T_o_f : Bottom
 R_Q_T_o_f = CSet()
-# R_Q_d_M_ub : {(Bottom): {(Bottom)}}
+# R_Q_d_M_ub : {Bottom: {(Bottom)}}
 R_Q_d_M_ub = Map()
-# R_Q_bu : {({Bottom}): {(Top)}}
+# R_Q_bu : {{Bottom}: {(Top)}}
 R_Q_bu = Map()
 def _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v23_key = (_elem_v2,)
+    _v23_key = _elem_v2
     _v23_value = (_elem_v1,)
     if (_v23_key not in R_Q_d_M_ub):
         _v24 = Set()
@@ -38,7 +38,7 @@ def _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_elem):
 
 def _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v25_key = (_elem_v2,)
+    _v25_key = _elem_v2
     _v25_value = (_elem_v1,)
     R_Q_d_M_ub[_v25_key].remove(_v25_value)
     if (len(R_Q_d_M_ub[_v25_key]) == 0):
@@ -46,7 +46,7 @@ def _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_elem):
 
 def _maint_R_Q_bu_for_R_Q_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v26_key = (_elem_v1,)
+    _v26_key = _elem_v1
     _v26_value = (_elem_v2,)
     if (_v26_key not in R_Q_bu):
         _v27 = Set()
@@ -55,7 +55,7 @@ def _maint_R_Q_bu_for_R_Q_add(_elem):
 
 def _maint_R_Q_bu_for_R_Q_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v28_key = (_elem_v1,)
+    _v28_key = _elem_v1
     _v28_value = (_elem_v2,)
     R_Q_bu[_v28_key].remove(_v28_value)
     if (len(R_Q_bu[_v28_key]) == 0):
@@ -253,7 +253,7 @@ def _maint_R_Q_for__M_remove(_elem):
 
 def _maint_R_Q_for__F_f_add(_elem):
     (_v7_o, _v7_o_f) = _elem
-    for (_v7_z,) in R_Q_d_M_ub.get((_v7_o,), Set()):
+    for (_v7_z,) in R_Q_d_M_ub.get(_v7_o, Set()):
         if ((_v7_z,) in _U_Q):
             _v7_result = (_v7_z, _v7_o_f)
             if (_v7_result not in R_Q):
@@ -264,7 +264,7 @@ def _maint_R_Q_for__F_f_add(_elem):
 
 def _maint_R_Q_for__F_f_remove(_elem):
     (_v8_o, _v8_o_f) = _elem
-    for (_v8_z,) in R_Q_d_M_ub.get((_v8_o,), Set()):
+    for (_v8_z,) in R_Q_d_M_ub.get(_v8_o, Set()):
         if ((_v8_z,) in _U_Q):
             _v8_result = (_v8_z, _v8_o_f)
             if (R_Q.getcount(_v8_result) == 1):
@@ -294,9 +294,9 @@ def main():
         _maint_R_Q_d_M_for__M_add(_v2)
         _maint_R_Q_for__M_add(_v2)
     z = s
-    print(sorted(unwrap(((_demand_Q((z,)) or True) and R_Q_bu.get((z,), Set())))))
+    print(sorted(unwrap(((_demand_Q((z,)) or True) and R_Q_bu.get(z, Set())))))
     z = t
-    print(sorted(unwrap(((_demand_Q((z,)) or True) and R_Q_bu.get((z,), Set())))))
+    print(sorted(unwrap(((_demand_Q((z,)) or True) and R_Q_bu.get(z, Set())))))
 
 if (__name__ == '__main__'):
     main()

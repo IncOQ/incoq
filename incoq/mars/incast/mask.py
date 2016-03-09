@@ -27,9 +27,16 @@ def is_tuple_of_names(node):
     return (isinstance(node, L.Tuple) and
             all(isinstance(elt, L.Name) for elt in node.elts))
 
-def tuplify(names):
-    """Return a Tuple node of Name nodes for the given identifiers."""
-    return L.Tuple([L.Name(n) for n in names])
+def tuplify(names, *, unwrap=False):
+    """Return a Tuple node of Name nodes for the given identifiers.
+    If unwrap is True, there must be only one name given and a single
+    Name node is returned.
+    """
+    if unwrap:
+        assert len(names) == 1
+        return L.Name(names[0])
+    else:
+        return L.Tuple([L.Name(n) for n in names])
 
 def detuplify(tup):
     """Given a Tuple node of Name nodes, return a tuple of the

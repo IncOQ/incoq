@@ -6,11 +6,11 @@ S = Set()
 R = Set()
 # R_Q : {(Number)}
 R_Q = CSet()
-# S_bu : {(Number): {(Number)}}
+# S_bu : {Number: {(Number)}}
 S_bu = Map()
 def _maint_S_bu_for_S_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v7_key = (_elem_v1,)
+    _v7_key = _elem_v1
     _v7_value = (_elem_v2,)
     if (_v7_key not in S_bu):
         _v8 = Set()
@@ -19,7 +19,7 @@ def _maint_S_bu_for_S_add(_elem):
 
 def _maint_S_bu_for_S_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v9_key = (_elem_v1,)
+    _v9_key = _elem_v1
     _v9_value = (_elem_v2,)
     S_bu[_v9_key].remove(_v9_value)
     if (len(S_bu[_v9_key]) == 0):
@@ -45,7 +45,7 @@ def _maint_R_Q_for_S_remove(_elem):
 
 def _maint_R_Q_for_R_add(_elem):
     (_v5_a,) = _elem
-    for (_v5_b,) in S_bu.get((_v5_a,), Set()):
+    for (_v5_b,) in S_bu.get(_v5_a, Set()):
         _v5_result = (_v5_b,)
         if (_v5_result not in R_Q):
             R_Q.add(_v5_result)
@@ -54,7 +54,7 @@ def _maint_R_Q_for_R_add(_elem):
 
 def _maint_R_Q_for_R_remove(_elem):
     (_v6_a,) = _elem
-    for (_v6_b,) in S_bu.get((_v6_a,), Set()):
+    for (_v6_b,) in S_bu.get(_v6_a, Set()):
         _v6_result = (_v6_b,)
         if (R_Q.getcount(_v6_result) == 1):
             R_Q.remove(_v6_result)

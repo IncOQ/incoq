@@ -45,7 +45,7 @@ def regenerate_all(*, options=None):
     """Regenerate *_out.py files for all tests in the whole-program
     tests directory.
     """
-    test_entries = get_test_entries()
+    test_entries = sorted(get_test_entries())
     for test_dir, test_base, *_ in test_entries:
         test_name_abs = join(test_dir, test_base)
         test_name = relpath(test_name_abs, test_root_path)

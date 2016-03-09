@@ -22,6 +22,13 @@ class MaskCase(unittest.TestCase):
         tree = tuplify(['x', 'y'])
         exp_tree = L.Tuple([L.Name('x'), L.Name('y')])
         self.assertEqual(tree, exp_tree)
+        
+        tree = tuplify(['x'], unwrap=True)
+        exp_tree = L.Name('x')
+        self.assertEqual(tree, exp_tree)
+        
+        with self.assertRaises(AssertionError):
+            tuplify(['x', 'y'], unwrap=True)
     
     def test_detuplify(self):
         tree = L.Tuple([L.Name('x'), L.Name('y')])

@@ -14,15 +14,15 @@ R__QU_Q2 = CSet()
 R_Q2 = CSet()
 # R_Q1 : {({Bottom}, Top)}
 R_Q1 = CSet()
-# R_Q2_bu : {({Bottom}): {(Bottom)}}
+# R_Q2_bu : {{Bottom}: {(Bottom)}}
 R_Q2_bu = Map()
-# R_Q2_ub : {(Bottom): {({Bottom})}}
+# R_Q2_ub : {Bottom: {({Bottom})}}
 R_Q2_ub = Map()
-# R_Q1_bu : {({Bottom}): {(Top)}}
+# R_Q1_bu : {{Bottom}: {(Top)}}
 R_Q1_bu = Map()
 def _maint_R_Q2_bu_for_R_Q2_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v16_key = (_elem_v1,)
+    _v16_key = _elem_v1
     _v16_value = (_elem_v2,)
     if (_v16_key not in R_Q2_bu):
         _v17 = Set()
@@ -31,7 +31,7 @@ def _maint_R_Q2_bu_for_R_Q2_add(_elem):
 
 def _maint_R_Q2_bu_for_R_Q2_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v18_key = (_elem_v1,)
+    _v18_key = _elem_v1
     _v18_value = (_elem_v2,)
     R_Q2_bu[_v18_key].remove(_v18_value)
     if (len(R_Q2_bu[_v18_key]) == 0):
@@ -39,7 +39,7 @@ def _maint_R_Q2_bu_for_R_Q2_remove(_elem):
 
 def _maint_R_Q2_ub_for_R_Q2_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v19_key = (_elem_v2,)
+    _v19_key = _elem_v2
     _v19_value = (_elem_v1,)
     if (_v19_key not in R_Q2_ub):
         _v20 = Set()
@@ -48,7 +48,7 @@ def _maint_R_Q2_ub_for_R_Q2_add(_elem):
 
 def _maint_R_Q2_ub_for_R_Q2_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v21_key = (_elem_v2,)
+    _v21_key = _elem_v2
     _v21_value = (_elem_v1,)
     R_Q2_ub[_v21_key].remove(_v21_value)
     if (len(R_Q2_ub[_v21_key]) == 0):
@@ -56,7 +56,7 @@ def _maint_R_Q2_ub_for_R_Q2_remove(_elem):
 
 def _maint_R_Q1_bu_for_R_Q1_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v22_key = (_elem_v1,)
+    _v22_key = _elem_v1
     _v22_value = (_elem_v2,)
     if (_v22_key not in R_Q1_bu):
         _v23 = Set()
@@ -65,7 +65,7 @@ def _maint_R_Q1_bu_for_R_Q1_add(_elem):
 
 def _maint_R_Q1_bu_for_R_Q1_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v24_key = (_elem_v1,)
+    _v24_key = _elem_v1
     _v24_value = (_elem_v2,)
     R_Q1_bu[_v24_key].remove(_v24_value)
     if (len(R_Q1_bu[_v24_key]) == 0):
@@ -73,7 +73,7 @@ def _maint_R_Q1_bu_for_R_Q1_remove(_elem):
 
 def _maint_R_Q1_for__U_Q1_add(_elem):
     (_v10_z,) = _elem
-    for (_v10_o,) in R_Q2_bu.get((_v10_z,), Set()):
+    for (_v10_o,) in R_Q2_bu.get(_v10_z, Set()):
         if hasfield(_v10_o, 'f'):
             _v10_o_f = _v10_o.f
             _v10_result = (_v10_z, _v10_o_f)
@@ -85,7 +85,7 @@ def _maint_R_Q1_for__U_Q1_add(_elem):
 
 def _maint_R_Q1_for__U_Q1_remove(_elem):
     (_v11_z,) = _elem
-    for (_v11_o,) in R_Q2_bu.get((_v11_z,), Set()):
+    for (_v11_o,) in R_Q2_bu.get(_v11_z, Set()):
         if hasfield(_v11_o, 'f'):
             _v11_o_f = _v11_o.f
             _v11_result = (_v11_z, _v11_o_f)
@@ -121,7 +121,7 @@ def _maint_R_Q1_for_R_Q2_remove(_elem):
 
 def _maint_R_Q1_for__F_f_add(_elem):
     (_v14_o, _v14_o_f) = _elem
-    for (_v14_z,) in R_Q2_ub.get((_v14_o,), Set()):
+    for (_v14_z,) in R_Q2_ub.get(_v14_o, Set()):
         if ((_v14_z,) in _U_Q1):
             _v14_result = (_v14_z, _v14_o_f)
             if (_v14_result not in R_Q1):
@@ -132,7 +132,7 @@ def _maint_R_Q1_for__F_f_add(_elem):
 
 def _maint_R_Q1_for__F_f_remove(_elem):
     (_v15_o, _v15_o_f) = _elem
-    for (_v15_z,) in R_Q2_ub.get((_v15_o,), Set()):
+    for (_v15_z,) in R_Q2_ub.get(_v15_o, Set()):
         if ((_v15_z,) in _U_Q1):
             _v15_result = (_v15_z, _v15_o_f)
             if (R_Q1.getcount(_v15_result) == 1):
@@ -228,9 +228,9 @@ def main():
         index(_v2, 0).add(index(_v2, 1))
         _maint_R_Q2_for__M_add(_v2)
     z = s
-    print(sorted(unwrap(((_demand_Q1((z,)) or True) and R_Q1_bu.get((z,), Set())))))
+    print(sorted(unwrap(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set())))))
     z = t
-    print(sorted(unwrap(((_demand_Q1((z,)) or True) and R_Q1_bu.get((z,), Set())))))
+    print(sorted(unwrap(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set())))))
 
 if (__name__ == '__main__'):
     main()

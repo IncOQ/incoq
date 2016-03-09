@@ -42,6 +42,10 @@ class AuxmapInvariant(Struct):
     """Name of relation being indexed."""
     mask = TypedField(L.mask)
     """Mask for the indexing."""
+    unwrap_key = TypedField(bool)
+    """Whether the bound part is a single unwrapped component."""
+    unwrap_value = TypedField(bool)
+    """Whether the unbound part is a single unwrapped component."""
     
     def get_maint_func_name(self, op):
         op_name = L.set_update_name(op)
@@ -123,8 +127,8 @@ def make_auxmap_maint_func(fresh_vars,
     decomp_code = (L.DecompAssign(vars, L.Name('_elem')),)
     
     key, value = L.split_by_mask(auxmap.mask, vars)
-    key = L.tuplify(key)
-    value = L.tuplify(value)
+    key = L.tuplify(key, unwrap=auxmap.unwrap_key)
+    value = L.tuplify(value, unwrap=auxmap.unwrap_value)
     fresh_var_prefix = next(fresh_vars)
     key_var = fresh_var_prefix + '_key'
     value_var = fresh_var_prefix + '_value'
@@ -251,7 +255,8 @@ class InvariantFinder(L.NodeVisitor):
         rel = node.set.id
         
         map = N.get_auxmap_name(rel, node.mask)
-        auxmap = AuxmapInvariant(map, rel, node.mask)
+        unwrap_key = len(node.bounds) == 1
+        auxmap = AuxmapInvariant(map, rel, node.mask, unwrap_key, False)
         self.auxmaps.add(auxmap)
     
     def visit_SetFromMap(self, node):
@@ -422,7 +427,7 @@ class InvariantTransformer(L.NodeTransformer):
         if auxmap is None:
             return node
         
-        key = L.tuplify(node.bounds)
+        key = L.tuplify(node.bounds, unwrap=auxmap.unwrap_key)
         return L.Parser.pe('_MAP.get(_KEY, Set())',
                            subst={'_MAP': auxmap.map,
                                   '_KEY': key})
@@ -462,7 +467,7 @@ class InvariantTransformer(L.NodeTransformer):
     visit_Wrap = wrap_helper
 
 
-def make_auxmap_type(mask, reltype):
+def make_auxmap_type(auxmapinv, reltype):
     """Given a mask and a relation type, determine the corresponding
     auxiliary map type.
     
@@ -475,6 +480,7 @@ def make_auxmap_type(mask, reltype):
     or a set of tuples of incorrect arity, we instead give the map type
     {Top: Top}.
     """
+    mask = auxmapinv.mask
     arity = len(mask.m)
     bottom_reltype = T.Set(T.Tuple([T.Bottom] * arity))
     top_reltype = T.Set(T.Tuple([T.Top] * arity))
@@ -487,7 +493,9 @@ def make_auxmap_type(mask, reltype):
                 isinstance(norm_type.elt, T.Tuple) and
                 len(norm_type.elt.elts) == arity)
         t_bs, t_us = L.split_by_mask(mask, norm_type.elt.elts)
-        map_type = T.Map(T.Tuple(t_bs), T.Set(T.Tuple(t_us)))
+        t_key = t_bs[0] if auxmapinv.unwrap_key else T.Tuple(t_bs)
+        t_value = t_us[0] if auxmapinv.unwrap_value else T.Tuple(t_us)
+        map_type = T.Map(t_key, T.Set(t_value))
     else:
         map_type = T.Map(T.Top, T.Top)
     
@@ -569,7 +577,7 @@ def define_map(auxmap, symtab):
     if relsym is None:
         raise L.TransformationError('No relation "{}" matching map "{}"'
                                     .format(auxmap.rel, auxmap.map))
-    map_type = make_auxmap_type(auxmap.mask, relsym.type)
+    map_type = make_auxmap_type(auxmap, relsym.type)
     symtab.define_map(auxmap.map, type=map_type)
 
 

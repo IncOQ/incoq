@@ -6,11 +6,11 @@ S = Set()
 _U_Q = Set()
 # R_Q : {(Number, Number)}
 R_Q = CSet()
-# R_Q_bu : {(Number): {(Number)}}
+# R_Q_bu : {Number: {(Number)}}
 R_Q_bu = Map()
 def _maint_R_Q_bu_for_R_Q_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v7_key = (_elem_v1,)
+    _v7_key = _elem_v1
     _v7_value = (_elem_v2,)
     if (_v7_key not in R_Q_bu):
         _v8 = Set()
@@ -19,7 +19,7 @@ def _maint_R_Q_bu_for_R_Q_add(_elem):
 
 def _maint_R_Q_bu_for_R_Q_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v9_key = (_elem_v1,)
+    _v9_key = _elem_v1
     _v9_value = (_elem_v2,)
     R_Q_bu[_v9_key].remove(_v9_value)
     if (len(R_Q_bu[_v9_key]) == 0):
@@ -80,13 +80,13 @@ def main():
         S.add(_v1)
         _maint_R_Q_for_S_add(_v1)
     a = 2
-    print(sorted(((_demand_Q((a,)) or True) and R_Q_bu.get((a,), Set()))))
+    print(sorted(((_demand_Q((a,)) or True) and R_Q_bu.get(a, Set()))))
     for v in [2, 4]:
         _v2 = (v,)
         S.add(_v2)
         _maint_R_Q_for_S_add(_v2)
-    print(sorted(((_demand_Q((a,)) or True) and R_Q_bu.get((a,), Set()))))
-    print(sorted(R_Q_bu.get((a,), Set())))
+    print(sorted(((_demand_Q((a,)) or True) and R_Q_bu.get(a, Set()))))
+    print(sorted(R_Q_bu.get(a, Set())))
 
 if (__name__ == '__main__'):
     main()
