@@ -29,6 +29,16 @@ tasks = [
      {'default_impl': S.Inc}),
     ('wifi/wifi_in', 'wifi/wifi_dem',
      {'default_impl': S.Filtered}),
+    
+    # Django.
+    ('django/django_in', 'django/django_inc',
+     {'default_impl': S.Inc}),
+    ('django/django_in', 'django/django_dem',
+     {'default_impl': S.Filtered}),
+    ('django/django_simp_in', 'django/django_simp_inc',
+     {'default_impl': S.Inc}),
+    ('django/django_simp_in', 'django/django_simp_dem',
+     {'default_impl': S.Filtered}),
 ]
 
 tasks_by_target = {t[1]: t for t in tasks}

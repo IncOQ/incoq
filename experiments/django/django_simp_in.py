@@ -7,16 +7,10 @@
 # - the query is different, and takes in a user instead of a user id
 # - the users set is deleted, and make_user() modified accordingly
 
-from incoq.runtime import *
+from incoq.mars.runtime import *
 
-OPTIONS(
-    obj_domain = True,
-)
-
-QUERYOPTIONS(
-    '{p.name for g in user.groups for p in g.perms if g.active}',
-    uset_mode = 'explicit',
-    uset_params = ['user'],
+CONFIG(
+    obj_domain = 'true',
 )
 
 def make_user(id):
@@ -43,7 +37,10 @@ def add_perm(g, p):
     g.perms.add(p)
 
 def do_query(user):
-    return {p.name for g in user.groups for p in g.perms if g.active}
+    return QUERY('Q', {p.name for g in user.groups
+                              for p in g.perms if g.active})
 
 def do_query_nodemand(user):
-    return NODEMAND({p.name for g in user.groups for p in g.perms if g.active})
+    return QUERY('Q', {p.name for g in user.groups
+                              for p in g.perms if g.active},
+                 {'nodemand': True})

@@ -1,8 +1,6 @@
 # Ignore un-converted experiments for mars branch.
 cache
 distalgo
-django
-graddb
 jql
 mars
 other

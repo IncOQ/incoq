@@ -1,24 +1,19 @@
 # Authentication query from the OSQ paper, modeled on Django.
-
+#
 # Fields like user id, user.groups, and group.perms are 1-to-1.
 # If U is small, we'd benefit from the join heuristic running
 # U and the inverse of F_id first, since that would get us the
 # few queried users.
+#
+# The parameters are users and uid. In the OSQ paper, only users is
+# tracked in the U-set because uid is a constrained parameter. Here,
+# since we don't reassign to users, we view it as a relation.
+# Consequently there is no need for a distinct U-set at all.
 
-from incoq.runtime import *
+from incoq.mars.runtime import *
 
-OPTIONS(
-    obj_domain = True,
-)
-
-QUERYOPTIONS(
-    '''{p.name for u in users for g in u.groups for p in g.perms
-               if u.id == uid if g.active}''',
-    # The parameters are users and uid. In the OSQ paper,
-    # only users is tracked in the U-set because uid is a
-    # constrained parameter. Here, since we don't reassign
-    # to users, we view it as a relation. Consequently there
-    # is no need for a distinct U-set at all.
+CONFIG(
+    obj_domain = 'true',
 )
 
 users = Set()
@@ -48,9 +43,12 @@ def add_perm(g, p):
     g.perms.add(p)
 
 def do_query(uid):
-    return {p.name for u in users for g in u.groups for p in g.perms
-                   if u.id == uid if g.active}
+    return QUERY('Q', {p.name for u in users for g in u.groups
+                              for p in g.perms
+                              if u.id == uid if g.active})
 
 def do_query_nodemand(uid):
-    return NODEMAND({p.name for u in users for g in u.groups for p in g.perms
-                            if u.id == uid if g.active})
+    return QUERY('Q', {p.name for u in users for g in u.groups
+                              for p in g.perms
+                              if u.id == uid if g.active},
+                 {'nodemand': True})

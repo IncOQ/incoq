@@ -7,6 +7,7 @@ import traceback
 
 import experiments.twitter as twitter
 import experiments.wifi as wifi
+import experiments.django as django
 #import experiments.mars.distalgo as distalgo
 
 
@@ -17,6 +18,11 @@ tasks = [
     
     # Wifi.
     ('wifi',                            wifi.Wifi()),
+    
+    # Django.
+    ('django_scale',                    django.Scale()),
+    ('django_demand',                   django.DemandTime()),
+    ('django_demand_norm',              django.DemandTimeNorm()),
     
 #    ('lamutex_spec_unopt_procs',        distalgo.LAMutexSpecProcs()),
 ]
