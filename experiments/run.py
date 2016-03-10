@@ -8,6 +8,7 @@ import traceback
 import experiments.twitter as twitter
 import experiments.wifi as wifi
 import experiments.django as django
+import experiments.graddb.newstudents as newstudents
 #import experiments.mars.distalgo as distalgo
 
 
@@ -23,6 +24,9 @@ tasks = [
     ('django_scale',                    django.Scale()),
     ('django_demand',                   django.DemandTime()),
     ('django_demand_norm',              django.DemandTimeNorm()),
+    
+    # Graddb.
+    ('newstu_scale',                    newstudents.NewStudentsScale()),
     
 #    ('lamutex_spec_unopt_procs',        distalgo.LAMutexSpecProcs()),
 ]
