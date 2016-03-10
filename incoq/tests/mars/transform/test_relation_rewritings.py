@@ -190,6 +190,25 @@ class UpdateRewritingsCase(unittest.TestCase):
                                           for (z,) in R}))
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_relationalize_clauses(self):
+        comp = L.Parser.pe('{x for (x,) in R for y in S for z in t}')
+        symtab = S.SymbolTable()
+        symtab.define_query('Q', node=comp)
+        symtab.define_relation('R')
+        symtab.define_relation('S')
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', {x for (x,) in R for y in S for z in t}))
+            ''')
+        tree = relationalize_clauses(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q',
+                    {x for (x,) in REL(R) for (y,) in VARS(wrap(S))
+                       for z in t}))
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':

@@ -284,6 +284,7 @@ def transform_ast(input_ast, *, options=None):
     
     # Rewrite in the pair-domain, if the program is object-domain.
     if config.obj_domain:
+        tree = relation_rewritings.relationalize_clauses(tree, symtab)
         tree = flatten_objdomain(tree, symtab)
         symtab.clausetools = ObjClauseTools()
     else:

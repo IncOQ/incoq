@@ -8,6 +8,7 @@ __all__ = [
     'unspecialize_rels_and_maps',
     'expand_clear',
     'relationalize_comp_queries',
+    'relationalize_clauses',
 ]
 
 
@@ -339,4 +340,41 @@ def relationalize_comp_queries(tree, symtab):
     # result expression on the RHS), so we don't need to incrementalize
     # anything else first.
     tree = transform_all_wraps(tree, symtab)
+    return tree
+
+
+def relationalize_clauses(tree, symtab):
+    """Rewrite clauses whose RHS is a relation and whose LHS is either a
+    variable or tuple of variables as a VarsMember or RelMember
+    respectively.
+    """
+    def process(expr):
+        if not (isinstance(expr, L.Member) and
+                isinstance(expr.iter, L.Name) and
+                expr.iter.id in symtab.get_relations()):
+            return expr, [], []
+        target = expr.target
+        rel = expr.iter.id
+        
+        if L.is_tuple_of_names(target):
+            cl = L.RelMember(L.detuplify(target), rel)
+        elif isinstance(target, L.Name):
+            cl = L.VarsMember([target.id], L.Wrap(L.Name(rel)))
+        else:
+            raise L.ProgramError('Invalid clause over relation')
+        
+        return cl, [], []
+    
+    class Rewriter(S.QueryRewriter):
+        def rewrite(self, symbol, name, expr):
+            if not isinstance(expr, L.Comp):
+                return
+            if symbol.impl is S.Normal:
+                return
+            comp = expr
+            
+            comp = L.rewrite_comp(comp, process)
+            return comp
+    
+    tree = Rewriter.run(tree, symtab)
     return tree
