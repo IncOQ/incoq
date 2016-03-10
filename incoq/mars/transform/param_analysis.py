@@ -158,8 +158,9 @@ class ScopeBuilder(L.NodeVisitor):
     # processed. At the end, we flatten the scope stacks into singular
     # sets.
     
-    def __init__(self, *, bindenv=None):
+    def __init__(self, clausetools, *, bindenv=None):
         super().__init__()
+        self.clausetools = clausetools
         if bindenv is None:
             bindenv = []
         self.bindenv = OrderedSet(bindenv)
@@ -228,24 +229,17 @@ class ScopeBuilder(L.NodeVisitor):
         self.generic_visit(node)
     
     def visit_Comp(self, node):
+        ct = self.clausetools
+        
         self.enter()
+        
+        for cl in node.clauses:
+            vars = ct.lhs_vars(cl)
+            for v in vars:
+                self.bind(v)
+        
         self.generic_visit(node)
         self.exit()
-    
-    def visit_RelMember(self, node):
-        for v in node.vars:
-            self.bind(v)
-        self.generic_visit(node)
-    
-    def visit_SingMember(self, node):
-        for v in node.vars:
-            self.bind(v)
-        self.generic_visit(node)
-    
-    def visit_VarsMember(self, node):
-        for v in node.vars:
-            self.bind(v)
-        self.generic_visit(node)
 
 
 class ContextTracker(L.NodeTransformer):
@@ -600,7 +594,7 @@ class DemandTransformer(ContextTracker):
 
 def analyze_params(tree, symtab):
     """Determine params symbol attributes for all queries."""
-    scope_info = ScopeBuilder.run(tree)
+    scope_info = ScopeBuilder.run(tree, symtab.clausetools)
     ParamAnalyzer.run(tree, symtab, scope_info)
 
 

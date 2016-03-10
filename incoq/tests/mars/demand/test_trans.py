@@ -19,6 +19,7 @@ class TransCase(unittest.TestCase):
     def test_transform_comp_query_with_filtering(self):
         symtab = S.SymbolTable()
         symtab.clausetools = ClauseTools()
+        symtab.config = S.Config()
         comp = L.Parser.pe('''
             {(z,) for (w, x) in REL(U) for (x, y) in M() for (y, z) in M()}
             ''')

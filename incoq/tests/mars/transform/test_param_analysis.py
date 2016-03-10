@@ -104,7 +104,7 @@ class ParamAnalysisCase(unittest.TestCase):
             def test():
                 print(QUERY('Q', {(x, y) for (x, y) in REL(R)}))
             ''')
-        scope_info = ScopeBuilder.run(tree, bindenv=['a'])
+        scope_info = ScopeBuilder.run(tree, self.ct, bindenv=['a'])
         scopes = []
         for k, (node, scope) in scope_info.items():
             # Check that the query is listed twice and the ids of the
@@ -115,6 +115,22 @@ class ParamAnalysisCase(unittest.TestCase):
         exp_scopes = [{'a', 'main', 'test', 'x', 'z'}, {'a', 'main', 'test'}]
         # Check the contents of the scopes.
         self.assertCountEqual(scopes, exp_scopes)
+        
+        # Nested case.
+        query = L.Parser.pe("QUERY('Q1', {(x, y) for (x, y) in REL(S)})")
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q2', {x for (x,) in REL(R) for (x,) in
+                    VARS(QUERY('Q1', {(x, y) for (x, y) in REL(S)}))}))
+            ''')
+        scope_info = ScopeBuilder.run(tree, self.ct)
+        for (node, scope) in scope_info.values():
+            if node == query:
+                break
+        else:
+            assert()
+        exp_scope = {'main', 'x'}
+        self.assertEqual(scope, exp_scope)
     
     def test_context_tracker(self):
         _self = self
@@ -215,7 +231,7 @@ class ParamAnalysisCase(unittest.TestCase):
                 y = 1
                 print(QUERY('Q', {(x,) for (x,) in REL(R) if x > y}))
             ''')
-        scope_info = ScopeBuilder.run(tree)
+        scope_info = ScopeBuilder.run(tree, symtab.clausetools)
         tree = ParamAnalyzer.run(tree, symtab, scope_info)
         self.assertEqual(query_sym.params, ('y',))
         
@@ -232,7 +248,7 @@ class ParamAnalysisCase(unittest.TestCase):
                 y = 1
                 print(QUERY('Q', {(x,) for (x,) in REL(R) if x > y}))
             ''')
-        scope_info = ScopeBuilder.run(tree)
+        scope_info = ScopeBuilder.run(tree, symtab.clausetools)
         with self.assertRaises(L.ProgramError):
             tree = ParamAnalyzer.run(tree, symtab, scope_info)
     
@@ -257,7 +273,7 @@ class ParamAnalysisCase(unittest.TestCase):
                 print(QUERY('Q3', {z for (z,) in REL(S) if z > QUERY('Q2',
                     count(QUERY('Q1', {(x,) for (x,) in REL(R) if x > y})))}))
             ''')
-        scope_info = ScopeBuilder.run(tree)
+        scope_info = ScopeBuilder.run(tree, symtab.clausetools)
         
         tree = ParamAnalyzer.run(tree, symtab, scope_info)
         self.assertEqual(query_sym1.params, ('y',))
