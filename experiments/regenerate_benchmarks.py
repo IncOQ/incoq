@@ -17,20 +17,19 @@ from incoq.mars import __main__ as main
 
 
 # Input file, output file, dictionary of config options.
-tasks = [
-    # Twitter.
+twitter_tasks = [
     ('twitter/twitter_in', 'twitter/twitter_inc',
      {'default_impl': S.Inc}),
     ('twitter/twitter_in', 'twitter/twitter_dem',
      {'default_impl': S.Filtered}),
-    
-    # Wifi.
+]
+wifi_tasks = [
     ('wifi/wifi_in', 'wifi/wifi_inc',
      {'default_impl': S.Inc}),
     ('wifi/wifi_in', 'wifi/wifi_dem',
      {'default_impl': S.Filtered}),
-    
-    # Django.
+]
+django_tasks = [
     ('django/django_in', 'django/django_inc',
      {'default_impl': S.Inc}),
     ('django/django_in', 'django/django_dem',
@@ -40,6 +39,73 @@ tasks = [
     ('django/django_simp_in', 'django/django_simp_dem',
      {'default_impl': S.Filtered}),
 ]
+jql_tasks = [
+    ('jql/jql_1_in', 'jql/jql_1_inc',
+     {'default_impl': S.Inc}),
+    ('jql/jql_1_in', 'jql/jql_1_dem',
+     {'default_impl': S.Filtered}),
+    ('jql/jql_2_in', 'jql/jql_2_inc',
+     {'default_impl': S.Inc}),
+    ('jql/jql_2_in', 'jql/jql_2_dem',
+     {'default_impl': S.Filtered}),
+    ('jql/jql_3_in', 'jql/jql_3_inc',
+     {'default_impl': S.Inc}),
+    ('jql/jql_3_in', 'jql/jql_3_dem',
+     {'default_impl': S.Filtered}),
+]
+graddb_tasks = [
+    ('graddb/newstudents/newstu_in',
+     'graddb/newstudents/newstu_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+    
+    ('graddb/queries/advisor_overdue_in',
+     'graddb/queries/advisor_overdue_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+    ('graddb/queries/advisors_by_student_in',
+     'graddb/queries/advisors_by_student_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+    ('graddb/queries/cur_stu_in',
+     'graddb/queries/cur_stu_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+    ('graddb/queries/good_tas_in',
+     'graddb/queries/good_tas_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+    ('graddb/queries/new_stu_in',
+     'graddb/queries/new_stu_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+    ('graddb/queries/new_ta_emails_in',
+     'graddb/queries/new_ta_emails_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+    ('graddb/queries/prelim_exam_overdue_in',
+     'graddb/queries/prelim_exam_overdue_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+    ('graddb/queries/qual_exam_results_in',
+     'graddb/queries/qual_exam_results_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+    ('graddb/queries/ta_waitlist_in',
+     'graddb/queries/ta_waitlist_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+    ('graddb/queries/tas_and_instructors_in',
+     'graddb/queries/tas_and_instructors_dem',
+     {'obj_domain': True, 'default_impl': S.Filtered}),
+]
+other_tasks = [
+    ('other/bday/bday_in',
+     'other/bday/bday_inc',
+     {'obj_domain': True, 'default_impl': S.Inc, 'auto_query': True}),
+]
+
+task_lists = [
+    ('twitter', twitter_tasks),
+    ('wifi', wifi_tasks),
+    ('django', django_tasks),
+    ('jql', jql_tasks),
+    ('graddb', graddb_tasks),
+    ('other', other_tasks),
+]
+task_groups = dict(task_lists)
+
+tasks = [t for _, tasks in task_lists for t in tasks]
 
 tasks_by_target = {t[1]: t for t in tasks}
 
@@ -67,11 +133,13 @@ def compile_task_names(target_names, *, options=None):
     chdir(root_path)
     ts = []
     for name in target_names:
-        if name not in tasks_by_target:
+        if name in tasks_by_target:
+            ts.append(tasks_by_target[name])
+        elif name in task_groups:
+            ts.extend(task_groups[name])
+        else:
             raise ValueError('Unknown task target "{}"'.format(name))
-        t = tasks_by_target[name]
-        ts.append(t)
-    
+        
     for t in ts:
         compile_task(t, options=options)
 
