@@ -43,7 +43,7 @@ class Planner:
     accepting states.
     """
     
-    def process(self, state, first_only=False):
+    def process(self, state, *, first_only, backtracking):
         """Return a pair of a list of accepting states that are
         reachable from the given state, and a bool indicating whether
         or not a cut was performed.
@@ -53,33 +53,49 @@ class Planner:
         then as soon as the first accepting state is found, it will be
         returned and the cut flag will be True; if no accepting state
         is found then an empty list and False will be returned.
+        
+        If backtracking is False, a cut will be performed after every
+        branch. Thus, either a greedy search finds the answer or the
+        search fails.
         """
         if state.final() and state.succeeds():
-            return [state], first_only
+            cut = first_only or not backtracking
+            return [state], cut
         
         results = []
         succ = state.get_successors()
         for state in succ:
-            subresults, cut = self.process(state, first_only=first_only)
+            subresults, cut = self.process(state,
+                                           first_only=first_only,
+                                           backtracking=backtracking)
             if cut:
                 # Propagate the lone result and cut flag.
                 return subresults, True
             results.extend(subresults)
         
-        return results, False
+        cut = not backtracking
+        return results, cut
     
     def get_all_answers(self, init_state):
         """Return all answers obtained from an initial state.
         (No duplicate elimination is performed.)
         """
-        states, _ = self.process(init_state)
+        states, _ = self.process(init_state,
+                                 first_only=False,
+                                 backtracking=True)
         return [s.get_answer() for s in states]
     
-    def get_first_answer(self, init_state):
+    def get_first_answer(self, init_state, *, backtracking=True):
         """As above, but return the first answer instead of a list,
         or raise ValueError if there is no answer.
         """
-        states, _ = self.process(init_state, first_only=True)
+        states, _ = self.process(init_state,
+                                 first_only=True,
+                                 backtracking=backtracking)
         if len(states) == 0:
             raise ValueError('No solution found')
         return states[0].get_answer()
+    
+    def get_greedy_answer(self, init_state):
+        return self.get_first_answer(init_state,
+                                     backtracking=False)

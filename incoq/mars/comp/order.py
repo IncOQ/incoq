@@ -59,4 +59,4 @@ def order_clauses(clausevisitor, clauses):
     is best (lowest number). Return the ordered clauses as a list.
     """
     init = OrderState(clausevisitor, set(), [], OrderedSet(clauses))
-    return Planner().get_first_answer(init)
+    return Planner().get_greedy_answer(init)
