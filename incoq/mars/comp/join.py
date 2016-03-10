@@ -216,6 +216,10 @@ class ClauseTools(ClauseVisitor):
         
         new_clauses = []
         for cl in comp.clauses:
+            if self.kind(cl) is Kind.Cond:
+                new_clauses.append(cl)
+                continue
+            
             seen_here = set()
             eqs = []
             

@@ -137,6 +137,11 @@ class JoinCase(unittest.TestCase):
         exp_comp = L.Parser.pe('''{x for (x, x_2) in REL(R) if x == x_2
                                      for (x, y, x_3) in REL(R) if x == x_3}''')
         self.assertEqual(comp, exp_comp)
+        
+        comp = L.Parser.pe('{x for (x,) in REL(R) if x < x}')
+        exp_comp = comp
+        comp = self.ct.elim_sameclause_eqs(comp)
+        self.assertEqual(comp, exp_comp)
     
     def test_rewrite_resexp_with_params(self):
         comp = L.Parser.pe('''{(2 * y,) for (x, y) in REL(R)}''')
