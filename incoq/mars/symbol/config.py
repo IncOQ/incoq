@@ -82,6 +82,12 @@ all_attributes = [
         'rewrite singleton relations to eliminate unneeded tuples',
         parse_bool,
         {'action': 'store_true'}),
+    
+    ConfigAttribute('auto_query', False,
+        'if true, automatically wrap comprehensions and aggregates '
+        'in QUERY annotations',
+        parse_bool,
+        {'action': 'store_true'}),
 ]
 
 

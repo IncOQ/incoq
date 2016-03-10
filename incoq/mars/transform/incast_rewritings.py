@@ -229,7 +229,8 @@ def incast_preprocess(tree, *, fresh_vars, query_name_map):
     
     # Check to make sure certain general-case IncAST nodes
     # aren't used.
-    disallow_features(tree)
+    ### Disabled at the moment.
+#    disallow_features(tree)
     
     # Check to make sure annotations are well-formed.
     check_annotations(tree)

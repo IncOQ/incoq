@@ -30,7 +30,8 @@ from incoq.mars.obj import (ObjClauseVisitor, flatten_objdomain,
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
 from . import relation_rewritings
-from .misc_rewritings import rewrite_vars_clauses, lift_firstthen
+from .misc_rewritings import (mark_query_forms, rewrite_vars_clauses,
+                              lift_firstthen)
 from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
                              transform_demand)
@@ -151,11 +152,6 @@ def preprocess_tree(tree, symtab):
     for name, d in query_name_attrs.items():
         symtab.apply_symconfig(name, d)
     
-    # Set global default values.
-    for q in symtab.get_queries().values():
-        if q.impl is S.Unspecified:
-            q.impl = symtab.config.default_impl
-    
     return tree
 
 
@@ -248,6 +244,14 @@ def transform_ast(input_ast, *, options=None):
     symtab = S.SymbolTable()
     symtab.config = config
     tree = preprocess_tree(tree, symtab)
+    
+    if config.auto_query:
+        tree = mark_query_forms(tree, symtab)
+    
+    # Set global default values.
+    for q in symtab.get_queries().values():
+        if q.impl is S.Unspecified:
+            q.impl = symtab.config.default_impl
     
     # Replace membership conditions with membership clauses.
     tree = relation_rewritings.rewrite_memberconds(tree, symtab)
