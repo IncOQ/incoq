@@ -36,23 +36,19 @@ from .param_analysis import (analyze_params, analyze_demand_params,
                              transform_demand)
 
 
-def print(*args, **kargs):
-    builtins.print(*args, flush=True, **kargs)
-
-
 class ObjClauseTools(CoreClauseTools, ObjClauseVisitor):
     pass
 
 
 def debug_symbols(symtab, illtyped, badsyms):
-    print('---- Symbol info ----')
-    print(symtab.dump_symbols())
-    print('---- Ill-typed nodes ----')
+    symtab.print('---- Symbol info ----')
+    symtab.print(symtab.dump_symbols())
+    symtab.print('---- Ill-typed nodes ----')
     for node in illtyped:
-        print(L.Parser.ts(node))
-    print('---- Ill-typed symbols ----')
-    print(', '.join(sym.name for sym in symtab.symbols.values()
-                             if sym in badsyms))
+        symtab.print(L.Parser.ts(node))
+    symtab.print('---- Ill-typed symbols ----')
+    symtab.print(', '.join(sym.name for sym in symtab.symbols.values()
+                                    if sym in badsyms))
 
 
 class QueryNodeFinder(L.NodeVisitor):
@@ -189,6 +185,7 @@ def transform_query(tree, symtab, query):
             success = True
         
         elif query.impl == S.Filtered:
+            symtab.print('  Comp: ' + L.Parser.ts(query.node))
             tree = transform_comp_query_with_filtering(tree, symtab, query)
             success = True
         
@@ -219,27 +216,20 @@ def transform_query(tree, symtab, query):
 
 
 def transform_queries(tree, symtab):
-    if symtab.config.verbose:
-        print_verbose = print
-    else:
-        def print_verbose(*args, **kargs):
-            pass
-    
     def findnext():
         return QueryNodeFinder.run(tree, first=True,
                                    ignore=symtab.ignored_queries)
     
+    symtab.print('==== Incrementalizing queries ====')
     result = findnext()
     while result is not None:
         query_name, _query_node = result
-        print_verbose('Incrementalizing {}...'.format(query_name), end='')
+        symtab.print('Incrementalizing {}...'.format(query_name))
         query = symtab.get_queries()[query_name]
         tree, success = transform_query(tree, symtab, query)
         if not success:
-            print_verbose('  FAILED')
+            symtab.print('  FAILED')
             symtab.ignored_queries.add(query_name)
-        else:
-            print_verbose()
         result = findnext()
     return tree
 
@@ -279,8 +269,7 @@ def transform_ast(input_ast, *, options=None):
     # Run type inference.
     illtyped, badsyms = symtab.run_type_inference(tree)
     
-    if config.verbose:
-        debug_symbols(symtab, illtyped, badsyms)
+#    debug_symbols(symtab, illtyped, badsyms)
     
     # Rewrite in the pair-domain, if the program is object-domain.
     if config.obj_domain:
@@ -316,15 +305,14 @@ def transform_ast(input_ast, *, options=None):
     # Incrementalize queries.
     tree = transform_queries(tree, symtab)
     
-    if config.verbose:
-        print('---- Ignored queries ----')
-        for sym in symtab.get_queries().values():
-            if sym.name in symtab.ignored_queries:
-                print('{:<10} {}'.format(sym.name + ':',
-                                        L.Parser.ts(sym.node)))
+#    if config.verbose:
+#        print('---- Ignored queries ----')
+#        for sym in symtab.get_queries().values():
+#            if sym.name in symtab.ignored_queries:
+#                print('{:<10} {}'.format(sym.name + ':',
+#                                        L.Parser.ts(sym.node)))
     
-    if config.verbose:
-        print('Incrementalizing auxiliary maps')
+    symtab.print('Incrementalizing auxiliary maps')
     
     # Lift FirstThen nodes above Unwrap nodes so Unwraps can be
     # incrementalized.
@@ -338,8 +326,9 @@ def transform_ast(input_ast, *, options=None):
     
     if config.unwrap_singletons:
         tree, rel_names = unwrap_singletons(tree, symtab)
-        if config.verbose and len(rel_names) > 0:
-            print('Unwrapped relations: ' + ', '.join(sorted(rel_names)))
+        if len(rel_names) > 0:
+            symtab.print('Unwrapped relations: ' +
+                         ', '.join(sorted(rel_names)))
     
     # Get comment header.
     header = []

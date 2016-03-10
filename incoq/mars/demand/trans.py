@@ -29,6 +29,7 @@ def transform_comp_query_with_filtering(tree, symtab, query):
     generator.make_structs()
     generator.simplify_names()
     for struct in generator.structs:
+        symtab.print('  Tag/Filter: {}'.format(struct.name))
         comp = generator.make_comp(struct)
         maint_join_query = symtab.define_query(struct.name, node=comp)
         tree = transform_comp_query(tree, symtab, maint_join_query)

@@ -8,6 +8,7 @@ __all__ = [
 ]
 
 
+import builtins
 from collections import OrderedDict
 from itertools import count
 from types import SimpleNamespace
@@ -147,6 +148,10 @@ class SymbolTable:
         
         self.ignored_queries = OrderedSet()
         """Names of queries that cannot or should not be processed."""
+    
+    def print(self, *args, flush=True, **kargs):
+        if self.config.verbose:
+            builtins.print(*args, flush=flush, **kargs)
     
     def define_symbol(self, name, kind, **kargs):
         """Define a new symbol of the given kind. Return the symbol."""
