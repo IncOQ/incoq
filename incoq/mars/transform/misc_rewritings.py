@@ -59,11 +59,6 @@ def mark_query_forms(tree, symtab):
     
     class Rewriter(S.QueryRewriter):
         def rewrite(self, symbol, name, expr):
-            if not isinstance(expr, L.Comp):
-                return
-            if symbol.impl is S.Normal:
-                return
-            
             return Marker.run(expr, skipfirst=True)
     
     # Use a rewriter so that we process comps and aggregates appearing

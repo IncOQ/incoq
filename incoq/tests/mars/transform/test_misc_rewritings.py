@@ -14,22 +14,31 @@ class MiscRewritingsCase(unittest.TestCase):
         comp = L.Parser.pe('''
             {(a,) for (a,) in VARS({(b,) for (b,) in REL(R)})}
             ''')
+        aggr = L.Parser.pe('''
+            count({(b,) for (b,) in REL(R)})
+            ''')
         symtab = S.SymbolTable()
         symtab.define_query('Q', node=comp)
+        symtab.define_query('A', node=aggr)
         tree = L.Parser.p('''
             def main():
                 print(QUERY('Q', {(a,) for (a,) in VARS(
                                        {(b,) for (b,) in REL(R)})}))
                 print({(b,) for (b,) in REL(R)})
+                print(QUERY('A', count({(b,) for (b,) in REL(R)})))
             ''')
         tree = mark_query_forms(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
                 print(QUERY('Q', {(a,) for (a,) in VARS(QUERY('Query1',
                                        {(b,) for (b,) in REL(R)}))}))
-                print(QUERY('Query2', {(b,) for (b,) in REL(R)}))
+                print(QUERY('Query3', {(b,) for (b,) in REL(R)}))
+                print(QUERY('A', count(QUERY('Query2',
+                    {(b,) for (b,) in REL(R)}))))
             ''')
         self.assertEqual(tree, exp_tree)
+        # Check consistency.
+        S.QueryRewriter.run(tree, symtab)
     
     def test_rewrite_vars_clauses(self):
         comp1 = L.Parser.pe('{(a, b) for (a, b) in REL(R)}')
