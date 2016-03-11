@@ -201,7 +201,7 @@ class CompMaintainer(L.NodeTransformer):
                         counted=self.counted)
                 funcs.append(func)
         
-        node = node._replace(decls=tuple(funcs) + node.decls)
+        node = node._replace(body=tuple(funcs) + node.body)
         return node
     
     def visit_RelUpdate(self, node):

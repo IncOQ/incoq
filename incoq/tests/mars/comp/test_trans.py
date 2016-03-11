@@ -199,7 +199,7 @@ class TransCase(unittest.TestCase):
                 print(QUERY('Q', {(x,) for (x,) in REL(R)}))
             ''')
         tree = incrementalize_comp(tree, symtab, query, 'R_Q')
-        for decl in tree.decls:
+        for decl in tree.body:
             if decl.name == 'main':
                 func = decl
                 break
@@ -227,7 +227,7 @@ class TransCase(unittest.TestCase):
                 print(QUERY('Q', {(x, 2 * y,) for (x, y) in REL(R)}))
             ''')
         tree = incrementalize_comp(tree, symtab, query, 'R_Q')
-        for decl in tree.decls:
+        for decl in tree.body:
             if decl.name == 'main':
                 func = decl
                 break

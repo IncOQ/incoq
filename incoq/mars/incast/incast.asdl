@@ -1,18 +1,17 @@
 module IncAST
 {
-    -- Unlike Python, IncAST only allows functions at the top level.
-    -- Entry-point actions can be point in a main() function.
-    mod = Module(decl* decls)
-    
-    -- Function definition omits fancy Python features like
-    -- decorators, annotations, and special kinds of arguments.
-    decl = Fun(identifier name, identifier* args, stmt* body)
-         | Import(alias* names)
-         | ImportFrom(identifier? module, alias* names, int? level)
+    mod = Module(stmt* body)
     
     stmt = Comment(string text)
            -- Python strips comments during lexing.
            -- We keep it in the AST.
+         
+           -- Function definition omits fancy Python features like
+           -- decorators, annotations, and special kinds of arguments.
+         | Fun(identifier name, identifier* args, stmt* body)
+         
+         | Import(alias* names)
+         | ImportFrom(identifier? module, alias* names, int? level)
          
          | Assert(expr test)
          

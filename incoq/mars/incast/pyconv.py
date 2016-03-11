@@ -34,8 +34,9 @@ def is_valid_identifier(s):
 # translation is simply to map the conversion function to each of
 # the node's children.
 trivial_nodes = [
-    # Import and ImportFrom are trivial, but they need their own
-    # handler to enforce that they can only appear at the top level.
+    'Module',
+    
+    'Import', 'ImportFrom',
     
     'Return', 'If', 'Expr', 'Pass', 'Break', 'Continue',
     
@@ -134,18 +135,7 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     # Visitors for trivial nodes are auto-generated below
     # the class definition.
     
-    def visit_Module(self, node):
-        allowed = (P.FunctionDef, P.Import, P.ImportFrom)
-        if not all(isinstance(stmt, allowed) for stmt in node.body):
-            raise ASTErr('IncAST only allows function definitions and '
-                         'imports at the top level')
-        return L.Module(self.visit(node.body))
-    
     def visit_FunctionDef(self, node):
-        if (len(self._visit_stack) >= 3 and
-            not isinstance(self._visit_stack[-3], P.Module)):
-            raise ASTErr('IncAST does not allow non-top-level functions')
-        
         a = node.args
         if not (a.vararg is a.kwarg is None and
                 a.kwonlyargs == a.kw_defaults == a.defaults and
@@ -253,20 +243,6 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         if node.msg is not None:
             raise ASTErr('IncAST does not allow msg for assert')
         return L.Assert(self.visit(node.test))
-    
-    def visit_Import(self, node):
-        if (len(self._visit_stack) >= 3 and
-            not isinstance(self._visit_stack[-3], P.Module)):
-            raise ASTErr('IncAST only allows imports at the top level')
-        
-        return self.trivial_helper(node)
-    
-    def visit_ImportFrom(self, node):
-        if (len(self._visit_stack) >= 3 and
-            not isinstance(self._visit_stack[-3], P.Module)):
-            raise ASTErr('IncAST only allows imports at the top level')
-        
-        return self.trivial_helper(node)
     
     def visit_SetComp(self, node):
         clauses = []
@@ -805,20 +781,11 @@ class IncLangNodeExporter(NodeMapper):
     # Visitors for trivial nodes are auto-generated below
     # the class definition.
     
-    def visit_Module(self, node):
-        return P.Module(self.visit(node.decls))
-    
     def visit_Fun(self, node):
         args = P.arguments([P.arg(a, None) for a in node.args],
                            None, [], [], None, [])
         return P.FunctionDef(node.name, args, self.visit(node.body),
                              [], None)
-    
-    def visit_Import(self, node):
-        return self.trivial_helper(node)
-    
-    def visit_ImportFrom(self, node):
-        return self.trivial_helper(node)
     
     def visit_Comment(self, node):
         return P.Expr(P.Call(self.name_helper('COMMENT'),

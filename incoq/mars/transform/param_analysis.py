@@ -519,7 +519,7 @@ class DemandTransformer(ContextTracker):
             func = make_demand_func(query)
             funcs.append(func)
         
-        node = node._replace(decls=tuple(funcs) + node.decls)
+        node = node._replace(body=tuple(funcs) + node.body)
         return node
     
     def rewrite_with_demand(self, query_sym, node):

@@ -382,7 +382,7 @@ class InvariantTransformer(L.NodeTransformer):
                     func = make_wrap_maint_func(self.fresh_vars, wrap, op)
                     funcs.append(func)
         
-        node = node._replace(decls=tuple(funcs) + node.decls)
+        node = node._replace(body=tuple(funcs) + node.body)
         return node
     
     def visit_RelUpdate(self, node):

@@ -126,17 +126,12 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.Module([L.Fun('f', [], [L.Pass()])])
         self.assertEqual(tree, exp_tree)
         
-        # Disallow inner functions.
-        with self.assertRaises(IncASTConversionError):
-            Parser.p('''
-                def f():
-                    def g():
-                        pass
-                ''')
-        
-        # Modules must consist of functions.
-        with self.assertRaises(IncASTConversionError):
-            Parser.p('x = 1')
+        # Allow inner functions, I guess.
+        tree = Parser.p('''
+            def f():
+                def g():
+                    pass
+            ''')
     
     def test_imports(self):
         tree = Parser.p('''
@@ -146,13 +141,6 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.Module([L.Import([L.alias('foo', None)]),
                              L.ImportFrom('foo', [L.alias('bar', None)], 0)])
         self.assertEqual(tree, exp_tree)
-        
-        # Disallow non-top-level imports.
-        with self.assertRaises(IncASTConversionError):
-            Parser.p('''
-                def f():
-                    import foo
-                ''')
     
     def test_comment(self):
         tree = Parser.ps("COMMENT('Text')")

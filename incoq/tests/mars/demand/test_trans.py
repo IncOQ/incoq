@@ -31,7 +31,7 @@ class TransCase(unittest.TestCase):
             ''')
         tree = transform_comp_query_with_filtering(tree, symtab, query)
         
-        func = {d.name: d for d in tree.decls}['_maint_R_Q_for__M_add']
+        func = {d.name: d for d in tree.body}['_maint_R_Q_for__M_add']
         exp_func = L.Parser.ps('''
             def _maint_R_Q_for__M_add(_elem):
                 (_v3_x, _v3_y) = _elem
@@ -55,7 +55,7 @@ class TransCase(unittest.TestCase):
             ''')
         self.assertEqual(func, exp_func)
         
-        func = {d.name: d for d in tree.decls} \
+        func = {d.name: d for d in tree.body} \
                 ['_maint_R_Q_d_M_2_for_R_Q_T_y_add']
         exp_func = L.Parser.ps('''
             def _maint_R_Q_d_M_2_for_R_Q_T_y_add(_elem):

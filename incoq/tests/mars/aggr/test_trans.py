@@ -155,9 +155,9 @@ class TransCase(unittest.TestCase):
                 R.relclear()
             ''')
         tree = AggrMaintainer.run(tree, N.fresh_name_generator(), aggrinv)
-        self.assertEqual(tree.decls[0].name, '_maint_A_for_R_add')
-        self.assertEqual(tree.decls[1].name, '_maint_A_for_R_remove')
-        main = tree.decls[2]
+        self.assertEqual(tree.body[0].name, '_maint_A_for_R_add')
+        self.assertEqual(tree.body[1].name, '_maint_A_for_R_remove')
+        main = tree.body[2]
         exp_main = L.Parser.ps('''
             def main():
                 R.reladd(x)
@@ -182,11 +182,11 @@ class TransCase(unittest.TestCase):
                 U.relclear()
             ''')
         tree = AggrMaintainer.run(tree, N.fresh_name_generator(), aggrinv)
-        self.assertEqual(tree.decls[0].name, '_maint_A_for_R_add')
-        self.assertEqual(tree.decls[1].name, '_maint_A_for_R_remove')
-        self.assertEqual(tree.decls[2].name, '_maint_A_for_U_add')
-        self.assertEqual(tree.decls[3].name, '_maint_A_for_U_remove')
-        main = tree.decls[4]
+        self.assertEqual(tree.body[0].name, '_maint_A_for_R_add')
+        self.assertEqual(tree.body[1].name, '_maint_A_for_R_remove')
+        self.assertEqual(tree.body[2].name, '_maint_A_for_U_add')
+        self.assertEqual(tree.body[3].name, '_maint_A_for_U_remove')
+        main = tree.body[4]
         exp_main = L.Parser.ps('''
             def main():
                 R.reladd(x)
@@ -265,7 +265,7 @@ class TransCase(unittest.TestCase):
             ''')
         
         tree = incrementalize_aggr(tree, symtab, query, 'A')
-        main = tree.decls[2]
+        main = tree.body[2]
         exp_main = L.Parser.ps('''
             def main():
                 R.add(x)
@@ -288,7 +288,7 @@ class TransCase(unittest.TestCase):
             ''')
         
         tree = incrementalize_aggr(tree, symtab, query, 'A')
-        main = tree.decls[4]
+        main = tree.body[4]
         exp_main = L.Parser.ps('''
             def main():
                 R.add(x)

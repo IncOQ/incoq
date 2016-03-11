@@ -260,7 +260,7 @@ class AggrMaintainer(L.NodeTransformer):
                 func = make_aggr_restr_maint_func(fv, self.aggrinv, op)
                 funcs.append(func)
         
-        node = node._replace(decls=tuple(funcs) + node.decls)
+        node = node._replace(body=tuple(funcs) + node.body)
         return node
     
     def visit_RelUpdate(self, node):
