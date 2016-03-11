@@ -1,14 +1,9 @@
 # JQL query, three levels.
 
-from incoq.runtime import *
+from incoq.mars.runtime import *
 
-OPTIONS(
-    obj_domain = True,
-)
-
-QUERYOPTIONS(
-    '{(a, s, c) for a in ATTENDS for s in STUDENTS for c in COURSES if a.course == COMP101 if a.student == s if a.course == c}',
-    uset_mode = 'all',
+CONFIG(
+    obj_domain = 'true',
 )
 
 class Student(Obj):
@@ -56,12 +51,14 @@ def replace_attends(old_a, new_s, new_c):
     return new_a
 
 def do_query(COMP101):
-    return {(a, s, c) for a in ATTENDS for s in STUDENTS for c in COURSES
-                      if a.course == COMP101 if a.student == s
-                      if a.course == c}
+    return QUERY('Q', {(a, s, c) for a in ATTENDS for s in STUDENTS
+                                 for c in COURSES
+                                 if a.course == COMP101 if a.student == s
+                                 if a.course == c})
 
 def do_query_nodemand(COMP101):
-    return NODEMAND({(a, s, c) for a in ATTENDS for s in STUDENTS
-                               for c in COURSES
-                               if a.course == COMP101 if a.student == s
-                               if a.course == c})
+    return QUERY('Q', {(a, s, c) for a in ATTENDS for s in STUDENTS
+                                 for c in COURSES
+                                 if a.course == COMP101 if a.student == s
+                                 if a.course == c},
+                 {'nodemand': True})
