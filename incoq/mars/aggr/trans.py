@@ -373,12 +373,13 @@ def incrementalize_aggr(tree, symtab, query, result_var):
                               L.tuplify(aggrinv.params), zero)
     lookup_expr = handler.make_projection_expr(state_expr)
     
-    class CompExpander(S.QueryRewriter):
+    class AggrExpander(S.QueryRewriter):
+        expand = True
         def rewrite(self, symbol, name, expr):
             if name == query.name:
                 return lookup_expr
     
-    tree = CompExpander.run(tree, symtab, expand=True)
+    tree = AggrExpander.run(tree, symtab)
     
     # Determine the result map's type and define its symbol.
     t_rel = get_rel_type(symtab, aggrinv.rel)

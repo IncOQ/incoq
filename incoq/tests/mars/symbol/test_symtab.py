@@ -249,6 +249,7 @@ class QueryRewriterCase(unittest.TestCase):
     
     def test_expand(self):
         class ZeroRewriter(QueryRewriter):
+            expand = True
             def rewrite(self, symbol, name, expr):
                 return L.Num(0)
         
@@ -258,7 +259,7 @@ class QueryRewriterCase(unittest.TestCase):
             def main():
                 print(QUERY('Q1', 1))
             ''')
-        tree = ZeroRewriter.run(tree, symtab, expand=True)
+        tree = ZeroRewriter.run(tree, symtab)
         
         exp_tree = L.Parser.p('''
             def main():

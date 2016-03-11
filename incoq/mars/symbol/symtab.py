@@ -278,16 +278,17 @@ class QueryRewriter(L.NodeTransformer):
     and the outer query definitions are rewritten to reflect the new
     inner query.
     
-    If expand is True, the symbol for the query is not changed, and all
-    occurrences of the query in the tree and in other query definitions
-    are replaced with the result of rewrite(), not wrapped in a Query
-    node.
+    If class attribute expand is True, the symbol for the query is not
+    changed, and all occurrences of the query in the tree and in other
+    query definitions are replaced with the result of rewrite(), not
+    wrapped in a Query node.
     """
     
-    def __init__(self, symtab, *, expand=False):
+    expand = False
+    
+    def __init__(self, symtab):
         super().__init__()
         self.symtab = symtab
-        self.expand = expand
     
     def process(self, tree):
         # Keep maps from each seen query name to its original expression

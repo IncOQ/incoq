@@ -320,7 +320,7 @@ def incrementalize_comp(tree, symtab, query, result_var):
     orig_arity = len(comp.resexp.elts) - len(query.params)
     
     class CompExpander(S.QueryRewriter):
-        
+        expand = True
         def rewrite(self, symbol, name, expr):
             if name == query.name:
                 if query.params == ():
@@ -329,7 +329,7 @@ def incrementalize_comp(tree, symtab, query, result_var):
                     mask = L.keymask_from_len(len(query.params), orig_arity)
                     return L.ImgLookup(L.Name(result_var), mask, query.params)
     
-    tree = CompExpander.run(tree, symtab, expand=True)
+    tree = CompExpander.run(tree, symtab)
     
     return tree
 
