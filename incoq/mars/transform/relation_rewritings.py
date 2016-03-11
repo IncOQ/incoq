@@ -31,13 +31,7 @@ def rewrite_memberconds(tree, symtab):
             return cl, [], []
     
     class WrapRewriter(S.QueryRewriter):
-        def rewrite(self, symbol, name, expr):
-            if not isinstance(expr, L.Comp):
-                return
-            if symbol.impl is S.Normal:
-                return
-            comp = expr
-            
+        def rewrite_comp(self, symbol, name, comp):
             comp = L.rewrite_comp(comp, process)
             return comp
     
@@ -273,13 +267,7 @@ def rewrite_with_unwraps(tree, symtab):
                 node = L.Unwrap(node)
             return node
         
-        def rewrite(self, symbol, name, expr):
-            if not isinstance(expr, L.Comp):
-                return
-            if symbol.impl is S.Normal:
-                return
-            comp = expr
-            
+        def rewrite_comp(self, symbol, name, comp):
             # No effect if it's already a tuple.
             if isinstance(comp.resexp, L.Tuple):
                 return
@@ -314,13 +302,7 @@ def rewrite_with_wraps(tree, symtab):
         return cl, [], []
     
     class WrapRewriter(S.QueryRewriter):
-        def rewrite(self, symbol, name, expr):
-            if not isinstance(expr, L.Comp):
-                return
-            if symbol.impl is S.Normal:
-                return
-            comp = expr
-            
+        def rewrite_comp(self, symbol, name, comp):
             comp = L.rewrite_comp(comp, process)
             return comp
     
@@ -366,13 +348,7 @@ def relationalize_clauses(tree, symtab):
         return cl, [], []
     
     class Rewriter(S.QueryRewriter):
-        def rewrite(self, symbol, name, expr):
-            if not isinstance(expr, L.Comp):
-                return
-            if symbol.impl is S.Normal:
-                return
-            comp = expr
-            
+        def rewrite_comp(self, symbol, name, comp):
             comp = L.rewrite_comp(comp, process)
             return comp
     

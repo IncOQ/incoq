@@ -82,12 +82,11 @@ class AggrMapCompRewriter(S.QueryRewriter):
         tree = super().process(tree)
         return tree, self.sfm_invs
     
-    def rewrite(self, symbol, name, expr):
-        if isinstance(expr, L.Comp):
-            rewriter = AggrMapReplacer(self.symtab.fresh_names.vars)
-            expr = L.rewrite_comp(expr, rewriter.process)
-            self.sfm_invs.update(rewriter.sfm_invs)
-            return expr
+    def rewrite_comp(self, symbol, name, comp):
+        rewriter = AggrMapReplacer(self.symtab.fresh_names.vars)
+        comp = L.rewrite_comp(comp, rewriter.process)
+        self.sfm_invs.update(rewriter.sfm_invs)
+        return comp
 
 
 def transform_comps_with_maps(tree, symtab):

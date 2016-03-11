@@ -151,19 +151,18 @@ class ClauseCase(unittest.TestCase):
                 {z for z in T}))}
             ''')
         symtab = S.SymbolTable()
-        symtab.define_query('Q1', node=comp1, impl=S.Inc)
-        symtab.define_query('Q2', node=comp2, impl=S.Normal)
+        symtab.define_query('Q1', node=comp1)
         tree = L.Parser.p('''
             def main():
-                print(QUERY('Q2', {x + o.f for o in S
-                    for (x,) in VARS(QUERY('Q1', {z for z in T}))}))
+                print({x + o.f for o in S
+                    for (x,) in VARS(QUERY('Q1', {z for z in T}))})
             ''')
         tree, objrels = flatten_all_comps(tree, symtab)
         exp_tree = L.Parser.p('''
             def main():
-                print(QUERY('Q2', {x + o.f for o in S
+                print({x + o.f for o in S
                     for (x,) in VARS(unwrap(QUERY('Q1',
-                    {(z,) for (T, z) in M()})))}))
+                    {(z,) for (T, z) in M()})))})
             ''')
         exp_objrels = ObjRelations(True, [], False, [])
         self.assertEqual(tree, exp_tree)

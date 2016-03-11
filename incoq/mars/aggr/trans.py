@@ -375,7 +375,7 @@ def incrementalize_aggr(tree, symtab, query, result_var):
     
     class AggrExpander(S.QueryRewriter):
         expand = True
-        def rewrite(self, symbol, name, expr):
+        def rewrite_aggr(self, symbol, name, expr):
             if name == query.name:
                 return lookup_expr
     

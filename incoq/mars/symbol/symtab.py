@@ -364,4 +364,16 @@ class QueryRewriter(L.NodeTransformer):
         is a new expression AST for the query, or None to indicate no
         change.
         """
-        pass
+        # By default, dispatch to rewrite_comp() or rewrite_aggr().
+        if isinstance(expr, L.Comp):
+            return self.rewrite_comp(symbol, name, expr)
+        elif isinstance(expr, (L.Aggr, L.AggrRestr)):
+            return self.rewrite_aggr(symbol, name, expr)
+        else:
+            return None
+    
+    def rewrite_comp(self, symbol, name, comp):
+        return None
+    
+    def rewrite_aggr(self, symbol, name, aggr):
+        return None

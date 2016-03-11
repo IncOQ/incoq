@@ -108,13 +108,8 @@ class VarsClausesRewriter(L.NodeTransformer):
 
 def rewrite_vars_clauses(tree, symtab):
     class Rewriter(S.QueryRewriter):
-        def rewrite(self, symbol, name, expr):
-            if not isinstance(expr, L.Comp):
-                return
-            if symbol.impl is S.Normal:
-                return
-            
-            return VarsClausesRewriter.run(expr)
+        def rewrite_comp(self, symbol, name, comp):
+            return VarsClausesRewriter.run(comp)
     
     return Rewriter.run(tree, symtab)
 

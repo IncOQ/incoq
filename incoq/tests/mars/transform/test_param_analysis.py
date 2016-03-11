@@ -131,6 +131,22 @@ class ParamAnalysisCase(unittest.TestCase):
             assert()
         exp_scope = {'main', 'x'}
         self.assertEqual(scope, exp_scope)
+        
+        # Nested case, outer comprehension unmarked.
+        query = L.Parser.pe("QUERY('Q1', {(x, y) for (x, y) in REL(S)})")
+        tree = L.Parser.p('''
+            def main():
+                print({x for (x,) in REL(R) for (x,) in
+                    VARS(QUERY('Q1', {(x, y) for (x, y) in REL(S)}))})
+            ''')
+        scope_info = ScopeBuilder.run(tree, self.ct)
+        for (node, scope) in scope_info.values():
+            if node == query:
+                break
+        else:
+            assert()
+        exp_scope = {'main', 'x'}
+        self.assertEqual(scope, exp_scope)
     
     def test_context_tracker(self):
         _self = self

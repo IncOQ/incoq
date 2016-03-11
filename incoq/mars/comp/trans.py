@@ -72,11 +72,10 @@ def process_maintjoins(tree, symtab, query):
     filters = query.filters
     
     class Rewriter(S.QueryRewriter):
-        def rewrite(self, symbol, name, expr):
+        def rewrite_comp(self, symbol, name, comp):
             if name not in maint_joins:
                 return
-            assert isinstance(expr, L.Comp)
-            clauses = expr.clauses
+            clauses = comp.clauses
             
             clause_indices = {cl: i for i, cl in enumerate(clauses)}
             clauses = order_clauses(ct, clauses)
@@ -92,7 +91,7 @@ def process_maintjoins(tree, symtab, query):
                 # Apply filtering.
                 clauses = ct.filter_clauses(clauses, reordered_filters, [])
             
-            return expr._replace(clauses=clauses)
+            return comp._replace(clauses=clauses)
     
     tree = Rewriter.run(tree, symtab)
     return tree
@@ -261,7 +260,7 @@ def preprocess_comp(tree, symtab, query):
     comp = rewrite_comp_resexp(symtab, query, comp)
     
     class Rewriter(S.QueryRewriter):
-        def rewrite(self, symbol, name, expr):
+        def rewrite_comp(self, symbol, name, _comp):
             if name == query.name:
                 return comp
     
@@ -321,7 +320,7 @@ def incrementalize_comp(tree, symtab, query, result_var):
     
     class CompExpander(S.QueryRewriter):
         expand = True
-        def rewrite(self, symbol, name, expr):
+        def rewrite_comp(self, symbol, name, comp):
             if name == query.name:
                 if query.params == ():
                     return L.Name(result_var)
@@ -364,14 +363,9 @@ def rewrite_all_comps_with_patterns(tree, symtab):
     are to be incrementalized. Parameter information must be available.
     """
     class Rewriter(S.QueryRewriter):
-        def rewrite(self, symbol, name, expr):
-            if not isinstance(expr, L.Comp):
-                return
-            if symbol.impl == S.Normal:
-                return
-            
+        def rewrite_comp(self, symbol, name, comp):
             ct = self.symtab.clausetools
-            comp = ct.rewrite_with_patterns(expr, symbol.params)
+            comp = ct.rewrite_with_patterns(comp, symbol.params)
             return comp
     
     return Rewriter.run(tree, symtab)

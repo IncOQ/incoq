@@ -292,15 +292,10 @@ def flatten_all_comps(tree, symtab):
                 node = L.Unwrap(node)
             return node
         
-        def rewrite(self, symbol, name, expr):
+        def rewrite_comp(self, symbol, name, comp):
             nonlocal objrels
-            if not isinstance(expr, L.Comp):
-                return
-            if symbol.impl is S.Normal:
-                return
             flattened_queries.add(name)
             
-            comp = expr
             comp, objrels1 = flatten_replaceables(comp)
             comp, objrels2 = flatten_memberships(comp)
             objrels = objrels.union(objrels1).union(objrels2)
@@ -339,11 +334,7 @@ def rewrite_aggregates(tree, symtab):
     comprehension subquery.
     """
     class Rewriter(S.QueryRewriter):
-        def rewrite(self, symbol, name, expr):
-            if not isinstance(expr, L.Aggr):
-                return
-            if symbol.impl is S.Normal:
-                return
+        def rewrite_aggr(self, symbol, name, expr):
             operand = expr.value
             
             if (isinstance(operand, L.Name) and
