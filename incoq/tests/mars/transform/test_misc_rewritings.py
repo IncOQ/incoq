@@ -40,6 +40,31 @@ class MiscRewritingsCase(unittest.TestCase):
         # Check consistency.
         S.QueryRewriter.run(tree, symtab)
     
+    def test_unmark_normal_impl(self):
+        comp1 = L.Parser.pe('''
+            {(a,) for (a,) in REL(R)}
+            ''')
+        comp2 = L.Parser.pe('''
+            count(QUERY('Q1', {(a,) for (a,) in REL(R)}))
+            ''')
+        symtab = S.SymbolTable()
+        symtab.define_query('Q1', node=comp1, impl=S.Inc)
+        symtab.define_query('Q2', node=comp2, impl=S.Normal)
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q2', count(QUERY('Q1',
+                    {(a,) for (a,) in REL(R)}))))
+            ''')
+        
+        tree = unmark_normal_impl(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                print(count(QUERY('Q1',
+                    {(a,) for (a,) in REL(R)})))
+            ''')
+        self.assertEqual(tree, exp_tree)
+        self.assertNotIn('Q2', symtab.get_queries())
+    
     def test_rewrite_vars_clauses(self):
         comp1 = L.Parser.pe('{(a, b) for (a, b) in REL(R)}')
         comp2 = L.Parser.pe('''

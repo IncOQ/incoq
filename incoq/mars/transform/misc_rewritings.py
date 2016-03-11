@@ -3,6 +3,7 @@
 
 __all__ = [
     'mark_query_forms',
+    'unmark_normal_impl',
     'rewrite_vars_clauses',
     'lift_firstthen',
 ]
@@ -67,6 +68,23 @@ def mark_query_forms(tree, symtab):
     # Then do another pass to get all the ones not in an outer query.
     tree = Marker.run(tree)
     
+    return tree
+
+
+def unmark_normal_impl(tree, symtab):
+    """Eliminate the Query node and symbol for queries with Normal impl."""
+    removed = set()
+    
+    class Rewriter(S.QueryRewriter):
+        expand = True
+        def rewrite(self, symbol, name, expr):
+            if symbol.impl is S.Normal:
+                removed.add(symbol)
+                return expr
+    
+    tree = Rewriter.run(tree, symtab)
+    for symbol in removed:
+        del symtab.symbols[symbol.name]
     return tree
 
 
