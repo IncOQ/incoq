@@ -133,6 +133,14 @@ class ParseImportCase(unittest.TestCase):
                     pass
             ''')
     
+    def test_classes(self):
+        tree = Parser.ps('''
+            class A(B):
+                pass
+            ''')
+        exp_tree = L.Class('A', [L.Name('B')], (L.Pass(),))
+        self.assertEqual(tree, exp_tree)
+    
     def test_imports(self):
         tree = Parser.p('''
             import foo
@@ -441,6 +449,12 @@ class RoundTripCase(unittest.TestCase):
         self.trip.ps('''
             def f(a, b):
                 print(a, b)
+            ''')
+    
+    def test_class(self):
+        self.trip.ps('''
+            class A(B):
+                pass
             ''')
     
     def test_imports(self):

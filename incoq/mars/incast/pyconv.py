@@ -138,13 +138,25 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_FunctionDef(self, node):
         a = node.args
         if not (a.vararg is a.kwarg is None and
-                a.kwonlyargs == a.kw_defaults == a.defaults and
+                a.kwonlyargs == a.kw_defaults == a.defaults == () and
                 all(a2.annotation is None for a2 in a.args)):
             raise ASTErr('IncAST does not allow functions with '
                          'default args, keyword-only args, '
-                         '*args, or **kwargs')
+                         '*args, **kwargs, or annotations')
+        if not (node.decorator_list == () and node.returns is None):
+            raise ASTErr('IncAST does not allow functions with '
+                         'decorators or annotations')
         args = [a2.arg for a2 in a.args]
         return L.Fun(node.name, args, self.visit(node.body))
+    
+    def visit_ClassDef(self, node):
+        if not (node.starargs is node.kwargs is None and
+                node.keywords == node.decorator_list == ()):
+            raise ASTErr('IncAST does not allow classes with '
+                         'keywords in the bases list, or with '
+                         'decorators')
+        return L.Class(node.name, self.visit(node.bases),
+                       self.visit(node.body))
     
     def visit_Delete(self, node):
         if len(node.targets) != 1:
@@ -786,6 +798,10 @@ class IncLangNodeExporter(NodeMapper):
                            None, [], [], None, [])
         return P.FunctionDef(node.name, args, self.visit(node.body),
                              [], None)
+    
+    def visit_Class(self, node):
+        return P.ClassDef(node.name, self.visit(node.bases), [],
+                          None, None, self.visit(node.body), [])
     
     def visit_Comment(self, node):
         return P.Expr(P.Call(self.name_helper('COMMENT'),

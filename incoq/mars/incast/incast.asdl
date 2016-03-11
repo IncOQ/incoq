@@ -9,6 +9,7 @@ module IncAST
            -- Function definition omits fancy Python features like
            -- decorators, annotations, and special kinds of arguments.
          | Fun(identifier name, identifier* args, stmt* body)
+         | Class(identifier name, expr* bases, stmt* body)
          
          | Import(alias* names)
          | ImportFrom(identifier? module, alias* names, int? level)

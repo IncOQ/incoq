@@ -115,9 +115,9 @@ class PassAdder(P.NodeTransformer):
     
     """Add a Pass statement to any empty suite."""
     
-    # Just handle FunctionDef, For, While, and If. Don't worry about
-    # other nodes. Don't touch the orelse field since it's allowed
-    # to be empty (indicating no orelse logic).
+    # Just handle FunctionDef, ClassDef, For, While, and If.
+    # Don't worry about other nodes. Don't touch the orelse field since
+    # it's allowed to be empty (indicating no orelse logic).
     
     def suite_helper(self, node):
         node = self.generic_visit(node)
@@ -127,6 +127,7 @@ class PassAdder(P.NodeTransformer):
         return node
     
     visit_FunctionDef = suite_helper
+    visit_ClassDef = suite_helper
     visit_For = suite_helper
     visit_While = suite_helper
     visit_If = suite_helper
