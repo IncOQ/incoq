@@ -9,6 +9,7 @@ import experiments.twitter as twitter
 import experiments.wifi as wifi
 import experiments.django as django
 import experiments.jql as jql
+import experiments.rbac as rbac
 import experiments.graddb.newstudents as newstudents
 #import experiments.mars.distalgo as distalgo
 
@@ -30,6 +31,12 @@ tasks = [
     ('jql_ratio_1',                     jql.Ratio1()),
     ('jql_ratio_2',                     jql.Ratio2()),
     ('jql_ratio_3',                     jql.Ratio3()),
+    
+    # RBAC.
+    ('corerbac_roles',                  rbac.corerbac.CoreRoles()),
+    ('corerbac_demand',                 rbac.corerbac.CoreDemand()),
+    ('corerbac_demand_norm',            rbac.corerbac.CoreDemandNorm()),
+    ('constrainedrbac',                 rbac.constrainedrbac.CRBACScale()),
     
     # Graddb.
     ('newstu_scale',                    newstudents.NewStudentsScale()),

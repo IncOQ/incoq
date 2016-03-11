@@ -81,8 +81,8 @@ class CRBACDriver:
             finished = self.run()
         
         if finished:
-            import incoq.runtime
-            self.results['size'] = incoq.runtime.get_total_structure_size(
+            import incoq.mars.runtime
+            self.results['size'] = incoq.mars.runtime.get_size_for_namespace(
                                     self.module.__dict__)
             self.results['time_user'] = timer_user.consume()
             self.results['time_cpu'] = timer_cpu.consume()
@@ -199,7 +199,7 @@ class CRBACScale(CRBACWorkflow):
         
         progs = [
             'crbac_orig',
-            'crbac_aux',
+#            'crbac_aux',
 #            'crbac_inc',
             'crbac_dem',
         ]

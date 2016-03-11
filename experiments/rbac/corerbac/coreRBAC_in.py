@@ -19,17 +19,17 @@
 #   checking and adding to the demand set -- only for use when the
 #   parameters are already known to be demanded
 
-from incoq.runtime import *
+from incoq.mars.runtime import *
 
-OBJS = set()  
-OPS = set()   # an operation-object pair is called a permission
-USERS = set()
-ROLES = set()
-PR = set()    # PR subset OPS * OBJS * ROLES, for PA in std
-UR = set()    # UR subset USERS * ROLES,      for UA in std
-SESSIONS = set()
-SU = set()    # SU subset SESSIONS * USERS
-SR = set()    # SR subset SESSIONS * ROLES
+OBJS = Set()  
+OPS = Set()   # an operation-object pair is called a permission
+USERS = Set()
+ROLES = Set()
+PR = Set()    # PR subset OPS * OBJS * ROLES, for PA in std
+UR = Set()    # UR subset USERS * ROLES,      for UA in std
+SESSIONS = Set()
+SU = Set()    # SU subset SESSIONS * USERS
+SR = Set()    # SR subset SESSIONS * ROLES
 
 # administrative commands
 
@@ -39,7 +39,8 @@ def AddUser(user):
 
 def DeleteUser(user):
     assert user in USERS
-    for _user, _r in set({(user,r) for r in ROLES if (user, r) in UR}):        # maintain UR
+    for _user, _r in set(QUERY('Helper2',
+            {(user,r) for r in ROLES if (user, r) in UR})): # maintain UR
         UR.remove((_user, _r))
     for s in set({s for s in SESSIONS if (s,user) in SU}):
         DeleteSession(user,s)                             # maintain sessions
@@ -113,7 +114,8 @@ def DeleteSession(user, session):
     assert session in SESSIONS
     assert (session,user) in SU
     SU.remove((session,user))
-    for _session, _r in set({(session,r) for r in ROLES if (session, r) in SR}):        # maintain SR
+    for _session, _r in set(QUERY('Helper1',
+            {(session,r) for r in ROLES if (session, r) in SR})): # maintain SR
         SR.remove((_session, _r))
     SESSIONS.remove(session)                        # maintain SESSIONS
 
@@ -138,17 +140,18 @@ def CheckAccess(session, operation, object):
     assert session in SESSIONS
     assert operation in OPS
     assert object in OBJS
-    return bool({r for r in ROLES
-                   if (session,r) in SR
-                   if (operation,object,r) in PR})
+    return bool(QUERY('CA', {r for r in ROLES
+                               if (session,r) in SR
+                               if (operation,object,r) in PR}))
 
 def CheckAccess_nodemand(session, operation, object):
     assert session in SESSIONS
     assert operation in OPS
     assert object in OBJS
-    return bool(NODEMAND({r for r in ROLES
-                            if (session,r) in SR
-                            if (operation,object,r) in PR}))
+    return bool(QUERY('CA', {r for r in ROLES
+                               if (session,r) in SR
+                               if (operation,object,r) in PR},
+                      {'nodemand': True}))
 
 # review functions
 

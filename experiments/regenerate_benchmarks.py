@@ -53,6 +53,24 @@ jql_tasks = [
     ('jql/jql_3_in', 'jql/jql_3_dem',
      {'default_impl': S.Filtered}),
 ]
+rbac_tasks = [
+    ('rbac/corerbac/coreRBAC_in',
+     'rbac/corerbac/coreRBAC_checkaccess_inc',
+     {'default_impl': S.Inc}),
+    ('rbac/corerbac/coreRBAC_in',
+     'rbac/corerbac/coreRBAC_checkaccess_dem',
+     {'default_impl': S.Filtered}),
+    ('rbac/corerbac/coreRBAC_in',
+     'rbac/corerbac/coreRBAC_inc',
+     {'default_impl': S.Inc, 'auto_query': True}),
+    ('rbac/corerbac/coreRBAC_in',
+     'rbac/corerbac/coreRBAC_dem',
+     {'default_impl': S.Filtered, 'auto_query': True}),
+    
+    ('rbac/constrainedrbac/crbac_in',
+     'rbac/constrainedrbac/crbac_dem',
+     {'default_impl': S.Filtered}),
+]
 graddb_tasks = [
     ('graddb/newstudents/newstu_in',
      'graddb/newstudents/newstu_dem',
@@ -100,6 +118,7 @@ task_lists = [
     ('wifi', wifi_tasks),
     ('django', django_tasks),
     ('jql', jql_tasks),
+    ('rbac', rbac_tasks),
     ('graddb', graddb_tasks),
     ('other', other_tasks),
 ]
