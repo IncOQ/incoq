@@ -252,6 +252,10 @@ def transform_ast(input_ast, *, options=None):
     for q in symtab.get_queries().values():
         if q.impl is S.Unspecified:
             q.impl = symtab.config.default_impl
+    # Correct aggregate impls.
+    for q in symtab.get_queries().values():
+        if isinstance(q.node, L.Aggr) and q.impl is S.Filtered:
+            q.impl = S.Inc
     
     # Replace membership conditions with membership clauses.
     tree = relation_rewritings.rewrite_memberconds(tree, symtab)

@@ -234,7 +234,14 @@ class ScopeBuilder(L.NodeVisitor):
         self.enter()
         
         for cl in node.clauses:
-            vars = ct.lhs_vars(cl)
+            if isinstance(cl, L.Member):
+                # Hack so that we can scope comprehensions that aren't
+                # being incrementalized, for the sake of determining
+                # parameters of inner comprehensions. Will fail for
+                # bizarre cases like "o.f in R".
+                vars = L.IdentFinder.find_vars(cl.target)
+            else:
+                vars = ct.lhs_vars(cl)
             for v in vars:
                 self.bind(v)
         

@@ -59,4 +59,10 @@ def order_clauses(clausevisitor, clauses):
     is best (lowest number). Return the ordered clauses as a list.
     """
     init = OrderState(clausevisitor, set(), [], OrderedSet(clauses))
-    return Planner().get_greedy_answer(init)
+    try:
+        answer = Planner().get_greedy_answer(init)
+    except ValueError:
+        s = ', '.join(L.Parser.ts(cl) for cl in clauses)
+        raise L.TransformationError('No valid order found for clauses: {}'
+                                    .format(s))
+    return answer
