@@ -266,6 +266,15 @@ class DEM_CORERBAC_CA(COM):
 #
 #add_impls('bday', 'experiments/other/bday/bday', [
 #    INC,
+#    DEM,
+#])
+#add_impls('pubauth', 'experiments/other/pubauth/pubauth', [
+#    INC,
+#    DEM,
+#])
+#add_impls('pubcite', 'experiments/other/pubcite/pubcite', [
+#    INC,
+#    DEM,
 #])
 #
 #add_impls('clpaxos', 'experiments/distalgo/clpaxos/clpaxos_inc', [
@@ -667,6 +676,18 @@ class GradDBSchema(StatkeySchema):
         ('GradDB Query 10 Filtered', 'Prelim Exam Overdue'),
     ]
 
+class ProbSchema(OrigIncFilterSchema):
+    
+    def _rowgen(dispname, name):
+        return ([name + ' Input', name + ' Unfiltered', name + ' Filtered'],
+                dispname)
+    
+    rows = [
+        _rowgen('bday', 'bday'),
+        _rowgen('pubauth', 'pubauth'),
+        _rowgen('pubcite', 'pubcite'),
+    ]
+
 stats = StatsDB(STATS_FILE)
 runningex_schema = RunningExSchema(stats.allstats)
 comparison_schema = ComparisonSchema(stats.allstats)
@@ -678,6 +699,7 @@ lamutexspec_costschema = LamutexspecCostSchema(stats.allstats)
 lamutexorig_costschema = LamutexorigCostSchema(stats.allstats)
 oopsla15_schema = OOPSLA15Schema(stats.allstats)
 graddb_schema = GradDBSchema(stats.allstats)
+prob_schema = ProbSchema(stats.allstats)
 
 runningex_schema.save_csv(STATS_DIR + 'stats-runningex.csv')
 comparison_schema.save_csv(STATS_DIR + 'stats-comparison.csv')
@@ -686,6 +708,7 @@ distalgo_schema.save_csv(STATS_DIR + 'stats-distalgo.csv')
 distalgo_rcdr_screma.save_csv(STATS_DIR + 'stats-distalgo-rcdr.csv')
 oopsla15_schema.save_csv(STATS_DIR + 'stats-oopsla15.csv')
 graddb_schema.save_csv(STATS_DIR + 'stats-graddb.csv')
+prob_schema.save_csv(STATS_DIR + 'stats-prob.csv')
 runningex_costschema.save_csv(STATS_DIR + 'stats-runninex_cost.csv')
 lamutexspec_costschema.save_csv(STATS_DIR + 'stats-lamutexspec_cost.csv')
 lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
@@ -695,7 +718,8 @@ lamutexorig_costschema.save_csv(STATS_DIR + 'stats-lamutexorig_cost.csv')
 #print(applications_schema.to_ascii())
 #print(distalgo_schema.to_ascii())
 #print(oopsla15_schema.to_ascii())
-print(graddb_schema.to_ascii())
+#print(graddb_schema.to_ascii())
+print(prob_schema.to_ascii())
 # PEPM 2016:
 #print(distalgo_rcdr_screma.to_ascii())
 
