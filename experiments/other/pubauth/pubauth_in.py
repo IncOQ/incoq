@@ -1,17 +1,18 @@
 from incoq.runtime import *
 
 pubs = set()
-p1 = Obj()
-p1.author = 'Einstein'
-pubs.add(p1)
-p2 = Obj()
-p2.author = 'Newton'
-pubs.add(p2)
-p3 = Obj()
-p3.author = 'Einstein'
-pubs.add(p3)
 
-print(count({p for p in pubs if p.author == 'Einstein'}))
+def make_pub(author):
+    p = Obj()
+    p.author = author
+    pubs.add(p)
+    return p
 
-pubs.remove(p3)
-print(count({p for p in pubs if p.author == 'Einstein'}))
+def remove_pub(p):
+    pubs.remove(p)
+
+def clear_all():
+    pubs.clear()
+
+def do_query():
+    return count({p for p in pubs if p.author == 'Einstein'})
