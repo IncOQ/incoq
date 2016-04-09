@@ -106,7 +106,7 @@ def unwrap(set_):
     return result
 
 
-def get_size(value):
+def get_size(value, *, memo=None):
     """Return an integer representing the abstract size of a given
     value. For IncOQType instances, this is the number of elements,
     keys, values, etc., that are recursively contained. (The precise
@@ -115,20 +115,32 @@ def get_size(value):
     
     If an IncOQType value is indirectly contained inside a non-IncOQType
     value, it will not be counted.
+    
+    For values that have been seen before, their multiple occurrences
+    will only count as 1.
     """
-    if isinstance(value, IncOQType):
-        return value.get_size()
+    if memo is None:
+        memo = set()
+    
+    if isinstance(value, IncOQType) and value not in memo:
+        memo.add(value)
+        return value.get_size(memo=memo)
     else:
         return 1
 
 
-def get_size_for_namespace(namespace):
+def get_size_for_namespace(namespace, *, memo=None):
     """Return the total sum of get_size() for each IncOQType value in
     the given namespace. Non-IncOQType values at the top-level are not
-    counted.
+    counted. Data shared between top-level values will not be double-
+    counted thanks to reuse of the memo.
     """
-    return sum(get_size(value) for value in namespace.values()
-                               if isinstance(value, IncOQType))
+    if memo is None:
+        memo = set()
+    
+    return sum(get_size(value, memo=memo)
+               for value in namespace.values()
+               if isinstance(value, IncOQType))
 
 
 class IncOQType:
@@ -157,7 +169,7 @@ class IncOQType:
     __eq__ = object.__eq__
     __ne__ = object.__ne__
     
-    def get_size(self):
+    def get_size(self, *, memo):
         raise NotImplementedError
 
 
@@ -244,8 +256,8 @@ class Set(IncOQType, set, ImgLookupMixin):
             self.clear()
             self.update(other)
     
-    def get_size(self):
-        return 1 + sum(get_size(elem) for elem in self)
+    def get_size(self, *, memo):
+        return 1 + sum(get_size(elem, memo=memo) for elem in self)
 
 
 class CSet(IncOQType, Counter, ImgLookupMixin):
@@ -300,9 +312,9 @@ class CSet(IncOQType, Counter, ImgLookupMixin):
     
     # elements(), update(), and clear() are provided by Counter.
     
-    def get_size(self):
+    def get_size(self, *, memo):
         # Counts are not counted in size.
-        return 1 + sum(get_size(elem) for elem in self)
+        return 1 + sum(get_size(elem, memo=memo) for elem in self)
 
 
 class Map(IncOQType, dict, SetFromMapMixin):
@@ -318,10 +330,11 @@ class Map(IncOQType, dict, SetFromMapMixin):
     # operation.
     dictclear = dict.clear
     
-    def get_size(self):
+    def get_size(self, *, memo):
         # Both map and key sizes matter, and both are counted even if
         # they are both primitive.
-        return 1 + sum(get_size(k) + get_size(v) for k, v in self.items())
+        return 1 + sum(get_size(k, memo=memo) + get_size(v, memo=memo)
+                       for k, v in self.items())
 
 
 class Obj(IncOQType):
@@ -346,5 +359,6 @@ class Obj(IncOQType):
     def asdict(self):
         return dict(self.get_fields())
     
-    def get_size(self):
-        return 1 + sum(get_size(value) for _attr, value in self.get_fields())
+    def get_size(self, *, memo):
+        return 1 + sum(get_size(value, memo=memo)
+                       for _attr, value in self.get_fields())

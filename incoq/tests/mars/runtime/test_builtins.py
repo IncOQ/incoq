@@ -60,6 +60,12 @@ class BuiltinsCase(unittest.TestCase):
         ns = {'a': 1, 'b': {1, 2, 3}, 'c': Set({1, 2, 3})}
         n = get_size_for_namespace(ns)
         self.assertEqual(n, 4)
+        
+        # Recursive case.
+        v = Set({0})
+        v.add(v)
+        n = get_size(v)
+        self.assertEqual(n, 3)
     
     def test_set_identity(self):
         s1 = Set()
@@ -145,11 +151,11 @@ class BuiltinsCase(unittest.TestCase):
     
     def test_set_size(self):
         s = Set({1, 2, 3})
-        n = s.get_size()
+        n = s.get_size(memo=None)
         self.assertEqual(n, 4)
         
         s = Set({1, 2, Set({3, 4, 5})})
-        n = s.get_size()
+        n = s.get_size(memo=None)
         self.assertEqual(n, 7)
     
     def test_cset_repr(self):
@@ -218,15 +224,15 @@ class BuiltinsCase(unittest.TestCase):
     
     def test_cset_size(self):
         s = CSet({1, 2, 3})
-        n = s.get_size()
+        n = s.get_size(memo=None)
         self.assertEqual(n, 4)
         
         s = CSet({1, 2, CSet({3, 4, 5})})
-        n = s.get_size()
+        n = s.get_size(memo=None)
         self.assertEqual(n, 7)
         
         s = CSet({1: 5, 2: 5})
-        n = s.get_size()
+        n = s.get_size(memo=None)
         self.assertEqual(n, 3)
     
     def test_map_repr(self):
@@ -272,11 +278,11 @@ class BuiltinsCase(unittest.TestCase):
     
     def test_map_size(self):
         m = Map({'a': 1, 'b': 2})
-        n = m.get_size()
+        n = m.get_size(memo=None)
         self.assertEqual(n, 5)
         
         m = Map({'a': Set({1, 2}), 'b': Set({3, 4})})
-        n = m.get_size()
+        n = m.get_size(memo=None)
         self.assertEqual(n, 9)
     
     def test_obj_repr(self):
@@ -311,11 +317,11 @@ class BuiltinsCase(unittest.TestCase):
     
     def test_obj_size(self):
         o = Obj(f=5, g=6)
-        n = o.get_size()
+        n = o.get_size(memo=None)
         self.assertEqual(n, 3)
         
         o = Obj(f=Obj(x=1, y=2), g=6)
-        n = o.get_size()
+        n = o.get_size(memo=None)
         self.assertEqual(n, 5)
 
 
