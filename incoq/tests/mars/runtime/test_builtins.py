@@ -9,6 +9,16 @@ from incoq.mars.runtime.builtins import *
 
 class BuiltinsCase(unittest.TestCase):
     
+    def make_nested_sets(self, k):
+        # Return a chain of k many nested sets.
+        outer = Set()
+        v = outer
+        for _ in range(k):
+            w = Set()
+            v.add(w)
+            v = w
+        return outer
+    
     def test_noops(self):
         CONFIG(1, 2, a=3)
         SYMCONFIG(1, a=2, b=3)
@@ -61,11 +71,27 @@ class BuiltinsCase(unittest.TestCase):
         n = get_size_for_namespace(ns)
         self.assertEqual(n, 4)
         
+        # Sharing between different items in the namespace.
+        s = Set({1, 2, 3})
+        ns = {'a': s, 'b': s}
+        n = get_size_for_namespace(ns)
+        self.assertEqual(n, 5)
+        
         # Recursive case.
         v = Set({0})
         v.add(v)
         n = get_size(v)
         self.assertEqual(n, 3)
+        
+        # Make sure there's no stack overflow.
+        v = self.make_nested_sets(1000)
+        n = get_size(v)
+        self.assertEqual(n, 1001)
+    
+    def test_repr_depth(self):
+        # Make sure there's no stack overflow.
+        v = self.make_nested_sets(1000)
+        str(v)
     
     def test_set_identity(self):
         s1 = Set()
@@ -149,14 +175,15 @@ class BuiltinsCase(unittest.TestCase):
         exp_img = {()}
         self.assertCountEqual(img, exp_img)
     
-    def test_set_size(self):
+    def test_set_children(self):
         s = Set({1, 2, 3})
-        n = s.get_size(memo=None)
-        self.assertEqual(n, 4)
+        c = s.get_children()
+        self.assertCountEqual(c, [1, 2, 3])
         
-        s = Set({1, 2, Set({3, 4, 5})})
-        n = s.get_size(memo=None)
-        self.assertEqual(n, 7)
+        s1 = Set({3, 4, 5})
+        s = Set({1, 2, s1})
+        c = s.get_children()
+        self.assertCountEqual(c, [1, 2, s1])
     
     def test_cset_repr(self):
         r = repr(CSet())
@@ -222,18 +249,19 @@ class BuiltinsCase(unittest.TestCase):
         exp_img = {(2,), (3,)}
         self.assertCountEqual(img, exp_img)
     
-    def test_cset_size(self):
+    def test_cset_children(self):
         s = CSet({1, 2, 3})
-        n = s.get_size(memo=None)
-        self.assertEqual(n, 4)
+        c = s.get_children()
+        self.assertCountEqual(c, [1, 2, 3])
         
-        s = CSet({1, 2, CSet({3, 4, 5})})
-        n = s.get_size(memo=None)
-        self.assertEqual(n, 7)
+        s1 = CSet({3, 4, 5})
+        s = CSet({1, 2, s1})
+        c = s.get_children()
+        self.assertCountEqual(c, [1, 2, s1])
         
         s = CSet({1: 5, 2: 5})
-        n = s.get_size(memo=None)
-        self.assertEqual(n, 3)
+        c = s.get_children()
+        self.assertCountEqual(c, [1, 2])
     
     def test_map_repr(self):
         r = repr(Map())
@@ -276,14 +304,16 @@ class BuiltinsCase(unittest.TestCase):
         exp_s = {(1,)}
         self.assertCountEqual(s, exp_s)
     
-    def test_map_size(self):
+    def test_map_children(self):
         m = Map({'a': 1, 'b': 2})
-        n = m.get_size(memo=None)
-        self.assertEqual(n, 5)
+        c = m.get_children()
+        self.assertCountEqual(c, ['a', 'b', 1, 2])
         
-        m = Map({'a': Set({1, 2}), 'b': Set({3, 4})})
-        n = m.get_size(memo=None)
-        self.assertEqual(n, 9)
+        s1 = Set({1, 2})
+        s2 = Set({3, 4})
+        m = Map({'a': s1, 'b': s2})
+        c = m.get_children()
+        self.assertCountEqual(c, ['a', s1, 'b', s2])
     
     def test_obj_repr(self):
         r = repr(Obj())
@@ -315,14 +345,15 @@ class BuiltinsCase(unittest.TestCase):
         o2 = pickle.loads(b)
         self.assertEqual(o.asdict(), o2.asdict())
     
-    def test_obj_size(self):
+    def test_obj_children(self):
         o = Obj(f=5, g=6)
-        n = o.get_size(memo=None)
-        self.assertEqual(n, 3)
+        c = o.get_children()
+        self.assertCountEqual(c, [5, 6])
         
-        o = Obj(f=Obj(x=1, y=2), g=6)
-        n = o.get_size(memo=None)
-        self.assertEqual(n, 5)
+        o1 = Obj(x=1, y=2)
+        o = Obj(f=o1, g=6)
+        c = o.get_children()
+        self.assertEqual(c, [o1, 6])
 
 
 if __name__ == '__main__':

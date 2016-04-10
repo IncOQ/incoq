@@ -33,10 +33,16 @@ __all__ = [
 ]
 
 
-from reprlib import recursive_repr
+from functools import wraps
 from collections import Counter
 from functools import partial
 import builtins
+
+# From reprlib.
+try:
+    from _thread import get_ident
+except ImportError:
+    from _dummy_thread import get_ident
 
 from .tree import Tree
 
@@ -106,41 +112,77 @@ def unwrap(set_):
     return result
 
 
-def get_size(value, *, memo=None):
+def get_size(value, *, seen=None):
     """Return an integer representing the abstract size of a given
-    value. For IncOQType instances, this is the number of elements,
-    keys, values, etc., that are recursively contained. (The precise
-    value is not too important.) For all other types of values this
-    is 1.
+    value. For IncOQType instances, this is the number of children
+    values -- elements, keys, values, etc. -- that are recursively
+    contained, plus one for the parent value itself. For all other
+    types of values this is just 1.
     
-    If an IncOQType value is indirectly contained inside a non-IncOQType
-    value, it will not be counted.
-    
-    For values that have been seen before, their multiple occurrences
-    will only count as 1.
+    If a value is reachable through multiple paths, each multiple
+    path just contributes 1 to the overall count. This models the
+    size taken for the value plus the size for pointers to the value.
     """
-    if memo is None:
-        memo = set()
+    # Invariants: Seen holds IncOQType values that have already been
+    # explored. Worklist holds IncOQType values that have been found but
+    # not yet explored. Count has been incremented for every pointer
+    # that has been seen so far, but not for the children of any
+    # unexplored IncOQType value.
+    if seen is None:
+        seen = set()
+    count = 1
+    worklist = set()
+    if isinstance(value, IncOQType) and value not in seen:
+        worklist.add(value)
     
-    if isinstance(value, IncOQType) and value not in memo:
-        memo.add(value)
-        return value.get_size(memo=memo)
-    else:
-        return 1
+    while len(worklist) > 0:
+        v = worklist.pop()
+        seen.add(v)
+        children = v.get_children()
+        count += len(children)
+        # Grab all children that are IncOQTypes (and hence, safe to
+        # hash), and that have not been seen. Eliminate duplicates
+        # among these children too.
+        to_explore = {c for c in children if isinstance(c, IncOQType)
+                        if c not in seen}
+        worklist.update(to_explore)
+    return count
 
 
-def get_size_for_namespace(namespace, *, memo=None):
+def get_size_for_namespace(namespace):
     """Return the total sum of get_size() for each IncOQType value in
     the given namespace. Non-IncOQType values at the top-level are not
     counted. Data shared between top-level values will not be double-
-    counted thanks to reuse of the memo.
+    counted thanks to reuse of the seen set.
     """
-    if memo is None:
-        memo = set()
-    
-    return sum(get_size(value, memo=memo)
+    seen = set()
+    return sum(get_size(value, seen=seen)
                for value in namespace.values()
                if isinstance(value, IncOQType))
+
+
+def limited_recursive_repr(func):
+    """Like reprlib.recursive_repr(), but limited to a much smaller
+    stack depth so that we avoid a stack overflow and also don't spend
+    much time on string manipulation.
+    """
+    repr_running = set()
+    limit = 10
+    
+    @wraps(func)
+    def wrapper(self):
+        # Based on the implementation of reprlib.recursive_repr().
+        key = id(self), get_ident()
+        if key in repr_running or len(repr_running) > limit:
+            return '...'
+        repr_running.add(key)
+        try:
+            result = func(self)
+        finally:
+            repr_running.discard(key)
+        return result
+    
+    return wrapper
 
 
 class IncOQType:
@@ -155,11 +197,11 @@ class IncOQType:
              repr: object.__repr__}[fmt]
         return f(self)
     
-    @recursive_repr()
+    @limited_recursive_repr
     def __str__(self):
         return self._fmt_helper(str)
     
-    @recursive_repr()
+    @limited_recursive_repr
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__,
                                self._fmt_helper(repr))
@@ -169,7 +211,7 @@ class IncOQType:
     __eq__ = object.__eq__
     __ne__ = object.__ne__
     
-    def get_size(self, *, memo):
+    def get_children(self):
         raise NotImplementedError
 
 
@@ -256,8 +298,8 @@ class Set(IncOQType, set, ImgLookupMixin):
             self.clear()
             self.update(other)
     
-    def get_size(self, *, memo):
-        return 1 + sum(get_size(elem, memo=memo) for elem in self)
+    def get_children(self):
+        return [e for e in self]
 
 
 class CSet(IncOQType, Counter, ImgLookupMixin):
@@ -312,9 +354,9 @@ class CSet(IncOQType, Counter, ImgLookupMixin):
     
     # elements(), update(), and clear() are provided by Counter.
     
-    def get_size(self, *, memo):
-        # Counts are not counted in size.
-        return 1 + sum(get_size(elem, memo=memo) for elem in self)
+    def get_children(self):
+        # Counts are not relevant to our space usage for get_size().
+        return [e for e in self]
 
 
 class Map(IncOQType, dict, SetFromMapMixin):
@@ -330,11 +372,9 @@ class Map(IncOQType, dict, SetFromMapMixin):
     # operation.
     dictclear = dict.clear
     
-    def get_size(self, *, memo):
-        # Both map and key sizes matter, and both are counted even if
-        # they are both primitive.
-        return 1 + sum(get_size(k, memo=memo) + get_size(v, memo=memo)
-                       for k, v in self.items())
+    def get_children(self):
+        # Both keys and values are children.
+        return list(self.keys()) + list(self.values())
 
 
 class Obj(IncOQType):
@@ -359,6 +399,5 @@ class Obj(IncOQType):
     def asdict(self):
         return dict(self.get_fields())
     
-    def get_size(self, *, memo):
-        return 1 + sum(get_size(value, memo=memo)
-                       for _attr, value in self.get_fields())
+    def get_children(self):
+        return [value for _attr, value in self.get_fields()]
