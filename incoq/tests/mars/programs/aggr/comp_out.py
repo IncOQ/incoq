@@ -4,7 +4,7 @@ from incoq.mars.runtime import *
 # S : {(Number, Number)}
 S = Set()
 # R_Q1 : {(Number, Number)}
-R_Q1 = CSet()
+R_Q1 = Set()
 # A_Q2 : {(Number): Number}
 A_Q2 = Map()
 def _maint_A_Q2_for_R_Q1_add(_elem):
@@ -30,20 +30,14 @@ def _maint_A_Q2_for_R_Q1_remove(_elem):
 def _maint_R_Q1_for_S_add(_elem):
     (_v3_a, _v3_b) = _elem
     _v3_result = (_v3_a, _v3_b)
-    if (_v3_result not in R_Q1):
-        R_Q1.add(_v3_result)
-        _maint_A_Q2_for_R_Q1_add(_v3_result)
-    else:
-        R_Q1.inccount(_v3_result)
+    R_Q1.add(_v3_result)
+    _maint_A_Q2_for_R_Q1_add(_v3_result)
 
 def _maint_R_Q1_for_S_remove(_elem):
     (_v4_a, _v4_b) = _elem
     _v4_result = (_v4_a, _v4_b)
-    if (R_Q1.getcount(_v4_result) == 1):
-        _maint_A_Q2_for_R_Q1_remove(_v4_result)
-        R_Q1.remove(_v4_result)
-    else:
-        R_Q1.deccount(_v4_result)
+    _maint_A_Q2_for_R_Q1_remove(_v4_result)
+    R_Q1.remove(_v4_result)
 
 def main():
     for (x, y) in [(1, 2), (2, 3), (2, 4), (3, 4)]:

@@ -16,17 +16,17 @@ R_Q1 = CSet()
 # R_Q2 : {(Number)}
 R_Q2 = CSet()
 # R_Q2_T_v_1 : Bottom
-R_Q2_T_v_1 = CSet()
+R_Q2_T_v_1 = Set()
 # R_Q2_dS : Bottom
-R_Q2_dS = CSet()
+R_Q2_dS = Set()
 # R_Q2_T_v_2 : Bottom
 R_Q2_T_v_2 = CSet()
 # R_Q2_T_w_1 : Bottom
 R_Q2_T_w_1 = CSet()
 # R_Q2_dT : Bottom
-R_Q2_dT = CSet()
+R_Q2_dT = Set()
 # R_Q2_T_w_2 : Bottom
-R_Q2_T_w_2 = CSet()
+R_Q2_T_w_2 = Set()
 # R_Q2_unwrapped : {Number}
 R_Q2_unwrapped = Set()
 # S_bu : {Number: {Number}}
@@ -97,58 +97,40 @@ def _maint_R_Q2_unwrapped_for_R_Q2_remove(_elem):
 def _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_elem):
     (_v25_w,) = _elem
     _v25_result = (_v25_w,)
-    if (_v25_result not in R_Q2_T_w_2):
-        R_Q2_T_w_2.add(_v25_result)
-    else:
-        R_Q2_T_w_2.inccount(_v25_result)
+    R_Q2_T_w_2.add(_v25_result)
 
 def _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_elem):
     (_v26_w,) = _elem
     _v26_result = (_v26_w,)
-    if (R_Q2_T_w_2.getcount(_v26_result) == 1):
-        R_Q2_T_w_2.remove(_v26_result)
-    else:
-        R_Q2_T_w_2.deccount(_v26_result)
+    R_Q2_T_w_2.remove(_v26_result)
 
 def _maint_R_Q2_dT_for_R_Q2_T_w_1_add(_elem):
     (_v21_w,) = _elem
     if ((_v21_w,) in T):
         _v21_result = (_v21_w,)
-        if (_v21_result not in R_Q2_dT):
-            R_Q2_dT.add(_v21_result)
-            _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_v21_result)
-        else:
-            R_Q2_dT.inccount(_v21_result)
+        R_Q2_dT.add(_v21_result)
+        _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_v21_result)
 
 def _maint_R_Q2_dT_for_R_Q2_T_w_1_remove(_elem):
     (_v22_w,) = _elem
     if ((_v22_w,) in T):
         _v22_result = (_v22_w,)
-        if (R_Q2_dT.getcount(_v22_result) == 1):
-            _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_v22_result)
-            R_Q2_dT.remove(_v22_result)
-        else:
-            R_Q2_dT.deccount(_v22_result)
+        _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_v22_result)
+        R_Q2_dT.remove(_v22_result)
 
 def _maint_R_Q2_dT_for_T_add(_elem):
     (_v23_w,) = _elem
     if ((_v23_w,) in R_Q2_T_w_1):
         _v23_result = (_v23_w,)
-        if (_v23_result not in R_Q2_dT):
-            R_Q2_dT.add(_v23_result)
-            _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_v23_result)
-        else:
-            R_Q2_dT.inccount(_v23_result)
+        R_Q2_dT.add(_v23_result)
+        _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_v23_result)
 
 def _maint_R_Q2_dT_for_T_remove(_elem):
     (_v24_w,) = _elem
     if ((_v24_w,) in R_Q2_T_w_1):
         _v24_result = (_v24_w,)
-        if (R_Q2_dT.getcount(_v24_result) == 1):
-            _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_v24_result)
-            R_Q2_dT.remove(_v24_result)
-        else:
-            R_Q2_dT.deccount(_v24_result)
+        _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_v24_result)
+        R_Q2_dT.remove(_v24_result)
 
 def _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_elem):
     (_v19_v, _v19_w) = _elem
@@ -188,71 +170,53 @@ def _maint_R_Q2_dS_for_R_Q2_T_v_1_add(_elem):
     (_v13_v,) = _elem
     for _v13_w in S_bu.get(_v13_v, Set()):
         _v13_result = (_v13_v, _v13_w)
-        if (_v13_result not in R_Q2_dS):
-            R_Q2_dS.add(_v13_result)
-            _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_v13_result)
-            _maint_R_Q2_dS_ub_for_R_Q2_dS_add(_v13_result)
-            _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_v13_result)
-            _maint_R_Q2_T_v_2_for_R_Q2_dS_add(_v13_result)
-        else:
-            R_Q2_dS.inccount(_v13_result)
+        R_Q2_dS.add(_v13_result)
+        _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_v13_result)
+        _maint_R_Q2_dS_ub_for_R_Q2_dS_add(_v13_result)
+        _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_v13_result)
+        _maint_R_Q2_T_v_2_for_R_Q2_dS_add(_v13_result)
 
 def _maint_R_Q2_dS_for_R_Q2_T_v_1_remove(_elem):
     (_v14_v,) = _elem
     for _v14_w in S_bu.get(_v14_v, Set()):
         _v14_result = (_v14_v, _v14_w)
-        if (R_Q2_dS.getcount(_v14_result) == 1):
-            _maint_R_Q2_T_v_2_for_R_Q2_dS_remove(_v14_result)
-            _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_v14_result)
-            _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_v14_result)
-            _maint_R_Q2_dS_bu_for_R_Q2_dS_remove(_v14_result)
-            R_Q2_dS.remove(_v14_result)
-        else:
-            R_Q2_dS.deccount(_v14_result)
+        _maint_R_Q2_T_v_2_for_R_Q2_dS_remove(_v14_result)
+        _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_v14_result)
+        _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_v14_result)
+        _maint_R_Q2_dS_bu_for_R_Q2_dS_remove(_v14_result)
+        R_Q2_dS.remove(_v14_result)
 
 def _maint_R_Q2_dS_for_S_add(_elem):
     (_v15_v, _v15_w) = _elem
     if ((_v15_v,) in R_Q2_T_v_1):
         _v15_result = (_v15_v, _v15_w)
-        if (_v15_result not in R_Q2_dS):
-            R_Q2_dS.add(_v15_result)
-            _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_v15_result)
-            _maint_R_Q2_dS_ub_for_R_Q2_dS_add(_v15_result)
-            _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_v15_result)
-            _maint_R_Q2_T_v_2_for_R_Q2_dS_add(_v15_result)
-        else:
-            R_Q2_dS.inccount(_v15_result)
+        R_Q2_dS.add(_v15_result)
+        _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_v15_result)
+        _maint_R_Q2_dS_ub_for_R_Q2_dS_add(_v15_result)
+        _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_v15_result)
+        _maint_R_Q2_T_v_2_for_R_Q2_dS_add(_v15_result)
 
 def _maint_R_Q2_dS_for_S_remove(_elem):
     (_v16_v, _v16_w) = _elem
     if ((_v16_v,) in R_Q2_T_v_1):
         _v16_result = (_v16_v, _v16_w)
-        if (R_Q2_dS.getcount(_v16_result) == 1):
-            _maint_R_Q2_T_v_2_for_R_Q2_dS_remove(_v16_result)
-            _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_v16_result)
-            _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_v16_result)
-            _maint_R_Q2_dS_bu_for_R_Q2_dS_remove(_v16_result)
-            R_Q2_dS.remove(_v16_result)
-        else:
-            R_Q2_dS.deccount(_v16_result)
+        _maint_R_Q2_T_v_2_for_R_Q2_dS_remove(_v16_result)
+        _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_v16_result)
+        _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_v16_result)
+        _maint_R_Q2_dS_bu_for_R_Q2_dS_remove(_v16_result)
+        R_Q2_dS.remove(_v16_result)
 
 def _maint_R_Q2_T_v_1_for_R_Q1_add(_elem):
     (_v11_v,) = _elem
     _v11_result = (_v11_v,)
-    if (_v11_result not in R_Q2_T_v_1):
-        R_Q2_T_v_1.add(_v11_result)
-        _maint_R_Q2_dS_for_R_Q2_T_v_1_add(_v11_result)
-    else:
-        R_Q2_T_v_1.inccount(_v11_result)
+    R_Q2_T_v_1.add(_v11_result)
+    _maint_R_Q2_dS_for_R_Q2_T_v_1_add(_v11_result)
 
 def _maint_R_Q2_T_v_1_for_R_Q1_remove(_elem):
     (_v12_v,) = _elem
     _v12_result = (_v12_v,)
-    if (R_Q2_T_v_1.getcount(_v12_result) == 1):
-        _maint_R_Q2_dS_for_R_Q2_T_v_1_remove(_v12_result)
-        R_Q2_T_v_1.remove(_v12_result)
-    else:
-        R_Q2_T_v_1.deccount(_v12_result)
+    _maint_R_Q2_dS_for_R_Q2_T_v_1_remove(_v12_result)
+    R_Q2_T_v_1.remove(_v12_result)
 
 def _maint_R_Q2_for_R_Q1_add(_elem):
     (_v5_v,) = _elem

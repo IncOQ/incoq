@@ -6,24 +6,18 @@ S = Set()
 # R_Q1 : {(Number)}
 R_Q1 = CSet()
 # R_Q2 : {(Bottom)}
-R_Q2 = CSet()
+R_Q2 = Set()
 def _maint_R_Q2_for_R_Q1_add(_elem):
     (_v4_v,) = _elem
     if (_v4_v > 1):
         _v4_result = (_v4_v,)
-        if (_v4_result not in R_Q2):
-            R_Q2.add(_v4_result)
-        else:
-            R_Q2.inccount(_v4_result)
+        R_Q2.add(_v4_result)
 
 def _maint_R_Q2_for_R_Q1_remove(_elem):
     (_v5_v,) = _elem
     if (_v5_v > 1):
         _v5_result = (_v5_v,)
-        if (R_Q2.getcount(_v5_result) == 1):
-            R_Q2.remove(_v5_result)
-        else:
-            R_Q2.deccount(_v5_result)
+        R_Q2.remove(_v5_result)
 
 def _maint_R_Q1_for_S_add(_elem):
     (_v2_a, _v2_a_2) = _elem

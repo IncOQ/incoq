@@ -14,7 +14,7 @@ R_Q_T_a = CSet()
 # R_Q_T_b_1 : Bottom
 R_Q_T_b_1 = CSet()
 # R_Q_dS : Bottom
-R_Q_dS = CSet()
+R_Q_dS = Set()
 # R_Q_T_b_2 : Bottom
 R_Q_T_b_2 = CSet()
 # R_Q_T_c : Bottom
@@ -122,49 +122,37 @@ def _maint_R_Q_dS_for_R_Q_T_b_1_add(_elem):
     (_v8_b,) = _elem
     for _v8_c in S_bu.get(_v8_b, Set()):
         _v8_result = (_v8_b, _v8_c)
-        if (_v8_result not in R_Q_dS):
-            R_Q_dS.add(_v8_result)
-            _maint_R_Q_dS_bu_for_R_Q_dS_add(_v8_result)
-            _maint_R_Q_T_c_for_R_Q_dS_add(_v8_result)
-            _maint_R_Q_T_b_2_for_R_Q_dS_add(_v8_result)
-        else:
-            R_Q_dS.inccount(_v8_result)
+        R_Q_dS.add(_v8_result)
+        _maint_R_Q_dS_bu_for_R_Q_dS_add(_v8_result)
+        _maint_R_Q_T_c_for_R_Q_dS_add(_v8_result)
+        _maint_R_Q_T_b_2_for_R_Q_dS_add(_v8_result)
 
 def _maint_R_Q_dS_for_R_Q_T_b_1_remove(_elem):
     (_v9_b,) = _elem
     for _v9_c in S_bu.get(_v9_b, Set()):
         _v9_result = (_v9_b, _v9_c)
-        if (R_Q_dS.getcount(_v9_result) == 1):
-            _maint_R_Q_T_b_2_for_R_Q_dS_remove(_v9_result)
-            _maint_R_Q_T_c_for_R_Q_dS_remove(_v9_result)
-            _maint_R_Q_dS_bu_for_R_Q_dS_remove(_v9_result)
-            R_Q_dS.remove(_v9_result)
-        else:
-            R_Q_dS.deccount(_v9_result)
+        _maint_R_Q_T_b_2_for_R_Q_dS_remove(_v9_result)
+        _maint_R_Q_T_c_for_R_Q_dS_remove(_v9_result)
+        _maint_R_Q_dS_bu_for_R_Q_dS_remove(_v9_result)
+        R_Q_dS.remove(_v9_result)
 
 def _maint_R_Q_dS_for_S_add(_elem):
     (_v10_b, _v10_c) = _elem
     if ((_v10_b,) in R_Q_T_b_1):
         _v10_result = (_v10_b, _v10_c)
-        if (_v10_result not in R_Q_dS):
-            R_Q_dS.add(_v10_result)
-            _maint_R_Q_dS_bu_for_R_Q_dS_add(_v10_result)
-            _maint_R_Q_T_c_for_R_Q_dS_add(_v10_result)
-            _maint_R_Q_T_b_2_for_R_Q_dS_add(_v10_result)
-        else:
-            R_Q_dS.inccount(_v10_result)
+        R_Q_dS.add(_v10_result)
+        _maint_R_Q_dS_bu_for_R_Q_dS_add(_v10_result)
+        _maint_R_Q_T_c_for_R_Q_dS_add(_v10_result)
+        _maint_R_Q_T_b_2_for_R_Q_dS_add(_v10_result)
 
 def _maint_R_Q_dS_for_S_remove(_elem):
     (_v11_b, _v11_c) = _elem
     if ((_v11_b,) in R_Q_T_b_1):
         _v11_result = (_v11_b, _v11_c)
-        if (R_Q_dS.getcount(_v11_result) == 1):
-            _maint_R_Q_T_b_2_for_R_Q_dS_remove(_v11_result)
-            _maint_R_Q_T_c_for_R_Q_dS_remove(_v11_result)
-            _maint_R_Q_dS_bu_for_R_Q_dS_remove(_v11_result)
-            R_Q_dS.remove(_v11_result)
-        else:
-            R_Q_dS.deccount(_v11_result)
+        _maint_R_Q_T_b_2_for_R_Q_dS_remove(_v11_result)
+        _maint_R_Q_T_c_for_R_Q_dS_remove(_v11_result)
+        _maint_R_Q_dS_bu_for_R_Q_dS_remove(_v11_result)
+        R_Q_dS.remove(_v11_result)
 
 def _maint_R_Q_T_b_1_for_S_add(_elem):
     (_v6_a, _v6_b) = _elem

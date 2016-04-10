@@ -63,11 +63,8 @@ class TransCase(unittest.TestCase):
                 if isset(_v15_y):
                     for _v15_z in _v15_y:
                         _v15_result = (_v15_y, _v15_z)
-                        if (_v15_result not in R_Q_d_M_2):
-                            R_Q_d_M_2.reladd(_v15_result)
-                            _maint_R_Q_T_z_for_R_Q_d_M_2_add(_v15_result)
-                        else:
-                            R_Q_d_M_2.relinccount(_v15_result)
+                        R_Q_d_M_2.reladd(_v15_result)
+                        _maint_R_Q_T_z_for_R_Q_d_M_2_add(_v15_result)
             ''')
         self.assertEqual(func, exp_func)
 

@@ -6,7 +6,7 @@ from incoq.mars.runtime import *
 # S : {(Number, Number)}
 S = Set()
 # R_Q1 : {(Number, Number)}
-R_Q1 = CSet()
+R_Q1 = Set()
 # R__QU_Q2 : {(Number)}
 R__QU_Q2 = CSet()
 # SA_Q2 : {(Number, (Number, Number))}
@@ -261,22 +261,16 @@ def _maint_R__QU_Q2_for_S_remove(_elem):
 def _maint_R_Q1_for_S_add(_elem):
     (_v3_x, _v3_w) = _elem
     _v3_result = (_v3_x, _v3_w)
-    if (_v3_result not in R_Q1):
-        R_Q1.add(_v3_result)
-        _maint_R_Q1_bu_for_R_Q1_add(_v3_result)
-        _maint_A_Q2_for_R_Q1_add(_v3_result)
-    else:
-        R_Q1.inccount(_v3_result)
+    R_Q1.add(_v3_result)
+    _maint_R_Q1_bu_for_R_Q1_add(_v3_result)
+    _maint_A_Q2_for_R_Q1_add(_v3_result)
 
 def _maint_R_Q1_for_S_remove(_elem):
     (_v4_x, _v4_w) = _elem
     _v4_result = (_v4_x, _v4_w)
-    if (R_Q1.getcount(_v4_result) == 1):
-        _maint_A_Q2_for_R_Q1_remove(_v4_result)
-        _maint_R_Q1_bu_for_R_Q1_remove(_v4_result)
-        R_Q1.remove(_v4_result)
-    else:
-        R_Q1.deccount(_v4_result)
+    _maint_A_Q2_for_R_Q1_remove(_v4_result)
+    _maint_R_Q1_bu_for_R_Q1_remove(_v4_result)
+    R_Q1.remove(_v4_result)
 
 def main():
     for (a, b) in [(1, 2), (2, 3), (2, 4), (1, 3), (3, 5)]:

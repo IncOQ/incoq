@@ -290,10 +290,9 @@ def incrementalize_comp(tree, symtab, query, result_var):
     
     # Determine whether or not to use counting for this query's result.
     dupsafe = is_duplicate_safe(clausetools, comp)
-    counted = (symtab.config.elim_counts and
-               (dupsafe or query.count_elim_safe_override))
-    ### Disabled
-    counted = True
+    eliminate_counted = (symtab.config.elim_counts and
+                         (dupsafe or query.count_elim_safe_override))
+    counted = not eliminate_counted
     
     # Some hackery for tracking the names of maintenance joins and
     # their corresponding variable prefixes.

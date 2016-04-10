@@ -9,7 +9,7 @@ S_wrapped = Set()
 # _U_Q : {({Number})}
 _U_Q = Set()
 # R_Q : {({Number}, Number)}
-R_Q = CSet()
+R_Q = Set()
 # _M_ub : {Top: {Top}}
 _M_ub = Map()
 # R_Q_bu : {{Number}: {Number}}
@@ -54,11 +54,8 @@ def _maint_R_Q_for__U_Q_add(_elem):
         for _v5_x in _v5_z:
             if ((_v5_x,) in S_wrapped):
                 _v5_result = (_v5_z, _v5_x)
-                if (_v5_result not in R_Q):
-                    R_Q.add(_v5_result)
-                    _maint_R_Q_bu_for_R_Q_add(_v5_result)
-                else:
-                    R_Q.inccount(_v5_result)
+                R_Q.add(_v5_result)
+                _maint_R_Q_bu_for_R_Q_add(_v5_result)
 
 def _maint_R_Q_for__U_Q_remove(_elem):
     (_v6_z,) = _elem
@@ -66,55 +63,40 @@ def _maint_R_Q_for__U_Q_remove(_elem):
         for _v6_x in _v6_z:
             if ((_v6_x,) in S_wrapped):
                 _v6_result = (_v6_z, _v6_x)
-                if (R_Q.getcount(_v6_result) == 1):
-                    _maint_R_Q_bu_for_R_Q_remove(_v6_result)
-                    R_Q.remove(_v6_result)
-                else:
-                    R_Q.deccount(_v6_result)
+                _maint_R_Q_bu_for_R_Q_remove(_v6_result)
+                R_Q.remove(_v6_result)
 
 def _maint_R_Q_for__M_add(_elem):
     (_v7_z, _v7_x) = _elem
     if ((_v7_z,) in _U_Q):
         if ((_v7_x,) in S_wrapped):
             _v7_result = (_v7_z, _v7_x)
-            if (_v7_result not in R_Q):
-                R_Q.add(_v7_result)
-                _maint_R_Q_bu_for_R_Q_add(_v7_result)
-            else:
-                R_Q.inccount(_v7_result)
+            R_Q.add(_v7_result)
+            _maint_R_Q_bu_for_R_Q_add(_v7_result)
 
 def _maint_R_Q_for__M_remove(_elem):
     (_v8_z, _v8_x) = _elem
     if ((_v8_z,) in _U_Q):
         if ((_v8_x,) in S_wrapped):
             _v8_result = (_v8_z, _v8_x)
-            if (R_Q.getcount(_v8_result) == 1):
-                _maint_R_Q_bu_for_R_Q_remove(_v8_result)
-                R_Q.remove(_v8_result)
-            else:
-                R_Q.deccount(_v8_result)
+            _maint_R_Q_bu_for_R_Q_remove(_v8_result)
+            R_Q.remove(_v8_result)
 
 def _maint_R_Q_for_S_wrapped_add(_elem):
     (_v9_x,) = _elem
     for _v9_z in _M_ub.get(_v9_x, Set()):
         if ((_v9_z,) in _U_Q):
             _v9_result = (_v9_z, _v9_x)
-            if (_v9_result not in R_Q):
-                R_Q.add(_v9_result)
-                _maint_R_Q_bu_for_R_Q_add(_v9_result)
-            else:
-                R_Q.inccount(_v9_result)
+            R_Q.add(_v9_result)
+            _maint_R_Q_bu_for_R_Q_add(_v9_result)
 
 def _maint_R_Q_for_S_wrapped_remove(_elem):
     (_v10_x,) = _elem
     for _v10_z in _M_ub.get(_v10_x, Set()):
         if ((_v10_z,) in _U_Q):
             _v10_result = (_v10_z, _v10_x)
-            if (R_Q.getcount(_v10_result) == 1):
-                _maint_R_Q_bu_for_R_Q_remove(_v10_result)
-                R_Q.remove(_v10_result)
-            else:
-                R_Q.deccount(_v10_result)
+            _maint_R_Q_bu_for_R_Q_remove(_v10_result)
+            R_Q.remove(_v10_result)
 
 def _demand_Q(_elem):
     if (_elem not in _U_Q):

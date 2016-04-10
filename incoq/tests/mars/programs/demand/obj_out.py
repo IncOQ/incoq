@@ -14,13 +14,13 @@ _U_Q = Set()
 # R_Q : {({Bottom}, Top)}
 R_Q = CSet()
 # R_Q_T_z : Bottom
-R_Q_T_z = CSet()
+R_Q_T_z = Set()
 # R_Q_d_M : Bottom
-R_Q_d_M = CSet()
+R_Q_d_M = Set()
 # R_Q_T_o : Bottom
 R_Q_T_o = CSet()
 # R_Q_d_F_f : Bottom
-R_Q_d_F_f = CSet()
+R_Q_d_F_f = Set()
 # R_Q_T_o_f : Bottom
 R_Q_T_o_f = CSet()
 # R_Q_d_M_ub : {Bottom: {Bottom}}
@@ -82,42 +82,30 @@ def _maint_R_Q_d_F_f_for_R_Q_T_o_add(_elem):
     if hasfield(_v17_o, 'f'):
         _v17_o_f = _v17_o.f
         _v17_result = (_v17_o, _v17_o_f)
-        if (_v17_result not in R_Q_d_F_f):
-            R_Q_d_F_f.add(_v17_result)
-            _maint_R_Q_T_o_f_for_R_Q_d_F_f_add(_v17_result)
-        else:
-            R_Q_d_F_f.inccount(_v17_result)
+        R_Q_d_F_f.add(_v17_result)
+        _maint_R_Q_T_o_f_for_R_Q_d_F_f_add(_v17_result)
 
 def _maint_R_Q_d_F_f_for_R_Q_T_o_remove(_elem):
     (_v18_o,) = _elem
     if hasfield(_v18_o, 'f'):
         _v18_o_f = _v18_o.f
         _v18_result = (_v18_o, _v18_o_f)
-        if (R_Q_d_F_f.getcount(_v18_result) == 1):
-            _maint_R_Q_T_o_f_for_R_Q_d_F_f_remove(_v18_result)
-            R_Q_d_F_f.remove(_v18_result)
-        else:
-            R_Q_d_F_f.deccount(_v18_result)
+        _maint_R_Q_T_o_f_for_R_Q_d_F_f_remove(_v18_result)
+        R_Q_d_F_f.remove(_v18_result)
 
 def _maint_R_Q_d_F_f_for__F_f_add(_elem):
     (_v19_o, _v19_o_f) = _elem
     if ((_v19_o,) in R_Q_T_o):
         _v19_result = (_v19_o, _v19_o_f)
-        if (_v19_result not in R_Q_d_F_f):
-            R_Q_d_F_f.add(_v19_result)
-            _maint_R_Q_T_o_f_for_R_Q_d_F_f_add(_v19_result)
-        else:
-            R_Q_d_F_f.inccount(_v19_result)
+        R_Q_d_F_f.add(_v19_result)
+        _maint_R_Q_T_o_f_for_R_Q_d_F_f_add(_v19_result)
 
 def _maint_R_Q_d_F_f_for__F_f_remove(_elem):
     (_v20_o, _v20_o_f) = _elem
     if ((_v20_o,) in R_Q_T_o):
         _v20_result = (_v20_o, _v20_o_f)
-        if (R_Q_d_F_f.getcount(_v20_result) == 1):
-            _maint_R_Q_T_o_f_for_R_Q_d_F_f_remove(_v20_result)
-            R_Q_d_F_f.remove(_v20_result)
-        else:
-            R_Q_d_F_f.deccount(_v20_result)
+        _maint_R_Q_T_o_f_for_R_Q_d_F_f_remove(_v20_result)
+        R_Q_d_F_f.remove(_v20_result)
 
 def _maint_R_Q_T_o_for_R_Q_d_M_add(_elem):
     (_v15_z, _v15_o) = _elem
@@ -142,64 +130,46 @@ def _maint_R_Q_d_M_for_R_Q_T_z_add(_elem):
     if isset(_v11_z):
         for _v11_o in _v11_z:
             _v11_result = (_v11_z, _v11_o)
-            if (_v11_result not in R_Q_d_M):
-                R_Q_d_M.add(_v11_result)
-                _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v11_result)
-                _maint_R_Q_T_o_for_R_Q_d_M_add(_v11_result)
-            else:
-                R_Q_d_M.inccount(_v11_result)
+            R_Q_d_M.add(_v11_result)
+            _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v11_result)
+            _maint_R_Q_T_o_for_R_Q_d_M_add(_v11_result)
 
 def _maint_R_Q_d_M_for_R_Q_T_z_remove(_elem):
     (_v12_z,) = _elem
     if isset(_v12_z):
         for _v12_o in _v12_z:
             _v12_result = (_v12_z, _v12_o)
-            if (R_Q_d_M.getcount(_v12_result) == 1):
-                _maint_R_Q_T_o_for_R_Q_d_M_remove(_v12_result)
-                _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v12_result)
-                R_Q_d_M.remove(_v12_result)
-            else:
-                R_Q_d_M.deccount(_v12_result)
+            _maint_R_Q_T_o_for_R_Q_d_M_remove(_v12_result)
+            _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v12_result)
+            R_Q_d_M.remove(_v12_result)
 
 def _maint_R_Q_d_M_for__M_add(_elem):
     (_v13_z, _v13_o) = _elem
     if ((_v13_z,) in R_Q_T_z):
         _v13_result = (_v13_z, _v13_o)
-        if (_v13_result not in R_Q_d_M):
-            R_Q_d_M.add(_v13_result)
-            _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v13_result)
-            _maint_R_Q_T_o_for_R_Q_d_M_add(_v13_result)
-        else:
-            R_Q_d_M.inccount(_v13_result)
+        R_Q_d_M.add(_v13_result)
+        _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v13_result)
+        _maint_R_Q_T_o_for_R_Q_d_M_add(_v13_result)
 
 def _maint_R_Q_d_M_for__M_remove(_elem):
     (_v14_z, _v14_o) = _elem
     if ((_v14_z,) in R_Q_T_z):
         _v14_result = (_v14_z, _v14_o)
-        if (R_Q_d_M.getcount(_v14_result) == 1):
-            _maint_R_Q_T_o_for_R_Q_d_M_remove(_v14_result)
-            _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v14_result)
-            R_Q_d_M.remove(_v14_result)
-        else:
-            R_Q_d_M.deccount(_v14_result)
+        _maint_R_Q_T_o_for_R_Q_d_M_remove(_v14_result)
+        _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v14_result)
+        R_Q_d_M.remove(_v14_result)
 
 def _maint_R_Q_T_z_for__U_Q_add(_elem):
     (_v9_z,) = _elem
     _v9_result = (_v9_z,)
-    if (_v9_result not in R_Q_T_z):
-        R_Q_T_z.add(_v9_result)
-        _maint_R_Q_d_M_for_R_Q_T_z_add(_v9_result)
-    else:
-        R_Q_T_z.inccount(_v9_result)
+    R_Q_T_z.add(_v9_result)
+    _maint_R_Q_d_M_for_R_Q_T_z_add(_v9_result)
 
 def _maint_R_Q_T_z_for__U_Q_remove(_elem):
     (_v10_z,) = _elem
     _v10_result = (_v10_z,)
-    if (R_Q_T_z.getcount(_v10_result) == 1):
-        _maint_R_Q_d_M_for_R_Q_T_z_remove(_v10_result)
-        R_Q_T_z.remove(_v10_result)
-    else:
-        R_Q_T_z.deccount(_v10_result)
+    _maint_R_Q_d_M_for_R_Q_T_z_remove(_v10_result)
+    R_Q_T_z.remove(_v10_result)
 
 def _maint_R_Q_for__U_Q_add(_elem):
     (_v3_z,) = _elem

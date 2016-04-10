@@ -9,11 +9,11 @@ _TUP_2 = Set()
 # _U_Q2 : {({(Number, Number)})}
 _U_Q2 = Set()
 # R__QU_Q1 : {({(Number, Number)})}
-R__QU_Q1 = CSet()
+R__QU_Q1 = Set()
 # R_Q1 : {({(Number, Number)}, (Bottom, Bottom))}
 R_Q1 = CSet()
 # R_Q2 : {({(Number, Number)}, (Bottom, Bottom))}
-R_Q2 = CSet()
+R_Q2 = Set()
 # R_Q1_bu : {{(Number, Number)}: {(Bottom, Bottom)}}
 R_Q1_bu = Map()
 # _M_ub : {Top: {Top}}
@@ -75,41 +75,29 @@ def _maint_R_Q2_for__U_Q2_add(_elem):
     (_v11_s,) = _elem
     for _v11_z in R_Q1_bu.get(_v11_s, Set()):
         _v11_result = (_v11_s, _v11_z)
-        if (_v11_result not in R_Q2):
-            R_Q2.add(_v11_result)
-            _maint_R_Q2_bu_for_R_Q2_add(_v11_result)
-        else:
-            R_Q2.inccount(_v11_result)
+        R_Q2.add(_v11_result)
+        _maint_R_Q2_bu_for_R_Q2_add(_v11_result)
 
 def _maint_R_Q2_for__U_Q2_remove(_elem):
     (_v12_s,) = _elem
     for _v12_z in R_Q1_bu.get(_v12_s, Set()):
         _v12_result = (_v12_s, _v12_z)
-        if (R_Q2.getcount(_v12_result) == 1):
-            _maint_R_Q2_bu_for_R_Q2_remove(_v12_result)
-            R_Q2.remove(_v12_result)
-        else:
-            R_Q2.deccount(_v12_result)
+        _maint_R_Q2_bu_for_R_Q2_remove(_v12_result)
+        R_Q2.remove(_v12_result)
 
 def _maint_R_Q2_for_R_Q1_add(_elem):
     (_v13_s, _v13_z) = _elem
     if ((_v13_s,) in _U_Q2):
         _v13_result = (_v13_s, _v13_z)
-        if (_v13_result not in R_Q2):
-            R_Q2.add(_v13_result)
-            _maint_R_Q2_bu_for_R_Q2_add(_v13_result)
-        else:
-            R_Q2.inccount(_v13_result)
+        R_Q2.add(_v13_result)
+        _maint_R_Q2_bu_for_R_Q2_add(_v13_result)
 
 def _maint_R_Q2_for_R_Q1_remove(_elem):
     (_v14_s, _v14_z) = _elem
     if ((_v14_s,) in _U_Q2):
         _v14_result = (_v14_s, _v14_z)
-        if (R_Q2.getcount(_v14_result) == 1):
-            _maint_R_Q2_bu_for_R_Q2_remove(_v14_result)
-            R_Q2.remove(_v14_result)
-        else:
-            R_Q2.deccount(_v14_result)
+        _maint_R_Q2_bu_for_R_Q2_remove(_v14_result)
+        R_Q2.remove(_v14_result)
 
 def _maint_R_Q1_for_R__QU_Q1_add(_elem):
     (_v5_s,) = _elem
@@ -192,20 +180,14 @@ def _maint_R_Q1_for__TUP_2_remove(_elem):
 def _maint_R__QU_Q1_for__U_Q2_add(_elem):
     (_v3__v2s,) = _elem
     _v3_result = (_v3__v2s,)
-    if (_v3_result not in R__QU_Q1):
-        R__QU_Q1.add(_v3_result)
-        _maint_R_Q1_for_R__QU_Q1_add(_v3_result)
-    else:
-        R__QU_Q1.inccount(_v3_result)
+    R__QU_Q1.add(_v3_result)
+    _maint_R_Q1_for_R__QU_Q1_add(_v3_result)
 
 def _maint_R__QU_Q1_for__U_Q2_remove(_elem):
     (_v4__v2s,) = _elem
     _v4_result = (_v4__v2s,)
-    if (R__QU_Q1.getcount(_v4_result) == 1):
-        _maint_R_Q1_for_R__QU_Q1_remove(_v4_result)
-        R__QU_Q1.remove(_v4_result)
-    else:
-        R__QU_Q1.deccount(_v4_result)
+    _maint_R_Q1_for_R__QU_Q1_remove(_v4_result)
+    R__QU_Q1.remove(_v4_result)
 
 def _demand_Q2(_elem):
     if (_elem not in _U_Q2):

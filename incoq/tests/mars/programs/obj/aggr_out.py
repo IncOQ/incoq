@@ -9,9 +9,9 @@ _F_f = Set()
 # _U_Q : {(Top)}
 _U_Q = Set()
 # R__QU_Q_oper : {(Top)}
-R__QU_Q_oper = CSet()
+R__QU_Q_oper = Set()
 # R_Q_oper : {(Top, Top)}
-R_Q_oper = CSet()
+R_Q_oper = Set()
 # A_Q : {(Top): Number}
 A_Q = Map()
 # R_Q_oper_bu : {Top: {(Top)}}
@@ -89,12 +89,9 @@ def _maint_R_Q_oper_for_R__QU_Q_oper_add(_elem):
         if isset(_v8_o_f):
             for _v8__v1 in _v8_o_f:
                 _v8_result = (_v8_o, _v8__v1)
-                if (_v8_result not in R_Q_oper):
-                    R_Q_oper.add(_v8_result)
-                    _maint_R_Q_oper_bu_for_R_Q_oper_add(_v8_result)
-                    _maint_A_Q_for_R_Q_oper_add(_v8_result)
-                else:
-                    R_Q_oper.inccount(_v8_result)
+                R_Q_oper.add(_v8_result)
+                _maint_R_Q_oper_bu_for_R_Q_oper_add(_v8_result)
+                _maint_A_Q_for_R_Q_oper_add(_v8_result)
 
 def _maint_R_Q_oper_for_R__QU_Q_oper_remove(_elem):
     (_v9_o,) = _elem
@@ -103,12 +100,9 @@ def _maint_R_Q_oper_for_R__QU_Q_oper_remove(_elem):
         if isset(_v9_o_f):
             for _v9__v1 in _v9_o_f:
                 _v9_result = (_v9_o, _v9__v1)
-                if (R_Q_oper.getcount(_v9_result) == 1):
-                    _maint_A_Q_for_R_Q_oper_remove(_v9_result)
-                    _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v9_result)
-                    R_Q_oper.remove(_v9_result)
-                else:
-                    R_Q_oper.deccount(_v9_result)
+                _maint_A_Q_for_R_Q_oper_remove(_v9_result)
+                _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v9_result)
+                R_Q_oper.remove(_v9_result)
 
 def _maint_R_Q_oper_for__F_f_add(_elem):
     (_v10_o, _v10_o_f) = _elem
@@ -116,12 +110,9 @@ def _maint_R_Q_oper_for__F_f_add(_elem):
         if isset(_v10_o_f):
             for _v10__v1 in _v10_o_f:
                 _v10_result = (_v10_o, _v10__v1)
-                if (_v10_result not in R_Q_oper):
-                    R_Q_oper.add(_v10_result)
-                    _maint_R_Q_oper_bu_for_R_Q_oper_add(_v10_result)
-                    _maint_A_Q_for_R_Q_oper_add(_v10_result)
-                else:
-                    R_Q_oper.inccount(_v10_result)
+                R_Q_oper.add(_v10_result)
+                _maint_R_Q_oper_bu_for_R_Q_oper_add(_v10_result)
+                _maint_A_Q_for_R_Q_oper_add(_v10_result)
 
 def _maint_R_Q_oper_for__F_f_remove(_elem):
     (_v11_o, _v11_o_f) = _elem
@@ -129,54 +120,39 @@ def _maint_R_Q_oper_for__F_f_remove(_elem):
         if isset(_v11_o_f):
             for _v11__v1 in _v11_o_f:
                 _v11_result = (_v11_o, _v11__v1)
-                if (R_Q_oper.getcount(_v11_result) == 1):
-                    _maint_A_Q_for_R_Q_oper_remove(_v11_result)
-                    _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v11_result)
-                    R_Q_oper.remove(_v11_result)
-                else:
-                    R_Q_oper.deccount(_v11_result)
+                _maint_A_Q_for_R_Q_oper_remove(_v11_result)
+                _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v11_result)
+                R_Q_oper.remove(_v11_result)
 
 def _maint_R_Q_oper_for__M_add(_elem):
     (_v12_o_f, _v12__v1) = _elem
     for _v12_o in _F_f_ub.get(_v12_o_f, Set()):
         if ((_v12_o,) in R__QU_Q_oper):
             _v12_result = (_v12_o, _v12__v1)
-            if (_v12_result not in R_Q_oper):
-                R_Q_oper.add(_v12_result)
-                _maint_R_Q_oper_bu_for_R_Q_oper_add(_v12_result)
-                _maint_A_Q_for_R_Q_oper_add(_v12_result)
-            else:
-                R_Q_oper.inccount(_v12_result)
+            R_Q_oper.add(_v12_result)
+            _maint_R_Q_oper_bu_for_R_Q_oper_add(_v12_result)
+            _maint_A_Q_for_R_Q_oper_add(_v12_result)
 
 def _maint_R_Q_oper_for__M_remove(_elem):
     (_v13_o_f, _v13__v1) = _elem
     for _v13_o in _F_f_ub.get(_v13_o_f, Set()):
         if ((_v13_o,) in R__QU_Q_oper):
             _v13_result = (_v13_o, _v13__v1)
-            if (R_Q_oper.getcount(_v13_result) == 1):
-                _maint_A_Q_for_R_Q_oper_remove(_v13_result)
-                _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v13_result)
-                R_Q_oper.remove(_v13_result)
-            else:
-                R_Q_oper.deccount(_v13_result)
+            _maint_A_Q_for_R_Q_oper_remove(_v13_result)
+            _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v13_result)
+            R_Q_oper.remove(_v13_result)
 
 def _maint_R__QU_Q_oper_for__U_Q_add(_elem):
     (_v6__v5o,) = _elem
     _v6_result = (_v6__v5o,)
-    if (_v6_result not in R__QU_Q_oper):
-        R__QU_Q_oper.add(_v6_result)
-        _maint_R_Q_oper_for_R__QU_Q_oper_add(_v6_result)
-    else:
-        R__QU_Q_oper.inccount(_v6_result)
+    R__QU_Q_oper.add(_v6_result)
+    _maint_R_Q_oper_for_R__QU_Q_oper_add(_v6_result)
 
 def _maint_R__QU_Q_oper_for__U_Q_remove(_elem):
     (_v7__v5o,) = _elem
     _v7_result = (_v7__v5o,)
-    if (R__QU_Q_oper.getcount(_v7_result) == 1):
-        _maint_R_Q_oper_for_R__QU_Q_oper_remove(_v7_result)
-        R__QU_Q_oper.remove(_v7_result)
-    else:
-        R__QU_Q_oper.deccount(_v7_result)
+    _maint_R_Q_oper_for_R__QU_Q_oper_remove(_v7_result)
+    R__QU_Q_oper.remove(_v7_result)
 
 def _demand_Q(_elem):
     if (_elem not in _U_Q):

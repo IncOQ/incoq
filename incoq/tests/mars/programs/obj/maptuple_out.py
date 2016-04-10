@@ -26,29 +26,29 @@ _U_Q = Set()
 # R_Q : {(Top, Number, (Top, Top))}
 R_Q = CSet()
 # R_Q_T_m : Bottom
-R_Q_T_m = CSet()
+R_Q_T_m = Set()
 # R_Q_d_MAP : Bottom
-R_Q_d_MAP = CSet()
+R_Q_d_MAP = Set()
 # R_Q_T_k : Bottom
 R_Q_T_k = CSet()
 # R_Q_T_m_k : Bottom
 R_Q_T_m_k = CSet()
 # R_Q_d_M : Bottom
-R_Q_d_M = CSet()
+R_Q_d_M = Set()
 # R_Q_T_t_x_y : Bottom
 R_Q_T_t_x_y = CSet()
 # R_Q_d_TUP_2 : Bottom
-R_Q_d_TUP_2 = CSet()
+R_Q_d_TUP_2 = Set()
 # R_Q_T_x : Bottom
 R_Q_T_x = CSet()
 # R_Q_T_y : Bottom
 R_Q_T_y = CSet()
 # R_Q_d_F_f_1 : Bottom
-R_Q_d_F_f_1 = CSet()
+R_Q_d_F_f_1 = Set()
 # R_Q_T_x_f : Bottom
 R_Q_T_x_f = CSet()
 # R_Q_d_F_f_2 : Bottom
-R_Q_d_F_f_2 = CSet()
+R_Q_d_F_f_2 = Set()
 # R_Q_T_y_f : Bottom
 R_Q_T_y_f = CSet()
 # _MAP_buu : {Top: Top}
@@ -186,42 +186,30 @@ def _maint_R_Q_d_F_f_2_for_R_Q_T_y_add(_elem):
     if hasfield(_v51_y, 'f'):
         _v51_y_f = _v51_y.f
         _v51_result = (_v51_y, _v51_y_f)
-        if (_v51_result not in R_Q_d_F_f_2):
-            R_Q_d_F_f_2.add(_v51_result)
-            _maint_R_Q_T_y_f_for_R_Q_d_F_f_2_add(_v51_result)
-        else:
-            R_Q_d_F_f_2.inccount(_v51_result)
+        R_Q_d_F_f_2.add(_v51_result)
+        _maint_R_Q_T_y_f_for_R_Q_d_F_f_2_add(_v51_result)
 
 def _maint_R_Q_d_F_f_2_for_R_Q_T_y_remove(_elem):
     (_v52_y,) = _elem
     if hasfield(_v52_y, 'f'):
         _v52_y_f = _v52_y.f
         _v52_result = (_v52_y, _v52_y_f)
-        if (R_Q_d_F_f_2.getcount(_v52_result) == 1):
-            _maint_R_Q_T_y_f_for_R_Q_d_F_f_2_remove(_v52_result)
-            R_Q_d_F_f_2.remove(_v52_result)
-        else:
-            R_Q_d_F_f_2.deccount(_v52_result)
+        _maint_R_Q_T_y_f_for_R_Q_d_F_f_2_remove(_v52_result)
+        R_Q_d_F_f_2.remove(_v52_result)
 
 def _maint_R_Q_d_F_f_2_for__F_f_add(_elem):
     (_v53_y, _v53_y_f) = _elem
     if ((_v53_y,) in R_Q_T_y):
         _v53_result = (_v53_y, _v53_y_f)
-        if (_v53_result not in R_Q_d_F_f_2):
-            R_Q_d_F_f_2.add(_v53_result)
-            _maint_R_Q_T_y_f_for_R_Q_d_F_f_2_add(_v53_result)
-        else:
-            R_Q_d_F_f_2.inccount(_v53_result)
+        R_Q_d_F_f_2.add(_v53_result)
+        _maint_R_Q_T_y_f_for_R_Q_d_F_f_2_add(_v53_result)
 
 def _maint_R_Q_d_F_f_2_for__F_f_remove(_elem):
     (_v54_y, _v54_y_f) = _elem
     if ((_v54_y,) in R_Q_T_y):
         _v54_result = (_v54_y, _v54_y_f)
-        if (R_Q_d_F_f_2.getcount(_v54_result) == 1):
-            _maint_R_Q_T_y_f_for_R_Q_d_F_f_2_remove(_v54_result)
-            R_Q_d_F_f_2.remove(_v54_result)
-        else:
-            R_Q_d_F_f_2.deccount(_v54_result)
+        _maint_R_Q_T_y_f_for_R_Q_d_F_f_2_remove(_v54_result)
+        R_Q_d_F_f_2.remove(_v54_result)
 
 def _maint_R_Q_T_x_f_for_R_Q_d_F_f_1_add(_elem):
     (_v49_x, _v49_x_f) = _elem
@@ -244,42 +232,30 @@ def _maint_R_Q_d_F_f_1_for_R_Q_T_x_add(_elem):
     if hasfield(_v45_x, 'f'):
         _v45_x_f = _v45_x.f
         _v45_result = (_v45_x, _v45_x_f)
-        if (_v45_result not in R_Q_d_F_f_1):
-            R_Q_d_F_f_1.add(_v45_result)
-            _maint_R_Q_T_x_f_for_R_Q_d_F_f_1_add(_v45_result)
-        else:
-            R_Q_d_F_f_1.inccount(_v45_result)
+        R_Q_d_F_f_1.add(_v45_result)
+        _maint_R_Q_T_x_f_for_R_Q_d_F_f_1_add(_v45_result)
 
 def _maint_R_Q_d_F_f_1_for_R_Q_T_x_remove(_elem):
     (_v46_x,) = _elem
     if hasfield(_v46_x, 'f'):
         _v46_x_f = _v46_x.f
         _v46_result = (_v46_x, _v46_x_f)
-        if (R_Q_d_F_f_1.getcount(_v46_result) == 1):
-            _maint_R_Q_T_x_f_for_R_Q_d_F_f_1_remove(_v46_result)
-            R_Q_d_F_f_1.remove(_v46_result)
-        else:
-            R_Q_d_F_f_1.deccount(_v46_result)
+        _maint_R_Q_T_x_f_for_R_Q_d_F_f_1_remove(_v46_result)
+        R_Q_d_F_f_1.remove(_v46_result)
 
 def _maint_R_Q_d_F_f_1_for__F_f_add(_elem):
     (_v47_x, _v47_x_f) = _elem
     if ((_v47_x,) in R_Q_T_x):
         _v47_result = (_v47_x, _v47_x_f)
-        if (_v47_result not in R_Q_d_F_f_1):
-            R_Q_d_F_f_1.add(_v47_result)
-            _maint_R_Q_T_x_f_for_R_Q_d_F_f_1_add(_v47_result)
-        else:
-            R_Q_d_F_f_1.inccount(_v47_result)
+        R_Q_d_F_f_1.add(_v47_result)
+        _maint_R_Q_T_x_f_for_R_Q_d_F_f_1_add(_v47_result)
 
 def _maint_R_Q_d_F_f_1_for__F_f_remove(_elem):
     (_v48_x, _v48_x_f) = _elem
     if ((_v48_x,) in R_Q_T_x):
         _v48_result = (_v48_x, _v48_x_f)
-        if (R_Q_d_F_f_1.getcount(_v48_result) == 1):
-            _maint_R_Q_T_x_f_for_R_Q_d_F_f_1_remove(_v48_result)
-            R_Q_d_F_f_1.remove(_v48_result)
-        else:
-            R_Q_d_F_f_1.deccount(_v48_result)
+        _maint_R_Q_T_x_f_for_R_Q_d_F_f_1_remove(_v48_result)
+        R_Q_d_F_f_1.remove(_v48_result)
 
 def _maint_R_Q_T_y_for_R_Q_d_TUP_2_add(_elem):
     (_v43_t_x_y, _v43_x, _v43_y) = _elem
@@ -322,54 +298,42 @@ def _maint_R_Q_d_TUP_2_for_R_Q_T_t_x_y_add(_elem):
     if hasarity(_v37_t_x_y, 2):
         (_v37_x, _v37_y) = _v37_t_x_y
         _v37_result = (_v37_t_x_y, _v37_x, _v37_y)
-        if (_v37_result not in R_Q_d_TUP_2):
-            R_Q_d_TUP_2.add(_v37_result)
-            _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_add(_v37_result)
-            _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_add(_v37_result)
-            _maint_R_Q_T_y_for_R_Q_d_TUP_2_add(_v37_result)
-            _maint_R_Q_T_x_for_R_Q_d_TUP_2_add(_v37_result)
-        else:
-            R_Q_d_TUP_2.inccount(_v37_result)
+        R_Q_d_TUP_2.add(_v37_result)
+        _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_add(_v37_result)
+        _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_add(_v37_result)
+        _maint_R_Q_T_y_for_R_Q_d_TUP_2_add(_v37_result)
+        _maint_R_Q_T_x_for_R_Q_d_TUP_2_add(_v37_result)
 
 def _maint_R_Q_d_TUP_2_for_R_Q_T_t_x_y_remove(_elem):
     (_v38_t_x_y,) = _elem
     if hasarity(_v38_t_x_y, 2):
         (_v38_x, _v38_y) = _v38_t_x_y
         _v38_result = (_v38_t_x_y, _v38_x, _v38_y)
-        if (R_Q_d_TUP_2.getcount(_v38_result) == 1):
-            _maint_R_Q_T_x_for_R_Q_d_TUP_2_remove(_v38_result)
-            _maint_R_Q_T_y_for_R_Q_d_TUP_2_remove(_v38_result)
-            _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_remove(_v38_result)
-            _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_remove(_v38_result)
-            R_Q_d_TUP_2.remove(_v38_result)
-        else:
-            R_Q_d_TUP_2.deccount(_v38_result)
+        _maint_R_Q_T_x_for_R_Q_d_TUP_2_remove(_v38_result)
+        _maint_R_Q_T_y_for_R_Q_d_TUP_2_remove(_v38_result)
+        _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_remove(_v38_result)
+        _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_remove(_v38_result)
+        R_Q_d_TUP_2.remove(_v38_result)
 
 def _maint_R_Q_d_TUP_2_for__TUP_2_add(_elem):
     (_v39_t_x_y, _v39_x, _v39_y) = _elem
     if ((_v39_t_x_y,) in R_Q_T_t_x_y):
         _v39_result = (_v39_t_x_y, _v39_x, _v39_y)
-        if (_v39_result not in R_Q_d_TUP_2):
-            R_Q_d_TUP_2.add(_v39_result)
-            _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_add(_v39_result)
-            _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_add(_v39_result)
-            _maint_R_Q_T_y_for_R_Q_d_TUP_2_add(_v39_result)
-            _maint_R_Q_T_x_for_R_Q_d_TUP_2_add(_v39_result)
-        else:
-            R_Q_d_TUP_2.inccount(_v39_result)
+        R_Q_d_TUP_2.add(_v39_result)
+        _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_add(_v39_result)
+        _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_add(_v39_result)
+        _maint_R_Q_T_y_for_R_Q_d_TUP_2_add(_v39_result)
+        _maint_R_Q_T_x_for_R_Q_d_TUP_2_add(_v39_result)
 
 def _maint_R_Q_d_TUP_2_for__TUP_2_remove(_elem):
     (_v40_t_x_y, _v40_x, _v40_y) = _elem
     if ((_v40_t_x_y,) in R_Q_T_t_x_y):
         _v40_result = (_v40_t_x_y, _v40_x, _v40_y)
-        if (R_Q_d_TUP_2.getcount(_v40_result) == 1):
-            _maint_R_Q_T_x_for_R_Q_d_TUP_2_remove(_v40_result)
-            _maint_R_Q_T_y_for_R_Q_d_TUP_2_remove(_v40_result)
-            _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_remove(_v40_result)
-            _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_remove(_v40_result)
-            R_Q_d_TUP_2.remove(_v40_result)
-        else:
-            R_Q_d_TUP_2.deccount(_v40_result)
+        _maint_R_Q_T_x_for_R_Q_d_TUP_2_remove(_v40_result)
+        _maint_R_Q_T_y_for_R_Q_d_TUP_2_remove(_v40_result)
+        _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_remove(_v40_result)
+        _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_remove(_v40_result)
+        R_Q_d_TUP_2.remove(_v40_result)
 
 def _maint_R_Q_T_t_x_y_for_R_Q_d_M_add(_elem):
     (_v35_m_k, _v35_t_x_y) = _elem
@@ -394,46 +358,34 @@ def _maint_R_Q_d_M_for_R_Q_T_m_k_add(_elem):
     if isset(_v31_m_k):
         for _v31_t_x_y in _v31_m_k:
             _v31_result = (_v31_m_k, _v31_t_x_y)
-            if (_v31_result not in R_Q_d_M):
-                R_Q_d_M.add(_v31_result)
-                _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v31_result)
-                _maint_R_Q_T_t_x_y_for_R_Q_d_M_add(_v31_result)
-            else:
-                R_Q_d_M.inccount(_v31_result)
+            R_Q_d_M.add(_v31_result)
+            _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v31_result)
+            _maint_R_Q_T_t_x_y_for_R_Q_d_M_add(_v31_result)
 
 def _maint_R_Q_d_M_for_R_Q_T_m_k_remove(_elem):
     (_v32_m_k,) = _elem
     if isset(_v32_m_k):
         for _v32_t_x_y in _v32_m_k:
             _v32_result = (_v32_m_k, _v32_t_x_y)
-            if (R_Q_d_M.getcount(_v32_result) == 1):
-                _maint_R_Q_T_t_x_y_for_R_Q_d_M_remove(_v32_result)
-                _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v32_result)
-                R_Q_d_M.remove(_v32_result)
-            else:
-                R_Q_d_M.deccount(_v32_result)
+            _maint_R_Q_T_t_x_y_for_R_Q_d_M_remove(_v32_result)
+            _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v32_result)
+            R_Q_d_M.remove(_v32_result)
 
 def _maint_R_Q_d_M_for__M_add(_elem):
     (_v33_m_k, _v33_t_x_y) = _elem
     if ((_v33_m_k,) in R_Q_T_m_k):
         _v33_result = (_v33_m_k, _v33_t_x_y)
-        if (_v33_result not in R_Q_d_M):
-            R_Q_d_M.add(_v33_result)
-            _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v33_result)
-            _maint_R_Q_T_t_x_y_for_R_Q_d_M_add(_v33_result)
-        else:
-            R_Q_d_M.inccount(_v33_result)
+        R_Q_d_M.add(_v33_result)
+        _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v33_result)
+        _maint_R_Q_T_t_x_y_for_R_Q_d_M_add(_v33_result)
 
 def _maint_R_Q_d_M_for__M_remove(_elem):
     (_v34_m_k, _v34_t_x_y) = _elem
     if ((_v34_m_k,) in R_Q_T_m_k):
         _v34_result = (_v34_m_k, _v34_t_x_y)
-        if (R_Q_d_M.getcount(_v34_result) == 1):
-            _maint_R_Q_T_t_x_y_for_R_Q_d_M_remove(_v34_result)
-            _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v34_result)
-            R_Q_d_M.remove(_v34_result)
-        else:
-            R_Q_d_M.deccount(_v34_result)
+        _maint_R_Q_T_t_x_y_for_R_Q_d_M_remove(_v34_result)
+        _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v34_result)
+        R_Q_d_M.remove(_v34_result)
 
 def _maint_R_Q_T_m_k_for_R_Q_d_MAP_add(_elem):
     (_v29_m, _v29_k, _v29_m_k) = _elem
@@ -473,67 +425,49 @@ def _maint_R_Q_d_MAP_for_R_Q_T_m_add(_elem):
     (_v23_m,) = _elem
     for (_v23_k, _v23_m_k) in _MAP_buu.get(_v23_m, Set()):
         _v23_result = (_v23_m, _v23_k, _v23_m_k)
-        if (_v23_result not in R_Q_d_MAP):
-            R_Q_d_MAP.add(_v23_result)
-            _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_add(_v23_result)
-            _maint_R_Q_T_m_k_for_R_Q_d_MAP_add(_v23_result)
-            _maint_R_Q_T_k_for_R_Q_d_MAP_add(_v23_result)
-        else:
-            R_Q_d_MAP.inccount(_v23_result)
+        R_Q_d_MAP.add(_v23_result)
+        _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_add(_v23_result)
+        _maint_R_Q_T_m_k_for_R_Q_d_MAP_add(_v23_result)
+        _maint_R_Q_T_k_for_R_Q_d_MAP_add(_v23_result)
 
 def _maint_R_Q_d_MAP_for_R_Q_T_m_remove(_elem):
     (_v24_m,) = _elem
     for (_v24_k, _v24_m_k) in _MAP_buu.get(_v24_m, Set()):
         _v24_result = (_v24_m, _v24_k, _v24_m_k)
-        if (R_Q_d_MAP.getcount(_v24_result) == 1):
-            _maint_R_Q_T_k_for_R_Q_d_MAP_remove(_v24_result)
-            _maint_R_Q_T_m_k_for_R_Q_d_MAP_remove(_v24_result)
-            _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_remove(_v24_result)
-            R_Q_d_MAP.remove(_v24_result)
-        else:
-            R_Q_d_MAP.deccount(_v24_result)
+        _maint_R_Q_T_k_for_R_Q_d_MAP_remove(_v24_result)
+        _maint_R_Q_T_m_k_for_R_Q_d_MAP_remove(_v24_result)
+        _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_remove(_v24_result)
+        R_Q_d_MAP.remove(_v24_result)
 
 def _maint_R_Q_d_MAP_for__MAP_add(_elem):
     (_v25_m, _v25_k, _v25_m_k) = _elem
     if ((_v25_m,) in R_Q_T_m):
         _v25_result = (_v25_m, _v25_k, _v25_m_k)
-        if (_v25_result not in R_Q_d_MAP):
-            R_Q_d_MAP.add(_v25_result)
-            _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_add(_v25_result)
-            _maint_R_Q_T_m_k_for_R_Q_d_MAP_add(_v25_result)
-            _maint_R_Q_T_k_for_R_Q_d_MAP_add(_v25_result)
-        else:
-            R_Q_d_MAP.inccount(_v25_result)
+        R_Q_d_MAP.add(_v25_result)
+        _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_add(_v25_result)
+        _maint_R_Q_T_m_k_for_R_Q_d_MAP_add(_v25_result)
+        _maint_R_Q_T_k_for_R_Q_d_MAP_add(_v25_result)
 
 def _maint_R_Q_d_MAP_for__MAP_remove(_elem):
     (_v26_m, _v26_k, _v26_m_k) = _elem
     if ((_v26_m,) in R_Q_T_m):
         _v26_result = (_v26_m, _v26_k, _v26_m_k)
-        if (R_Q_d_MAP.getcount(_v26_result) == 1):
-            _maint_R_Q_T_k_for_R_Q_d_MAP_remove(_v26_result)
-            _maint_R_Q_T_m_k_for_R_Q_d_MAP_remove(_v26_result)
-            _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_remove(_v26_result)
-            R_Q_d_MAP.remove(_v26_result)
-        else:
-            R_Q_d_MAP.deccount(_v26_result)
+        _maint_R_Q_T_k_for_R_Q_d_MAP_remove(_v26_result)
+        _maint_R_Q_T_m_k_for_R_Q_d_MAP_remove(_v26_result)
+        _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_remove(_v26_result)
+        R_Q_d_MAP.remove(_v26_result)
 
 def _maint_R_Q_T_m_for__U_Q_add(_elem):
     (_v21_m,) = _elem
     _v21_result = (_v21_m,)
-    if (_v21_result not in R_Q_T_m):
-        R_Q_T_m.add(_v21_result)
-        _maint_R_Q_d_MAP_for_R_Q_T_m_add(_v21_result)
-    else:
-        R_Q_T_m.inccount(_v21_result)
+    R_Q_T_m.add(_v21_result)
+    _maint_R_Q_d_MAP_for_R_Q_T_m_add(_v21_result)
 
 def _maint_R_Q_T_m_for__U_Q_remove(_elem):
     (_v22_m,) = _elem
     _v22_result = (_v22_m,)
-    if (R_Q_T_m.getcount(_v22_result) == 1):
-        _maint_R_Q_d_MAP_for_R_Q_T_m_remove(_v22_result)
-        R_Q_T_m.remove(_v22_result)
-    else:
-        R_Q_T_m.deccount(_v22_result)
+    _maint_R_Q_d_MAP_for_R_Q_T_m_remove(_v22_result)
+    R_Q_T_m.remove(_v22_result)
 
 def _maint_R_Q_for__U_Q_add(_elem):
     (_v11_m,) = _elem
