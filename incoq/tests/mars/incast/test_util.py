@@ -130,6 +130,13 @@ class UtilCase(unittest.TestCase):
                 print(QUERY('Q1', 1 + unwrap(QUERY('Q2', 2))))
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_is_injective(self):
+        tree = Parser.pe('(1, "a", True, None, (False, x))')
+        self.assertTrue(is_injective(tree))
+        
+        tree = Parser.pe('(1 + 1)')
+        self.assertFalse(is_injective(tree))
 
 
 if __name__ == '__main__':

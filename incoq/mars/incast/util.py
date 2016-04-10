@@ -9,6 +9,7 @@ __all__ = [
     'set_update_name',
     'apply_renamer',
     'Unwrapper',
+    'is_injective',
 ]
 
 
@@ -104,3 +105,32 @@ class Unwrapper(L.NodeTransformer):
         if node.name in self.names:
             node = L.Unwrap(node)
         return node
+
+
+def is_injective(expr):
+    """Return whether an expression can be guaranteed to be injective,
+    i.e., always returns distinct outputs for distinct inputs.
+    """
+    class Visitor(L.NodeVisitor):
+        def process(self, tree):
+            self.injective = True
+            super().process(tree)
+            return self.injective
+        
+        def generic_visit(self, node):
+            self.injective = False
+        
+        def ok_leaf(self, node):
+            return
+        
+        visit_Num = ok_leaf
+        visit_Str = ok_leaf
+        visit_NameConstant = ok_leaf
+        visit_Name = ok_leaf
+        
+        def visit_Tuple(self, node):
+            for e in node.elts:
+                self.visit(e)
+    
+    assert isinstance(expr, L.expr)
+    return Visitor.run(expr)
