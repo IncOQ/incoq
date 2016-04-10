@@ -311,6 +311,12 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         default=Unconstrained,
         allowed_values=[Unconstrained, All, Explicit])
     
+    count_elim_safe_override = SymbolAttribute(
+        doc='If True, consider it safe to eliminate counting for this '
+        'query even if we can\'t determine that from analysis',
+        default=False,
+        parser=parse_bool)
+    
     # Internal attributes.
     
     maint_joins = SymbolAttribute(

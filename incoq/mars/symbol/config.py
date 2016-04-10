@@ -88,6 +88,12 @@ all_attributes = [
         'in QUERY annotations',
         parse_bool,
         {'action': 'store_true'}),
+    
+    ConfigAttribute('elim_counts', True,
+        'if true, eliminate counts where we can infer it\'s safe to '
+        'do so',
+        parse_bool,
+        {'action': 'store_true'}),
 ]
 
 

@@ -8,12 +8,29 @@ from incoq.mars.type import T
 from incoq.mars.symbol import S, N
 from incoq.mars.comp.join import CoreClauseTools
 from incoq.mars.comp.trans import *
+from incoq.mars.comp.trans import is_duplicate_safe
 
 
 class TransCase(unittest.TestCase):
     
     def setUp(self):
         self.ct = CoreClauseTools()
+    
+    def test_is_duplicate_safe(self):
+        comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
+                                         for (y, z) in REL(S)}''')
+        b = is_duplicate_safe(self.ct, comp)
+        self.assertTrue(b)
+        
+        comp = L.Parser.pe('''{(x + y + z) for (x, y) in REL(R)
+                                           for (y, z) in REL(S)}''')
+        b = is_duplicate_safe(self.ct, comp)
+        self.assertFalse(b)
+        
+        comp = L.Parser.pe('''{(x, y) for (x, y) in REL(R)
+                                      for (y, z) in REL(S)}''')
+        b = is_duplicate_safe(self.ct, comp)
+        self.assertFalse(b)
     
     def test_join_expander(self):
         Q1 = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
@@ -189,6 +206,7 @@ class TransCase(unittest.TestCase):
     def test_incrementalize_comp(self):
         comp = L.Parser.pe('{(x,) for (x,) in REL(R)}')
         symtab = S.SymbolTable()
+        symtab.config = S.Config()
         symtab.clausetools = CoreClauseTools()
         query = symtab.define_query('Q', node=comp,
                                     type=T.Set(T.Tuple([T.Number])))
@@ -214,6 +232,7 @@ class TransCase(unittest.TestCase):
     def test_incrementalize_comp_with_params(self):
         comp = L.Parser.pe('{(x, 2 * y,) for (x, y) in REL(R)}')
         symtab = S.SymbolTable()
+        symtab.config = S.Config()
         symtab.clausetools = CoreClauseTools()
         symtab.define_var('x', type=T.Number)
         symtab.define_var('y', type=T.Number)

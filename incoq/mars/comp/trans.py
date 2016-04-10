@@ -21,6 +21,15 @@ from incoq.mars.symbol import S, N
 from .order import order_clauses
 
 
+def is_duplicate_safe(clausetools, comp):
+    """Return whether we can rule out duplicates analytically."""
+    if not L.is_injective(comp.resexp):
+        return False
+    vars = L.IdentFinder.find_vars(comp.resexp)
+    determined = clausetools.all_vars_determined(comp.clauses, vars)
+    return determined
+
+
 class JoinExpander(L.NodeTransformer):
     
     """Rewrites DecompFor loops over joins by expanding the join into
@@ -279,6 +288,13 @@ def incrementalize_comp(tree, symtab, query, result_var):
     
     query.maint_joins = []
     
+    # Determine whether or not to use counting for this query's result.
+    dupsafe = is_duplicate_safe(clausetools, comp)
+    counted = (symtab.config.elim_counts and
+               (dupsafe or query.count_elim_safe_override))
+    ### Disabled
+    counted = True
+    
     # Some hackery for tracking the names of maintenance joins and
     # their corresponding variable prefixes.
     current_prefix = None
@@ -300,7 +316,7 @@ def incrementalize_comp(tree, symtab, query, result_var):
     tree = CompMaintainer.run(tree, clausetools, fresh_vars(),
                               fresh_join_names(),
                               comp, result_var,
-                              counted=True)
+                              counted=counted)
     
     # Define symbols for each maintenance join introduced.
     class MaintJoinDefiner(L.NodeVisitor):
@@ -330,6 +346,9 @@ def incrementalize_comp(tree, symtab, query, result_var):
     
     tree = CompExpander.run(tree, symtab)
     
+    symtab.define_relation(result_var, counted=counted,
+                           type=query.type)
+    
     return tree
 
 
@@ -337,8 +356,6 @@ def transform_firsthalf(tree, symtab, query):
     result_var = N.get_resultset_name(query.name)
     tree = preprocess_comp(tree, symtab, query)
     tree = incrementalize_comp(tree, symtab, query, result_var)
-    symtab.define_relation(result_var, counted=True,
-                           type=query.type)
     return tree
 
 def transform_secondhalf(tree, symtab, query):
