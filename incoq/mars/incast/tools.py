@@ -56,6 +56,7 @@ class IdentFinder(L.NodeVisitor):
     
     fun_ctxs = ('Fun.name', 'Call.func')
     query_ctxs = ('Query.name',)
+    rel_ctxs = ('RelUpdate.rel', 'RelClear.rel')
     
     @classmethod
     def find_functions(cls, tree):
@@ -63,8 +64,13 @@ class IdentFinder(L.NodeVisitor):
     
     @classmethod
     def find_vars(cls, tree):
-        return cls().run(tree, contexts=(cls.fun_ctxs + cls.query_ctxs),
-                         invert=True)
+        ctxs = (cls.fun_ctxs + cls.query_ctxs)
+        return cls().run(tree, contexts=ctxs, invert=True)
+    
+    @classmethod
+    def find_non_rel_uses(cls, tree):
+        ctxs = (cls.fun_ctxs + cls.query_ctxs + cls.rel_ctxs)
+        return cls().run(tree, contexts=ctxs, invert=True)
     
     def __init__(self, contexts=None, invert=False):
         if contexts is not None:

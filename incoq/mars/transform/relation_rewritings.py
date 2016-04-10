@@ -9,6 +9,7 @@ __all__ = [
     'expand_clear',
     'relationalize_comp_queries',
     'relationalize_clauses',
+    'eliminate_dead_relations',
 ]
 
 
@@ -353,4 +354,26 @@ def relationalize_clauses(tree, symtab):
             return comp
     
     tree = Rewriter.run(tree, symtab)
+    return tree
+
+
+def eliminate_dead_relations(tree, symtab):
+    """Eliminate relations that are only updated, never read from."""
+    rels = symtab.get_relations().keys()
+    vars = L.IdentFinder.find_non_rel_uses(tree)
+    elim_rels = set(rels) - set(vars)
+    
+    class Trans(L.NodeTransformer):
+        def visit_RelUpdate(self, node):
+            if node.rel in elim_rels:
+                return ()
+            return node
+        def visit_RelClear(self, node):
+            if node.rel in elim_rels:
+                return ()
+            return node
+    
+    tree = Trans.run(tree)
+    for rel in elim_rels:
+        del symtab.symbols[rel]
     return tree

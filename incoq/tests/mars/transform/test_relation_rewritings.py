@@ -209,6 +209,29 @@ class UpdateRewritingsCase(unittest.TestCase):
                        for z in t}))
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_eliminate_dead_relations(self):
+        symtab = S.SymbolTable()
+        symtab.define_relation('R')
+        symtab.define_relation('S')
+        tree = L.Parser.p('''
+            def main():
+                R.reladd(x)
+                S.reladd(y)
+                t.add(z)
+                print(S)
+            ''')
+        tree = eliminate_dead_relations(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                S.reladd(y)
+                t.add(z)
+                print(S)
+            ''')
+        self.assertEqual(tree, exp_tree)
+        rels = symtab.get_relations().keys()
+        exp_rels = ['S']
+        self.assertCountEqual(rels, exp_rels)
 
 
 if __name__ == '__main__':
