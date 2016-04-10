@@ -7,7 +7,7 @@ CONFIG(
 )
 
 SYMCONFIG('Q',
-#    no_rc = True,
+    count_elim_safe_override = 'true',
 )
 
 def make_user(email, loc):
