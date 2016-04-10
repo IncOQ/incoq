@@ -122,6 +122,26 @@ class ClauseTools(ClauseVisitor):
             return False
         return sorted(res_vars) == sorted(lhs_vars)
     
+    def all_vars_determined(self, clauses, bindenv):
+        """Return True if the vars in the binding environment determine
+        all remaining lHS vars in the clauses.
+        """
+        # Whenever a clause is determined, add its LHS vars to the
+        # binding environment. Repeat until fixpoint, and see if any
+        # clauses remain.
+        clauses = set(clauses)
+        bindenv = set(bindenv)
+        changed = True
+        while changed:
+            changed = False
+            for cl in clauses:
+                if self.functionally_determines(cl, bindenv):
+                    bindenv.update(self.lhs_vars(cl))
+                    clauses.remove(cl)
+                    changed = True                    
+                    break
+        return len(clauses) == 0
+    
     def clauses_rename_lhs_vars(self, clauses, renamer):
         lhs_vars = self.lhs_vars_from_clauses(clauses)
         lhsonly_renamer = lambda x: renamer(x) if x in lhs_vars else x

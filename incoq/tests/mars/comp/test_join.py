@@ -95,6 +95,14 @@ class JoinCase(unittest.TestCase):
                                  for (y, z) in REL(S)}''')
         self.assertFalse(self.ct.is_join(comp))
     
+    def test_all_vars_determined(self):
+        comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)
+                                         for (y, z) in REL(S)}''')
+        b = self.ct.all_vars_determined(comp.clauses, ['x'])
+        self.assertFalse(b)
+        b = self.ct.all_vars_determined(comp.clauses, ['x', 'y', 'z'])
+        self.assertTrue(b)
+    
     def test_rename_lhs_vars(self):
         comp = L.Parser.pe('''{(a, x, y, z) for (x, y) in REL(R)
                                             for (y, z) in REL(S)
