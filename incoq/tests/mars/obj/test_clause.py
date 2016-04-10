@@ -64,6 +64,9 @@ class ClauseCase(unittest.TestCase):
         
         self.assertSequenceEqual(v.uncon_vars(cl), ['o'])
         
+        b = v.functionally_determines(cl, ['o'])
+        self.assertTrue(b)
+        
         pri = v.get_priority(cl, ['o'])
         self.assertEqual(pri, Priority.Constant)
         
@@ -107,6 +110,9 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(v.rhs_rel(cl), '_MAP')
         
         self.assertSequenceEqual(v.uncon_vars(cl), ['m'])
+        
+        b = v.functionally_determines(cl, ['m', 'k'])
+        self.assertTrue(b)
         
         pri = v.get_priority(cl, ['m', 'k'])
         self.assertEqual(pri, Priority.Constant)
@@ -159,6 +165,9 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(v.rhs_rel(cl), '_TUP_2')
         
         self.assertSequenceEqual(v.uncon_vars(cl), ['t'])
+        
+        b = v.functionally_determines(cl, ['t'])
+        self.assertTrue(b)
         
         pri = v.get_priority(cl, ['t', 'v1'])
         self.assertEqual(pri, Priority.Constant)

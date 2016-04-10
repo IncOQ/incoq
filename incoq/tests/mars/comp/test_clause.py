@@ -95,6 +95,11 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.lhs_vars(cl), ['x', 'y', 'z'])
         self.assertEqual(v.rhs_rel(cl), 'R')
         
+        b = v.functionally_determines(cl, ['x', 'y'])
+        self.assertFalse(b)
+        b = v.functionally_determines(cl, ['x', 'y', 'z'])
+        self.assertTrue(b)
+        
         pri = v.get_priority(cl, ['a', 'x', 'y', 'z'])
         self.assertEqual(pri, Priority.Constant)
         pri = v.get_priority(cl, ['a', 'x'])
@@ -152,6 +157,9 @@ class ClauseCase(unittest.TestCase):
         
         self.assertFalse(v.should_filter(cl, []))
         
+        b = v.functionally_determines(cl, ['x'])
+        self.assertTrue(b)
+        
         pri = v.get_priority(cl, ['a', 'x', 'y'])
         self.assertEqual(pri, Priority.Constant)
         
@@ -196,6 +204,9 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(v.rhs_rel(cl), 'R')
         self.assertSequenceEqual(v.uncon_vars(cl), ['e'])
         
+        b = v.functionally_determines(cl, ['b'])
+        self.assertFalse(b)
+        
         pri = v.get_priority(cl, ['a', 'x'])
         self.assertEqual(pri, Priority.Normal)
         
@@ -227,6 +238,8 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.uncon_vars(cl), ['a'])
         
         with self.assertRaises(NotImplementedError):
+            v.functionally_determines(cl, [])
+        with self.assertRaises(NotImplementedError):
             v.get_priority(cl, [])
         with self.assertRaises(NotImplementedError):
             v.get_code(cl, [], (L.Pass(),))
@@ -240,6 +253,11 @@ class ClauseCase(unittest.TestCase):
         v = self.visitor
         
         cl = L.SetFromMapMember(['x', 'y', 'z'], 'R', 'M', L.mask('bbu'))
+        
+        b = v.functionally_determines(cl, ['x', 'y'])
+        self.assertTrue(b)
+        b = v.functionally_determines(cl, ['x'])
+        self.assertFalse(b)
         
         pri = v.get_priority(cl, ['a', 'x', 'y'])
         self.assertEqual(pri, Priority.Constant)
@@ -280,6 +298,9 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.lhs_vars(cl), [])
         self.assertEqual(v.rhs_rel(cl), None)
         self.assertSequenceEqual(v.uncon_vars(cl), ['x', 'y'])
+        
+        b = v.functionally_determines(cl, ['x'])
+        self.assertTrue(b)
         
         pri = v.get_priority(cl, ['a', 'x', 'y'])
         self.assertEqual(pri, Priority.Constant)

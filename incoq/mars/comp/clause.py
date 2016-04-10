@@ -166,6 +166,12 @@ class ClauseHandler(BaseClauseHandler):
         """
         return not set(self.tagsin_lhs_vars(cl)).issubset(bindenv)
     
+    def functionally_determines(self, cl, bindenv):
+        """Return True if in the given binding environment, this clause
+        can be satisfied at most once.
+        """
+        raise NotImplementedError
+    
     def get_priority(self, cl, bindenv):
         """Return a priority for the cost heuristic based on the given
         binding environment, or None if running the clause in that
@@ -248,6 +254,7 @@ for op in [
     'tagsin_lhs_vars',
     'tagsout_lhs_vars',
     'should_filter',
+    'functionally_determines',
     'get_priority',
     'get_code',
     'rename_lhs_vars',
@@ -279,6 +286,9 @@ class RelMemberHandler(ClauseHandler):
     
     def rhs_rel(self, cl):
         return cl.rel
+    
+    def functionally_determines(self, cl, bindenv):
+        return set(bindenv).issuperset(self.lhs_vars(cl))
     
     def get_priority(self, cl, bindenv):
         mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
@@ -350,6 +360,9 @@ class SingMemberHandler(ClauseHandler):
     def should_filter(self, cl, bindenv):
         return False
     
+    def functionally_determines(self, cl, bindenv):
+        return True
+    
     def get_priority(self, cl, bindenv):
         return Priority.Constant
     
@@ -404,6 +417,9 @@ class WithoutMemberHandler(ClauseHandler):
     def should_filter(self, cl, bindenv):
         return self.visitor.should_filter(cl.cl, bindenv)
     
+    def functionally_determines(self, cl, bindenv):
+        return self.visitor.functionally_determines(cl.cl, bindenv)
+    
     def get_priority(self, cl, bindenv):
         return self.visitor.get_priority(cl.cl, bindenv)
     
@@ -456,6 +472,13 @@ class VarsMemberHandler(ClauseHandler):
 
 
 class SetFromMapMemberHandler(RelMemberHandler):
+    
+    def functionally_determines(self, cl, bindenv):
+        mask = L.mask_from_bounds(cl.vars, bindenv)
+        if mask == cl.mask:
+            return True
+        
+        return super().functionally_determines(cl, bindenv)
     
     def get_priority(self, cl, bindenv):
         mask = L.mask_from_bounds(cl.vars, bindenv)
@@ -512,6 +535,9 @@ class CondHandler(ClauseHandler):
     
     def should_filter(self, cl, bindenv):
         return False
+    
+    def functionally_determines(self, cl, bindenv):
+        return True
     
     def get_priority(self, cl, bindenv):
         vars = L.IdentFinder.find_vars(cl.cond)

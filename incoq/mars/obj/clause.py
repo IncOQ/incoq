@@ -76,6 +76,14 @@ class FMemberHandler(RelMemberHandler):
     def constrained_mask(self, cl):
         return (False, True)
     
+    def functionally_determines(self, cl, bindenv):
+        mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
+        
+        if mask == L.mask('bu'):
+            return True
+        else:
+            return super().functionally_determines(cl, bindenv)
+    
     def get_priority(self, cl, bindenv):
         mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
         
@@ -127,6 +135,14 @@ class MAPMemberHandler(RelMemberHandler):
     
     def constrained_mask(self, cl):
         return (False, True, True)
+    
+    def functionally_determines(self, cl, bindenv):
+        mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
+        
+        if mask == L.mask('bbu'):
+            return True
+        else:
+            return super().functionally_determines(cl, bindenv)
     
     def get_priority(self, cl, bindenv):
         mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
@@ -186,6 +202,14 @@ class TUPMemberHandler(RelMemberHandler):
     
     def constrained_mask(self, cl):
         return (False,) + tuple(True for _ in cl.elts)
+    
+    def functionally_determines(self, cl, bindenv):
+        mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
+        
+        if mask.m[0] == 'b':
+            return True
+        else:
+            return super().functionally_determines(cl, bindenv)
     
     def get_priority(self, cl, bindenv):
         mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
