@@ -2,18 +2,12 @@
 # Q2 : s -> {(s, z) for (s,) in REL(_U_Q2) for (s, z) in REL(R_Q1)} : {({(Number, Number)}, (Bottom, Bottom))}
 # _QU_Q1 : {(_v2s,) for (_v2s,) in REL(_U_Q2)} : {({(Number, Number)})}
 from incoq.mars.runtime import *
-# _M : {(Top, Top)}
-_M = Set()
-# _TUP_2 : {(Top, Top, Top)}
-_TUP_2 = Set()
 # _U_Q2 : {({(Number, Number)})}
 _U_Q2 = Set()
 # R__QU_Q1 : {({(Number, Number)})}
 R__QU_Q1 = Set()
 # R_Q1 : {({(Number, Number)}, (Bottom, Bottom))}
 R_Q1 = CSet()
-# R_Q2 : {({(Number, Number)}, (Bottom, Bottom))}
-R_Q2 = Set()
 # R_Q1_bu : {{(Number, Number)}: {(Bottom, Bottom)}}
 R_Q1_bu = Map()
 # _M_ub : {Top: {Top}}
@@ -75,7 +69,6 @@ def _maint_R_Q2_for__U_Q2_add(_elem):
     (_v11_s,) = _elem
     for _v11_z in R_Q1_bu.get(_v11_s, Set()):
         _v11_result = (_v11_s, _v11_z)
-        R_Q2.add(_v11_result)
         _maint_R_Q2_bu_for_R_Q2_add(_v11_result)
 
 def _maint_R_Q2_for__U_Q2_remove(_elem):
@@ -83,13 +76,11 @@ def _maint_R_Q2_for__U_Q2_remove(_elem):
     for _v12_z in R_Q1_bu.get(_v12_s, Set()):
         _v12_result = (_v12_s, _v12_z)
         _maint_R_Q2_bu_for_R_Q2_remove(_v12_result)
-        R_Q2.remove(_v12_result)
 
 def _maint_R_Q2_for_R_Q1_add(_elem):
     (_v13_s, _v13_z) = _elem
     if ((_v13_s,) in _U_Q2):
         _v13_result = (_v13_s, _v13_z)
-        R_Q2.add(_v13_result)
         _maint_R_Q2_bu_for_R_Q2_add(_v13_result)
 
 def _maint_R_Q2_for_R_Q1_remove(_elem):
@@ -97,7 +88,6 @@ def _maint_R_Q2_for_R_Q1_remove(_elem):
     if ((_v14_s,) in _U_Q2):
         _v14_result = (_v14_s, _v14_z)
         _maint_R_Q2_bu_for_R_Q2_remove(_v14_result)
-        R_Q2.remove(_v14_result)
 
 def _maint_R_Q1_for_R__QU_Q1_add(_elem):
     (_v5_s,) = _elem

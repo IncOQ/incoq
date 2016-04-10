@@ -1,8 +1,6 @@
 # Q1 : {(a,) for (a, a_2) in REL(S) if (a == a_2)} : {(Number)}
 # Q2 : {(v,) for (v,) in REL(R_Q1) if (v > 1)} : {(Bottom)}
 from incoq.mars.runtime import *
-# S : {(Number, Number)}
-S = Set()
 # R_Q1 : {(Number)}
 R_Q1 = CSet()
 # R_Q2 : {(Bottom)}
@@ -42,7 +40,6 @@ def _maint_R_Q1_for_S_remove(_elem):
 def main():
     for (x, y) in [(1, 1), (1, 2), (2, 2), (2, 3)]:
         _v1 = (x, y)
-        S.add(_v1)
         _maint_R_Q1_for_S_add(_v1)
     print(sorted(R_Q2))
 

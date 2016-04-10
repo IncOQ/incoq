@@ -5,8 +5,6 @@
 # Q5 : min(S) : (Number)
 # Q6 : max(S) : (Number)
 from incoq.mars.runtime import *
-# S : {(Number)}
-S = Set()
 # A_Q1 : {(): Number}
 A_Q1 = Map()
 # A_Q2 : {(): Number}
@@ -158,7 +156,6 @@ def _maint_A_Q1_for_S_remove(_elem):
 def main():
     for x in [1, 2, 3, 4]:
         _v1 = (x,)
-        S.add(_v1)
         _maint_A_Q6_for_S_add(_v1)
         _maint_A_Q5_for_S_add(_v1)
         _maint_A_Q4_for_S_add(_v1)
@@ -178,7 +175,6 @@ def main():
     _maint_A_Q4_for_S_remove(_v2)
     _maint_A_Q5_for_S_remove(_v2)
     _maint_A_Q6_for_S_remove(_v2)
-    S.remove(_v2)
     print(A_Q1.get((), 0))
     print(index(A_Q2.get((), (0, 0)), 0))
     print(index(A_Q3.get((), (Tree(), None)), 1))
@@ -191,7 +187,6 @@ def main():
     A_Q4.dictclear()
     A_Q5.dictclear()
     A_Q6.dictclear()
-    S.clear()
     print(A_Q1.get((), 0))
     print(index(A_Q2.get((), (0, 0)), 0))
     print(index(A_Q3.get((), (Tree(), None)), 1))

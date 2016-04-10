@@ -1,7 +1,5 @@
 # Q : {(c,) for (a, b) in REL(S) for (a,) in REL(R_wrapped) for (b, c) in REL(S)} : {(Number)}
 from incoq.mars.runtime import *
-# S : {(Number, Number)}
-S = Set()
 # R : {Number}
 R = Set()
 # R_wrapped : {(Number)}
@@ -133,7 +131,6 @@ def _maint_R_wrapped_for_R_remove(_elem):
 def main():
     for (x, y) in [(1, 2), (1, 3), (2, 3), (2, 4), (3, 5)]:
         _v1 = (x, y)
-        S.add(_v1)
         _maint_S_bu_for_S_add(_v1)
         _maint_S_ub_for_S_add(_v1)
         _maint_R_Q_for_S_add(_v1)

@@ -94,6 +94,11 @@ all_attributes = [
         'do so',
         parse_bool,
         {'action': 'store_true'}),
+    
+    ConfigAttribute('elim_dead_relations', True,
+        'if true, eliminate dead relations',
+        parse_bool,
+        {'action': 'store_true'}),
 ]
 
 

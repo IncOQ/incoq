@@ -4,8 +4,6 @@ from incoq.mars.runtime import *
 S = Set()
 # _U_Q : {(Number)}
 _U_Q = Set()
-# R_Q : {(Number, Number)}
-R_Q = Set()
 # R_Q_bu : {Number: {(Number)}}
 R_Q_bu = Map()
 def _maint_R_Q_bu_for_R_Q_add(_elem):
@@ -30,7 +28,6 @@ def _maint_R_Q_for__U_Q_add(_elem):
     for (_v3_x,) in S:
         if (_v3_x > _v3_a):
             _v3_result = (_v3_a, _v3_x)
-            R_Q.add(_v3_result)
             _maint_R_Q_bu_for_R_Q_add(_v3_result)
 
 def _maint_R_Q_for__U_Q_remove(_elem):
@@ -39,14 +36,12 @@ def _maint_R_Q_for__U_Q_remove(_elem):
         if (_v4_x > _v4_a):
             _v4_result = (_v4_a, _v4_x)
             _maint_R_Q_bu_for_R_Q_remove(_v4_result)
-            R_Q.remove(_v4_result)
 
 def _maint_R_Q_for_S_add(_elem):
     (_v5_x,) = _elem
     for (_v5_a,) in _U_Q:
         if (_v5_x > _v5_a):
             _v5_result = (_v5_a, _v5_x)
-            R_Q.add(_v5_result)
             _maint_R_Q_bu_for_R_Q_add(_v5_result)
 
 def _maint_R_Q_for_S_remove(_elem):
@@ -55,7 +50,6 @@ def _maint_R_Q_for_S_remove(_elem):
         if (_v6_x > _v6_a):
             _v6_result = (_v6_a, _v6_x)
             _maint_R_Q_bu_for_R_Q_remove(_v6_result)
-            R_Q.remove(_v6_result)
 
 def _demand_Q(_elem):
     if (_elem not in _U_Q):

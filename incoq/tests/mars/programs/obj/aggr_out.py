@@ -2,16 +2,10 @@
 # Q_oper : o -> {(o, _v1) for (o,) in REL(R__QU_Q_oper) for (o, o_f) in F(f) for (o_f, _v1) in M()} : {(Top, Top)}
 # _QU_Q_oper : {(_v5o,) for (_v5o,) in REL(_U_Q)} : {(Top)}
 from incoq.mars.runtime import *
-# _M : {(Top, Top)}
-_M = Set()
-# _F_f : {(Top, Top)}
-_F_f = Set()
 # _U_Q : {(Top)}
 _U_Q = Set()
 # R__QU_Q_oper : {(Top)}
 R__QU_Q_oper = Set()
-# R_Q_oper : {(Top, Top)}
-R_Q_oper = Set()
 # A_Q : {(Top): Number}
 A_Q = Map()
 # R_Q_oper_bu : {Top: {(Top)}}
@@ -89,7 +83,6 @@ def _maint_R_Q_oper_for_R__QU_Q_oper_add(_elem):
         if isset(_v8_o_f):
             for _v8__v1 in _v8_o_f:
                 _v8_result = (_v8_o, _v8__v1)
-                R_Q_oper.add(_v8_result)
                 _maint_R_Q_oper_bu_for_R_Q_oper_add(_v8_result)
                 _maint_A_Q_for_R_Q_oper_add(_v8_result)
 
@@ -102,7 +95,6 @@ def _maint_R_Q_oper_for_R__QU_Q_oper_remove(_elem):
                 _v9_result = (_v9_o, _v9__v1)
                 _maint_A_Q_for_R_Q_oper_remove(_v9_result)
                 _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v9_result)
-                R_Q_oper.remove(_v9_result)
 
 def _maint_R_Q_oper_for__F_f_add(_elem):
     (_v10_o, _v10_o_f) = _elem
@@ -110,7 +102,6 @@ def _maint_R_Q_oper_for__F_f_add(_elem):
         if isset(_v10_o_f):
             for _v10__v1 in _v10_o_f:
                 _v10_result = (_v10_o, _v10__v1)
-                R_Q_oper.add(_v10_result)
                 _maint_R_Q_oper_bu_for_R_Q_oper_add(_v10_result)
                 _maint_A_Q_for_R_Q_oper_add(_v10_result)
 
@@ -122,14 +113,12 @@ def _maint_R_Q_oper_for__F_f_remove(_elem):
                 _v11_result = (_v11_o, _v11__v1)
                 _maint_A_Q_for_R_Q_oper_remove(_v11_result)
                 _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v11_result)
-                R_Q_oper.remove(_v11_result)
 
 def _maint_R_Q_oper_for__M_add(_elem):
     (_v12_o_f, _v12__v1) = _elem
     for _v12_o in _F_f_ub.get(_v12_o_f, Set()):
         if ((_v12_o,) in R__QU_Q_oper):
             _v12_result = (_v12_o, _v12__v1)
-            R_Q_oper.add(_v12_result)
             _maint_R_Q_oper_bu_for_R_Q_oper_add(_v12_result)
             _maint_A_Q_for_R_Q_oper_add(_v12_result)
 
@@ -140,7 +129,6 @@ def _maint_R_Q_oper_for__M_remove(_elem):
             _v13_result = (_v13_o, _v13__v1)
             _maint_A_Q_for_R_Q_oper_remove(_v13_result)
             _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v13_result)
-            R_Q_oper.remove(_v13_result)
 
 def _maint_R__QU_Q_oper_for__U_Q_add(_elem):
     (_v6__v5o,) = _elem

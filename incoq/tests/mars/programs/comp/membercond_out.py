@@ -1,7 +1,5 @@
 # Q : {(b,) for (a, b) in REL(S) for (a,) in REL(R)} : {(Number)}
 from incoq.mars.runtime import *
-# S : {(Number, Number)}
-S = Set()
 # R : {(Number)}
 R = Set()
 # R_Q : {(Number)}
@@ -64,7 +62,6 @@ def _maint_R_Q_for_R_remove(_elem):
 def main():
     for (x, y) in [(1, 2), (1, 3), (2, 3), (2, 4)]:
         _v1 = (x, y)
-        S.add(_v1)
         _maint_S_bu_for_S_add(_v1)
         _maint_R_Q_for_S_add(_v1)
     _v2 = (1,)

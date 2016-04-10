@@ -340,6 +340,9 @@ def transform_ast(input_ast, *, options=None):
             symtab.print('Unwrapped relations: ' +
                          ', '.join(sorted(rel_names)))
     
+    if config.elim_dead_relations:
+        tree = relation_rewritings.eliminate_dead_relations(tree, symtab)
+    
     # Get comment header.
     header = []
     for query in symtab.get_queries().values():

@@ -7,8 +7,6 @@
 # Q2_dT : {(w,) for (w,) in REL(R_Q2_T_w_1) for (w,) in REL(T)} : Bottom
 # Q2_T_w_2 : {(w,) for (w,) in REL(R_Q2_dT)} : Bottom
 from incoq.mars.runtime import *
-# S : {(Number, Number)}
-S = Set()
 # T : {(Number)}
 T = Set()
 # R_Q1 : {(Number)}
@@ -17,16 +15,10 @@ R_Q1 = CSet()
 R_Q2 = CSet()
 # R_Q2_T_v_1 : Bottom
 R_Q2_T_v_1 = Set()
-# R_Q2_dS : Bottom
-R_Q2_dS = Set()
 # R_Q2_T_v_2 : Bottom
 R_Q2_T_v_2 = CSet()
 # R_Q2_T_w_1 : Bottom
 R_Q2_T_w_1 = CSet()
-# R_Q2_dT : Bottom
-R_Q2_dT = Set()
-# R_Q2_T_w_2 : Bottom
-R_Q2_T_w_2 = Set()
 # R_Q2_unwrapped : {Number}
 R_Q2_unwrapped = Set()
 # S_bu : {Number: {Number}}
@@ -97,18 +89,15 @@ def _maint_R_Q2_unwrapped_for_R_Q2_remove(_elem):
 def _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_elem):
     (_v25_w,) = _elem
     _v25_result = (_v25_w,)
-    R_Q2_T_w_2.add(_v25_result)
 
 def _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_elem):
     (_v26_w,) = _elem
     _v26_result = (_v26_w,)
-    R_Q2_T_w_2.remove(_v26_result)
 
 def _maint_R_Q2_dT_for_R_Q2_T_w_1_add(_elem):
     (_v21_w,) = _elem
     if ((_v21_w,) in T):
         _v21_result = (_v21_w,)
-        R_Q2_dT.add(_v21_result)
         _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_v21_result)
 
 def _maint_R_Q2_dT_for_R_Q2_T_w_1_remove(_elem):
@@ -116,13 +105,11 @@ def _maint_R_Q2_dT_for_R_Q2_T_w_1_remove(_elem):
     if ((_v22_w,) in T):
         _v22_result = (_v22_w,)
         _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_v22_result)
-        R_Q2_dT.remove(_v22_result)
 
 def _maint_R_Q2_dT_for_T_add(_elem):
     (_v23_w,) = _elem
     if ((_v23_w,) in R_Q2_T_w_1):
         _v23_result = (_v23_w,)
-        R_Q2_dT.add(_v23_result)
         _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_v23_result)
 
 def _maint_R_Q2_dT_for_T_remove(_elem):
@@ -130,7 +117,6 @@ def _maint_R_Q2_dT_for_T_remove(_elem):
     if ((_v24_w,) in R_Q2_T_w_1):
         _v24_result = (_v24_w,)
         _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_v24_result)
-        R_Q2_dT.remove(_v24_result)
 
 def _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_elem):
     (_v19_v, _v19_w) = _elem
@@ -170,7 +156,6 @@ def _maint_R_Q2_dS_for_R_Q2_T_v_1_add(_elem):
     (_v13_v,) = _elem
     for _v13_w in S_bu.get(_v13_v, Set()):
         _v13_result = (_v13_v, _v13_w)
-        R_Q2_dS.add(_v13_result)
         _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_v13_result)
         _maint_R_Q2_dS_ub_for_R_Q2_dS_add(_v13_result)
         _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_v13_result)
@@ -184,13 +169,11 @@ def _maint_R_Q2_dS_for_R_Q2_T_v_1_remove(_elem):
         _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_v14_result)
         _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_v14_result)
         _maint_R_Q2_dS_bu_for_R_Q2_dS_remove(_v14_result)
-        R_Q2_dS.remove(_v14_result)
 
 def _maint_R_Q2_dS_for_S_add(_elem):
     (_v15_v, _v15_w) = _elem
     if ((_v15_v,) in R_Q2_T_v_1):
         _v15_result = (_v15_v, _v15_w)
-        R_Q2_dS.add(_v15_result)
         _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_v15_result)
         _maint_R_Q2_dS_ub_for_R_Q2_dS_add(_v15_result)
         _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_v15_result)
@@ -204,7 +187,6 @@ def _maint_R_Q2_dS_for_S_remove(_elem):
         _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_v16_result)
         _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_v16_result)
         _maint_R_Q2_dS_bu_for_R_Q2_dS_remove(_v16_result)
-        R_Q2_dS.remove(_v16_result)
 
 def _maint_R_Q2_T_v_1_for_R_Q1_add(_elem):
     (_v11_v,) = _elem
@@ -309,7 +291,6 @@ def _maint_R_Q1_for_S_remove(_elem):
 def main():
     for (x, y) in [(1, 1), (1, 2), (2, 2), (2, 3)]:
         _v1 = (x, y)
-        S.add(_v1)
         _maint_S_bu_for_S_add(_v1)
         _maint_R_Q2_dS_for_S_add(_v1)
         _maint_R_Q2_for_S_add(_v1)

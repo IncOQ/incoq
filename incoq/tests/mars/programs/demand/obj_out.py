@@ -5,22 +5,14 @@
 # Q_d_F_f : {(o, o_f) for (o,) in REL(R_Q_T_o) for (o, o_f) in F(f)} : Bottom
 # Q_T_o_f : {(o_f,) for (o, o_f) in REL(R_Q_d_F_f)} : Bottom
 from incoq.mars.runtime import *
-# _M : {(Top, Top)}
-_M = Set()
-# _F_f : {(Top, Top)}
-_F_f = Set()
 # _U_Q : {({Bottom})}
 _U_Q = Set()
 # R_Q : {({Bottom}, Top)}
 R_Q = CSet()
 # R_Q_T_z : Bottom
 R_Q_T_z = Set()
-# R_Q_d_M : Bottom
-R_Q_d_M = Set()
 # R_Q_T_o : Bottom
 R_Q_T_o = CSet()
-# R_Q_d_F_f : Bottom
-R_Q_d_F_f = Set()
 # R_Q_T_o_f : Bottom
 R_Q_T_o_f = CSet()
 # R_Q_d_M_ub : {Bottom: {Bottom}}
@@ -82,7 +74,6 @@ def _maint_R_Q_d_F_f_for_R_Q_T_o_add(_elem):
     if hasfield(_v17_o, 'f'):
         _v17_o_f = _v17_o.f
         _v17_result = (_v17_o, _v17_o_f)
-        R_Q_d_F_f.add(_v17_result)
         _maint_R_Q_T_o_f_for_R_Q_d_F_f_add(_v17_result)
 
 def _maint_R_Q_d_F_f_for_R_Q_T_o_remove(_elem):
@@ -91,13 +82,11 @@ def _maint_R_Q_d_F_f_for_R_Q_T_o_remove(_elem):
         _v18_o_f = _v18_o.f
         _v18_result = (_v18_o, _v18_o_f)
         _maint_R_Q_T_o_f_for_R_Q_d_F_f_remove(_v18_result)
-        R_Q_d_F_f.remove(_v18_result)
 
 def _maint_R_Q_d_F_f_for__F_f_add(_elem):
     (_v19_o, _v19_o_f) = _elem
     if ((_v19_o,) in R_Q_T_o):
         _v19_result = (_v19_o, _v19_o_f)
-        R_Q_d_F_f.add(_v19_result)
         _maint_R_Q_T_o_f_for_R_Q_d_F_f_add(_v19_result)
 
 def _maint_R_Q_d_F_f_for__F_f_remove(_elem):
@@ -105,7 +94,6 @@ def _maint_R_Q_d_F_f_for__F_f_remove(_elem):
     if ((_v20_o,) in R_Q_T_o):
         _v20_result = (_v20_o, _v20_o_f)
         _maint_R_Q_T_o_f_for_R_Q_d_F_f_remove(_v20_result)
-        R_Q_d_F_f.remove(_v20_result)
 
 def _maint_R_Q_T_o_for_R_Q_d_M_add(_elem):
     (_v15_z, _v15_o) = _elem
@@ -130,7 +118,6 @@ def _maint_R_Q_d_M_for_R_Q_T_z_add(_elem):
     if isset(_v11_z):
         for _v11_o in _v11_z:
             _v11_result = (_v11_z, _v11_o)
-            R_Q_d_M.add(_v11_result)
             _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v11_result)
             _maint_R_Q_T_o_for_R_Q_d_M_add(_v11_result)
 
@@ -141,13 +128,11 @@ def _maint_R_Q_d_M_for_R_Q_T_z_remove(_elem):
             _v12_result = (_v12_z, _v12_o)
             _maint_R_Q_T_o_for_R_Q_d_M_remove(_v12_result)
             _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v12_result)
-            R_Q_d_M.remove(_v12_result)
 
 def _maint_R_Q_d_M_for__M_add(_elem):
     (_v13_z, _v13_o) = _elem
     if ((_v13_z,) in R_Q_T_z):
         _v13_result = (_v13_z, _v13_o)
-        R_Q_d_M.add(_v13_result)
         _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v13_result)
         _maint_R_Q_T_o_for_R_Q_d_M_add(_v13_result)
 
@@ -157,7 +142,6 @@ def _maint_R_Q_d_M_for__M_remove(_elem):
         _v14_result = (_v14_z, _v14_o)
         _maint_R_Q_T_o_for_R_Q_d_M_remove(_v14_result)
         _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v14_result)
-        R_Q_d_M.remove(_v14_result)
 
 def _maint_R_Q_T_z_for__U_Q_add(_elem):
     (_v9_z,) = _elem

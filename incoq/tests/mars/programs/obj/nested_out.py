@@ -2,16 +2,10 @@
 # Q1 : z -> {(z, o_f) for (z,) in REL(_U_Q1) for (z, o) in REL(R_Q2) for (o, o_f) in F(f)} : {({Bottom}, Top)}
 # _QU_Q2 : {(_v3z,) for (_v3z,) in REL(_U_Q1)} : {({Bottom})}
 from incoq.mars.runtime import *
-# _M : {(Top, Top)}
-_M = Set()
-# _F_f : {(Top, Top)}
-_F_f = Set()
 # _U_Q1 : {({Bottom})}
 _U_Q1 = Set()
 # R__QU_Q2 : {({Bottom})}
 R__QU_Q2 = Set()
-# R_Q2 : {({Bottom}, Bottom)}
-R_Q2 = Set()
 # R_Q1 : {({Bottom}, Top)}
 R_Q1 = CSet()
 # R_Q2_bu : {{Bottom}: {Bottom}}
@@ -146,7 +140,6 @@ def _maint_R_Q2_for_R__QU_Q2_add(_elem):
     if isset(_v6_z):
         for _v6_m in _v6_z:
             _v6_result = (_v6_z, _v6_m)
-            R_Q2.add(_v6_result)
             _maint_R_Q2_bu_for_R_Q2_add(_v6_result)
             _maint_R_Q2_ub_for_R_Q2_add(_v6_result)
             _maint_R_Q1_for_R_Q2_add(_v6_result)
@@ -159,13 +152,11 @@ def _maint_R_Q2_for_R__QU_Q2_remove(_elem):
             _maint_R_Q1_for_R_Q2_remove(_v7_result)
             _maint_R_Q2_ub_for_R_Q2_remove(_v7_result)
             _maint_R_Q2_bu_for_R_Q2_remove(_v7_result)
-            R_Q2.remove(_v7_result)
 
 def _maint_R_Q2_for__M_add(_elem):
     (_v8_z, _v8_m) = _elem
     if ((_v8_z,) in R__QU_Q2):
         _v8_result = (_v8_z, _v8_m)
-        R_Q2.add(_v8_result)
         _maint_R_Q2_bu_for_R_Q2_add(_v8_result)
         _maint_R_Q2_ub_for_R_Q2_add(_v8_result)
         _maint_R_Q1_for_R_Q2_add(_v8_result)
@@ -177,7 +168,6 @@ def _maint_R_Q2_for__M_remove(_elem):
         _maint_R_Q1_for_R_Q2_remove(_v9_result)
         _maint_R_Q2_ub_for_R_Q2_remove(_v9_result)
         _maint_R_Q2_bu_for_R_Q2_remove(_v9_result)
-        R_Q2.remove(_v9_result)
 
 def _maint_R__QU_Q2_for__U_Q1_add(_elem):
     (_v4__v3z,) = _elem

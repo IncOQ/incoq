@@ -3,14 +3,8 @@
 # Q3 : x -> {(x, z) for (x, y) in REL(S) for (y, z) in REL(S) for (x, _v10) in SETFROMMAP(SA_Q2, A_Q2, 'bu') if (y <= index(_v10, 1))} : {(Number, Number)}
 # _QU_Q2 : {(_v2x,) for (_v2x, _v2y) in REL(S) for (_v2y, _v2z) in REL(S)} : {(Number)}
 from incoq.mars.runtime import *
-# S : {(Number, Number)}
-S = Set()
-# R_Q1 : {(Number, Number)}
-R_Q1 = Set()
 # R__QU_Q2 : {(Number)}
 R__QU_Q2 = CSet()
-# SA_Q2 : {(Number, (Number, Number))}
-SA_Q2 = Set()
 # R_Q3 : {(Number, Number)}
 R_Q3 = CSet()
 # A_Q2 : {(Number): (Number, Number)}
@@ -168,7 +162,6 @@ def _maint_R_Q3_for_SA_Q2_remove(_elem):
 def _maint_SA_Q2_for_A_Q2_assign(_key, _val):
     (_key_v1,) = _key
     _v11_elem = (_key_v1, _val)
-    SA_Q2.add(_v11_elem)
     _maint_R_Q3_for_SA_Q2_add(_v11_elem)
 
 def _maint_SA_Q2_for_A_Q2_delete(_key):
@@ -176,7 +169,6 @@ def _maint_SA_Q2_for_A_Q2_delete(_key):
     (_key_v1,) = _key
     _v12_elem = (_key_v1, _val)
     _maint_R_Q3_for_SA_Q2_remove(_v12_elem)
-    SA_Q2.remove(_v12_elem)
 
 def _maint_A_Q2_for_R_Q1_add(_elem):
     (_elem_v1, _elem_v2) = _elem
@@ -261,7 +253,6 @@ def _maint_R__QU_Q2_for_S_remove(_elem):
 def _maint_R_Q1_for_S_add(_elem):
     (_v3_x, _v3_w) = _elem
     _v3_result = (_v3_x, _v3_w)
-    R_Q1.add(_v3_result)
     _maint_R_Q1_bu_for_R_Q1_add(_v3_result)
     _maint_A_Q2_for_R_Q1_add(_v3_result)
 
@@ -270,12 +261,10 @@ def _maint_R_Q1_for_S_remove(_elem):
     _v4_result = (_v4_x, _v4_w)
     _maint_A_Q2_for_R_Q1_remove(_v4_result)
     _maint_R_Q1_bu_for_R_Q1_remove(_v4_result)
-    R_Q1.remove(_v4_result)
 
 def main():
     for (a, b) in [(1, 2), (2, 3), (2, 4), (1, 3), (3, 5)]:
         _v1 = (a, b)
-        S.add(_v1)
         _maint_S_bu_for_S_add(_v1)
         _maint_S_ub_for_S_add(_v1)
         _maint_R_Q3_for_S_add(_v1)
