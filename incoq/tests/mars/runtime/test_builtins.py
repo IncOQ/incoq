@@ -67,16 +67,6 @@ class BuiltinsCase(unittest.TestCase):
         n = get_size(Set({1, 2, 3}))
         self.assertEqual(n, 4)
         
-        ns = {'a': 1, 'b': {1, 2, 3}, 'c': Set({1, 2, 3})}
-        n = get_size_for_namespace(ns)
-        self.assertEqual(n, 4)
-        
-        # Sharing between different items in the namespace.
-        s = Set({1, 2, 3})
-        ns = {'a': s, 'b': s}
-        n = get_size_for_namespace(ns)
-        self.assertEqual(n, 5)
-        
         # Recursive case.
         v = Set({0})
         v.add(v)
@@ -87,6 +77,16 @@ class BuiltinsCase(unittest.TestCase):
         v = self.make_nested_sets(1000)
         n = get_size(v)
         self.assertEqual(n, 1001)
+    
+    def test_get_size_for_namespace(self):
+        ns = {'a': 1, 'b': {1, 2, 3}, 'c': Set({1, 2, 3})}
+        n = get_size_for_namespace(ns)
+        self.assertEqual(n, 3)
+        
+        ns = {'a': Set({1, 2, 3}),
+              'b': Map({1: Set({'a', 'b'})})}
+        n = get_size_for_namespace(ns)
+        self.assertEqual(n, 6)
     
     def test_repr_depth(self):
         # Make sure there's no stack overflow.

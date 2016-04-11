@@ -150,15 +150,22 @@ def get_size(value, *, seen=None):
 
 
 def get_size_for_namespace(namespace):
-    """Return the total sum of get_size() for each IncOQType value in
-    the given namespace. Non-IncOQType values at the top-level are not
-    counted. Data shared between top-level values will not be double-
-    counted thanks to reuse of the seen set.
+    """Return the number of entries in each Set, CSet, and Map in a
+    namespace. This is used for counting the number of entries in
+    top-level auxiliary structures in a transformed program's global
+    namespace. Unlike get_size(), the stored data is not explored
+    recursively.
     """
-    seen = set()
-    return sum(get_size(value, seen=seen)
-               for value in namespace.values()
-               if isinstance(value, IncOQType))
+    size = 0
+    for value in namespace.values():
+        if isinstance(value, (Set, CSet)):
+            size += len(value)
+        elif isinstance(value, Map):
+            size += len(value.keys())
+            for v in value.values():
+                if isinstance(v, (Set, CSet)):
+                    size += len(v)
+    return size
 
 
 def limited_recursive_repr(func):
