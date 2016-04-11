@@ -61,6 +61,25 @@ class FilterCase(unittest.TestCase):
         ]
         self.assertEqual(generator.structs, exp_structs)
     
+    def test_prune_tags(self):
+        generator = StructureGenerator(
+            ClauseVisitor(),
+            L.Parser.pe('''
+            {(o_f,) for (s, t) in REL(U) for (s, o) in M()
+                    for (t, o) in M () for (o, o_f) in F(f)}
+            '''), 'Q')
+        generator.make_structs()
+        generator.simplify_names()
+        
+        generator.prune_tags()
+        exp_tags = [
+            Tag(0, 'Q_T_s', 's', L.RelMember(['s', 't'], 'U')),
+            Tag(0, 'Q_T_t', 't', L.RelMember(['s', 't'], 'U')),
+            Tag(1, 'Q_T_o_1', 'o', L.RelMember(['s', 'o'], 'R_Q_d_M_1')),
+            Tag(2, 'Q_T_o_2', 'o', L.RelMember(['t', 'o'], 'R_Q_d_M_2')),
+        ]
+        self.assertEqual(generator.tags, exp_tags)
+    
     def test_make_comp(self):
         generator = StructureGenerator(
             ClauseVisitor(),

@@ -2,10 +2,8 @@
 # Q2 : {(w,) for (v,) in REL(R_Q1) for (v, w) in REL(S) for (w,) in REL(T)} : {(Number)}
 # Q2_T_v_1 : {(v,) for (v,) in REL(R_Q1)} : Bottom
 # Q2_dS : {(v, w) for (v,) in REL(R_Q2_T_v_1) for (v, w) in REL(S)} : Bottom
-# Q2_T_v_2 : {(v,) for (v, w) in REL(R_Q2_dS)} : Bottom
 # Q2_T_w_1 : {(w,) for (v, w) in REL(R_Q2_dS)} : Bottom
 # Q2_dT : {(w,) for (w,) in REL(R_Q2_T_w_1) for (w,) in REL(T)} : Bottom
-# Q2_T_w_2 : {(w,) for (w,) in REL(R_Q2_dT)} : Bottom
 from incoq.mars.runtime import *
 # T : {(Number)}
 T = Set()
@@ -15,8 +13,6 @@ R_Q1 = CSet()
 R_Q2 = CSet()
 # R_Q2_T_v_1 : Bottom
 R_Q2_T_v_1 = Set()
-# R_Q2_T_v_2 : Bottom
-R_Q2_T_v_2 = CSet()
 # R_Q2_T_w_1 : Bottom
 R_Q2_T_w_1 = CSet()
 # R_Q2_unwrapped : {Number}
@@ -29,128 +25,100 @@ R_Q2_dS_bu = Map()
 R_Q2_dS_ub = Map()
 def _maint_S_bu_for_S_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v27_key = _elem_v1
-    _v27_value = _elem_v2
-    if (_v27_key not in S_bu):
-        _v28 = Set()
-        S_bu[_v27_key] = _v28
-    S_bu[_v27_key].add(_v27_value)
+    _v23_key = _elem_v1
+    _v23_value = _elem_v2
+    if (_v23_key not in S_bu):
+        _v24 = Set()
+        S_bu[_v23_key] = _v24
+    S_bu[_v23_key].add(_v23_value)
 
 def _maint_S_bu_for_S_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v29_key = _elem_v1
-    _v29_value = _elem_v2
-    S_bu[_v29_key].remove(_v29_value)
-    if (len(S_bu[_v29_key]) == 0):
-        del S_bu[_v29_key]
+    _v25_key = _elem_v1
+    _v25_value = _elem_v2
+    S_bu[_v25_key].remove(_v25_value)
+    if (len(S_bu[_v25_key]) == 0):
+        del S_bu[_v25_key]
 
 def _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v30_key = _elem_v1
-    _v30_value = _elem_v2
-    if (_v30_key not in R_Q2_dS_bu):
-        _v31 = Set()
-        R_Q2_dS_bu[_v30_key] = _v31
-    R_Q2_dS_bu[_v30_key].add(_v30_value)
+    _v26_key = _elem_v1
+    _v26_value = _elem_v2
+    if (_v26_key not in R_Q2_dS_bu):
+        _v27 = Set()
+        R_Q2_dS_bu[_v26_key] = _v27
+    R_Q2_dS_bu[_v26_key].add(_v26_value)
 
 def _maint_R_Q2_dS_bu_for_R_Q2_dS_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v32_key = _elem_v1
-    _v32_value = _elem_v2
-    R_Q2_dS_bu[_v32_key].remove(_v32_value)
-    if (len(R_Q2_dS_bu[_v32_key]) == 0):
-        del R_Q2_dS_bu[_v32_key]
+    _v28_key = _elem_v1
+    _v28_value = _elem_v2
+    R_Q2_dS_bu[_v28_key].remove(_v28_value)
+    if (len(R_Q2_dS_bu[_v28_key]) == 0):
+        del R_Q2_dS_bu[_v28_key]
 
 def _maint_R_Q2_dS_ub_for_R_Q2_dS_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v33_key = _elem_v2
-    _v33_value = _elem_v1
-    if (_v33_key not in R_Q2_dS_ub):
-        _v34 = Set()
-        R_Q2_dS_ub[_v33_key] = _v34
-    R_Q2_dS_ub[_v33_key].add(_v33_value)
+    _v29_key = _elem_v2
+    _v29_value = _elem_v1
+    if (_v29_key not in R_Q2_dS_ub):
+        _v30 = Set()
+        R_Q2_dS_ub[_v29_key] = _v30
+    R_Q2_dS_ub[_v29_key].add(_v29_value)
 
 def _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v35_key = _elem_v2
-    _v35_value = _elem_v1
-    R_Q2_dS_ub[_v35_key].remove(_v35_value)
-    if (len(R_Q2_dS_ub[_v35_key]) == 0):
-        del R_Q2_dS_ub[_v35_key]
+    _v31_key = _elem_v2
+    _v31_value = _elem_v1
+    R_Q2_dS_ub[_v31_key].remove(_v31_value)
+    if (len(R_Q2_dS_ub[_v31_key]) == 0):
+        del R_Q2_dS_ub[_v31_key]
 
 def _maint_R_Q2_unwrapped_for_R_Q2_add(_elem):
-    _v36_v = index(_elem, 0)
-    R_Q2_unwrapped.add(_v36_v)
+    _v32_v = index(_elem, 0)
+    R_Q2_unwrapped.add(_v32_v)
 
 def _maint_R_Q2_unwrapped_for_R_Q2_remove(_elem):
-    _v37_v = index(_elem, 0)
-    R_Q2_unwrapped.remove(_v37_v)
-
-def _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_elem):
-    (_v25_w,) = _elem
-    _v25_result = (_v25_w,)
-
-def _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_elem):
-    (_v26_w,) = _elem
-    _v26_result = (_v26_w,)
+    _v33_v = index(_elem, 0)
+    R_Q2_unwrapped.remove(_v33_v)
 
 def _maint_R_Q2_dT_for_R_Q2_T_w_1_add(_elem):
-    (_v21_w,) = _elem
-    if ((_v21_w,) in T):
-        _v21_result = (_v21_w,)
-        _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_v21_result)
+    (_v19_w,) = _elem
+    if ((_v19_w,) in T):
+        _v19_result = (_v19_w,)
 
 def _maint_R_Q2_dT_for_R_Q2_T_w_1_remove(_elem):
-    (_v22_w,) = _elem
-    if ((_v22_w,) in T):
-        _v22_result = (_v22_w,)
-        _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_v22_result)
+    (_v20_w,) = _elem
+    if ((_v20_w,) in T):
+        _v20_result = (_v20_w,)
 
 def _maint_R_Q2_dT_for_T_add(_elem):
-    (_v23_w,) = _elem
-    if ((_v23_w,) in R_Q2_T_w_1):
-        _v23_result = (_v23_w,)
-        _maint_R_Q2_T_w_2_for_R_Q2_dT_add(_v23_result)
+    (_v21_w,) = _elem
+    if ((_v21_w,) in R_Q2_T_w_1):
+        _v21_result = (_v21_w,)
 
 def _maint_R_Q2_dT_for_T_remove(_elem):
-    (_v24_w,) = _elem
-    if ((_v24_w,) in R_Q2_T_w_1):
-        _v24_result = (_v24_w,)
-        _maint_R_Q2_T_w_2_for_R_Q2_dT_remove(_v24_result)
+    (_v22_w,) = _elem
+    if ((_v22_w,) in R_Q2_T_w_1):
+        _v22_result = (_v22_w,)
 
 def _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_elem):
-    (_v19_v, _v19_w) = _elem
-    _v19_result = (_v19_w,)
-    if (_v19_result not in R_Q2_T_w_1):
-        R_Q2_T_w_1.add(_v19_result)
-        _maint_R_Q2_dT_for_R_Q2_T_w_1_add(_v19_result)
+    (_v17_v, _v17_w) = _elem
+    _v17_result = (_v17_w,)
+    if (_v17_result not in R_Q2_T_w_1):
+        R_Q2_T_w_1.add(_v17_result)
+        _maint_R_Q2_dT_for_R_Q2_T_w_1_add(_v17_result)
     else:
-        R_Q2_T_w_1.inccount(_v19_result)
+        R_Q2_T_w_1.inccount(_v17_result)
 
 def _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_elem):
-    (_v20_v, _v20_w) = _elem
-    _v20_result = (_v20_w,)
-    if (R_Q2_T_w_1.getcount(_v20_result) == 1):
-        _maint_R_Q2_dT_for_R_Q2_T_w_1_remove(_v20_result)
-        R_Q2_T_w_1.remove(_v20_result)
-    else:
-        R_Q2_T_w_1.deccount(_v20_result)
-
-def _maint_R_Q2_T_v_2_for_R_Q2_dS_add(_elem):
-    (_v17_v, _v17_w) = _elem
-    _v17_result = (_v17_v,)
-    if (_v17_result not in R_Q2_T_v_2):
-        R_Q2_T_v_2.add(_v17_result)
-    else:
-        R_Q2_T_v_2.inccount(_v17_result)
-
-def _maint_R_Q2_T_v_2_for_R_Q2_dS_remove(_elem):
     (_v18_v, _v18_w) = _elem
-    _v18_result = (_v18_v,)
-    if (R_Q2_T_v_2.getcount(_v18_result) == 1):
-        R_Q2_T_v_2.remove(_v18_result)
+    _v18_result = (_v18_w,)
+    if (R_Q2_T_w_1.getcount(_v18_result) == 1):
+        _maint_R_Q2_dT_for_R_Q2_T_w_1_remove(_v18_result)
+        R_Q2_T_w_1.remove(_v18_result)
     else:
-        R_Q2_T_v_2.deccount(_v18_result)
+        R_Q2_T_w_1.deccount(_v18_result)
 
 def _maint_R_Q2_dS_for_R_Q2_T_v_1_add(_elem):
     (_v13_v,) = _elem
@@ -159,13 +127,11 @@ def _maint_R_Q2_dS_for_R_Q2_T_v_1_add(_elem):
         _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_v13_result)
         _maint_R_Q2_dS_ub_for_R_Q2_dS_add(_v13_result)
         _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_v13_result)
-        _maint_R_Q2_T_v_2_for_R_Q2_dS_add(_v13_result)
 
 def _maint_R_Q2_dS_for_R_Q2_T_v_1_remove(_elem):
     (_v14_v,) = _elem
     for _v14_w in S_bu.get(_v14_v, Set()):
         _v14_result = (_v14_v, _v14_w)
-        _maint_R_Q2_T_v_2_for_R_Q2_dS_remove(_v14_result)
         _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_v14_result)
         _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_v14_result)
         _maint_R_Q2_dS_bu_for_R_Q2_dS_remove(_v14_result)
@@ -177,13 +143,11 @@ def _maint_R_Q2_dS_for_S_add(_elem):
         _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_v15_result)
         _maint_R_Q2_dS_ub_for_R_Q2_dS_add(_v15_result)
         _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_v15_result)
-        _maint_R_Q2_T_v_2_for_R_Q2_dS_add(_v15_result)
 
 def _maint_R_Q2_dS_for_S_remove(_elem):
     (_v16_v, _v16_w) = _elem
     if ((_v16_v,) in R_Q2_T_v_1):
         _v16_result = (_v16_v, _v16_w)
-        _maint_R_Q2_T_v_2_for_R_Q2_dS_remove(_v16_result)
         _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_v16_result)
         _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_v16_result)
         _maint_R_Q2_dS_bu_for_R_Q2_dS_remove(_v16_result)

@@ -59,12 +59,11 @@ class TransCase(unittest.TestCase):
                 ['_maint_R_Q_d_M_2_for_R_Q_T_y_add']
         exp_func = L.Parser.ps('''
             def _maint_R_Q_d_M_2_for_R_Q_T_y_add(_elem):
-                (_v15_y,) = _elem
-                if isset(_v15_y):
-                    for _v15_z in _v15_y:
-                        _v15_result = (_v15_y, _v15_z)
-                        R_Q_d_M_2.reladd(_v15_result)
-                        _maint_R_Q_T_z_for_R_Q_d_M_2_add(_v15_result)
+                (_v13_y,) = _elem
+                if isset(_v13_y):
+                    for _v13_z in _v13_y:
+                        _v13_result = (_v13_y, _v13_z)
+                        R_Q_d_M_2.reladd(_v13_result)
             ''')
         self.assertEqual(func, exp_func)
 

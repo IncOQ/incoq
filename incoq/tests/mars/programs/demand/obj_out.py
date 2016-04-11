@@ -3,7 +3,6 @@
 # Q_d_M : {(z, o) for (z,) in REL(R_Q_T_z) for (z, o) in M()} : Bottom
 # Q_T_o : {(o,) for (z, o) in REL(R_Q_d_M)} : Bottom
 # Q_d_F_f : {(o, o_f) for (o,) in REL(R_Q_T_o) for (o, o_f) in F(f)} : Bottom
-# Q_T_o_f : {(o_f,) for (o, o_f) in REL(R_Q_d_F_f)} : Bottom
 from incoq.mars.runtime import *
 # _U_Q : {({Bottom})}
 _U_Q = Set()
@@ -13,87 +12,65 @@ R_Q = CSet()
 R_Q_T_z = Set()
 # R_Q_T_o : Bottom
 R_Q_T_o = CSet()
-# R_Q_T_o_f : Bottom
-R_Q_T_o_f = CSet()
 # R_Q_d_M_ub : {Bottom: {Bottom}}
 R_Q_d_M_ub = Map()
 # R_Q_bu : {{Bottom}: {Top}}
 R_Q_bu = Map()
 def _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v23_key = _elem_v2
-    _v23_value = _elem_v1
-    if (_v23_key not in R_Q_d_M_ub):
-        _v24 = Set()
-        R_Q_d_M_ub[_v23_key] = _v24
-    R_Q_d_M_ub[_v23_key].add(_v23_value)
+    _v21_key = _elem_v2
+    _v21_value = _elem_v1
+    if (_v21_key not in R_Q_d_M_ub):
+        _v22 = Set()
+        R_Q_d_M_ub[_v21_key] = _v22
+    R_Q_d_M_ub[_v21_key].add(_v21_value)
 
 def _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v25_key = _elem_v2
-    _v25_value = _elem_v1
-    R_Q_d_M_ub[_v25_key].remove(_v25_value)
-    if (len(R_Q_d_M_ub[_v25_key]) == 0):
-        del R_Q_d_M_ub[_v25_key]
+    _v23_key = _elem_v2
+    _v23_value = _elem_v1
+    R_Q_d_M_ub[_v23_key].remove(_v23_value)
+    if (len(R_Q_d_M_ub[_v23_key]) == 0):
+        del R_Q_d_M_ub[_v23_key]
 
 def _maint_R_Q_bu_for_R_Q_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v26_key = _elem_v1
-    _v26_value = _elem_v2
-    if (_v26_key not in R_Q_bu):
-        _v27 = Set()
-        R_Q_bu[_v26_key] = _v27
-    R_Q_bu[_v26_key].add(_v26_value)
+    _v24_key = _elem_v1
+    _v24_value = _elem_v2
+    if (_v24_key not in R_Q_bu):
+        _v25 = Set()
+        R_Q_bu[_v24_key] = _v25
+    R_Q_bu[_v24_key].add(_v24_value)
 
 def _maint_R_Q_bu_for_R_Q_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v28_key = _elem_v1
-    _v28_value = _elem_v2
-    R_Q_bu[_v28_key].remove(_v28_value)
-    if (len(R_Q_bu[_v28_key]) == 0):
-        del R_Q_bu[_v28_key]
-
-def _maint_R_Q_T_o_f_for_R_Q_d_F_f_add(_elem):
-    (_v21_o, _v21_o_f) = _elem
-    _v21_result = (_v21_o_f,)
-    if (_v21_result not in R_Q_T_o_f):
-        R_Q_T_o_f.add(_v21_result)
-    else:
-        R_Q_T_o_f.inccount(_v21_result)
-
-def _maint_R_Q_T_o_f_for_R_Q_d_F_f_remove(_elem):
-    (_v22_o, _v22_o_f) = _elem
-    _v22_result = (_v22_o_f,)
-    if (R_Q_T_o_f.getcount(_v22_result) == 1):
-        R_Q_T_o_f.remove(_v22_result)
-    else:
-        R_Q_T_o_f.deccount(_v22_result)
+    _v26_key = _elem_v1
+    _v26_value = _elem_v2
+    R_Q_bu[_v26_key].remove(_v26_value)
+    if (len(R_Q_bu[_v26_key]) == 0):
+        del R_Q_bu[_v26_key]
 
 def _maint_R_Q_d_F_f_for_R_Q_T_o_add(_elem):
     (_v17_o,) = _elem
     if hasfield(_v17_o, 'f'):
         _v17_o_f = _v17_o.f
         _v17_result = (_v17_o, _v17_o_f)
-        _maint_R_Q_T_o_f_for_R_Q_d_F_f_add(_v17_result)
 
 def _maint_R_Q_d_F_f_for_R_Q_T_o_remove(_elem):
     (_v18_o,) = _elem
     if hasfield(_v18_o, 'f'):
         _v18_o_f = _v18_o.f
         _v18_result = (_v18_o, _v18_o_f)
-        _maint_R_Q_T_o_f_for_R_Q_d_F_f_remove(_v18_result)
 
 def _maint_R_Q_d_F_f_for__F_f_add(_elem):
     (_v19_o, _v19_o_f) = _elem
     if ((_v19_o,) in R_Q_T_o):
         _v19_result = (_v19_o, _v19_o_f)
-        _maint_R_Q_T_o_f_for_R_Q_d_F_f_add(_v19_result)
 
 def _maint_R_Q_d_F_f_for__F_f_remove(_elem):
     (_v20_o, _v20_o_f) = _elem
     if ((_v20_o,) in R_Q_T_o):
         _v20_result = (_v20_o, _v20_o_f)
-        _maint_R_Q_T_o_f_for_R_Q_d_F_f_remove(_v20_result)
 
 def _maint_R_Q_T_o_for_R_Q_d_M_add(_elem):
     (_v15_z, _v15_o) = _elem

@@ -122,7 +122,7 @@ class StructureGenerator:
     
     def get_preds(self, i, in_vars):
         """Return the names of all tags defined for clauses lower than
-        clause i, over any of the variables listed in vars.
+        clause i, over any of the variables listed in in_vars.
         """
         result = []
         for v in in_vars:
@@ -201,6 +201,19 @@ class StructureGenerator:
                 for filter in self.filters_by_pred[old_name]:
                     filter.preds = [name if t == old_name else t
                                     for t in filter.preds]
+        
+        self.recompute_indices()
+    
+    def prune_tags(self):
+        """Delete unused tags."""
+        to_prune = []
+        for tag in self.tags:
+            filters = self.filters_by_pred[tag.name]
+            if len(filters) == 0:
+                to_prune.append(tag)
+        
+        for tag in to_prune:
+            self.structs.remove(tag)
         
         self.recompute_indices()
     
