@@ -360,7 +360,18 @@ def transform_firsthalf(tree, symtab, query):
 def transform_secondhalf(tree, symtab, query):
     tree = process_maintjoins(tree, symtab, query)
     join_names = [join.name for join in query.maint_joins]
-    tree = JoinExpander.run(tree, symtab.clausetools, join_names)
+    
+    # Eliminate type checks when our global config says it's ok,
+    # the query is known to be well-typed, and the query is implemented
+    # with demand filtering.
+    if (symtab.config.elim_type_checks and
+        query.well_typed_data and
+        query.impl is S.Filtered):
+        ct = symtab.clausetools_notc
+    else:
+        ct = symtab.clausetools
+    
+    tree = JoinExpander.run(tree, ct, join_names)
     return tree
 
 def transform_comp_query(tree, symtab, query):

@@ -8,6 +8,7 @@ CONFIG(
 
 SYMCONFIG('Q',
     count_elim_safe_override = 'true',
+    well_typed_data = 'true',
 )
 
 def make_user(email, loc):

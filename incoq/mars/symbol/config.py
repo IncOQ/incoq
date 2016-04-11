@@ -99,6 +99,11 @@ all_attributes = [
         'if true, eliminate dead relations',
         parse_bool,
         {'action': 'store_true'}),
+    
+    ConfigAttribute('elim_type_checks', True,
+        'if true, eliminate type checks where safe',
+        parse_bool,
+        {'action': 'store_true'}),
 ]
 
 

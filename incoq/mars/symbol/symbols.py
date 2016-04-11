@@ -317,6 +317,12 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         default=False,
         parser=parse_bool)
     
+    well_typed_data = SymbolAttribute(
+        doc='If True, all relevant input data to the query is well-typed '
+        'at all points in the program',
+        default=False,
+        parser=parse_bool)
+    
     # Internal attributes.
     
     maint_joins = SymbolAttribute(

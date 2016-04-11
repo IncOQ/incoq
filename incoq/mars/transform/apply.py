@@ -24,8 +24,8 @@ from incoq.mars.comp import (
     rewrite_all_comps_with_patterns)
 from incoq.mars.demand import transform_comp_query_with_filtering
 from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
-from incoq.mars.obj import (ObjClauseVisitor, flatten_objdomain,
-                            unflatten_objdomain)
+from incoq.mars.obj import (ObjClauseVisitor, ObjClauseVisitor_NoTC,
+                            flatten_objdomain, unflatten_objdomain)
 
 from .py_rewritings import py_preprocess, py_postprocess
 from .incast_rewritings import incast_preprocess, incast_postprocess
@@ -38,6 +38,9 @@ from .param_analysis import (analyze_params, analyze_demand_params,
 
 
 class ObjClauseTools(CoreClauseTools, ObjClauseVisitor):
+    pass
+
+class ObjClauseTools_NoTC(CoreClauseTools, ObjClauseVisitor_NoTC):
     pass
 
 
@@ -286,8 +289,10 @@ def transform_ast(input_ast, *, options=None):
         tree = relation_rewritings.relationalize_clauses(tree, symtab)
         tree = flatten_objdomain(tree, symtab)
         symtab.clausetools = ObjClauseTools()
+        symtab.clausetools_notc = ObjClauseTools_NoTC()
     else:
         symtab.clausetools = CoreClauseTools()
+        symtab.clausetools_notc = CoreClauseTools()
     
     # Normalize to relations.
     tree = relation_rewritings.relationalize_comp_queries(tree, symtab)

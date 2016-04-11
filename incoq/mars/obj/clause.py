@@ -7,7 +7,13 @@ __all__ = [
     'MAPMemberHandler',
     'TUPMemberHandler',
     
+    'MMemberHandler_NoTC',
+    'FMemberHandler_NoTC',
+    'MAPMemberHandler_NoTC',
+    'TUPMemberHandler_NoTC',
+    
     'ObjClauseVisitor',
+    'ObjClauseVisitor_NoTC',
 ]
 
 
@@ -260,6 +266,16 @@ class TUPMemberHandler(RelMemberHandler):
         return cl._replace(tup=tup, elts=elts)
 
 
+class MMemberHandler_NoTC(MMemberHandler):
+    use_typecheck = False
+class FMemberHandler_NoTC(FMemberHandler):
+    use_typecheck = False
+class MAPMemberHandler_NoTC(MAPMemberHandler):
+    use_typecheck = False
+class TUPMemberHandler_NoTC(TUPMemberHandler):
+    use_typecheck = False
+
+
 class ObjClauseVisitor(ClauseVisitor):
     
     handlercls_MMember = MMemberHandler
@@ -273,3 +289,11 @@ class ObjClauseVisitor(ClauseVisitor):
         self.handle_FMember = self.handlercls_FMember(self)
         self.handle_MAPMember = self.handlercls_MAPMember(self)
         self.handle_TUPMember = self.handlercls_TUPMember(self)
+
+
+class ObjClauseVisitor_NoTC(ObjClauseVisitor):
+    
+    handlercls_MMember = MMemberHandler_NoTC
+    handlercls_FMember = FMemberHandler_NoTC
+    handlercls_MAPMember = MAPMemberHandler_NoTC
+    handlercls_TUPMember = TUPMemberHandler_NoTC

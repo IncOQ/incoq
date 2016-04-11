@@ -216,6 +216,19 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(cl2, L.TUPMember('_t', ['_v1', '_v2']))
         cl2 = v.rename_rhs_rel(cl, lambda x: '_' + x)
         self.assertEqual(cl2, L.RelMember(['t', 'v1', 'v2'], '__TUP_2'))
+    
+    def test_no_typecheck(self):
+        v = ObjClauseVisitor_NoTC()
+        
+        cl = L.MMember('s', 'e')
+        
+        # All bound.
+        code = v.get_code(cl, ['s', 'e'], (L.Pass(),))
+        exp_code = L.Parser.pc('''
+            if e in s:
+                pass
+            ''')
+        self.assertEqual(code, exp_code)
 
 
 if __name__ == '__main__':
