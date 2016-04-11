@@ -80,6 +80,19 @@ def process_maintjoins(tree, symtab, query):
     maint_joins = [join.name for join in query.maint_joins]
     filters = query.filters
     
+    # Idea: In the future, we can filter by testing for a conjunction of
+    # tag memberships instead of a single membership in a filter. We can
+    # represent this by making query.filters hold a list of lists, where
+    # each outer element corresponds to an unfiltered clause in the
+    # original query's clause order, as it does now, and the elements of
+    # that outer element are the filtered clauses to run in order.
+    #
+    # This would be useful for implementing negated memberships, which
+    # would not have filters but only tags. It may also be useful for
+    # replacing a use of a filter with a use of a tag so that the filter
+    # may be eliminated, but we have to be careful not to generate any
+    # unfiltered inverse map lookup as a result.
+    
     class Rewriter(S.QueryRewriter):
         def rewrite_comp(self, symbol, name, comp):
             if name not in maint_joins:

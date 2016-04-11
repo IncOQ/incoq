@@ -3,6 +3,7 @@
 
 __all__ = [
     'Kind',
+    'ShouldFilter',
     'Priority',
     
     'BaseClauseVisitor',
@@ -34,6 +35,10 @@ class Kind(Enum):
     Member = 1
     Cond = 2
 
+class ShouldFilter(Enum):
+    No = 1
+    Yes = 2
+    Intersect = 3
 
 class Priority(IntEnum):
     """Priority for cost heuristic."""
@@ -164,7 +169,10 @@ class ClauseHandler(BaseClauseHandler):
         version of this clause should be used for a given binding
         environment. For a condition clause, return False.
         """
-        return not set(self.tagsin_lhs_vars(cl)).issubset(bindenv)
+        if set(self.tagsin_lhs_vars(cl)).issubset(bindenv):
+            return ShouldFilter.No
+        else:
+            return ShouldFilter.Yes
     
     def functionally_determines(self, cl, bindenv):
         """Return True if in the given binding environment, this clause
@@ -358,7 +366,7 @@ class SingMemberHandler(ClauseHandler):
         return tuple(False for _ in self.lhs_vars(cl))
     
     def should_filter(self, cl, bindenv):
-        return False
+        return ShouldFilter.Intersect
     
     def functionally_determines(self, cl, bindenv):
         return True
@@ -534,7 +542,7 @@ class CondHandler(ClauseHandler):
         return tuple(L.IdentFinder.find_vars(cl.cond))
     
     def should_filter(self, cl, bindenv):
-        return False
+        return ShouldFilter.No
     
     def functionally_determines(self, cl, bindenv):
         return True

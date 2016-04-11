@@ -10,8 +10,12 @@ _U_Q = Set()
 R_Q = CSet()
 # R_Q_T_z : Bottom
 R_Q_T_z = Set()
+# R_Q_d_M : Bottom
+R_Q_d_M = Set()
 # R_Q_T_o : Bottom
 R_Q_T_o = CSet()
+# R_Q_d_F_f : Bottom
+R_Q_d_F_f = Set()
 # R_Q_d_M_ub : {Bottom: {Bottom}}
 R_Q_d_M_ub = Map()
 # R_Q_bu : {{Bottom}: {Top}}
@@ -55,22 +59,26 @@ def _maint_R_Q_d_F_f_for_R_Q_T_o_add(_elem):
     if hasfield(_v17_o, 'f'):
         _v17_o_f = _v17_o.f
         _v17_result = (_v17_o, _v17_o_f)
+        R_Q_d_F_f.add(_v17_result)
 
 def _maint_R_Q_d_F_f_for_R_Q_T_o_remove(_elem):
     (_v18_o,) = _elem
     if hasfield(_v18_o, 'f'):
         _v18_o_f = _v18_o.f
         _v18_result = (_v18_o, _v18_o_f)
+        R_Q_d_F_f.remove(_v18_result)
 
 def _maint_R_Q_d_F_f_for__F_f_add(_elem):
     (_v19_o, _v19_o_f) = _elem
     if ((_v19_o,) in R_Q_T_o):
         _v19_result = (_v19_o, _v19_o_f)
+        R_Q_d_F_f.add(_v19_result)
 
 def _maint_R_Q_d_F_f_for__F_f_remove(_elem):
     (_v20_o, _v20_o_f) = _elem
     if ((_v20_o,) in R_Q_T_o):
         _v20_result = (_v20_o, _v20_o_f)
+        R_Q_d_F_f.remove(_v20_result)
 
 def _maint_R_Q_T_o_for_R_Q_d_M_add(_elem):
     (_v15_z, _v15_o) = _elem
@@ -95,6 +103,7 @@ def _maint_R_Q_d_M_for_R_Q_T_z_add(_elem):
     if isset(_v11_z):
         for _v11_o in _v11_z:
             _v11_result = (_v11_z, _v11_o)
+            R_Q_d_M.add(_v11_result)
             _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v11_result)
             _maint_R_Q_T_o_for_R_Q_d_M_add(_v11_result)
 
@@ -105,11 +114,13 @@ def _maint_R_Q_d_M_for_R_Q_T_z_remove(_elem):
             _v12_result = (_v12_z, _v12_o)
             _maint_R_Q_T_o_for_R_Q_d_M_remove(_v12_result)
             _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v12_result)
+            R_Q_d_M.remove(_v12_result)
 
 def _maint_R_Q_d_M_for__M_add(_elem):
     (_v13_z, _v13_o) = _elem
     if ((_v13_z,) in R_Q_T_z):
         _v13_result = (_v13_z, _v13_o)
+        R_Q_d_M.add(_v13_result)
         _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v13_result)
         _maint_R_Q_T_o_for_R_Q_d_M_add(_v13_result)
 
@@ -119,6 +130,7 @@ def _maint_R_Q_d_M_for__M_remove(_elem):
         _v14_result = (_v14_z, _v14_o)
         _maint_R_Q_T_o_for_R_Q_d_M_remove(_v14_result)
         _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v14_result)
+        R_Q_d_M.remove(_v14_result)
 
 def _maint_R_Q_T_z_for__U_Q_add(_elem):
     (_v9_z,) = _elem
@@ -134,75 +146,81 @@ def _maint_R_Q_T_z_for__U_Q_remove(_elem):
 
 def _maint_R_Q_for__U_Q_add(_elem):
     (_v3_z,) = _elem
-    if isset(_v3_z):
-        for _v3_o in _v3_z:
-            if hasfield(_v3_o, 'f'):
-                _v3_o_f = _v3_o.f
-                _v3_result = (_v3_z, _v3_o_f)
-                if (_v3_result not in R_Q):
-                    R_Q.add(_v3_result)
-                    _maint_R_Q_bu_for_R_Q_add(_v3_result)
-                else:
-                    R_Q.inccount(_v3_result)
+    if ((_v3_z,) in _U_Q):
+        if isset(_v3_z):
+            for _v3_o in _v3_z:
+                if hasfield(_v3_o, 'f'):
+                    _v3_o_f = _v3_o.f
+                    _v3_result = (_v3_z, _v3_o_f)
+                    if (_v3_result not in R_Q):
+                        R_Q.add(_v3_result)
+                        _maint_R_Q_bu_for_R_Q_add(_v3_result)
+                    else:
+                        R_Q.inccount(_v3_result)
 
 def _maint_R_Q_for__U_Q_remove(_elem):
     (_v4_z,) = _elem
-    if isset(_v4_z):
-        for _v4_o in _v4_z:
-            if hasfield(_v4_o, 'f'):
-                _v4_o_f = _v4_o.f
-                _v4_result = (_v4_z, _v4_o_f)
-                if (R_Q.getcount(_v4_result) == 1):
-                    _maint_R_Q_bu_for_R_Q_remove(_v4_result)
-                    R_Q.remove(_v4_result)
-                else:
-                    R_Q.deccount(_v4_result)
+    if ((_v4_z,) in _U_Q):
+        if isset(_v4_z):
+            for _v4_o in _v4_z:
+                if hasfield(_v4_o, 'f'):
+                    _v4_o_f = _v4_o.f
+                    _v4_result = (_v4_z, _v4_o_f)
+                    if (R_Q.getcount(_v4_result) == 1):
+                        _maint_R_Q_bu_for_R_Q_remove(_v4_result)
+                        R_Q.remove(_v4_result)
+                    else:
+                        R_Q.deccount(_v4_result)
 
 def _maint_R_Q_for__M_add(_elem):
     (_v5_z, _v5_o) = _elem
-    if ((_v5_z,) in _U_Q):
-        if hasfield(_v5_o, 'f'):
-            _v5_o_f = _v5_o.f
-            _v5_result = (_v5_z, _v5_o_f)
-            if (_v5_result not in R_Q):
-                R_Q.add(_v5_result)
-                _maint_R_Q_bu_for_R_Q_add(_v5_result)
-            else:
-                R_Q.inccount(_v5_result)
+    if ((_v5_z, _v5_o) in R_Q_d_M):
+        if ((_v5_z,) in _U_Q):
+            if hasfield(_v5_o, 'f'):
+                _v5_o_f = _v5_o.f
+                _v5_result = (_v5_z, _v5_o_f)
+                if (_v5_result not in R_Q):
+                    R_Q.add(_v5_result)
+                    _maint_R_Q_bu_for_R_Q_add(_v5_result)
+                else:
+                    R_Q.inccount(_v5_result)
 
 def _maint_R_Q_for__M_remove(_elem):
     (_v6_z, _v6_o) = _elem
-    if ((_v6_z,) in _U_Q):
-        if hasfield(_v6_o, 'f'):
-            _v6_o_f = _v6_o.f
-            _v6_result = (_v6_z, _v6_o_f)
-            if (R_Q.getcount(_v6_result) == 1):
-                _maint_R_Q_bu_for_R_Q_remove(_v6_result)
-                R_Q.remove(_v6_result)
-            else:
-                R_Q.deccount(_v6_result)
+    if ((_v6_z, _v6_o) in R_Q_d_M):
+        if ((_v6_z,) in _U_Q):
+            if hasfield(_v6_o, 'f'):
+                _v6_o_f = _v6_o.f
+                _v6_result = (_v6_z, _v6_o_f)
+                if (R_Q.getcount(_v6_result) == 1):
+                    _maint_R_Q_bu_for_R_Q_remove(_v6_result)
+                    R_Q.remove(_v6_result)
+                else:
+                    R_Q.deccount(_v6_result)
 
 def _maint_R_Q_for__F_f_add(_elem):
     (_v7_o, _v7_o_f) = _elem
-    for _v7_z in R_Q_d_M_ub.get(_v7_o, Set()):
-        if ((_v7_z,) in _U_Q):
-            _v7_result = (_v7_z, _v7_o_f)
-            if (_v7_result not in R_Q):
-                R_Q.add(_v7_result)
-                _maint_R_Q_bu_for_R_Q_add(_v7_result)
-            else:
-                R_Q.inccount(_v7_result)
+    if ((_v7_o, _v7_o_f) in R_Q_d_F_f):
+        for _v7_z in R_Q_d_M_ub.get(_v7_o, Set()):
+            if ((_v7_z,) in _U_Q):
+                _v7_result = (_v7_z, _v7_o_f)
+                if (_v7_result not in R_Q):
+                    R_Q.add(_v7_result)
+                    _maint_R_Q_bu_for_R_Q_add(_v7_result)
+                else:
+                    R_Q.inccount(_v7_result)
 
 def _maint_R_Q_for__F_f_remove(_elem):
     (_v8_o, _v8_o_f) = _elem
-    for _v8_z in R_Q_d_M_ub.get(_v8_o, Set()):
-        if ((_v8_z,) in _U_Q):
-            _v8_result = (_v8_z, _v8_o_f)
-            if (R_Q.getcount(_v8_result) == 1):
-                _maint_R_Q_bu_for_R_Q_remove(_v8_result)
-                R_Q.remove(_v8_result)
-            else:
-                R_Q.deccount(_v8_result)
+    if ((_v8_o, _v8_o_f) in R_Q_d_F_f):
+        for _v8_z in R_Q_d_M_ub.get(_v8_o, Set()):
+            if ((_v8_z,) in _U_Q):
+                _v8_result = (_v8_z, _v8_o_f)
+                if (R_Q.getcount(_v8_result) == 1):
+                    _maint_R_Q_bu_for_R_Q_remove(_v8_result)
+                    R_Q.remove(_v8_result)
+                else:
+                    R_Q.deccount(_v8_result)
 
 def _demand_Q(_elem):
     if (_elem not in _U_Q):

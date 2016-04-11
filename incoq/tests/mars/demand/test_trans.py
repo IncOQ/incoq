@@ -35,23 +35,25 @@ class TransCase(unittest.TestCase):
         exp_func = L.Parser.ps('''
             def _maint_R_Q_for__M_add(_elem):
                 (_v3_x, _v3_y) = _elem
-                for _v3_w in unwrap(U.imglookup('ub', (_v3_x,))):
-                    if isset(_v3_y):
-                        for _v3_z in _v3_y:
-                            if ((_v3_y, _v3_z) != _elem):
-                                _v3_result = (_v3_z,)
-                                if (_v3_result not in R_Q):
-                                    R_Q.reladd(_v3_result)
-                                else:
-                                    R_Q.relinccount(_v3_result)
-                (_v3_y, _v3_z) = _elem
-                for _v3_x in unwrap(R_Q_d_M_1.imglookup('ub', (_v3_y,))):
+                if ((_v3_x, _v3_y) in R_Q_d_M_1):
                     for _v3_w in unwrap(U.imglookup('ub', (_v3_x,))):
-                        _v3_result = (_v3_z,)
-                        if (_v3_result not in R_Q):
-                            R_Q.reladd(_v3_result)
-                        else:
-                            R_Q.relinccount(_v3_result)
+                        if isset(_v3_y):
+                            for _v3_z in _v3_y:
+                                if ((_v3_y, _v3_z) != _elem):
+                                    _v3_result = (_v3_z,)
+                                    if (_v3_result not in R_Q):
+                                        R_Q.reladd(_v3_result)
+                                    else:
+                                        R_Q.relinccount(_v3_result)
+                (_v3_y, _v3_z) = _elem
+                if ((_v3_y, _v3_z) in R_Q_d_M_2):
+                    for _v3_x in unwrap(R_Q_d_M_1.imglookup('ub', (_v3_y,))):
+                        for _v3_w in unwrap(U.imglookup('ub', (_v3_x,))):
+                            _v3_result = (_v3_z,)
+                            if (_v3_result not in R_Q):
+                                R_Q.reladd(_v3_result)
+                            else:
+                                R_Q.relinccount(_v3_result)
             ''')
         self.assertEqual(func, exp_func)
         

@@ -89,6 +89,7 @@ class TransCase(unittest.TestCase):
             def main():
                 for (v_x, v_y, v_z) in QUERY('J',
                     {(v_x, v_y, v_z) for (v_x, v_y) in SING(e)
+                                     for (v_x, v_y) in REL(dR)
                                      for (v_y, v_z) in REL(dS)}):
                     pass
             ''')

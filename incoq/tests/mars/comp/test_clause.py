@@ -33,8 +33,8 @@ class ClauseCase(unittest.TestCase):
         cl = L.RelMember(['x', 'y', 'z'], 'R')
         self.assertSequenceEqual(v.tagsin_mask(cl), [True, True, True])
         self.assertSequenceEqual(v.tagsout_mask(cl), [True, True, True])
-        self.assertTrue(v.should_filter(cl, ['x', 'y']))
-        self.assertFalse(v.should_filter(cl, ['x', 'y', 'z']))
+        self.assertIs(v.should_filter(cl, ['x', 'y']), ShouldFilter.Yes)
+        self.assertIs(v.should_filter(cl, ['x', 'y', 'z']), ShouldFilter.No)
         
         class DummyHandler(RelMemberHandler):
             def constrained_mask(self, cl):
@@ -43,12 +43,12 @@ class ClauseCase(unittest.TestCase):
         
         self.assertSequenceEqual(v.tagsin_mask(cl), [False, True, False])
         self.assertSequenceEqual(v.tagsout_mask(cl), [True, False, True])
-        self.assertTrue(v.should_filter(cl, ['x', 'z']))
-        self.assertFalse(v.should_filter(cl, ['y']))
-        self.assertFalse(v.should_filter(cl, ['x', 'y']))
+        self.assertIs(v.should_filter(cl, ['x', 'z']), ShouldFilter.Yes)
+        self.assertIs(v.should_filter(cl, ['y']), ShouldFilter.No)
+        self.assertIs(v.should_filter(cl, ['x', 'y']), ShouldFilter.No)
         
         cl = L.Cond(L.Parser.pe('True'))
-        self.assertFalse(v.should_filter(cl, []))
+        self.assertIs(v.should_filter(cl, []), ShouldFilter.No)
     
     def check_rename(self, cl):
         v = self.visitor
@@ -155,7 +155,7 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(v.rhs_rel(cl), None)
         self.assertSequenceEqual(v.uncon_vars(cl), ['e'])
         
-        self.assertFalse(v.should_filter(cl, []))
+        self.assertIs(v.should_filter(cl, []), ShouldFilter.Intersect)
         
         b = v.functionally_determines(cl, ['x'])
         self.assertTrue(b)
@@ -224,7 +224,7 @@ class ClauseCase(unittest.TestCase):
         exp_cl2 = L.WithoutMember(L.SingMember(['x', 'y', 'z'], L.Name('f')),
                                   L.Name('e'))
         self.assertEqual(cl2, exp_cl2)
-        self.assertFalse(v.should_filter(cl2, []))
+        self.assertIs(v.should_filter(cl2, []), ShouldFilter.Intersect)
     
     def test_varsmember(self):
         v = self.visitor

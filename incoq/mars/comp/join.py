@@ -24,7 +24,7 @@ from incoq.util.seq import zip_strict
 from incoq.util.collections import OrderedSet, Partitioning
 from incoq.mars.incast import L
 
-from .clause import ClauseVisitor, CoreClauseVisitor, Kind
+from .clause import ClauseVisitor, CoreClauseVisitor, Kind, ShouldFilter
 
 
 eq_cond_pattern = L.Cond(L.Compare(L.Name(L.PatVar('LEFT')), L.Eq(),
@@ -276,10 +276,14 @@ class ClauseTools(ClauseVisitor):
         bindenvs = [set(bindenv)]
         for cl, f in zip_strict(clauses, filters):
             env = set(bindenvs[-1])
-            if self.should_filter(cl, env):
-                result.append(f)
-            else:
+            should_filter = self.should_filter(cl, env)
+            if should_filter is ShouldFilter.No:
                 result.append(cl)
+            elif should_filter is ShouldFilter.Yes:
+                result.append(f)
+            elif should_filter is ShouldFilter.Intersect:
+                result.append(cl)
+                result.append(f)
             env.update(self.lhs_vars(cl))
             bindenvs.append(env)
         
