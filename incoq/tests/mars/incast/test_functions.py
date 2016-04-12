@@ -61,6 +61,60 @@ class FunctionsCase(unittest.TestCase):
         self.assertEqual(graph.calls_map, exp_calls_map)
         self.assertEqual(graph.calledby_map, exp_calledby_map)
         self.assertEqual(graph.order, exp_order)
+    
+    def test_inliner(self):
+        param_map = {'f': ('a', 'b')}
+        body_map = {'f': Parser.pc('a = a + 1; print(a + b)')}
+        tree = Parser.p('''
+            def main():
+                f(c, d)
+                print(f(c, d))
+            ''')
+        tree = Inliner.run(tree, param_map, body_map)
+        exp_tree = Parser.p('''
+            def main():
+                (a, b) = (c, d)
+                a = a + 1
+                print(a + b)
+                print(f(c, d))
+            ''')
+        self.assertEqual(tree, exp_tree)
+    
+    def test_inline_functions(self):
+        tree = Parser.p('''
+            def a():
+                print(1)
+                b(y)
+            
+            def b(y):
+                print(2)
+                c(y)
+                d(z)
+            
+            def c(u):
+                print(3)
+                d(v)
+            
+            def d(w):
+                print(4)
+            
+            def e():
+                a()
+            ''')
+        exp_tree = Parser.p('''
+            def e():
+                print(1)
+                (y,) = (y,)
+                print(2)
+                (u,) = (y,)
+                print(3)
+                (w,) = (v,)
+                print(4)
+                (w,) = (z,)
+                print(4)
+            ''')
+        tree = inline_functions(tree, ['a', 'b', 'c', 'd'])
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':
