@@ -104,6 +104,11 @@ all_attributes = [
         'if true, eliminate type checks where safe',
         parse_bool,
         {'action': 'store_true'}),
+    
+    ConfigAttribute('inline_maint_code', False,
+        'if true, inline inserted maintenance functions',
+        parse_bool,
+        {'action': 'store_true'}),
 ]
 
 

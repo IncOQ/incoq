@@ -345,6 +345,11 @@ def transform_ast(input_ast, *, options=None):
             symtab.print('Unwrapped relations: ' +
                          ', '.join(sorted(rel_names)))
     
+    if config.inline_maint_code:
+        tree = L.inline_functions(tree, symtab.maint_funcs,
+                                  symtab.fresh_names.inline,
+                                  comment_markers=True)
+    
     if config.elim_dead_relations:
         tree = relation_rewritings.eliminate_dead_relations(tree, symtab)
     

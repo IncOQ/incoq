@@ -145,6 +145,7 @@ class SymbolTable:
         self.fresh_names = SimpleNamespace()
         self.fresh_names.vars = N.fresh_name_generator()
         self.fresh_names.queries = N.fresh_name_generator('Query{}')
+        self.fresh_names.inline = N.fresh_name_generator('_i{}')
         
         self.ignored_queries = OrderedSet()
         """Names of queries that cannot or should not be processed."""
