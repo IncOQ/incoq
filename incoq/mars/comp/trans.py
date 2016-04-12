@@ -383,14 +383,17 @@ def transform_secondhalf(tree, symtab, query):
     join_names = [join.name for join in query.maint_joins]
     
     # Eliminate type checks when our global config says it's ok,
-    # the query is known to be well-typed, and the query is implemented
-    # with demand filtering.
-    if (symtab.config.elim_type_checks and
-        query.well_typed_data and
-        query.impl is S.Filtered):
-        ct = symtab.clausetools_notc
-    else:
-        ct = symtab.clausetools
+    # and the query is well-typed and uses demand filtering (or is
+    # a tag or filter for such a query).
+    notc = False
+    if symtab.config.elim_type_checks:
+        if query.well_typed_data and query.impl is S.Filtered:
+            notc = True
+        elif query.struct_for_query is not None:
+            orig_query = symtab.get_queries()[query.struct_for_query]
+            if orig_query.well_typed_data:
+                notc = True
+    ct = symtab.clausetools_notc if notc else symtab.clausetools
     
     tree = JoinExpander.run(tree, ct, join_names)
     return tree

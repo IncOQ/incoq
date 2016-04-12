@@ -341,6 +341,11 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
             'the comment header of the output program',
         default=True)
     
+    struct_for_query = SymbolAttribute(
+        doc='If this is a tag or filter, name of the query for which '
+            'this was created',
+        default=None)
+    
     def __str__(self):
         s = 'Query {}'.format(self.name)
         if self.node is not None:

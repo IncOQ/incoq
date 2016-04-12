@@ -89,6 +89,11 @@ all_attributes = [
         parse_bool,
         {'action': 'store_true'}),
     
+    ConfigAttribute('inline_maint_code', False,
+        'if true, inline inserted maintenance functions',
+        parse_bool,
+        {'action': 'store_true'}),
+    
     ConfigAttribute('elim_counts', True,
         'if true, eliminate counts where we can infer it\'s safe to '
         'do so',
@@ -102,11 +107,6 @@ all_attributes = [
     
     ConfigAttribute('elim_type_checks', True,
         'if true, eliminate type checks where safe',
-        parse_bool,
-        {'action': 'store_true'}),
-    
-    ConfigAttribute('inline_maint_code', False,
-        'if true, inline inserted maintenance functions',
         parse_bool,
         {'action': 'store_true'}),
 ]
