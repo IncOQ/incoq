@@ -6,7 +6,7 @@ __all__ = [
     'get_cycle',
 ]
 
-from .collections import SetDict
+from .collections import OrderedSetDict, OrderedSet
 
 
 def topsort_helper(nodes, edges):
@@ -18,21 +18,27 @@ def topsort_helper(nodes, edges):
            no more roots were available.
     
     If an ordering was in fact found, (2) and (3) will be empty.
+    
+    The return value is deterministic even when multiple orders are
+    possible.
     """
-    eout = SetDict()
-    ein = SetDict()
+    eout = OrderedSetDict()
+    ein = OrderedSetDict()
     for x, y in edges:
         assert x in nodes and y in nodes, \
             'Edge ({}, {}) uses invalid node'.format(x, y)
         eout[x].add(y)
         ein[y].add(x)
-    remaining_nodes = set(nodes)
-    remaining_edges = set(edges)
+    remaining_nodes = OrderedSet(nodes)
+    remaining_edges = OrderedSet(edges)
     
     result = []
-    roots = {n for n in nodes if len(ein[n]) == 0}
+    roots = OrderedSet(n for n in nodes if len(ein[n]) == 0)
     while len(roots) > 0:
-        x = roots.pop()
+        # Pop front.
+        x = next(iter(roots))
+        roots.discard(x)
+        
         result.append(x)
         remaining_nodes.remove(x)
         if x in eout:
@@ -61,7 +67,7 @@ def get_cycle(nodes, edges):
     if len(rem_nodes) == 0:
         return None
     
-    ein = SetDict()
+    ein = OrderedSetDict()
     for x, y in rem_edges:
         ein[y].add(x)
     

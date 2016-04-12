@@ -108,8 +108,8 @@ def analyze_functions(tree, funcs, *, allow_recursion=False):
     
     Visitor.run(tree)
     
-    edges = {(x, y) for x, outedges in graph.calledby_map.items()
-                    for y in outedges}
+    edges = [(x, y) for x, outedges in graph.calledby_map.items()
+                    for y in outedges]
     order = topsort(funcs, edges)
     if order is None and not allow_recursion:
         raise ProgramError('Recursive functions found: ' +

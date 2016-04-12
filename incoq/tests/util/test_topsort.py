@@ -21,6 +21,13 @@ class TopsortCase(unittest.TestCase):
         self.assertEqual(order, None)
         cycle = get_cycle(V, E)
         self.assertCountEqual(cycle, {1, 2, 3})
+    
+    def test_deterministic(self):
+        V = ['a', 'b', 'c', 'd', 'e']
+        E = []
+        order = topsort(V, E)
+        exp_order = ['a', 'b', 'c', 'd', 'e']
+        self.assertEqual(order, exp_order)
 
 
 if __name__ == '__main__':
