@@ -1276,9 +1276,7 @@ class Density(TwitterWorkflow):
                     celebusertag =   True,
                     groupusertag =   True,
                 )
-                for x in [10000]
-                ###
-#                for x in range(2000, 20000 + 1, 2000)
+                for x in range(2000, 20000 + 1, 2000)
             ]
     
     stddev_window = .1
