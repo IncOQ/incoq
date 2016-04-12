@@ -186,8 +186,21 @@ class AuxmapCase(unittest.TestCase):
                 print(M.setfrommap('bu'))
                 print(unwrap(R.imglookup('bu', (x,))))
             ''')
-        tree = InvariantTransformer.run(tree, N.fresh_name_generator(),
-                                        auxmaps, setfrommaps, wraps)
+        trans = InvariantTransformer(N.fresh_name_generator(),
+                                     auxmaps, setfrommaps, wraps)
+        tree = trans.process(tree)
+        exp_maint_funcs = [
+            '_maint_R_bu_for_R_add',
+            '_maint_R_bu_for_R_remove',
+            '_maint_R_bu_2_for_R_add',
+            '_maint_R_bu_2_for_R_remove',
+            '_maint_S_for_M_assign',
+            '_maint_S_for_M_delete',
+            '_maint_Q1_for_R_add',
+            '_maint_Q1_for_R_remove',
+            '_maint_Q2_for_R_add',
+            '_maint_Q2_for_R_remove',
+        ]
         exp_tree = L.Parser.p('''
             def _maint_R_bu_for_R_add(_elem):
                 (_elem_v1, _elem_v2) = _elem
@@ -275,6 +288,7 @@ class AuxmapCase(unittest.TestCase):
                 print(S)
                 print(R_bu_2.get((x,), Set()))
             ''')
+        self.assertSequenceEqual(list(trans.maint_funcs), exp_maint_funcs)
         self.assertEqual(tree, exp_tree)
     
     def test_make_auxmap_type(self):

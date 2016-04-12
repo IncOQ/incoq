@@ -15,9 +15,11 @@ __all__ = [
 ]
 
 
+from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
 from incoq.mars.type import T
 from incoq.mars.symbol import S, N
+
 from .order import order_clauses
 
 
@@ -206,6 +208,7 @@ class CompMaintainer(L.NodeTransformer):
         self.counted = counted
         
         self.rels = self.clausetools.rhs_rels_from_comp(self.comp)
+        self.maint_funcs = OrderedSet()
     
     def visit_Module(self, node):
         ct = self.clausetools
@@ -221,6 +224,9 @@ class CompMaintainer(L.NodeTransformer):
                         self.comp, self.result_var, rel, op,
                         counted=self.counted)
                 funcs.append(func)
+        
+        func_names = L.get_defined_functions(tuple(funcs))
+        self.maint_funcs.update(func_names)
         
         node = node._replace(body=tuple(funcs) + node.body)
         return node
@@ -325,10 +331,12 @@ def incrementalize_comp(tree, symtab, query, result_var):
             join_prefixes[join_name] = current_prefix
             yield join_name
     
-    tree = CompMaintainer.run(tree, clausetools, fresh_vars(),
-                              fresh_join_names(),
-                              comp, result_var,
-                              counted=counted)
+    trans = CompMaintainer(clausetools, fresh_vars(),
+                           fresh_join_names(),
+                           comp, result_var,
+                           counted=counted)
+    tree = trans.process(tree)
+    symtab.maint_funcs.update(trans.maint_funcs)
     
     # Define symbols for each maintenance join introduced.
     class MaintJoinDefiner(L.NodeVisitor):

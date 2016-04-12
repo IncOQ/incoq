@@ -338,6 +338,7 @@ class InvariantTransformer(L.NodeTransformer):
     def __init__(self, fresh_vars, auxmaps, setfrommaps, wraps):
         super().__init__()
         self.fresh_vars = fresh_vars
+        self.maint_funcs = OrderedSet()
         
         # Index over auxmaps for fast retrieval.
         self.auxmaps_by_rel = OrderedDict()
@@ -381,6 +382,9 @@ class InvariantTransformer(L.NodeTransformer):
                 for op in [L.SetAdd(), L.SetRemove()]:
                     func = make_wrap_maint_func(self.fresh_vars, wrap, op)
                     funcs.append(func)
+        
+        func_names = L.get_defined_functions(tuple(funcs))
+        self.maint_funcs.update(func_names)
         
         node = node._replace(body=tuple(funcs) + node.body)
         return node
@@ -676,16 +680,21 @@ def define_wrap_set(wrapinv, symtab):
 def transform_setfrommap(tree, symtab, setfrommap):
     """Transform a single SetFromMapInvariant."""
     define_set(setfrommap, symtab)
-    tree = InvariantTransformer.run(tree, symtab.fresh_names.vars,
-                                    [], [setfrommap], [])
+    trans = InvariantTransformer(symtab.fresh_names.vars,
+                                 [], [setfrommap], [])
+    tree = trans.process(tree)
+    symtab.maint_funcs.update(trans.maint_funcs)
     return tree
 
 
 def transform_wrap(tree, symtab, wrapinv):
     """Transform a single WrapInvariant."""
     define_wrap_set(wrapinv, symtab)
-    tree = InvariantTransformer.run(tree, symtab.fresh_names.vars,
-                                    [], [], [wrapinv])
+    trans = InvariantTransformer(symtab.fresh_names.vars,
+                                 [], [], [wrapinv])
+    tree = trans.process(tree)
+    symtab.maint_funcs.update(trans.maint_funcs)
+    return tree
 
 
 def transform_auxmaps_stepper(tree, symtab):
@@ -707,8 +716,10 @@ def transform_auxmaps_stepper(tree, symtab):
         define_set(sfm, symtab)
     for wrap in wraps:
         define_wrap_set(wrap, symtab)
-    tree = InvariantTransformer.run(tree, symtab.fresh_names.vars,
-                                    auxmaps, setfrommaps, wraps)
+    trans = InvariantTransformer(symtab.fresh_names.vars,
+                                 auxmaps, setfrommaps, wraps)
+    tree = trans.process(tree)
+    symtab.maint_funcs.update(trans.maint_funcs)
     return tree, True
 
 
@@ -742,4 +753,5 @@ def transform_all_wraps(tree, symtab):
     tree = trans.process(tree)
     for q in symtab.get_queries().values():
         q.node = trans.process(q.node)
+    symtab.maint_funcs.update(trans.maint_funcs)
     return tree

@@ -13,6 +13,8 @@ __all__ = [
 ]
 
 
+from incoq.util.collections import OrderedSet
+
 from . import nodes as L
 from .pyconv import Parser
 

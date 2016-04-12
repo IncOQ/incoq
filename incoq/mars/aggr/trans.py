@@ -10,6 +10,7 @@ __all__ = [
 
 from simplestruct import Struct, TypedField
 
+from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
 from incoq.mars.type import T
 from incoq.mars.symbol import S, N
@@ -245,6 +246,7 @@ class AggrMaintainer(L.NodeTransformer):
         super().__init__()
         self.fresh_vars = fresh_vars
         self.aggrinv = aggrinv
+        self.maint_funcs = OrderedSet()
     
     def visit_Module(self, node):
         node = self.generic_visit(node)
@@ -259,6 +261,9 @@ class AggrMaintainer(L.NodeTransformer):
             for op in ops:
                 func = make_aggr_restr_maint_func(fv, self.aggrinv, op)
                 funcs.append(func)
+        
+        func_names = L.get_defined_functions(tuple(funcs))
+        self.maint_funcs.update(func_names)
         
         node = node._replace(body=tuple(funcs) + node.body)
         return node
@@ -364,7 +369,9 @@ def incrementalize_aggr(tree, symtab, query, result_var):
     handler = aggrinv.get_handler()
     
     # Transform to maintain it.
-    tree = AggrMaintainer.run(tree, symtab.fresh_names.vars, aggrinv)
+    trans = AggrMaintainer(symtab.fresh_names.vars, aggrinv)
+    tree = trans.process(tree)
+    symtab.maint_funcs.update(trans.maint_funcs)
     
     # Transform occurrences of the aggregate.
     

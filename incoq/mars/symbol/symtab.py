@@ -148,6 +148,9 @@ class SymbolTable:
         
         self.ignored_queries = OrderedSet()
         """Names of queries that cannot or should not be processed."""
+        
+        self.maint_funcs = OrderedSet()
+        """Names of inserted maintenance functions that can be inlined."""
     
     def print(self, *args, flush=True, **kargs):
         if self.config.verbose:

@@ -2,6 +2,7 @@
 
 
 __all__ = [
+    'get_defined_functions',
     'analyze_functions',
     'Inliner',
     'inline_functions',
@@ -13,6 +14,16 @@ from incoq.util.topsort import topsort, get_cycle
 
 from . import nodes as L
 from .error import ProgramError, TransformationError
+
+
+def get_defined_functions(tree):
+    """Find names of top-level functions in a block of code.""" 
+    names = OrderedSet()
+    class Finder(L.NodeVisitor):
+        def visit_Fun(self, node):
+            names.add(node.name)
+    Finder.run(tree)
+    return names
 
 
 class FunctionCallGraph:

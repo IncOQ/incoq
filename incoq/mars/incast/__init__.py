@@ -10,6 +10,7 @@ from . import pyconv
 from . import error
 from . import mask
 from . import util
+from . import functions
 
 
-L = new_namespace(nodes, tools, pyconv, error, mask, util)
+L = new_namespace(nodes, tools, pyconv, error, mask, util, functions)
