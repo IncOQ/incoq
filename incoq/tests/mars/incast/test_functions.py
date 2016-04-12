@@ -88,12 +88,15 @@ class FunctionsCase(unittest.TestCase):
                 print(f(c, d))
             ''')
         prefixes = repeat('_')
-        tree = Inliner.run(tree, param_map, body_map, prefixes)
+        tree = Inliner.run(tree, param_map, body_map, prefixes,
+                           comment_markers=True)
         exp_tree = Parser.p('''
             def main():
+                COMMENT('Begin inlined f.')
                 (_a, _b) = (c, d)
                 _a = _a + 1
                 print(_a + _b + x)
+                COMMENT('End inlined f.')
                 print(f(c, d))
             ''')
         self.assertEqual(tree, exp_tree)

@@ -131,11 +131,13 @@ class Inliner(L.NodeTransformer):
     maintenance functions anyway.
     """
     
-    def __init__(self, param_map, body_map, prefixes):
+    def __init__(self, param_map, body_map, prefixes, *,
+                 comment_markers=False):
         super().__init__()
         self.param_map = param_map
         self.body_map = body_map
         self.prefixes = prefixes
+        self.comment_markers = comment_markers
     
     def visit_Expr(self, node):
         if not isinstance(node.value, L.Call):
@@ -158,11 +160,19 @@ class Inliner(L.NodeTransformer):
             param_init_code = (L.DecompAssign(params, L.Tuple(args)),)
         else:
             param_init_code = ()
+        
         code = param_init_code + body
+        
+        if self.comment_markers:
+            code = ((L.Comment('Begin inlined {}.'.format(name)),) +
+                    code +
+                    (L.Comment('End inlined {}.'.format(name)),))
+        
         return code
 
 
-def inline_functions(tree, funcs, prefixes):
+def inline_functions(tree, funcs, prefixes, *,
+                     comment_markers=False):
     """Inline all of the functions named in funcs, instantiating local
     variables using the given prefixes. The functions must be acyclic,
     not contain return statements, and only be called at statement
@@ -187,7 +197,7 @@ def inline_functions(tree, funcs, prefixes):
     for f in graph.order:
         new_body = graph.body_map[f]
         new_body = Inliner.run(new_body, graph.param_map, graph.body_map,
-                               prefixes)
+                               prefixes, comment_markers=comment_markers)
         graph.body_map[f] = new_body
     
     # Delete the function definitions so we don't need to process
@@ -199,7 +209,8 @@ def inline_functions(tree, funcs, prefixes):
             return node
     tree = Eliminator.run(tree)
     
-    tree = Inliner.run(tree, graph.param_map, graph.body_map, prefixes)
+    tree = Inliner.run(tree, graph.param_map, graph.body_map, prefixes,
+                       comment_markers=comment_markers)
     
     # Make sure there are no lingering non-statement-level calls.
     class CallComplainer(L.NodeVisitor):
