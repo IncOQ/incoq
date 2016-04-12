@@ -13,7 +13,7 @@ import importlib
 from frexp import (ExpWorkflow, Datagen,
                    SimpleExtractor, MetricExtractor,
                    TotalSizeExtractor, NormalizedExtractor,
-                   Printer)
+                   Printer, Task)
 
 from experiments.twitter.gendb_wrapper import (
                         gen_pairs, gen_pairs_with_inverse,
@@ -1225,7 +1225,7 @@ class Factor2DTimeNorm(Factor2D, FactorTimeNorm):
     pass
 
 
-class DensityFactor(TwitterWorkflow):
+class Density(TwitterWorkflow):
     
     """Vary the number of users and the user degree
     inversely, keeping the number of follower pairs
@@ -1237,11 +1237,15 @@ class DensityFactor(TwitterWorkflow):
     
     class ExpDatagen(TwitterWorkflow.ExpDatagen):
         
+        upkind = None
+        
         progs = [
+            'twitter_dem_baseline',
             'twitter_dem_inline',
-            'twitter_dem',
-            'twitter_dem_inline_norcelim',
-            'twitter_dem_inline_notypecheck',
+            'twitter_dem_rcelim',
+            'twitter_dem_rselim',
+            'twitter_dem_tcelim',
+            'twitter_dem_mcelim',
         ]
         
         def get_dsparams_list(self):
@@ -1254,7 +1258,7 @@ class DensityFactor(TwitterWorkflow):
                     n_groups =       200,
                     pad_celeb =      None,
                     
-                    user_deg =       100 * (20000 // x),
+                    user_deg =       int(100 * (20000 / x)),
                     group_deg =      10,
                     
                     n_locs =         20,
@@ -1268,45 +1272,188 @@ class DensityFactor(TwitterWorkflow):
                     reps =           1,
                     
                     need_exact =     False,
-                    upkind =         'loc',
+                    upkind =         self.upkind,
                     celebusertag =   True,
                     groupusertag =   True,
                 )
-                for x in range(2000, 20000 + 1, 2000)
+                for x in [10000]
+                ###
+#                for x in range(2000, 20000 + 1, 2000)
             ]
     
     stddev_window = .1
-    min_repeats = 1#10
-    max_repeats = 1#50
-     
+    min_repeats = 10
+    max_repeats = 50
+    
     class ExpExtractor(TwitterWorkflow.ExpExtractor, MetricExtractor):
         
-        series = [
-            (('twitter_dem_inline', 'all'), 'inlined',
-             'cyan', '-- ^ normal'),
-            (('twitter_dem', 'all'), 'non-inlined',
-             'green', '-- ^ normal'),
-            (('twitter_dem_inline_norcelim', 'all'), 'no RC elim',
-             'red', '-- ^ normal'),
-            (('twitter_dem_inline_notypecheck', 'all'), 'no type checks',
-             'yellow', '-- ^ normal'),
+        texttt = False
+        
+        series_unformatted = [
+            (('twitter_dem_baseline', 'all'),
+             'Unoptimized',
+             'black', '- s normal'),
+            (('twitter_dem_inline', 'all'),
+             'Inlining',
+             'purple', ': ^ normal'),
+            (('twitter_dem_rcelim', 'all'),
+             'Counting elim',
+             'red', '- ^ normal'),
+            (('twitter_dem_rselim', 'all'),
+             'Result set elim',
+             'purple', ': _o normal'),
+            (('twitter_dem_tcelim', 'all'),
+             'Type check elim',
+             'blue', '-- x normal'),
+            (('twitter_dem_mcelim', 'all'),
+             'Maint case elim',
+             '#00FF00', '1-2 o normal'),
         ]
+        
+        @property
+        def series(self):
+            if self.texttt:
+                return [(sid, '\\texttt{' + name + '}', color, style)
+                        for sid, name, color, style in
+                            self.series_unformatted]
+            else:
+                return self.series_unformatted
         
         metric = 'opstime_cpu'
         
         ylabel = 'Running time (in seconds)'
         ymin = 0
-        xlabel = 'x'
+        
+        xlabel = 'Number of users (in thousands)'
+        
+        def project_x(self, p):
+            return super().project_x(p) / 1e3
+        
+        xmin = 1
+        xmax = 21
+        x_ticklocs = [0, 4, 8, 12, 16, 20]
 
-class DensityFactorNorm(DensityFactor):
+class DensityNorm(Density):
     
     class ExpExtractor(NormalizedExtractor,
-                       DensityFactor.ExpExtractor):
+                       Density.ExpExtractor):
         
-        base_sid = ('twitter_dem_inline', 'all')
+        base_sid = ('twitter_dem_baseline', 'all')
         
         def normalize(self, pre_y, base_y):
             return pre_y / base_y
+        
+        ylabel = 'Running time (normalized)'
+        ymin = .4
+        ymax = 1
+
+
+class DensityLoc(Density):
+    
+    prefix = 'results/twitter_density_loc'
+    
+    class ExpDatagen(Density.ExpDatagen):
+        upkind = 'loc'
+    
+    class ExpExtractor(Density.ExpExtractor):
+        legend_loc = 'upper right'
+        texttt = True
+
+class DensityLocNorm(DensityNorm, DensityLoc):
+    
+    imagename = 'norm'
+    
+    class ExpExtractor(DensityNorm.ExpExtractor):
+        no_legend = True
+
+class DensityLocNormTable(DensityLocNorm):
+    
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            bests = df.min()
+            bests = bests.apply(lambda x: 100 - round(x * 100))
+            print('Best percent improvement over unoptimized:')
+            print(bests)
+            
+            means = df.mean()
+            means = means.apply(lambda x: 100 - round(x * 100))
+            print('Average percent improvement over unoptimized:')
+            print(means)
+
+class DensityLocMem(DensityLoc):
+    
+    class ExpExtractor(DensityLoc.ExpExtractor):
+        
+        metric = 'mem'
+        ylabel = 'Memory usage (in MB)'
+        def project_y(self, p):
+            return super().project_y(p) / (2**20)
+
+class DensityLocMemTable(DensityLocMem):
+    
+    class ExpExtractor(DensityLocMem.ExpExtractor):
+        texttt = False
+    
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            print('Memory usage of Unoptimized at x=2k, x=20k')
+            print('  {} MB to {} MB'.format(
+                  int(round(df['Unoptimized'][2])),
+                  int(round(df['Unoptimized'][20]))))
+            
+            print('Average memory usage (in MB)')
+            means = df.mean()
+            print(means)
+            
+            print('Average memory reduction (in MB)')
+            means = df.mean()
+            red = means.apply(lambda x: round(means['Unoptimized'] - x, 2))
+            print(red)
+            
+            print('Average memory reduction (as a %)')
+            means = df.mean()
+            red = means.apply(lambda x: round((means['Unoptimized'] - x) /
+                                              means['Unoptimized'] * 100, 3))
+            print(red)
+
+class DensityCeleb(Density):
+    prefix = 'results/twitter_density_celeb'
+    class ExpDatagen(Density.ExpDatagen):
+        upkind = 'celeb'
+
+class DensityCelebNorm(DensityNorm, DensityCeleb):
+    
+    imagename = 'norm'
+    
+    class ExpExtractor(DensityNorm.ExpExtractor):
+        legend_loc = 'lower left'
+
+class DensityCelebNormTable(DensityCelebNorm):
+    
+    class ExpViewer(Task):
+        
+        def run(self):
+            import pandas as pd
+            
+            with open(self.workflow.csv_filename, 'rt') as in_file:
+                df = pd.DataFrame.from_csv(in_file)
+            
+            means = df.mean()
+            means = means.apply(lambda x: 100 - round(x * 100))
+            print('Average percent improvement over unoptimized:')
+            print(means)
 
 
 class Tag(TwitterWorkflow):
