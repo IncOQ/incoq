@@ -750,9 +750,9 @@ class Demand(TwitterWorkflow):
              'green', '- ^ poly1'),
         ]
         
-#        xlabel = 'Number of users in \\texttt{U} (in thousands)'
+        xlabel = 'Number of users in \\texttt{U} (in thousands)'
         # For Annie's writing, use "demand" instead of U.
-        xlabel = 'Number of users in \\texttt{demand} (in thousands)'
+#        xlabel = 'Number of users in \\texttt{demand} (in thousands)'
         
         def project_x(self, p):
             return super().project_x(p) / 1e3

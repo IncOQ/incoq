@@ -19,6 +19,9 @@ tasks = [
     ('twitter_scale_time',              twitter.ScaleTime()),
     ('twitter_scale_size',              twitter.ScaleSize()),
     
+    ('twitter_demand_time',             twitter.DemandTimeOps()),
+    ('twitter_demand_size',             twitter.DemandSize()),
+    
     ('twitter_density',                 twitter.DensityLoc()),
     ('twitter_density_norm',            twitter.DensityLocNorm()),
     
