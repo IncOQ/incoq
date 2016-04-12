@@ -45,6 +45,22 @@ class IdentFinderCase(unittest.TestCase):
         self.assertEqual(vars, exp_vars)
 
 
+class BindingFinderCase(unittest.TestCase):
+    
+    def test_find(self):
+        tree = Parser.p('''
+            def main(w):
+                for x in S:
+                    for (y, z) in R:
+                        print(a)
+                    u = v
+                    (p,) = (q,)
+            ''')
+        vars = BindingFinder.run(tree)
+        exp_vars = ['w', 'x', 'y', 'z', 'u', 'p']
+        self.assertSequenceEqual(list(vars), exp_vars)
+
+
 class TemplaterCase(unittest.TestCase):
     
     def test_name(self):

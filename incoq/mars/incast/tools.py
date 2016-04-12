@@ -4,6 +4,7 @@
 __all__ = [
     'literal_unparse',
     'IdentFinder',
+    'BindingFinder',
     'Templater',
     'MacroExpander',
     'tree_size',
@@ -109,6 +110,39 @@ class IdentFinder(L.NodeVisitor):
                     ids = [ids]
                 if ids is not None:
                     self.names.update(ids)
+
+
+class BindingFinder(L.NodeVisitor):
+    
+    """Return names of variables that appear in a binding context, i.e.,
+    that would have a Store context in Python's AST.
+    """
+    
+    def process(self, tree):
+        self.vars = OrderedSet()
+        self.write_ctx = False
+        super().process(tree)
+        return self.vars
+    
+    def visit_Fun(self, node):
+        self.vars.update(node.args)
+        self.generic_visit(node)
+    
+    def visit_For(self, node):
+        self.vars.add(node.target)
+        self.generic_visit(node)
+    
+    def visit_DecompFor(self, node):
+        self.vars.update(node.vars)
+        self.generic_visit(node)
+    
+    def visit_Assign(self, node):
+        self.vars.add(node.target)
+        self.generic_visit(node)
+    
+    def visit_DecompAssign(self, node):
+        self.vars.update(node.vars)
+        self.generic_visit(node)
 
 
 class Templater(L.NodeTransformer):
