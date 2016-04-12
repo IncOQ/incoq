@@ -3,6 +3,7 @@
 
 __all__ = [
     'get_defined_functions',
+    'prefix_locals',
     'analyze_functions',
     'Inliner',
     'inline_functions',
@@ -13,6 +14,7 @@ from incoq.util.collections import OrderedSet
 from incoq.util.topsort import topsort, get_cycle
 
 from . import nodes as L
+from .tools import BindingFinder, Templater
 from .error import ProgramError, TransformationError
 
 
@@ -24,6 +26,18 @@ def get_defined_functions(tree):
             names.add(node.name)
     Finder.run(tree)
     return names
+
+
+def prefix_locals(tree, prefix, extra_boundvars):
+    """Rename the local variables in a block of code with the given
+    prefix. The extra_boundvars are treated as additional variables
+    known to be bound even if they don't appear in a binding occurrence
+    within tree.
+    """
+    localvars = OrderedSet(extra_boundvars)
+    localvars.update(BindingFinder.run(tree))
+    tree = Templater.run(tree, {v: prefix + v for v in localvars})
+    return tree
 
 
 class FunctionCallGraph:
@@ -117,10 +131,11 @@ class Inliner(L.NodeTransformer):
     maintenance functions anyway.
     """
     
-    def __init__(self, param_map, body_map):
+    def __init__(self, param_map, body_map, prefixes):
         super().__init__()
         self.param_map = param_map
         self.body_map = body_map
+        self.prefixes = prefixes
     
     def visit_Expr(self, node):
         if not isinstance(node.value, L.Call):
@@ -133,6 +148,11 @@ class Inliner(L.NodeTransformer):
         body = self.body_map[name]
         params = self.param_map[name]
         
+        # Generate a new prefix, use it on the body and the params.
+        prefix = next(self.prefixes)
+        body = prefix_locals(body, prefix, params)
+        params = tuple(prefix + p for p in params)
+        
         assert len(params) == len(args)
         if len(params) > 0:
             param_init_code = (L.DecompAssign(params, L.Tuple(args)),)
@@ -142,7 +162,12 @@ class Inliner(L.NodeTransformer):
         return code
 
 
-def inline_functions(tree, funcs):
+def inline_functions(tree, funcs, prefixes):
+    """Inline all of the functions named in funcs, instantiating local
+    variables using the given prefixes. The functions must be acyclic,
+    not contain return statements, and only be called at statement
+    level.
+    """
     # Determine function call graph.
     graph = analyze_functions(tree, funcs)
     
@@ -161,7 +186,8 @@ def inline_functions(tree, funcs):
     # inlined.
     for f in graph.order:
         new_body = graph.body_map[f]
-        new_body = Inliner.run(new_body, graph.param_map, graph.body_map)
+        new_body = Inliner.run(new_body, graph.param_map, graph.body_map,
+                               prefixes)
         graph.body_map[f] = new_body
     
     # Delete the function definitions so we don't need to process
@@ -173,7 +199,7 @@ def inline_functions(tree, funcs):
             return node
     tree = Eliminator.run(tree)
     
-    tree = Inliner.run(tree, graph.param_map, graph.body_map)
+    tree = Inliner.run(tree, graph.param_map, graph.body_map, prefixes)
     
     # Make sure there are no lingering non-statement-level calls.
     class CallComplainer(L.NodeVisitor):
