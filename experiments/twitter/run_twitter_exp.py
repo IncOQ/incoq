@@ -612,7 +612,7 @@ class ScaleTime(Scale):
         
         ylabel = 'Running time (in seconds)'
         ymin = 0
-        ymax = 3.5
+        ymax = 3.7
         y_ticklocs = [0, 1, 2, 3, 4]
     
     imagename = 'time'
@@ -808,6 +808,7 @@ class DemandSize(Demand):
             return super().project_y(p) / 1e6
         
         y_ticklocs = [0, 1, 2, 3, 4]
+        ymin = -0.2
         
     imagename = 'size'
 
