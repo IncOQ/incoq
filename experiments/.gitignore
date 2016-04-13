@@ -1,11 +1,7 @@
 # Ignore un-converted experiments for mars branch.
 cache
 distalgo
-jql
 mars
-other
-rbac
-wifi
 backup_run.py
 
 # Generated files.
