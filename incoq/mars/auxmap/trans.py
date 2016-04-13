@@ -720,6 +720,9 @@ def transform_auxmaps_stepper(tree, symtab):
                                  auxmaps, setfrommaps, wraps)
     tree = trans.process(tree)
     symtab.maint_funcs.update(trans.maint_funcs)
+    
+    symtab.stats['auxmaps_transformed'] += len(auxmaps)
+    
     return tree, True
 
 

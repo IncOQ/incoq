@@ -170,12 +170,14 @@ def compile_task(task, *, options=None):
     in_name, out_name, task_opts = task
     in_file = in_name + '.py'
     out_file = out_name + '.py'
+    stats_file = out_name + '_stats.txt'
     
     opts = options.copy()
     opts.update(task_opts)
     
     print('Regenerating {}...'.format(out_name), flush=True)
-    main.invoke(in_file, out_file, options=opts)
+    main.invoke(in_file, out_file, options=opts,
+                stats_filename=stats_file)
 
 
 def compile_task_names(target_names, *, options=None):

@@ -396,4 +396,6 @@ def incrementalize_aggr(tree, symtab, query, result_var):
     t_map = T.Map(t_key, t_val)
     symtab.define_map(aggrinv.map, type=t_map)
     
+    symtab.stats['aggrs_transformed'] += 1
+    
     return tree

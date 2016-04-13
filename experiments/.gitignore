@@ -9,12 +9,9 @@ wifi
 backup_run.py
 
 # Generated files.
-*_aux.py
 *_inc.py
 *_dem.py
-*_dem_needed.py
-*_dem_notagcheck.py
-*_dem_inline.py
+*_stats.txt
 
 # Installation-dependent.
 config.txt

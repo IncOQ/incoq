@@ -338,6 +338,8 @@ def incrementalize_comp(tree, symtab, query, result_var):
     tree = trans.process(tree)
     symtab.maint_funcs.update(trans.maint_funcs)
     
+    symtab.stats['comps_transformed'] += 1
+    
     # Define symbols for each maintenance join introduced.
     class MaintJoinDefiner(L.NodeVisitor):
         def visit_Query(self, node):

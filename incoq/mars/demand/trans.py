@@ -36,6 +36,8 @@ def transform_comp_query_with_filtering(tree, symtab, query):
             struct.name, node=comp,
             struct_for_query=query.name)
         tree = transform_comp_query(tree, symtab, struct_query)
+    symtab.stats['tags_created'] += len(generator.tags)
+    symtab.stats['filters_created'] += len(generator.filters)
     
     # Associate query with filters.
     query.filters = generator.make_filter_list()

@@ -15,7 +15,10 @@ import sys
 from itertools import chain
 from collections import OrderedDict
 import builtins
+from time import process_time
+import json
 
+from incoq.util.linecount import get_loc_source
 from incoq.mars.incast import L, P
 from incoq.mars.symbol import S, N
 from incoq.mars.auxmap import transform_auxmaps
@@ -251,6 +254,8 @@ def transform_ast(input_ast, *, options=None):
     if config.auto_query:
         tree = mark_query_forms(tree, symtab)
     
+    symtab.stats['queries_input'] = len(symtab.get_queries())
+    
     # Set global default values.
     for q in symtab.get_queries().values():
         if q.impl is S.Unspecified:
@@ -373,11 +378,19 @@ def transform_source(input_source, *, options=None):
     transformed source code and the symbol table.
     """
     tree = P.Parser.p(input_source)
+    
+    t1 = process_time()
     tree, symtab = transform_ast(tree, options=options)
+    t2 = process_time()
+    
     source = P.Parser.ts(tree)
     # All good human beings have trailing newlines in their
     # text files.
     source = source + '\n'
+    
+    symtab.stats['lines'] = get_loc_source(source)
+    symtab.stats['time'] = t2 - t1
+    
     return source, symtab
 
 
@@ -392,10 +405,14 @@ def transform_file(input_file, output_file, *, options=None):
     return symtab
 
 
-def transform_filename(input_filename, output_filename, *, options=None):
+def transform_filename(input_filename, output_filename, *, options=None,
+                       stats_filename=None):
     """Take in an input and output path, and write to the output
     the transformed Python file for the given input file. Return the
     symbol table.
+    
+    If stats_filename is given, write the transformation statistics as
+    a JSON object to that file.
     
     If the pretend option is given, write to standard output instead of
     the output file. If "-" is given as the input or output filename,
@@ -405,6 +422,7 @@ def transform_filename(input_filename, output_filename, *, options=None):
     """
     input_file = None
     output_file = None
+    stats_file = None
     
     stdinput = input_filename == '-'
     try:
@@ -429,3 +447,16 @@ def transform_filename(input_filename, output_filename, *, options=None):
     finally:
         if output_file is not None and not stdoutput:
             output_file.close()
+    
+    if stats_filename is not None:
+        stdstats = stats_filename == '-'
+        try:
+            if stdstats:
+                stats_file = sys.stdout
+            else:
+                stats_file = open(stats_filename, 'wt')
+            json.dump(symtab.stats, stats_file,
+                      sort_keys=True, indent='   ')
+        finally:
+            if stats_file is not None and not stdstats:
+                stats_file.close()

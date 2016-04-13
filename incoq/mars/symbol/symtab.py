@@ -136,11 +136,35 @@ class N:
         return s
 
 
+# Initial transformation statistics.
+init_stats = {
+    'lines': 0,
+    'time': 0,
+    'queries_input': 0,
+    'tags_created': 0,
+    'filters_created': 0,
+    'comps_transformed': 0,
+    'aggrs_transformed': 0,
+    'auxmaps_transformed': 0,
+}
+
+
 class SymbolTable:
+    
+    class Stats(dict):
+        def __init__(self):
+            super().__init__(init_stats)
+        
+        def __setkey__(self, key, value):
+            if key not in init_stats:
+                raise KeyError('Invalid stat key')
+            super().__setkey__(key, value)
     
     def __init__(self):
         self.symbols = OrderedDict()
         """Global symbols, in declaration order."""
+        
+        self.stats = SymbolTable.Stats()
         
         self.fresh_names = SimpleNamespace()
         self.fresh_names.vars = N.fresh_name_generator()
