@@ -14,7 +14,7 @@ import experiments.graddb.newstudents as newstudents
 #import experiments.mars.distalgo as distalgo
 
 
-tasks = [
+all_tasks = [
     # Twitter.
     ('twitter_scale_time',              twitter.ScaleTime()),
     ('twitter_scale_size',              twitter.ScaleSize()),
@@ -50,6 +50,8 @@ tasks = [
 #    ('lamutex_spec_unopt_procs',        distalgo.LAMutexSpecProcs()),
 ]
 
+all_tasks_dict = dict(all_tasks)
+
 
 def run_tasks(tasks, run=True, view=True, light=False):
     # Change to directory of this file so we can find the
@@ -81,19 +83,19 @@ def run_tasks(tasks, run=True, view=True, light=False):
 
 def run(args):
     parser = argparse.ArgumentParser(prog='run.py')
-    parser.add_argument('task')
+    parser.add_argument('tasks', nargs='*')
     parser.add_argument('--run', action='store_true')
     parser.add_argument('--view', action='store_true')
     parser.add_argument('--light', action='store_true')
     
     ns = parser.parse_args(args)
     
-    for task in tasks:
-        t_name, w = task
-        if t_name == ns.task:
-            break
-    else:
-        raise ValueError('Unknown task "{}"'.format(ns.task))
+    do_tasks = []
+    for t_name in ns.tasks:
+        task = all_tasks_dict.get(t_name, None)
+        if task is None:
+            raise ValueError('Unknown task "{}"'.format(t_name))
+        do_tasks.append(task)
     
     if ns.run or ns.view:
         run = ns.run
@@ -102,7 +104,7 @@ def run(args):
         run = True
         view = True
     
-    run_tasks([w], run=run, view=view, light=ns.light)
+    run_tasks(do_tasks, run=run, view=view, light=ns.light)
 
 
 if __name__ == '__main__':
