@@ -34,9 +34,9 @@ def main():
         _v1 = (x, y)
         _maint_R_Q_for_S_add(_v1)
     a = 1
-    print(sorted(R_Q_bu.get(a, Set())))
+    print(sorted((R_Q_bu[a] if (a in R_Q_bu) else Set())))
     R_Q_bu.dictclear()
-    print(sorted(R_Q_bu.get(a, Set())))
+    print(sorted((R_Q_bu[a] if (a in R_Q_bu) else Set())))
 
 if (__name__ == '__main__'):
     main()

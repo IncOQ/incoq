@@ -43,12 +43,12 @@ def main():
         _maint_SM_for_M_assign(k, v)
     x = 3
     print(sorted(SM))
-    print(sorted(SM_buu.get(x, Set())))
+    print(sorted((SM_buu[x] if (x in SM_buu) else Set())))
     k = (3, 4)
     _maint_SM_for_M_delete(k)
     del M[k]
     print(sorted(SM))
-    print(sorted(SM_buu.get(x, Set())))
+    print(sorted((SM_buu[x] if (x in SM_buu) else Set())))
     SM_buu.dictclear()
     SM.clear()
     M.dictclear()

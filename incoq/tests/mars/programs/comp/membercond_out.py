@@ -43,7 +43,7 @@ def _maint_R_Q_for_S_remove(_elem):
 
 def _maint_R_Q_for_R_add(_elem):
     (_v5_a,) = _elem
-    for _v5_b in S_bu.get(_v5_a, Set()):
+    for _v5_b in (S_bu[_v5_a] if (_v5_a in S_bu) else ()):
         _v5_result = (_v5_b,)
         if (_v5_result not in R_Q):
             R_Q.add(_v5_result)
@@ -52,7 +52,7 @@ def _maint_R_Q_for_R_add(_elem):
 
 def _maint_R_Q_for_R_remove(_elem):
     (_v6_a,) = _elem
-    for _v6_b in S_bu.get(_v6_a, Set()):
+    for _v6_b in (S_bu[_v6_a] if (_v6_a in S_bu) else ()):
         _v6_result = (_v6_b,)
         if (R_Q.getcount(_v6_result) == 1):
             R_Q.remove(_v6_result)

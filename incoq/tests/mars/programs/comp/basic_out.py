@@ -42,7 +42,7 @@ def _maint_S_ub_for_S_remove(_elem):
 
 def _maint_R_Q_for_S_add(_elem):
     (_v2_a, _v2_b) = _elem
-    for _v2_c in S_bu.get(_v2_b, Set()):
+    for _v2_c in (S_bu[_v2_b] if (_v2_b in S_bu) else ()):
         if ((_v2_b, _v2_c) != _elem):
             _v2_result = (_v2_c,)
             if (_v2_result not in R_Q):
@@ -50,7 +50,7 @@ def _maint_R_Q_for_S_add(_elem):
             else:
                 R_Q.inccount(_v2_result)
     (_v2_b, _v2_c) = _elem
-    for _v2_a in S_ub.get(_v2_b, Set()):
+    for _v2_a in (S_ub[_v2_b] if (_v2_b in S_ub) else ()):
         _v2_result = (_v2_c,)
         if (_v2_result not in R_Q):
             R_Q.add(_v2_result)
@@ -59,7 +59,7 @@ def _maint_R_Q_for_S_add(_elem):
 
 def _maint_R_Q_for_S_remove(_elem):
     (_v3_a, _v3_b) = _elem
-    for _v3_c in S_bu.get(_v3_b, Set()):
+    for _v3_c in (S_bu[_v3_b] if (_v3_b in S_bu) else ()):
         if ((_v3_b, _v3_c) != _elem):
             _v3_result = (_v3_c,)
             if (R_Q.getcount(_v3_result) == 1):
@@ -67,7 +67,7 @@ def _maint_R_Q_for_S_remove(_elem):
             else:
                 R_Q.deccount(_v3_result)
     (_v3_b, _v3_c) = _elem
-    for _v3_a in S_ub.get(_v3_b, Set()):
+    for _v3_a in (S_ub[_v3_b] if (_v3_b in S_ub) else ()):
         _v3_result = (_v3_c,)
         if (R_Q.getcount(_v3_result) == 1):
             R_Q.remove(_v3_result)

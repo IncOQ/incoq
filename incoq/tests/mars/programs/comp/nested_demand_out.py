@@ -67,28 +67,28 @@ def _maint_R_Q2_bbu_for_R_Q2_remove(_elem):
 
 def _maint_R_Q2_for__U_Q2_add(_elem):
     (_v9_k, _v9_j) = _elem
-    for _v9_b in R_Q1_bu.get(_v9_k, Set()):
+    for _v9_b in (R_Q1_bu[_v9_k] if (_v9_k in R_Q1_bu) else ()):
         if (_v9_b <= _v9_j):
             _v9_result = (_v9_k, _v9_j, _v9_b)
             _maint_R_Q2_bbu_for_R_Q2_add(_v9_result)
 
 def _maint_R_Q2_for__U_Q2_remove(_elem):
     (_v10_k, _v10_j) = _elem
-    for _v10_b in R_Q1_bu.get(_v10_k, Set()):
+    for _v10_b in (R_Q1_bu[_v10_k] if (_v10_k in R_Q1_bu) else ()):
         if (_v10_b <= _v10_j):
             _v10_result = (_v10_k, _v10_j, _v10_b)
             _maint_R_Q2_bbu_for_R_Q2_remove(_v10_result)
 
 def _maint_R_Q2_for_R_Q1_add(_elem):
     (_v11_k, _v11_b) = _elem
-    for _v11_j in _U_Q2_bu.get(_v11_k, Set()):
+    for _v11_j in (_U_Q2_bu[_v11_k] if (_v11_k in _U_Q2_bu) else ()):
         if (_v11_b <= _v11_j):
             _v11_result = (_v11_k, _v11_j, _v11_b)
             _maint_R_Q2_bbu_for_R_Q2_add(_v11_result)
 
 def _maint_R_Q2_for_R_Q1_remove(_elem):
     (_v12_k, _v12_b) = _elem
-    for _v12_j in _U_Q2_bu.get(_v12_k, Set()):
+    for _v12_j in (_U_Q2_bu[_v12_k] if (_v12_k in _U_Q2_bu) else ()):
         if (_v12_b <= _v12_j):
             _v12_result = (_v12_k, _v12_j, _v12_b)
             _maint_R_Q2_bbu_for_R_Q2_remove(_v12_result)
@@ -157,7 +157,7 @@ def main():
         _maint_R_Q1_for_S_add(_v1)
     k = 2
     j = 4
-    print(sorted(((_demand_Q2((k, j)) or True) and R_Q2_bbu.get((k, j), Set()))))
+    print(sorted(((_demand_Q2((k, j)) or True) and (R_Q2_bbu[(k, j)] if ((k, j) in R_Q2_bbu) else Set()))))
 
 if (__name__ == '__main__'):
     main()

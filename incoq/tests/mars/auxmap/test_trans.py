@@ -185,6 +185,8 @@ class AuxmapCase(unittest.TestCase):
                 M.mapclear()
                 print(M.setfrommap('bu'))
                 print(unwrap(R.imglookup('bu', (x,))))
+                for x in unwrap(R.imglookup('bu', (x,))):
+                    pass
             ''')
         trans = InvariantTransformer(N.fresh_name_generator(),
                                      auxmaps, setfrommaps, wraps)
@@ -270,7 +272,7 @@ class AuxmapCase(unittest.TestCase):
                 _maint_R_bu_2_for_R_add(elem)
                 _maint_Q1_for_R_add(elem)
                 _maint_Q2_for_R_add(elem)
-                print(R_bu.get(x, Set()))
+                print(R_bu[x] if x in R_bu else Set())
                 S.reladd(elem)
                 print(S.imglookup('bu', (x,)))
                 R.relinccount(elem)
@@ -286,7 +288,9 @@ class AuxmapCase(unittest.TestCase):
                 S.relclear()
                 M.mapclear()
                 print(S)
-                print(R_bu_2.get((x,), Set()))
+                print(R_bu_2[(x,)] if (x,) in R_bu_2 else Set())
+                for x in R_bu_2[(x,)] if (x,) in R_bu_2 else ():
+                    pass
             ''')
         self.assertSequenceEqual(list(trans.maint_funcs), exp_maint_funcs)
         self.assertEqual(tree, exp_tree)

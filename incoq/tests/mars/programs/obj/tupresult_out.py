@@ -67,13 +67,13 @@ def _maint_R_Q2_bu_for_R_Q2_remove(_elem):
 
 def _maint_R_Q2_for__U_Q2_add(_elem):
     (_v11_s,) = _elem
-    for _v11_z in R_Q1_bu.get(_v11_s, Set()):
+    for _v11_z in (R_Q1_bu[_v11_s] if (_v11_s in R_Q1_bu) else ()):
         _v11_result = (_v11_s, _v11_z)
         _maint_R_Q2_bu_for_R_Q2_add(_v11_result)
 
 def _maint_R_Q2_for__U_Q2_remove(_elem):
     (_v12_s,) = _elem
-    for _v12_z in R_Q1_bu.get(_v12_s, Set()):
+    for _v12_z in (R_Q1_bu[_v12_s] if (_v12_s in R_Q1_bu) else ()):
         _v12_result = (_v12_s, _v12_z)
         _maint_R_Q2_bu_for_R_Q2_remove(_v12_result)
 
@@ -145,7 +145,7 @@ def _maint_R_Q1_for__M_remove(_elem):
 
 def _maint_R_Q1_for__TUP_2_add(_elem):
     (_v9_t_x_y, _v9_x, _v9_y) = _elem
-    for _v9_s in _M_ub.get(_v9_t_x_y, Set()):
+    for _v9_s in (_M_ub[_v9_t_x_y] if (_v9_t_x_y in _M_ub) else ()):
         if ((_v9_s,) in R__QU_Q1):
             _v9_result = (_v9_s, (_v9_x, _v9_y))
             if (_v9_result not in R_Q1):
@@ -157,7 +157,7 @@ def _maint_R_Q1_for__TUP_2_add(_elem):
 
 def _maint_R_Q1_for__TUP_2_remove(_elem):
     (_v10_t_x_y, _v10_x, _v10_y) = _elem
-    for _v10_s in _M_ub.get(_v10_t_x_y, Set()):
+    for _v10_s in (_M_ub[_v10_t_x_y] if (_v10_t_x_y in _M_ub) else ()):
         if ((_v10_s,) in R__QU_Q1):
             _v10_result = (_v10_s, (_v10_x, _v10_y))
             if (R_Q1.getcount(_v10_result) == 1):
@@ -192,7 +192,7 @@ def main():
         index(_v1, 0).add(index(_v1, 1))
         _maint__M_ub_for__M_add(_v1)
         _maint_R_Q1_for__M_add(_v1)
-    print(sorted(((_demand_Q2((s,)) or True) and R_Q2_bu.get(s, Set()))))
+    print(sorted(((_demand_Q2((s,)) or True) and (R_Q2_bu[s] if (s in R_Q2_bu) else Set()))))
 
 if (__name__ == '__main__'):
     main()

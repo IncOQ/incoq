@@ -74,14 +74,14 @@ def _maint_R_Q_for__M_remove(_elem):
 
 def _maint_R_Q_for_S_wrapped_add(_elem):
     (_v9_x,) = _elem
-    for _v9_z in _M_ub.get(_v9_x, Set()):
+    for _v9_z in (_M_ub[_v9_x] if (_v9_x in _M_ub) else ()):
         if ((_v9_z,) in _U_Q):
             _v9_result = (_v9_z, _v9_x)
             _maint_R_Q_bu_for_R_Q_add(_v9_result)
 
 def _maint_R_Q_for_S_wrapped_remove(_elem):
     (_v10_x,) = _elem
-    for _v10_z in _M_ub.get(_v10_x, Set()):
+    for _v10_z in (_M_ub[_v10_x] if (_v10_x in _M_ub) else ()):
         if ((_v10_z,) in _U_Q):
             _v10_result = (_v10_z, _v10_x)
             _maint_R_Q_bu_for_R_Q_remove(_v10_result)
@@ -117,9 +117,9 @@ def main():
             _maint_R_Q_for__M_add(_v2)
         _maint_S_wrapped_for_S_add(i)
     z = r
-    print(sorted(((_demand_Q((z,)) or True) and R_Q_bu.get(z, Set()))))
+    print(sorted(((_demand_Q((z,)) or True) and (R_Q_bu[z] if (z in R_Q_bu) else Set()))))
     z = t
-    print(sorted(((_demand_Q((z,)) or True) and R_Q_bu.get(z, Set()))))
+    print(sorted(((_demand_Q((z,)) or True) and (R_Q_bu[z] if (z in R_Q_bu) else Set()))))
 
 if (__name__ == '__main__'):
     main()

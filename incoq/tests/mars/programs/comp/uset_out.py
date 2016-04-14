@@ -62,13 +62,13 @@ def main():
         S.add(_v1)
         _maint_R_Q_for_S_add(_v1)
     a = 2
-    print(sorted(((_demand_Q((a,)) or True) and R_Q_bu.get(a, Set()))))
+    print(sorted(((_demand_Q((a,)) or True) and (R_Q_bu[a] if (a in R_Q_bu) else Set()))))
     for v in [2, 4]:
         _v2 = (v,)
         S.add(_v2)
         _maint_R_Q_for_S_add(_v2)
-    print(sorted(((_demand_Q((a,)) or True) and R_Q_bu.get(a, Set()))))
-    print(sorted(R_Q_bu.get(a, Set())))
+    print(sorted(((_demand_Q((a,)) or True) and (R_Q_bu[a] if (a in R_Q_bu) else Set()))))
+    print(sorted((R_Q_bu[a] if (a in R_Q_bu) else Set())))
 
 if (__name__ == '__main__'):
     main()

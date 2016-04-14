@@ -67,7 +67,7 @@ def _maint_R_Q1_bu_for_R_Q1_remove(_elem):
 
 def _maint_R_Q1_for__U_Q1_add(_elem):
     (_v10_z,) = _elem
-    for _v10_o in R_Q2_bu.get(_v10_z, Set()):
+    for _v10_o in (R_Q2_bu[_v10_z] if (_v10_z in R_Q2_bu) else ()):
         if hasfield(_v10_o, 'f'):
             _v10_o_f = _v10_o.f
             _v10_result = (_v10_z, _v10_o_f)
@@ -79,7 +79,7 @@ def _maint_R_Q1_for__U_Q1_add(_elem):
 
 def _maint_R_Q1_for__U_Q1_remove(_elem):
     (_v11_z,) = _elem
-    for _v11_o in R_Q2_bu.get(_v11_z, Set()):
+    for _v11_o in (R_Q2_bu[_v11_z] if (_v11_z in R_Q2_bu) else ()):
         if hasfield(_v11_o, 'f'):
             _v11_o_f = _v11_o.f
             _v11_result = (_v11_z, _v11_o_f)
@@ -115,7 +115,7 @@ def _maint_R_Q1_for_R_Q2_remove(_elem):
 
 def _maint_R_Q1_for__F_f_add(_elem):
     (_v14_o, _v14_o_f) = _elem
-    for _v14_z in R_Q2_ub.get(_v14_o, Set()):
+    for _v14_z in (R_Q2_ub[_v14_o] if (_v14_o in R_Q2_ub) else ()):
         if ((_v14_z,) in _U_Q1):
             _v14_result = (_v14_z, _v14_o_f)
             if (_v14_result not in R_Q1):
@@ -126,7 +126,7 @@ def _maint_R_Q1_for__F_f_add(_elem):
 
 def _maint_R_Q1_for__F_f_remove(_elem):
     (_v15_o, _v15_o_f) = _elem
-    for _v15_z in R_Q2_ub.get(_v15_o, Set()):
+    for _v15_z in (R_Q2_ub[_v15_o] if (_v15_o in R_Q2_ub) else ()):
         if ((_v15_z,) in _U_Q1):
             _v15_result = (_v15_z, _v15_o_f)
             if (R_Q1.getcount(_v15_result) == 1):
@@ -200,9 +200,9 @@ def main():
         index(_v2, 0).add(index(_v2, 1))
         _maint_R_Q2_for__M_add(_v2)
     z = s
-    print(sorted(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set()))))
+    print(sorted(((_demand_Q1((z,)) or True) and (R_Q1_bu[z] if (z in R_Q1_bu) else Set()))))
     z = t
-    print(sorted(((_demand_Q1((z,)) or True) and R_Q1_bu.get(z, Set()))))
+    print(sorted(((_demand_Q1((z,)) or True) and (R_Q1_bu[z] if (z in R_Q1_bu) else Set()))))
 
 if (__name__ == '__main__'):
     main()

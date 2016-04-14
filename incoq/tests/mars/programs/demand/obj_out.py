@@ -201,7 +201,7 @@ def _maint_R_Q_for__M_remove(_elem):
 def _maint_R_Q_for__F_f_add(_elem):
     (_v7_o, _v7_o_f) = _elem
     if ((_v7_o, _v7_o_f) in R_Q_d_F_f):
-        for _v7_z in R_Q_d_M_ub.get(_v7_o, Set()):
+        for _v7_z in (R_Q_d_M_ub[_v7_o] if (_v7_o in R_Q_d_M_ub) else ()):
             if ((_v7_z,) in _U_Q):
                 _v7_result = (_v7_z, _v7_o_f)
                 if (_v7_result not in R_Q):
@@ -213,7 +213,7 @@ def _maint_R_Q_for__F_f_add(_elem):
 def _maint_R_Q_for__F_f_remove(_elem):
     (_v8_o, _v8_o_f) = _elem
     if ((_v8_o, _v8_o_f) in R_Q_d_F_f):
-        for _v8_z in R_Q_d_M_ub.get(_v8_o, Set()):
+        for _v8_z in (R_Q_d_M_ub[_v8_o] if (_v8_o in R_Q_d_M_ub) else ()):
             if ((_v8_z,) in _U_Q):
                 _v8_result = (_v8_z, _v8_o_f)
                 if (R_Q.getcount(_v8_result) == 1):
@@ -243,9 +243,9 @@ def main():
         _maint_R_Q_d_M_for__M_add(_v2)
         _maint_R_Q_for__M_add(_v2)
     z = s
-    print(sorted(((_demand_Q((z,)) or True) and R_Q_bu.get(z, Set()))))
+    print(sorted(((_demand_Q((z,)) or True) and (R_Q_bu[z] if (z in R_Q_bu) else Set()))))
     z = t
-    print(sorted(((_demand_Q((z,)) or True) and R_Q_bu.get(z, Set()))))
+    print(sorted(((_demand_Q((z,)) or True) and (R_Q_bu[z] if (z in R_Q_bu) else Set()))))
 
 if (__name__ == '__main__'):
     main()

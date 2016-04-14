@@ -23,15 +23,15 @@ def main():
         _v1 = (x, y)
         _maint_S_bu_for_S_add(_v1)
     x = 1
-    print(sorted(S_bu.get(x, Set())))
+    print(sorted((S_bu[x] if (x in S_bu) else Set())))
     _v2 = (1, 3)
     _maint_S_bu_for_S_remove(_v2)
-    print(sorted(S_bu.get(x, Set())))
+    print(sorted((S_bu[x] if (x in S_bu) else Set())))
     _v3 = (1, 4)
     _maint_S_bu_for_S_add(_v3)
-    print(sorted(S_bu.get(x, Set())))
+    print(sorted((S_bu[x] if (x in S_bu) else Set())))
     S_bu.dictclear()
-    print(sorted(S_bu.get(x, Set())))
+    print(sorted((S_bu[x] if (x in S_bu) else Set())))
 
 if (__name__ == '__main__'):
     main()

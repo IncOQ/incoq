@@ -69,7 +69,7 @@ def _maint_A_Q_for_R_Q_oper_remove(_elem):
 def _maint_A_Q_for__U_Q_add(_key):
     _v16_state = (0, 0)
     (_key_v1,) = _key
-    for (_v16_value,) in R_Q_oper_bu.get(_key_v1, Set()):
+    for (_v16_value,) in (R_Q_oper_bu[_key_v1] if (_key_v1 in R_Q_oper_bu) else Set()):
         _v16_state = ((index(_v16_state, 0) + _v16_value), (index(_v16_state, 1) + 1))
     A_Q[_key] = _v16_state
 
@@ -116,7 +116,7 @@ def _maint_R_Q_oper_for__F_f_remove(_elem):
 
 def _maint_R_Q_oper_for__M_add(_elem):
     (_v12_o_f, _v12__v1) = _elem
-    for _v12_o in _F_f_ub.get(_v12_o_f, Set()):
+    for _v12_o in (_F_f_ub[_v12_o_f] if (_v12_o_f in _F_f_ub) else ()):
         if ((_v12_o,) in R__QU_Q_oper):
             _v12_result = (_v12_o, _v12__v1)
             _maint_R_Q_oper_bu_for_R_Q_oper_add(_v12_result)
@@ -124,7 +124,7 @@ def _maint_R_Q_oper_for__M_add(_elem):
 
 def _maint_R_Q_oper_for__M_remove(_elem):
     (_v13_o_f, _v13__v1) = _elem
-    for _v13_o in _F_f_ub.get(_v13_o_f, Set()):
+    for _v13_o in (_F_f_ub[_v13_o_f] if (_v13_o_f in _F_f_ub) else ()):
         if ((_v13_o,) in R__QU_Q_oper):
             _v13_result = (_v13_o, _v13__v1)
             _maint_A_Q_for_R_Q_oper_remove(_v13_result)

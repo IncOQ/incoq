@@ -325,7 +325,7 @@ class InvariantFinder(L.NodeVisitor):
         self.wraps.add(wrapinv)
 
 
-class InvariantTransformer(L.NodeTransformer):
+class InvariantTransformer(L.AdvNodeTransformer):
     
     """Insert maintenance functions, insert calls to these functions
     at updates, and replace expressions with uses of stored results.
@@ -363,6 +363,18 @@ class InvariantTransformer(L.NodeTransformer):
         self.wraps_by_rel = OrderedDict()
         for wrap in wraps:
             self.wraps_by_rel.setdefault(wrap.oper, []).append(wrap)
+    
+    def in_loop_rhs(self):
+        """Return True if the current node is the iter of a For node.
+        Note that this checks the _visit_stack, and is sensitive to
+        where in the recursive visiting we are.
+        """
+        stack = self._visit_stack
+        if len(stack) < 2:
+            return False
+        _current, field, _index = stack[-1]
+        parent, _field, _index = stack[-2]
+        return isinstance(parent, L.For) and field == 'iter'
     
     def visit_Module(self, node):
         node = self.generic_visit(node)
@@ -457,7 +469,7 @@ class InvariantTransformer(L.NodeTransformer):
         code = L.insert_rel_maint(code, clear_code, L.SetRemove())
         return code
     
-    def imglookup_helper(self, node, *, in_unwrap):
+    def imglookup_helper(self, node, *, in_unwrap, on_loop_rhs):
         """Return the replacement for an ImgLookup node, or None if
         no replacement is applicable.
         """
@@ -471,14 +483,17 @@ class InvariantTransformer(L.NodeTransformer):
             return None
         
         key = L.tuplify(node.bounds, unwrap=auxmap.unwrap_key)
-        return L.Parser.pe('_MAP.get(_KEY, Set())',
+        empty = L.Parser.pe('()') if on_loop_rhs else L.Parser.pe('Set()')
+        return L.Parser.pe('_MAP[_KEY] if _KEY in _MAP else _EMPTY',
                            subst={'_MAP': auxmap.map,
-                                  '_KEY': key})
+                                  '_KEY': key,
+                                  '_EMPTY': empty})
     
     def visit_ImgLookup(self, node):
         node = self.generic_visit(node)
         
-        repl = self.imglookup_helper(node, in_unwrap=False)
+        repl = self.imglookup_helper(node, in_unwrap=False,
+                                     on_loop_rhs=self.in_loop_rhs())
         if repl is not None:
             node = repl
         
@@ -523,7 +538,8 @@ class InvariantTransformer(L.NodeTransformer):
             value = self.generic_visit(node.value)
             node = node._replace(value=value)
             # See if an auxmap invariant applies.
-            repl = self.imglookup_helper(value, in_unwrap=True)
+            repl = self.imglookup_helper(value, in_unwrap=True,
+                                         on_loop_rhs=self.in_loop_rhs())
             if repl is not None:
                 return repl
         

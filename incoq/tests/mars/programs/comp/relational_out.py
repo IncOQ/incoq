@@ -57,7 +57,7 @@ def _maint_R_Q_unwrapped_for_R_Q_remove(_elem):
 def _maint_R_Q_for_S_add(_elem):
     (_v5_a, _v5_b) = _elem
     if ((_v5_a,) in R_wrapped):
-        for _v5_c in S_bu.get(_v5_b, Set()):
+        for _v5_c in (S_bu[_v5_b] if (_v5_b in S_bu) else ()):
             if ((_v5_b, _v5_c) != _elem):
                 _v5_result = (_v5_c,)
                 if (_v5_result not in R_Q):
@@ -66,7 +66,7 @@ def _maint_R_Q_for_S_add(_elem):
                 else:
                     R_Q.inccount(_v5_result)
     (_v5_b, _v5_c) = _elem
-    for _v5_a in S_ub.get(_v5_b, Set()):
+    for _v5_a in (S_ub[_v5_b] if (_v5_b in S_ub) else ()):
         if ((_v5_a,) in R_wrapped):
             _v5_result = (_v5_c,)
             if (_v5_result not in R_Q):
@@ -78,7 +78,7 @@ def _maint_R_Q_for_S_add(_elem):
 def _maint_R_Q_for_S_remove(_elem):
     (_v6_a, _v6_b) = _elem
     if ((_v6_a,) in R_wrapped):
-        for _v6_c in S_bu.get(_v6_b, Set()):
+        for _v6_c in (S_bu[_v6_b] if (_v6_b in S_bu) else ()):
             if ((_v6_b, _v6_c) != _elem):
                 _v6_result = (_v6_c,)
                 if (R_Q.getcount(_v6_result) == 1):
@@ -87,7 +87,7 @@ def _maint_R_Q_for_S_remove(_elem):
                 else:
                     R_Q.deccount(_v6_result)
     (_v6_b, _v6_c) = _elem
-    for _v6_a in S_ub.get(_v6_b, Set()):
+    for _v6_a in (S_ub[_v6_b] if (_v6_b in S_ub) else ()):
         if ((_v6_a,) in R_wrapped):
             _v6_result = (_v6_c,)
             if (R_Q.getcount(_v6_result) == 1):
@@ -98,8 +98,8 @@ def _maint_R_Q_for_S_remove(_elem):
 
 def _maint_R_Q_for_R_wrapped_add(_elem):
     (_v7_a,) = _elem
-    for _v7_b in S_bu.get(_v7_a, Set()):
-        for _v7_c in S_bu.get(_v7_b, Set()):
+    for _v7_b in (S_bu[_v7_a] if (_v7_a in S_bu) else ()):
+        for _v7_c in (S_bu[_v7_b] if (_v7_b in S_bu) else ()):
             _v7_result = (_v7_c,)
             if (_v7_result not in R_Q):
                 R_Q.add(_v7_result)
@@ -109,8 +109,8 @@ def _maint_R_Q_for_R_wrapped_add(_elem):
 
 def _maint_R_Q_for_R_wrapped_remove(_elem):
     (_v8_a,) = _elem
-    for _v8_b in S_bu.get(_v8_a, Set()):
-        for _v8_c in S_bu.get(_v8_b, Set()):
+    for _v8_b in (S_bu[_v8_a] if (_v8_a in S_bu) else ()):
+        for _v8_c in (S_bu[_v8_b] if (_v8_b in S_bu) else ()):
             _v8_result = (_v8_c,)
             if (R_Q.getcount(_v8_result) == 1):
                 _maint_R_Q_unwrapped_for_R_Q_remove(_v8_result)

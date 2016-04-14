@@ -130,7 +130,7 @@ def _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_elem):
 
 def _maint_R_Q2_dS_for_R_Q2_T_v_1_add(_elem):
     (_v13_v,) = _elem
-    for _v13_w in S_bu.get(_v13_v, Set()):
+    for _v13_w in (S_bu[_v13_v] if (_v13_v in S_bu) else ()):
         _v13_result = (_v13_v, _v13_w)
         R_Q2_dS.add(_v13_result)
         _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_v13_result)
@@ -139,7 +139,7 @@ def _maint_R_Q2_dS_for_R_Q2_T_v_1_add(_elem):
 
 def _maint_R_Q2_dS_for_R_Q2_T_v_1_remove(_elem):
     (_v14_v,) = _elem
-    for _v14_w in S_bu.get(_v14_v, Set()):
+    for _v14_w in (S_bu[_v14_v] if (_v14_v in S_bu) else ()):
         _v14_result = (_v14_v, _v14_w)
         _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_v14_result)
         _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_v14_result)
@@ -179,7 +179,7 @@ def _maint_R_Q2_T_v_1_for_R_Q1_remove(_elem):
 def _maint_R_Q2_for_R_Q1_add(_elem):
     (_v5_v,) = _elem
     if ((_v5_v,) in R_Q1):
-        for _v5_w in R_Q2_dS_bu.get(_v5_v, Set()):
+        for _v5_w in (R_Q2_dS_bu[_v5_v] if (_v5_v in R_Q2_dS_bu) else ()):
             if ((_v5_w,) in T):
                 _v5_result = (_v5_w,)
                 if (_v5_result not in R_Q2):
@@ -191,7 +191,7 @@ def _maint_R_Q2_for_R_Q1_add(_elem):
 def _maint_R_Q2_for_R_Q1_remove(_elem):
     (_v6_v,) = _elem
     if ((_v6_v,) in R_Q1):
-        for _v6_w in R_Q2_dS_bu.get(_v6_v, Set()):
+        for _v6_w in (R_Q2_dS_bu[_v6_v] if (_v6_v in R_Q2_dS_bu) else ()):
             if ((_v6_w,) in T):
                 _v6_result = (_v6_w,)
                 if (R_Q2.getcount(_v6_result) == 1):
@@ -227,7 +227,7 @@ def _maint_R_Q2_for_S_remove(_elem):
 def _maint_R_Q2_for_T_add(_elem):
     (_v9_w,) = _elem
     if ((_v9_w,) in R_Q2_dT):
-        for _v9_v in R_Q2_dS_ub.get(_v9_w, Set()):
+        for _v9_v in (R_Q2_dS_ub[_v9_w] if (_v9_w in R_Q2_dS_ub) else ()):
             if ((_v9_v,) in R_Q1):
                 _v9_result = (_v9_w,)
                 if (_v9_result not in R_Q2):
@@ -239,7 +239,7 @@ def _maint_R_Q2_for_T_add(_elem):
 def _maint_R_Q2_for_T_remove(_elem):
     (_v10_w,) = _elem
     if ((_v10_w,) in R_Q2_dT):
-        for _v10_v in R_Q2_dS_ub.get(_v10_w, Set()):
+        for _v10_v in (R_Q2_dS_ub[_v10_w] if (_v10_w in R_Q2_dS_ub) else ()):
             if ((_v10_v,) in R_Q1):
                 _v10_result = (_v10_w,)
                 if (R_Q2.getcount(_v10_result) == 1):
