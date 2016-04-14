@@ -53,7 +53,7 @@ all_tasks = [
 all_tasks_dict = dict(all_tasks)
 
 
-def run_tasks(tasks, run=True, view=True, light=False):
+def run_tasks(tasks, run=True, view=True, light=False, no_generate=False):
     # Change to directory of this file so we can find the
     # results/ subdirectory.
     os.chdir(os.path.join('.', os.path.dirname(__file__)))
@@ -66,7 +66,8 @@ def run_tasks(tasks, run=True, view=True, light=False):
         print('\n---- Running {} ----\n'.format(w.__class__.__name__))
         try:
             if run:
-                w.generate()
+                if not no_generate:
+                    w.generate()
                 w.benchmark()
             
 #            w.verify()
@@ -87,6 +88,7 @@ def run(args):
     parser.add_argument('--run', action='store_true')
     parser.add_argument('--view', action='store_true')
     parser.add_argument('--light', action='store_true')
+    parser.add_argument('--no-generate', action='store_true')
     
     ns = parser.parse_args(args)
     
@@ -104,7 +106,8 @@ def run(args):
         run = True
         view = True
     
-    run_tasks(do_tasks, run=run, view=view, light=ns.light)
+    run_tasks(do_tasks, run=run, view=view, light=ns.light,
+              no_generate=ns.no_generate)
 
 
 if __name__ == '__main__':
