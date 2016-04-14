@@ -704,6 +704,7 @@ class Demand(TwitterWorkflow):
         progs = [
             'twitter_inc',
             'twitter_dem',
+            'twitter_dem_notcelim',
         ]
         
         def get_dsparams_list(self):
@@ -748,6 +749,8 @@ class Demand(TwitterWorkflow):
              'blue', '- o poly1'),
             (('twitter_dem', 'all'), 'filtered',
              'green', '- ^ poly1'),
+            (('twitter_dem_notcelim', 'all'), 'filtered (w/ type checks)',
+             'green', '-- _^ poly1'),
         ]
         
         xlabel = 'Number of users in \\texttt{U} (in thousands)'

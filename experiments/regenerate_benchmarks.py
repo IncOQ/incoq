@@ -23,6 +23,10 @@ twitter_tasks = [
     ('twitter/twitter_in', 'twitter/twitter_dem',
      {'default_impl': S.Filtered}),
     
+    ('twitter/twitter_in', 'twitter/twitter_dem_notcelim',
+     {'default_impl': S.Filtered,
+      'elim_type_checks': False}),
+    
     ('twitter/twitter_in', 'twitter/twitter_dem_baseline',
      {'default_impl': S.Filtered,
       'inline_maint_code': False,

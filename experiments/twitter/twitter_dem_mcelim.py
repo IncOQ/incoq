@@ -219,14 +219,16 @@ def _demand_Q(_elem):
         # End inlined _maint_R_Q_for__U_Q_add.
 
 def make_user(email, loc):
-    ### Deleted code throughout this function.
     u = Obj()
     _v1 = (u, Set())
     index(_v1, 0).followers = index(_v1, 1)
+    ### Deleted code.
     _v2 = (u, email)
     index(_v2, 0).email = index(_v2, 1)
+    ### Deleted code.
     _v3 = (u, loc)
     index(_v3, 0).loc = index(_v3, 1)
+    ### Deleted code.
     return u
 
 def make_group():
@@ -287,8 +289,8 @@ def follow(u, c):
         _i60_v14_user_loc = _i60_v14_user.loc
         if (_i60_v14_user_loc == 'NYC'):
             _i60_v14_user_email = _i60_v14_user.email
-            for _i60_v14_celeb in R_Q_d_F_followers_ub.get(_i60_v14_celeb_followers, Set()):
-                for _i60_v14_group in _U_Q_bu.get(_i60_v14_celeb, Set()):
+            for _i60_v14_celeb in (R_Q_d_F_followers_ub[_i60_v14_celeb_followers] if (_i60_v14_celeb_followers in R_Q_d_F_followers_ub) else ()):
+                for _i60_v14_group in (_U_Q_bu[_i60_v14_celeb] if (_i60_v14_celeb in _U_Q_bu) else ()):
                     if (_i60_v14_user in _i60_v14_group):
                         if ((_i60_v14_group, _i60_v14_user) != _i60_elem):
                             _i60_v14_result = (_i60_v14_celeb, _i60_v14_group, _i60_v14_user_email)
@@ -315,8 +317,8 @@ def unfollow(u, c):
         _i61_v15_user_loc = _i61_v15_user.loc
         if (_i61_v15_user_loc == 'NYC'):
             _i61_v15_user_email = _i61_v15_user.email
-            for _i61_v15_celeb in R_Q_d_F_followers_ub.get(_i61_v15_celeb_followers, Set()):
-                for _i61_v15_group in _U_Q_bu.get(_i61_v15_celeb, Set()):
+            for _i61_v15_celeb in (R_Q_d_F_followers_ub[_i61_v15_celeb_followers] if (_i61_v15_celeb_followers in R_Q_d_F_followers_ub) else ()):
+                for _i61_v15_group in (_U_Q_bu[_i61_v15_celeb] if (_i61_v15_celeb in _U_Q_bu) else ()):
                     if (_i61_v15_user in _i61_v15_group):
                         if ((_i61_v15_group, _i61_v15_user) != _i61_elem):
                             _i61_v15_result = (_i61_v15_celeb, _i61_v15_group, _i61_v15_user_email)
@@ -420,7 +422,7 @@ def join_group(u, g):
         _i66_v14_user_loc = _i66_v14_user.loc
         if (_i66_v14_user_loc == 'NYC'):
             _i66_v14_user_email = _i66_v14_user.email
-            for _i66_v14_celeb in _U_Q_ub.get(_i66_v14_group, Set()):
+            for _i66_v14_celeb in (_U_Q_ub[_i66_v14_group] if (_i66_v14_group in _U_Q_ub) else ()):
                 _i66_v14_celeb_followers = _i66_v14_celeb.followers
                 if (_i66_v14_user in _i66_v14_celeb_followers):
                     _i66_v14_result = (_i66_v14_celeb, _i66_v14_group, _i66_v14_user_email)
@@ -447,7 +449,7 @@ def leave_group(u, g):
         _i67_v15_user_loc = _i67_v15_user.loc
         if (_i67_v15_user_loc == 'NYC'):
             _i67_v15_user_email = _i67_v15_user.email
-            for _i67_v15_celeb in _U_Q_ub.get(_i67_v15_group, Set()):
+            for _i67_v15_celeb in (_U_Q_ub[_i67_v15_group] if (_i67_v15_group in _U_Q_ub) else ()):
                 _i67_v15_celeb_followers = _i67_v15_celeb.followers
                 if (_i67_v15_user in _i67_v15_celeb_followers):
                     _i67_v15_result = (_i67_v15_celeb, _i67_v15_group, _i67_v15_user_email)
@@ -504,9 +506,9 @@ def change_loc(u, loc):
     if ((_i70_v17_user, _i70_v17_user_loc) in R_Q_d_F_loc):
         if (_i70_v17_user_loc == 'NYC'):
             _i70_v17_user_email = _i70_v17_user.email
-            for _i70_v17_celeb_followers in R_Q_d_M_1_ub.get(_i70_v17_user, Set()):
-                for _i70_v17_celeb in R_Q_d_F_followers_ub.get(_i70_v17_celeb_followers, Set()):
-                    for _i70_v17_group in _U_Q_bu.get(_i70_v17_celeb, Set()):
+            for _i70_v17_celeb_followers in (R_Q_d_M_1_ub[_i70_v17_user] if (_i70_v17_user in R_Q_d_M_1_ub) else ()):
+                for _i70_v17_celeb in (R_Q_d_F_followers_ub[_i70_v17_celeb_followers] if (_i70_v17_celeb_followers in R_Q_d_F_followers_ub) else ()):
+                    for _i70_v17_group in (_U_Q_bu[_i70_v17_celeb] if (_i70_v17_celeb in _U_Q_bu) else ()):
                         if (_i70_v17_user in _i70_v17_group):
                             _i70_v17_result = (_i70_v17_celeb, _i70_v17_group, _i70_v17_user_email)
                             # Begin inlined _maint_R_Q_bbu_for_R_Q_remove.
@@ -544,9 +546,9 @@ def change_loc(u, loc):
     if ((_i73_v16_user, _i73_v16_user_loc) in R_Q_d_F_loc):
         if (_i73_v16_user_loc == 'NYC'):
             _i73_v16_user_email = _i73_v16_user.email
-            for _i73_v16_celeb_followers in R_Q_d_M_1_ub.get(_i73_v16_user, Set()):
-                for _i73_v16_celeb in R_Q_d_F_followers_ub.get(_i73_v16_celeb_followers, Set()):
-                    for _i73_v16_group in _U_Q_bu.get(_i73_v16_celeb, Set()):
+            for _i73_v16_celeb_followers in (R_Q_d_M_1_ub[_i73_v16_user] if (_i73_v16_user in R_Q_d_M_1_ub) else ()):
+                for _i73_v16_celeb in (R_Q_d_F_followers_ub[_i73_v16_celeb_followers] if (_i73_v16_celeb_followers in R_Q_d_F_followers_ub) else ()):
+                    for _i73_v16_group in (_U_Q_bu[_i73_v16_celeb] if (_i73_v16_celeb in _U_Q_bu) else ()):
                         if (_i73_v16_user in _i73_v16_group):
                             _i73_v16_result = (_i73_v16_celeb, _i73_v16_group, _i73_v16_user_email)
                             # Begin inlined _maint_R_Q_bbu_for_R_Q_add.
@@ -562,8 +564,8 @@ def change_loc(u, loc):
     # End inlined _maint_R_Q_for__F_loc_add.
 
 def do_query(celeb, group):
-    return ((_demand_Q((celeb, group)) or True) and R_Q_bbu.get((celeb, group), Set()))
+    return ((_demand_Q((celeb, group)) or True) and (R_Q_bbu[(celeb, group)] if ((celeb, group) in R_Q_bbu) else Set()))
 
 def do_query_nodemand(celeb, group):
-    return R_Q_bbu.get((celeb, group), Set())
+    return (R_Q_bbu[(celeb, group)] if ((celeb, group) in R_Q_bbu) else Set())
 
