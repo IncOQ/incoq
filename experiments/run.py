@@ -84,7 +84,7 @@ def run_tasks(tasks, run=True, view=True, light=False, no_generate=False):
 
 def run(args):
     parser = argparse.ArgumentParser(prog='run.py')
-    parser.add_argument('tasks', nargs='*')
+    parser.add_argument('task', nargs='+')
     parser.add_argument('--run', action='store_true')
     parser.add_argument('--view', action='store_true')
     parser.add_argument('--light', action='store_true')
@@ -93,7 +93,7 @@ def run(args):
     ns = parser.parse_args(args)
     
     do_tasks = []
-    for t_name in ns.tasks:
+    for t_name in ns.task:
         task = all_tasks_dict.get(t_name, None)
         if task is None:
             raise ValueError('Unknown task "{}"'.format(t_name))

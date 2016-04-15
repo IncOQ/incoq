@@ -202,8 +202,7 @@ def compile_task_names(target_names, *, options=None):
 
 def run(args):
     parent = get_argparser()
-    parser = argparse.ArgumentParser(prog='incoq.experiments.'
-                                          'mars.regenerate_benchmarks',
+    parser = argparse.ArgumentParser(prog='regenerate_benchmarks.py',
                                      parents=[parent])
     parser.add_argument('target_name', nargs='*', default=None)
     
