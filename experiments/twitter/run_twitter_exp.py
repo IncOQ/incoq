@@ -744,14 +744,23 @@ class Demand(TwitterWorkflow):
     
     class ExpExtractor(TwitterWorkflow.ExpExtractor):
         
-        series = [
-            (('twitter_inc', 'all'), 'incremental',
-             'blue', '- o poly1'),
-            (('twitter_dem', 'all'), 'filtered',
-             'green', '- ^ poly1'),
-            (('twitter_dem_notcelim', 'all'), 'filtered (w/ type checks)',
-             'green', '-- _^ poly1'),
-        ]
+        show_filtered_notcelim = True
+        
+        @property
+        def series(self):
+            s = [
+                (('twitter_inc', 'all'), 'incremental',
+                 'blue', '- o poly1'),
+                (('twitter_dem', 'all'), 'filtered',
+                 'green', '- ^ poly1'),
+            ]
+            if self.show_filtered_notcelim:
+                s += [
+                    (('twitter_dem_notcelim', 'all'),
+                     'filtered (w/ type checks)',
+                     'green', '-- _^ poly1'),
+                ]
+            return s
         
         xlabel = 'Number of users in \\texttt{U} (in thousands)'
         # For Annie's writing, use "demand" instead of U.
@@ -804,6 +813,8 @@ class DemandSize(Demand):
     
     class ExpExtractor(Demand.ExpExtractor,
                        TotalSizeExtractor):
+        
+        show_filtered_notcelim = False
         
         ylabel = 'Add\'l space (in millions)'
         
