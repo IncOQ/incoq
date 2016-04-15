@@ -4,6 +4,7 @@
 import unittest
 
 from incoq.mars.incast import L
+from incoq.mars.symbol import S
 from incoq.mars.comp import CoreClauseVisitor
 from incoq.mars.obj import ObjClauseVisitor
 from incoq.mars.demand.filter import *
@@ -15,9 +16,14 @@ class ClauseVisitor(CoreClauseVisitor, ObjClauseVisitor):
 
 class FilterCase(unittest.TestCase):
     
+    def setUp(self):
+        self.symtab = S.SymbolTable()
+        self.symtab.clausetools = ClauseVisitor()
+        self.symtab.config = S.Config()
+    
     def test_make_structs(self):
         generator = StructureGenerator(
-            ClauseVisitor(),
+            self.symtab,
             L.Parser.pe('''
             {(o_f,) for (s, t) in REL(U) for (s, o) in M()
                     for (t, o) in M () for (o, o_f) in F(f)}
@@ -38,9 +44,33 @@ class FilterCase(unittest.TestCase):
         ]
         self.assertEqual(generator.structs, exp_structs)
     
+    def test_make_structs_singletag(self):
+        self.symtab.config.use_singletag_demand = True
+        generator = StructureGenerator(
+            self.symtab,
+            L.Parser.pe('''
+            {(o_f,) for (s, t) in REL(U) for (s, o) in M()
+                    for (t, o) in M () for (o, o_f) in F(f)}
+            '''), 'Q')
+        
+        generator.make_structs()
+        exp_structs = [
+            Tag(0, 'Q_T_s_1', 's', L.RelMember(['s', 't'], 'U')),
+            Tag(0, 'Q_T_t_1', 't', L.RelMember(['s', 't'], 'U')),
+            Filter(1, 'Q_d_M_1', L.MMember('s', 'o'), ['Q_T_s_1']),
+            Tag(1, 'Q_T_o_1', 'o', L.RelMember(['s', 'o'], 'R_Q_d_M_1')),
+            Filter(2, 'Q_d_M_2', L.MMember('t', 'o'), ['Q_T_t_1']),
+            Tag(2, 'Q_T_o_2', 'o', L.RelMember(['t', 'o'], 'R_Q_d_M_2')),
+            Filter(3, 'Q_d_F_f_1', L.FMember('o', 'o_f', 'f'),
+                   ['Q_T_o_1']),
+            Tag(3, 'Q_T_o_f_1', 'o_f',
+                L.RelMember(['o', 'o_f'], 'R_Q_d_F_f_1')),
+        ]
+        self.assertEqual(generator.structs, exp_structs)
+    
     def test_simplify_names(self):
         generator = StructureGenerator(
-            ClauseVisitor(),
+            self.symtab,
             L.Parser.pe('''
             {(o_f,) for (s, t) in REL(U) for (s, o) in M()
                     for (t, o) in M () for (o, o_f) in F(f)}
@@ -63,7 +93,7 @@ class FilterCase(unittest.TestCase):
     
     def test_prune_tags(self):
         generator = StructureGenerator(
-            ClauseVisitor(),
+            self.symtab,
             L.Parser.pe('''
             {(o_f,) for (s, t) in REL(U) for (s, o) in M()
                     for (t, o) in M () for (o, o_f) in F(f)}
@@ -82,7 +112,7 @@ class FilterCase(unittest.TestCase):
     
     def test_make_comp(self):
         generator = StructureGenerator(
-            ClauseVisitor(),
+            self.symtab,
             L.Parser.pe('''
             {(o_f,) for (s, t) in REL(U) for (s, x) in M()}
             '''), 'Q')
@@ -112,7 +142,7 @@ class FilterCase(unittest.TestCase):
     
     def test_make_filter_list(self):
         generator = StructureGenerator(
-            ClauseVisitor(),
+            self.symtab,
             L.Parser.pe('''
             {(o_f,) for (s, t) in REL(U) for (s, x) in M()}
             '''), 'Q')

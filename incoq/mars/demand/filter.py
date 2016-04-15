@@ -49,8 +49,8 @@ class StructureGenerator:
     # attribute and its indices. Then we simplify tag and filter names
     # where possible. Next we produce comprehensions for the structures.
     
-    def __init__(self, clausetools, comp, query_name):
-        self.clausetools = clausetools
+    def __init__(self, symtab, comp, query_name):
+        self.symtab = symtab
         assert isinstance(comp, L.Comp)
         self.comp = comp
         self.query_name = query_name
@@ -77,7 +77,7 @@ class StructureGenerator:
         """Maintain all indices when a new tag or filter structure
         is appended.
         """
-        ct = self.clausetools
+        ct = self.symtab.clausetools
         
         if isinstance(struct, Filter):
             filter = struct
@@ -123,6 +123,9 @@ class StructureGenerator:
     def get_preds(self, i, in_vars):
         """Return the names of all tags defined for clauses lower than
         clause i, over any of the variables listed in in_vars.
+        
+        If the use_singletag_demand config option is True, only return
+        the last applicable tag.
         """
         result = []
         for v in in_vars:
@@ -130,19 +133,24 @@ class StructureGenerator:
                 if not t.i < i:
                     continue
                 result.append(t.name)
+        
+        if self.symtab.config.use_singletag_demand:
+            result = result[:1]
+        
         return result
     
     def change_rhs(self, cl, query_name):
         """Generate a new clause whose RHS rel is the name of a result
         set over the given query name.
         """
+        ct = self.symtab.clausetools
         rel_name = N.get_resultset_name(query_name)
-        return self.clausetools.rename_rhs_rel(cl, lambda x: rel_name)
+        return ct.rename_rhs_rel(cl, lambda x: rel_name)
     
     def make_structs(self):
         """Populate the structures based on the comprehension."""
         assert len(self.structs) == 0
-        ct = self.clausetools
+        ct = self.symtab.clausetools
         
         # Generate for each clause.
         for i, cl in enumerate(self.comp.clauses):
@@ -178,7 +186,7 @@ class StructureGenerator:
     
     def simplify_names(self):
         """Remove numbers from structure names, when not ambiguous."""
-        ct = self.clausetools
+        ct = self.symtab.clausetools
         
         # Not that indices will temporarily become stale while
         # we're changing names around.
@@ -219,7 +227,7 @@ class StructureGenerator:
     
     def make_comp(self, struct):
         """Return the Comp node corresponding to a structure."""
-        ct = self.clausetools
+        ct = self.symtab.clausetools
         resname = N.get_resultset_name
         
         if isinstance(struct, Filter):

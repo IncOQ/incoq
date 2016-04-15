@@ -16,8 +16,6 @@ def transform_comp_query_with_filtering(tree, symtab, query):
     """Do all the transformation associated with incrementalizing a
     comprehension query using filtering.
     """
-    ct = symtab.clausetools
-    
     # Incrementalize the query as normal, but don't process maintenance
     # joins yet.
     tree = transform_firsthalf(tree, symtab, query)
@@ -25,7 +23,7 @@ def transform_comp_query_with_filtering(tree, symtab, query):
     # Define tag and filter structures and incrementalize them in order.
     # Note that query.node is changed by the first half of
     # incrementalization.
-    generator = StructureGenerator(ct, query.node, query.name)
+    generator = StructureGenerator(symtab, query.node, query.name)
     generator.make_structs()
     generator.simplify_names()
     generator.prune_tags()

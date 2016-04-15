@@ -78,10 +78,19 @@ all_attributes = [
         Constants.parse,
         {'type': Constants.parse}),
     
+    ConfigAttribute('use_singletag_demand', False,
+        'if True, only use one tag in the definition of each filter',
+        parse_bool,
+        {'action': 'store_true'}),
+    
     ConfigAttribute('unwrap_singletons', False,
         'rewrite singleton relations to eliminate unneeded tuples',
         parse_bool,
         {'action': 'store_true'}),
+    
+    # TODO: Need to refactor this to separate config options from
+    # parser options, so we can have --no-auto-query, --no-inline...,
+    # etc., that have 'store_false' as an action.
     
     ConfigAttribute('auto_query', False,
         'if true, automatically wrap comprehensions and aggregates '
