@@ -22,7 +22,7 @@ import csv
 import json
 
 try:
-    from tabulate import tabulate
+    import tabulate
     HAVE_TABULATE = True
 except ImportError:
     HAVE_TABULATE = False
@@ -31,6 +31,45 @@ from incoq.util.linecount import get_loc_source
 
 
 root_path = normpath(dirname(__file__))
+
+
+# Custom TableFormat for Latex output that differs from the default
+# 'latex' format.
+def build_latex_table_format():
+    from tabulate import (_latex_line_begin_tabular, Line,
+                          _latex_row, TableFormat, LATEX_ESCAPE_RULES,
+                          DataRow, _build_simple_row)
+    
+    # Provide our own version of _build_simple_row() that bolds the
+    # first entry in teletype using our \c{} macro.
+    def _my_build_simple_row(padded_cells, rowfmt):
+        begin, sep, end = rowfmt
+        
+        first_cell, *data_cells = padded_cells
+        first_cell = r'\c{' + first_cell + r'}'
+        padded_cells = [first_cell] + data_cells
+        
+        return (begin + sep.join(padded_cells) + end).rstrip()
+    
+    # Provide our own version of _latex_row() that uses this function.
+    def _my_latex_row(cell_values, colwidths, colaligns):
+        def escape_char(c):
+            return LATEX_ESCAPE_RULES.get(c, c)
+        escaped_values = ["".join(map(escape_char, cell))
+                          for cell in cell_values]
+        rowfmt = DataRow("", "&", "\\\\")
+        return _my_build_simple_row(escaped_values, rowfmt)
+    
+    # Use tabulate's latex format, except use _my_latex_row for the datarow.
+    return TableFormat(lineabove=_latex_line_begin_tabular,
+                       linebelowheader=Line("\\hline", "", "", ""),
+                       linebetweenrows=None,
+                       linebelow=Line("\\hline\n\\end{tabular}", "", "", ""),
+                       headerrow=_latex_row,
+                       datarow=_my_latex_row,
+                       padding=1, with_header_hide=None)
+
+latex_table_format = build_latex_table_format()
 
 
 def read_file(filename):
@@ -64,11 +103,18 @@ def statfile_collector(base_name):
     return stats
 
 
-stat_collections = [
+collections = [
     # Twitter.
     ('twitter/twitter_in',              loc_collector),
     ('twitter/twitter_inc',             statfile_collector),
     ('twitter/twitter_dem',             statfile_collector),
+    ('twitter/twitter_dem_notcelim',    statfile_collector),
+    ('twitter/twitter_dem_baseline',    statfile_collector),
+    ('twitter/twitter_dem_inline',      statfile_collector),
+    ('twitter/twitter_dem_rcelim',      statfile_collector),
+    ('twitter/twitter_dem_rselim',      statfile_collector),
+    ('twitter/twitter_dem_tcelim',      statfile_collector),
+    ('twitter/twitter_dem_mcelim',      loc_collector),
 ]
 
 
@@ -77,7 +123,7 @@ def do_collections():
     dict.
     """
     all_stats = {}
-    for base_name, collector in stat_collections:
+    for base_name, collector in collections:
         stats = collector(base_name)
         all_stats[base_name] = stats
     return all_stats
@@ -86,6 +132,8 @@ def do_collections():
 class BaseAggregator:
     
     """Base class for aggregators."""
+    
+    floatfmt = '.2f'
     
     def __init__(self, all_stats):
         self.all_stats = all_stats
@@ -107,18 +155,23 @@ class BaseAggregator:
             writer.writerow(line)
         return filelike.getvalue()
     
-    def tabulate(self, **kargs):
+    def tabulate(self, header, body, **kargs):
         """Return the data formatted using tabulate."""
         if not HAVE_TABULATE:
             raise ImportError('Tabulate library not available')
-        header, body = self.get_data()
-        return tabulate(body, header, **kargs)
+        return tabulate.tabulate(body, header, **kargs)
     
     def to_table(self):
-        return self.tabulate(tablefmt='simple')
+        header, body = self.get_data()
+        return self.tabulate(header, body,
+                             tablefmt='simple',
+                             floatfmt=self.floatfmt)
     
     def to_latex(self):
-        return self.tabulate(tablefmt='latex')
+        header, body = self.get_data()
+        return self.tabulate(header, body,
+                             tablefmt=latex_table_format,
+                             floatfmt=self.floatfmt)
     
     def to_ascii(self):
         if HAVE_TABULATE:
@@ -156,31 +209,46 @@ class SimpleAggregator(BaseAggregator):
         body = []
         for base_name, row_display in self.rows:
             stats = self.all_stats.get(base_name, {})
-            row_data = [stats.get(attr, '') for attr, _ in self.cols]
+            row_data = [stats.get(attr, None) for attr, _ in self.cols]
             row = [row_display] + row_data
             body.append(row)
         return header, body
 
 
 class LOCAggregator(SimpleAggregator):
-    
     cols = [('lines', 'LOC')]
 
+class LOCTimeAggregator(SimpleAggregator):
+    cols = [('lines', 'LOC'), ('time', 'Time')]
 
-class TwitterAggregator(LOCAggregator):
+
+class TwitterAggregator(LOCTimeAggregator):
     
     rows = [
-        ('twitter/twitter_in',          'Social network, Original'),
-        ('twitter/twitter_inc',         'Social network, Incremental'),
-        ('twitter/twitter_dem',         'Social network, Filtered'),
+        ('twitter/twitter_in',          'Original'),
+        ('twitter/twitter_inc',         'Incremental'),
+        ('twitter/twitter_dem',         'Filtered'),
+        ('twitter/twitter_dem_notcelim', 'Filtered (w/ type checks)'),
+    ]
+
+class TwitterOptAggregator(LOCTimeAggregator):
+    
+    rows = [
+        ('twitter/twitter_dem_baseline', 'Unoptimized'),
+        ('twitter/twitter_dem_inline',  'Inlining'),
+        ('twitter/twitter_dem_rcelim',  'Counting elim'),
+        ('twitter/twitter_dem_rselim',  'Result set elim'),
+        ('twitter/twitter_dem_tcelim',  'Type check elim'),
+        ('twitter/twitter_dem_mcelim',  'Maint case elim'),
     ]
 
 
-stat_aggregations = [
+aggregations = [
     ('twitter',                         TwitterAggregator),
+    ('twitter_opt',                     TwitterOptAggregator),
 ]
 
-stat_aggregations_dict = dict(stat_aggregations)
+aggregations_dict = dict(aggregations)
 
 
 def get_table(name, *, all_stats=None,
@@ -189,9 +257,9 @@ def get_table(name, *, all_stats=None,
     if all_stats is None:
         all_stats = do_collections()
     
-    if name not in stat_aggregations_dict:
+    if name not in aggregations_dict:
         raise ValueError('Unknown table name: {}'.format(name))
-    aggrcls = stat_aggregations_dict[name]
+    aggrcls = aggregations_dict[name]
     aggr = aggrcls(all_stats)
     
     if format == 'csv':
