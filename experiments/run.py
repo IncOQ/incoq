@@ -25,6 +25,8 @@ all_tasks = [
     ('twitter_density',                 twitter.DensityLoc()),
     ('twitter_density_norm',            twitter.DensityLocNorm()),
     
+    ('twitter_tag',                     twitter.TagTime()),
+    
     # Wifi.
     ('wifi',                            wifi.Wifi()),
     

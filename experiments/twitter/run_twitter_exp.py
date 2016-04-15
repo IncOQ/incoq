@@ -1477,6 +1477,7 @@ class Tag(TwitterWorkflow):
         
         progs = [
             'twitter_dem',
+            'twitter_tom',
             'twitter_dem_singletag',
         ]
         
@@ -1524,8 +1525,10 @@ class TagTime(Tag):
                        MetricExtractor):
         
         series = [
+            (('twitter_tom', 'all'), 'OSQ',
+             'orange', '- ^ poly1'),
             (('twitter_dem_singletag', 'all'), 'OSQ strategy',
-             'orange', '-- ^ poly1'),
+             'orange', '-- _^ poly1'),
             (('twitter_dem', 'all'), 'filtered',
              'green', '- ^ poly1'),
         ]

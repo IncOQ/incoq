@@ -115,6 +115,7 @@ collections = [
     ('twitter/twitter_dem_rselim',      statfile_collector),
     ('twitter/twitter_dem_tcelim',      statfile_collector),
     ('twitter/twitter_dem_mcelim',      loc_collector),
+    ('twitter/twitter_dem_singletag',   statfile_collector),
 ]
 
 
@@ -229,6 +230,7 @@ class TwitterAggregator(LOCTimeAggregator):
         ('twitter/twitter_inc',         'Incremental'),
         ('twitter/twitter_dem',         'Filtered'),
         ('twitter/twitter_dem_notcelim', 'Filtered (w/ type checks)'),
+        ('twitter/twitter_dem_singletag', 'Filtered (OSQ strategy)'),
     ]
 
 class TwitterOptAggregator(LOCTimeAggregator):

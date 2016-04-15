@@ -1,5 +1,4 @@
-# Old version of Tom's system didn't work, new version untested on this
-# example. 
+# Use Tom's OSQ system on the query.
 
 from incoq.mars.runtime import *
 from osq import query
