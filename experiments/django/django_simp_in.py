@@ -13,6 +13,10 @@ CONFIG(
     obj_domain = 'true',
 )
 
+SYMCONFIG('Q',
+    well_typed_data = 'true',
+)
+
 def make_user(id):
     user = Obj()
     user.id = id

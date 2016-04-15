@@ -6,6 +6,10 @@ CONFIG(
     obj_domain = 'true',
 )
 
+SYMCONFIG('Q',
+    well_typed_data = 'true',
+)
+
 class Student(Obj):
     pass
 

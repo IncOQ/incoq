@@ -39,6 +39,9 @@ all_tasks = [
     ('jql_ratio_1',                     jql.Ratio1()),
     ('jql_ratio_2',                     jql.Ratio2()),
     ('jql_ratio_3',                     jql.Ratio3()),
+    ('jql_scale_1',                     jql.Scale1()),
+    ('jql_scale_2',                     jql.Scale2()),
+    ('jql_scale_3',                     jql.Scale3()),
     
     # RBAC.
     ('corerbac_roles',                  rbac.corerbac.CoreRoles()),

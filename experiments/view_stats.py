@@ -116,6 +116,30 @@ collections = [
     ('twitter/twitter_dem_tcelim',      statfile_collector),
     ('twitter/twitter_dem_mcelim',      loc_collector),
     ('twitter/twitter_dem_singletag',   statfile_collector),
+    
+    # Wifi.
+    ('wifi/wifi_in',                    loc_collector),
+    ('wifi/wifi_inc',                   statfile_collector),
+    ('wifi/wifi_dem',                   statfile_collector),
+    
+    # Django.
+    ('django/django_in',                loc_collector),
+    ('django/django_inc',               statfile_collector),
+    ('django/django_dem',               statfile_collector),
+    ('django/django_simp_in',           loc_collector),
+    ('django/django_simp_inc',          statfile_collector),
+    ('django/django_simp_dem',          statfile_collector),
+    
+    # JQL.
+    ('jql/jql_1_in',                    loc_collector),
+    ('jql/jql_1_inc',                   statfile_collector),
+    ('jql/jql_1_dem',                   statfile_collector),
+    ('jql/jql_2_in',                    loc_collector),
+    ('jql/jql_2_inc',                   statfile_collector),
+    ('jql/jql_2_dem',                   statfile_collector),
+    ('jql/jql_3_in',                    loc_collector),
+    ('jql/jql_3_inc',                   statfile_collector),
+    ('jql/jql_3_dem',                   statfile_collector),
 ]
 
 
@@ -244,10 +268,45 @@ class TwitterOptAggregator(LOCTimeAggregator):
         ('twitter/twitter_dem_mcelim',  'Maint case elim'),
     ]
 
+class WifiAggregator(LOCTimeAggregator):
+    
+    rows = [
+        ('wifi/wifi_in',                'Wifi, Original'),
+        ('wifi/wifi_inc',               'Wifi, Incremental'),
+        ('wifi/wifi_dem',               'Wifi, Filtered'),
+    ]
+
+class DjangoAggregator(LOCTimeAggregator):
+    
+    rows = [
+        ('django/django_in',            'Django, Original'),
+        ('django/django_inc',           'Django, Incremental'),
+        ('django/django_dem',           'Django, Filtered'),
+        ('django/django_simp_in',       'Django simplified, Original'),
+        ('django/django_simp_inc',      'Django simplified, Incremental'),
+        ('django/django_simp_dem',      'Django simplified, Filtered'),
+    ]
+
+class JQLAggregator(LOCTimeAggregator):
+    
+    rows = [
+        ('jql/jql_1_in',                'JQL 1, Original'),
+        ('jql/jql_1_inc',               'JQL 1, Incremental'),
+        ('jql/jql_1_dem',               'JQL 1, Filtered'),
+        ('jql/jql_2_in',                'JQL 2, Original'),
+        ('jql/jql_2_inc',               'JQL 2, Incremental'),
+        ('jql/jql_2_dem',               'JQL 2, Filtered'),
+        ('jql/jql_3_in',                'JQL 3, Original'),
+        ('jql/jql_3_inc',               'JQL 3, Incremental'),
+        ('jql/jql_3_dem',               'JQL 3, Filtered'),
+    ]
 
 aggregations = [
     ('twitter',                         TwitterAggregator),
     ('twitter_opt',                     TwitterOptAggregator),
+    ('wifi',                            WifiAggregator),
+    ('django',                          DjangoAggregator),
+    ('jql',                             JQLAggregator),
 ]
 
 aggregations_dict = dict(aggregations)

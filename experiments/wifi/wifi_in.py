@@ -8,6 +8,8 @@ CONFIG(
 
 SYMCONFIG('Q',
     demand_param_strat = 'all',
+    count_elim_safe_override = 'true',
+    well_typed_data = 'true',
 )
 
 def make_wifi(threshold):
