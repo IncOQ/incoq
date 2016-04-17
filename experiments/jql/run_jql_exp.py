@@ -574,6 +574,7 @@ class Ratio2(Ratio):
             else:
                 return y
         
+        ymin = 0
         ymax = 2
         legend_loc = 'upper center'
 

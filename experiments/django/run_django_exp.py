@@ -361,7 +361,6 @@ class Scale(DjangoWorkflow):
         xmin = 25
         xmax = 525
         ymin = 0
-        ymax = 1.1
 
 
 class Demand(DjangoWorkflow):
@@ -418,6 +417,8 @@ class Demand(DjangoWorkflow):
         xlabel = 'Number of demanded users'
         xmin = -10
         xmax = 310
+        
+        max_yitvls = 5
         
         metric = 'time_cpu'
 

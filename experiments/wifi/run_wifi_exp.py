@@ -213,4 +213,3 @@ class Wifi(ExpWorkflow):
         
         xmin = 150
         xmax = 2600
-        ymax = .7
