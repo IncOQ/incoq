@@ -301,12 +301,21 @@ class JQLAggregator(LOCTimeAggregator):
         ('jql/jql_3_dem',               'JQL 3, Filtered'),
     ]
 
+class ComparisonsAggregator(LOCTimeAggregator):
+    
+    @property
+    def rows(self):
+        return (WifiAggregator.rows +
+                DjangoAggregator.rows +
+                JQLAggregator.rows)
+
 aggregations = [
     ('twitter',                         TwitterAggregator),
     ('twitter_opt',                     TwitterOptAggregator),
     ('wifi',                            WifiAggregator),
     ('django',                          DjangoAggregator),
     ('jql',                             JQLAggregator),
+    ('comparisons',                     ComparisonsAggregator),
 ]
 
 aggregations_dict = dict(aggregations)
