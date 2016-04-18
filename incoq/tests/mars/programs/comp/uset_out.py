@@ -69,6 +69,10 @@ def main():
         _maint_R_Q_for_S_add(_v2)
     print(sorted(((_demand_Q((a,)) or True) and (R_Q_bu[a] if (a in R_Q_bu) else Set()))))
     print(sorted((R_Q_bu[a] if (a in R_Q_bu) else Set())))
+    R_Q_bu.dictclear()
+    _U_Q.clear()
+    R_Q_bu.dictclear()
+    _U_Q.clear()
 
 if (__name__ == '__main__'):
     main()

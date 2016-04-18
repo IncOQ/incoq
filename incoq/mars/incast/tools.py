@@ -56,7 +56,7 @@ class IdentFinder(L.NodeVisitor):
     """
     
     fun_ctxs = ('Fun.name', 'Call.func')
-    query_ctxs = ('Query.name',)
+    query_ctxs = ('Query.name', 'ResetDemand.names')
     rel_ctxs = ('RelUpdate.rel', 'RelClear.rel', 'RelMember.rel')
     
     @classmethod

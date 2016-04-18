@@ -24,6 +24,8 @@ class BuiltinsCase(unittest.TestCase):
         SYMCONFIG(1, a=2, b=3)
         QUERY(1, a=2, b=3)
         self.assertEqual(QUERY('Q', 5), 5)
+        resetdemand()
+        resetdemandfor(['a', 'b'])
     
     def test_aggregates(self):
         self.assertEqual(count([1, 2, 3]), 3)

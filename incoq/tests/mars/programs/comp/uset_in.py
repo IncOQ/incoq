@@ -18,6 +18,8 @@ def main():
     print(sorted(QUERY('Q', {(x,) for (x,) in S if x > a})))
     print(sorted(QUERY('Q', {(x,) for (x,) in S if x > a},
                        {'nodemand': True})))
+    resetdemand()
+    resetdemandfor(['Q'])
 
 if __name__ == '__main__':
     main()

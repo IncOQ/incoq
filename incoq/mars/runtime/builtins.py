@@ -5,6 +5,8 @@ __all__ = [
     'CONFIG',
     'SYMCONFIG',
     'QUERY',
+    'resetdemand',
+    'resetdemandfor',
     
     'index',
     
@@ -67,6 +69,12 @@ def QUERY(*args, **kargs):
         return args[1]
     else:
         pass
+
+def resetdemand(*args, **kargs):
+    pass
+
+def resetdemandfor(*args, **kargs):
+    pass
 
 
 # Alias for subscripting/__getindex__.

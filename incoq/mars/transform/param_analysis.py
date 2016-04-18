@@ -14,6 +14,7 @@ __all__ = [
     'ParamAnalyzer',
     'DemandParamAnalyzer',
     'DemandTransformer',
+    'DemandResetter',
     
     'analyze_params',
     'analyze_demand_params',
@@ -599,6 +600,31 @@ class DemandTransformer(ContextTracker):
         return node
 
 
+class DemandResetter(L.NodeTransformer):
+    
+    """Replace ResetDemand nodes with clear updates to the corresponding
+    demand sets.
+    """
+    
+    def __init__(self, symtab):
+        super().__init__()
+        self.queries = symtab.get_queries().values()
+    
+    def visit_ResetDemand(self, node):
+        if len(node.names) == 0:
+            demand_sets = [query.demand_set
+                           for query in self.queries
+                           if query.demand_set is not None]
+        else:
+            demand_sets = [query.demand_set
+                           for query in self.queries
+                           if query.name in node.names
+                           if query.demand_set is not None]
+        
+        code = tuple(L.RelClear(ds) for ds in demand_sets)
+        return code
+
+
 def analyze_params(tree, symtab):
     """Determine params symbol attributes for all queries."""
     scope_info = ScopeBuilder.run(tree, symtab.clausetools)
@@ -612,4 +638,6 @@ def analyze_demand_params(tree, symtab):
 
 def transform_demand(tree, symtab):
     """Transform queries to incorporate demand."""
-    return DemandTransformer.run(tree, symtab)
+    tree = DemandTransformer.run(tree, symtab)
+    tree = DemandResetter.run(tree, symtab)
+    return tree

@@ -507,6 +507,26 @@ class ParamAnalysisCase(unittest.TestCase):
                          T.Set(T.Tuple([T.Number])))
         self.assertEqual(symtab.get_relations()['_U_Q3'].type,
                          T.Set(T.Tuple([T.Number])))
+    
+    def test_demand_resetter(self):
+        symtab = S.SymbolTable()
+        query_sym1 = symtab.define_query(
+            'Q1', demand_set='U1')
+        query_sym2 = symtab.define_query(
+            'Q2', demand_set='U2')
+        tree = L.Parser.p('''
+            def main():
+                resetdemand()
+                resetdemandfor(['Q1'])
+            ''')
+        tree = DemandResetter.run(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                U1.relclear()
+                U2.relclear()
+                U1.relclear()
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':
