@@ -260,10 +260,6 @@ def transform_ast(input_ast, *, options=None):
     for q in symtab.get_queries().values():
         if q.impl is S.Unspecified:
             q.impl = symtab.config.default_impl
-    # Correct aggregate impls.
-    for q in symtab.get_queries().values():
-        if isinstance(q.node, L.Aggr) and q.impl is S.Filtered:
-            q.impl = S.Inc
     # Eliminate nodes for Normal impl queries.
     tree = unmark_normal_impl(tree, symtab)
     
@@ -321,6 +317,15 @@ def transform_ast(input_ast, *, options=None):
     analyze_demand_params(tree, symtab)
     # Transform for demand.
     tree = transform_demand(tree, symtab)
+    
+    # Correct aggregate impls.
+    # (Do this after transforming for demand so that demand
+    # comprehensions inherit the Filtered impl option from their
+    # aggregate.)
+    for q in symtab.get_queries().values():
+        if (isinstance(q.node, (L.Aggr, L.AggrRestr)) and
+            q.impl is S.Filtered):
+            q.impl = S.Inc
     
     # Incrementalize queries.
     tree = transform_queries(tree, symtab)
