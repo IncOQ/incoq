@@ -16,6 +16,8 @@ __all__ = [
     
     'check_annotations',
     
+    'rename_wildcards',
+    
     # Main exports.
     'incast_preprocess',
     'incast_postprocess',
@@ -219,6 +221,19 @@ class AnnotationChecker(L.NodeVisitor):
 check_annotations = AnnotationChecker.run
 
 
+def rename_wildcards(tree, fresh_vars):
+    """Replace all wildcards ('_' identifiers) with fresh variable
+    names.
+    """
+    class Trans(L.NodeTransformer):
+        def visit_Name(self, node):
+            if node.id == '_':
+                node = node._replace(id=next(fresh_vars))
+            return node
+    
+    return Trans.run(tree)
+
+
 def incast_preprocess(tree, *, fresh_vars, query_name_map):
     """Preprocess an IncAST tree, returning the new tree."""
     # Mark query occurrences.
@@ -234,6 +249,8 @@ def incast_preprocess(tree, *, fresh_vars, query_name_map):
     
     # Check to make sure annotations are well-formed.
     check_annotations(tree)
+    
+    tree = rename_wildcards(tree, fresh_vars)
     
     return tree
 
