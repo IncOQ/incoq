@@ -92,6 +92,12 @@ jql_tasks = [
     ('jql/jql_3_in', 'jql/jql_3_dem',
      {'default_impl': S.Filtered}),
 ]
+distalgo_tasks = [
+    ('distalgo/lamutex/lamutex_orig_inc_in',
+     'distalgo/lamutex/lamutex_orig_inc_dem',
+     {'default_impl': S.Filtered,
+      'auto_query': True}),
+]
 rbac_tasks = [
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_checkaccess_inc',
@@ -157,6 +163,7 @@ task_lists = [
     ('wifi', wifi_tasks),
     ('django', django_tasks),
     ('jql', jql_tasks),
+    ('distalgo', distalgo_tasks),
     ('rbac', rbac_tasks),
     ('graddb', graddb_tasks),
     ('other', other_tasks),

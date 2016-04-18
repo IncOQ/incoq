@@ -377,7 +377,7 @@ class LAMutexOrigWorkflow(DistalgoWorkflow):
         use_progs_ex = True
         progs_ex = [
             ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_in'),
-            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_inc'),
+            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_dem'),
         ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
