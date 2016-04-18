@@ -308,7 +308,9 @@ def get_rel_type(symtab, rel):
                              rel, t_rel))
     # Treat Set<Bottom> as a set of singleton tuples.
     if t_rel.elt is T.Bottom:
-        t_rel = t_rel.join(T.Set(T.Tuple([T.Bottom])))
+        raise L.ProgramError('Relation must have known tuple element type '
+                             'before it can be used in aggregate: {}'.format(
+                             rel))
     return t_rel
 
 
@@ -342,6 +344,10 @@ def aggrinv_from_query(symtab, query, result_var):
     
     # Lookup symbol, use type info to determine the relation's arity.
     t_rel = get_rel_type(symtab, rel)
+    if not (isinstance(t_rel, T.Set) and
+            isinstance(t_rel.elt, T.Tuple)):
+        raise L.ProgramError('Invalid type for aggregate operand: {}'.format(
+                             t_rel))
     arity = len(t_rel.elt.elts)
     
     if mask is None:

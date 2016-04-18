@@ -288,7 +288,8 @@ def rewrite_with_unwraps(tree, symtab):
 def rewrite_with_wraps(tree, symtab):
     """For every Member node in a comprehension query, if the LHS is a
     single variable, rewrite it as a VarsMember with the RHS in a Wrap
-    node.
+    node. Also rewrite aggregate operands as Unwraps of Wrap nodes if
+    they are a relation of non-tuple type.
     """
     def process(expr):
         if not (isinstance(expr, L.Member) and
@@ -303,9 +304,20 @@ def rewrite_with_wraps(tree, symtab):
         return cl, [], []
     
     class WrapRewriter(S.QueryRewriter):
+        
         def rewrite_comp(self, symbol, name, comp):
             comp = L.rewrite_comp(comp, process)
             return comp
+        
+        def rewrite_aggr(self, symbol, name, aggr):
+            if isinstance(aggr.value, L.Name):
+                relsym = symtab.get_relations()[aggr.value.id]
+                rel_type = relsym.type
+                if not (isinstance(rel_type, T.Set) and
+                        isinstance(rel_type.elt, T.Tuple)):
+                    new_value = L.Unwrap(L.Wrap(aggr.value))
+                    aggr = aggr._replace(value=new_value)
+            return aggr
     
     tree = WrapRewriter.run(tree, symtab)
     return tree
