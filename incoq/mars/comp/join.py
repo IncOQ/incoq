@@ -259,7 +259,8 @@ class ClauseTools(ClauseVisitor):
         variables.
         """
         lhs_vars = self.lhs_vars_from_comp(comp)
-        assert set(params).issubset(set(lhs_vars))
+        assert set(params).issubset(set(lhs_vars)), \
+            'params: {}, lhs_vars: {}'.format(params, lhs_vars)
         assert isinstance(comp.resexp, L.Tuple)
         
         new_resexp = L.Tuple(tuple(L.Name(p) for p in params) +

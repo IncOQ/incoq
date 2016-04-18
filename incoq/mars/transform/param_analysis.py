@@ -374,7 +374,7 @@ class ParamAnalyzer(L.NodeVisitor):
         indexed in scope_info.
         """
         _node, scope = self.scope_info[id(node)]
-        vars = L.IdentFinder.find_vars(node.query)
+        vars = L.IdentFinder.find_non_rel_uses(node.query)
         params = tuple(vars.intersection(scope))
         return params
     

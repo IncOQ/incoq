@@ -302,11 +302,13 @@ def get_rel_type(symtab, rel):
         raise L.TransformationError('No symbol info for operand relation {}'
                                     .format(rel))
     t_rel = relsym.type
-    # Bad form: What if we have a Set<Bottom>?
-    if not (isinstance(t_rel, T.Set) and
-            isinstance(t_rel.elt, T.Tuple)):
+    t_rel = t_rel.join(T.Set(T.Bottom))
+    if not t_rel.issmaller(T.Set(T.Top)):
         raise L.ProgramError('Bad type for relation {}: {}'.format(
                              rel, t_rel))
+    # Treat Set<Bottom> as a set of singleton tuples.
+    if t_rel.elt is T.Bottom:
+        t_rel = t_rel.join(T.Set(T.Tuple([T.Bottom])))
     return t_rel
 
 
