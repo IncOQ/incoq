@@ -38,6 +38,8 @@ module IncAST
          | Assign(identifier target, expr value)
          | DecompAssign(identifier* vars, expr value)
          
+         | ResetDemand(identifier* names)
+         
          | SetUpdate(expr target, setupop op, expr value)
          | SetBulkUpdate(expr target, setbulkop op, expr value)
          | SetClear(expr target)

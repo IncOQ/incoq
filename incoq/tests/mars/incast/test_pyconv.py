@@ -182,6 +182,22 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.Assert(L.Name('t'))
         self.assertEqual(tree, exp_tree)
     
+    def test_resetdemand(self):
+        tree = Parser.ps('resetdemand()')
+        exp_tree = L.ResetDemand([])
+        self.assertEqual(tree, exp_tree)
+        
+        tree = Parser.ps("resetdemandfor(['a', 'b'])")
+        exp_tree = L.ResetDemand(['a', 'b'])
+        self.assertEqual(tree, exp_tree)
+        
+        with self.assertRaises(TypeError):
+            Parser.ps("resetdemand(['a'])")
+        with self.assertRaises(IncASTConversionError):
+            Parser.ps('resetdemandfor(a)')
+        with self.assertRaises(IncASTConversionError):
+            Parser.ps('resetdemandfor([a])')
+    
     def test_setupdates(self):
         tree = Parser.ps('S.add(x)')
         exp_tree = L.SetUpdate(L.Name('S'), L.SetAdd(), L.Name('x'))
@@ -473,6 +489,10 @@ class RoundTripCase(unittest.TestCase):
         self.trip.ps('a = b')
         self.trip.ps('a, b = c')
         self.trip.ps('a, = c')
+    
+    def test_resetdemand(self):
+        self.trip.ps('resetdemand()')
+        self.trip.ps("resetdemandfor(['a', 'b'])")
     
     def test_setupdates(self):
         self.trip.ps('S.add(x)')

@@ -445,6 +445,16 @@ class IncLangSpecialImporter(L.MacroExpander):
             raise ASTErr('Comment argument must be string literal')
         return L.Comment(text.s)
     
+    def handle_fs_resetdemand(self, _func):
+        return L.ResetDemand([])
+    
+    def handle_fs_resetdemandfor(self, _func, names):
+        if not (isinstance(names, L.List) and
+                all(isinstance(n, L.Str) for n in names.elts)):
+            raise ASTErr('resetdemandfor() directive takes either no '
+                         'arguments or a literal list of strings')
+        return L.ResetDemand([n.s for n in names.elts])
+    
     def handle_ms_add(self, _func, set_, elem):
         return L.SetUpdate(set_, L.SetAdd(), elem)
     
@@ -624,6 +634,14 @@ def import_incast(tree):
 class IncLangSpecialExporter(L.NodeTransformer):
     
     """Export IncAST constructs, expressing them as IncAST nodes."""
+    
+    def visit_ResetDemand(self, node):
+        if len(node.names) == 0:
+            return L.Expr(L.GeneralCall(L.Name('resetdemand'), []))
+        else:
+            namelist = L.List([L.Str(n) for n in node.names])
+            return L.Expr(L.GeneralCall(L.Name('resetdemandfor'),
+                                        [namelist]))
     
     def visit_SetUpdate(self, node):
         node = self.generic_visit(node)
