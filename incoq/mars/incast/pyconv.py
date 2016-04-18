@@ -38,6 +38,8 @@ trivial_nodes = [
     
     'Import', 'ImportFrom',
     
+    'Global',
+    
     'Return', 'If', 'Expr', 'Pass', 'Break', 'Continue',
     
     'UnaryOp', 'BoolOp', 'BinOp', 'IfExp',

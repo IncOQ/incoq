@@ -15,6 +15,7 @@ module IncAST
          | ImportFrom(identifier? module, alias* names, int? level)
          
          | Assert(expr test)
+         | Global(identifier* names)
          
          | Return(expr? value)
          
