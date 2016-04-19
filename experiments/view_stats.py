@@ -42,7 +42,7 @@ def build_latex_table_format():
     
     # Provide our own version of _build_simple_row() that bolds the
     # first entry in teletype using our \c{} macro.
-    def _my_build_simple_row(padded_cells, rowfmt):
+    def _bolded_build_simple_row(padded_cells, rowfmt):
         begin, sep, end = rowfmt
         
         first_cell, *data_cells = padded_cells
@@ -52,21 +52,26 @@ def build_latex_table_format():
         return (begin + sep.join(padded_cells) + end).rstrip()
     
     # Provide our own version of _latex_row() that uses this function.
-    def _my_latex_row(cell_values, colwidths, colaligns):
+    def _bolded_latex_row(cell_values, colwidths, colaligns):
         def escape_char(c):
             return LATEX_ESCAPE_RULES.get(c, c)
         escaped_values = ["".join(map(escape_char, cell))
                           for cell in cell_values]
         rowfmt = DataRow("", "&", "\\\\")
-        return _my_build_simple_row(escaped_values, rowfmt)
+        return _bolded_build_simple_row(escaped_values, rowfmt)
+    
+    # A version of _latex_row() that doesn't escape things.
+    def _unescaped_latex_row(cell_values, colwidths, colaligns):
+        rowfmt = DataRow("", "&", "\\\\")
+        return _build_simple_row(cell_values, rowfmt)
     
     # Use tabulate's latex format, except use _my_latex_row for the datarow.
     return TableFormat(lineabove=_latex_line_begin_tabular,
                        linebelowheader=Line("\\hline", "", "", ""),
                        linebetweenrows=None,
                        linebelow=Line("\\hline\n\\end{tabular}", "", "", ""),
-                       headerrow=_latex_row,
-                       datarow=_my_latex_row,
+                       headerrow=_unescaped_latex_row,
+                       datarow=_bolded_latex_row,
                        padding=1, with_header_hide=None)
 
 latex_table_format = build_latex_table_format()
@@ -192,8 +197,13 @@ class BaseAggregator:
                              tablefmt='simple',
                              floatfmt=self.floatfmt)
     
+    def latex_header_hook(self, header):
+        """Hook for modifying header for formatting in latex output."""
+        return header
+    
     def to_latex(self):
         header, body = self.get_data()
+        header = self.latex_header_hook(header)
         return self.tabulate(header, body,
                              tablefmt=latex_table_format,
                              floatfmt=self.floatfmt)
@@ -300,6 +310,26 @@ class CombinedAggregator(BaseAggregator):
                                          base_names[l_ind], l_attr,
                                          base_names[r_ind], r_attr))
         return header, body
+    
+    twoline_header = True
+    
+    def latex_header_hook(self, header):
+        # Make LOC/Time column headers take up two lines.
+        if self.twoline_header:
+            new_header = []
+            for h in header:
+                i = h.find(' LOC')
+                if i == -1:
+                    i = h.find(' Time')
+                if i == -1:
+                    new_header.append(h)
+                else:
+                    new_header.append(r'\begin{{tabular}}{{c}}{}\\{}'
+                                      r'\end{{tabular}}'
+                                      .format(h[:i], h[i+1:]))
+            return new_header
+        else:
+            return header
 
 
 class LOCAggregator(SimpleAggregator):
@@ -311,8 +341,8 @@ class LOCTimeAggregator(SimpleAggregator):
 class CombinedLOCTimeAggregator(CombinedAggregator):
     cols = [
         (0, 'lines', 'Orig. LOC'),
-        (1, 'queries_input', '# queries'),
-        (1, 'updates_input', '# updates'),
+        (1, 'queries_input', r'\# queries'),
+        (1, 'updates_input', r'\# updates'),
         (1, 'lines', 'Inc. LOC'),
         (1, 'time', 'Inc. Time'),
         (2, 'lines', 'Filt. LOC'),
@@ -400,7 +430,7 @@ class CombinedComparisonsAggregator(CombinedLOCTimeAggregator):
         (['django/django_simp_in',
           'django/django_simp_inc',
           'django/django_simp_dem'],
-         'Django, simplified'),
+         'Django (simp)'),
         (['jql/jql_1_in',
           'jql/jql_1_inc',
           'jql/jql_1_dem'],
