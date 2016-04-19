@@ -240,11 +240,88 @@ class SimpleAggregator(BaseAggregator):
         return header, body
 
 
+class CombinedAggregator(BaseAggregator):
+    
+    """Aggregator that allows a single row to contain data from multiple
+    collections.
+    """
+    
+    @property
+    def first_header(self):
+        """Name to use for the top-left cell."""
+        return 'Program'
+    
+    @property
+    def cols(self):
+        """Return a list of triples of an index of a filename, a stat
+        attribute to look up, and a name to display the attribute as.
+        The index corresponds to the entry in the tuple for the row.
+        """
+        raise NotImplementedError
+    
+    @property
+    def rows(self):
+        """Return a list of pairs of a tuple of file names whose stats
+        are displayed, and the name to use for that row heading. The
+        tuple indices are used in cols to identify what file a column
+        refers to.
+        """
+        raise NotImplementedError
+    
+    @property
+    def equalities(self):
+        """Equalities to enforce in the stat data. Return a list of
+        pairs of column pairs that are constrained to have the same
+        value. Each column pair is a tuple indexing into a row's
+        sequence of file names, and a stat key. get_data() will raise
+        an AssertionError if any equality does not hold.
+        """
+        return []
+    
+    def get_data(self):
+        col_names = [col_display for _, _, col_display in self.cols]
+        header = [self.first_header] + col_names
+        body = []
+        for base_names, row_display in self.rows:
+            row_stats = [self.all_stats.get(bn, {})
+                         for bn in base_names]
+            row_data = [row_stats[ind].get(attr, None)
+                        for ind, attr, _ in self.cols]
+            row = [row_display] + row_data
+            body.append(row)
+            # Check equalities.
+            for eq in self.equalities:
+                (l_ind, l_attr), (r_ind, r_attr) = eq
+                left = row_stats[l_ind].get(l_attr, None)
+                right = row_stats[r_ind].get(r_attr, None)
+                if left != right:
+                    raise AssertionError('Unequal values for stat keys {}:{} '
+                                         'and {}:{}'.format(
+                                         base_names[l_ind], l_attr,
+                                         base_names[r_ind], r_attr))
+        return header, body
+
+
 class LOCAggregator(SimpleAggregator):
     cols = [('lines', 'LOC')]
 
 class LOCTimeAggregator(SimpleAggregator):
     cols = [('lines', 'LOC'), ('time', 'Time')]
+
+class CombinedLOCTimeAggregator(CombinedAggregator):
+    cols = [
+        (0, 'lines', 'Orig. LOC'),
+        (1, 'queries_input', '# queries'),
+        (1, 'updates_input', '# updates'),
+        (1, 'lines', 'Inc. LOC'),
+        (1, 'time', 'Inc. Time'),
+        (2, 'lines', 'Filt. LOC'),
+        (2, 'time', 'Filt. Time'),
+    ]
+    equalities = [
+        ((1, 'queries_input'), (2, 'queries_input')),
+        ((1, 'updates_input'), (2, 'updates_input')),
+    ]
 
 
 class TwitterAggregator(LOCTimeAggregator):
@@ -309,6 +386,35 @@ class ComparisonsAggregator(LOCTimeAggregator):
                 DjangoAggregator.rows +
                 JQLAggregator.rows)
 
+class CombinedComparisonsAggregator(CombinedLOCTimeAggregator):
+    
+    rows = [
+        (['wifi/wifi_in',
+          'wifi/wifi_inc',
+          'wifi/wifi_dem'],
+         'Wifi'),
+        (['django/django_in',
+          'django/django_inc',
+          'django/django_dem'],
+         'Django'),
+        (['django/django_simp_in',
+          'django/django_simp_inc',
+          'django/django_simp_dem'],
+         'Django, simplified'),
+        (['jql/jql_1_in',
+          'jql/jql_1_inc',
+          'jql/jql_1_dem'],
+         'JQL 1'),
+        (['jql/jql_2_in',
+          'jql/jql_2_inc',
+          'jql/jql_2_dem'],
+         'JQL 2'),
+        (['jql/jql_3_in',
+          'jql/jql_3_inc',
+          'jql/jql_3_dem'],
+         'JQL 3'),
+    ]
+
 aggregations = [
     ('twitter',                         TwitterAggregator),
     ('twitter_opt',                     TwitterOptAggregator),
@@ -316,6 +422,7 @@ aggregations = [
     ('django',                          DjangoAggregator),
     ('jql',                             JQLAggregator),
     ('comparisons',                     ComparisonsAggregator),
+    ('comparisons_combined',            CombinedComparisonsAggregator),
 ]
 
 aggregations_dict = dict(aggregations)
