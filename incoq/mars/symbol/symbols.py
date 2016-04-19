@@ -311,6 +311,13 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         default=Unconstrained,
         allowed_values=[Unconstrained, All, Explicit])
     
+    demand_set_maxsize = SymbolAttribute(
+        doc='If not None, number of elements to hold in demand set '
+            'before removing them, LRU style',
+        default=None)
+        # Should also have parser but needs to accept int or None.
+        # Wait to refactor parsing.
+    
     count_elim_safe_override = SymbolAttribute(
         doc='If True, consider it safe to eliminate counting for this '
         'query even if we can\'t determine that from analysis',

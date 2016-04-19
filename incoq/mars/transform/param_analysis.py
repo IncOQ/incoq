@@ -49,13 +49,38 @@ def find_nested_queries(node):
 
 
 def make_demand_func(query):
-    func = N.get_query_demand_func_name(query)
-    uset = N.get_query_demand_set_name(query)
-    return L.Parser.ps('''
-        def _FUNC(_elem):
-            if _elem not in _U:
-                _U.reladd(_elem)
-        ''', subst={'_FUNC': func, '_U': uset})
+    func = N.get_query_demand_func_name(query.name)
+    uset = N.get_query_demand_set_name(query.name)
+    
+    maxsize = query.demand_set_maxsize
+    
+    if maxsize is None:
+        code = L.Parser.ps('''
+            def _FUNC(_elem):
+                if _elem not in _U:
+                    _U.reladd(_elem)
+            ''', subst={'_FUNC': func, '_U': uset})
+    elif maxsize == 1:
+        code = L.Parser.ps('''
+            def _FUNC(_elem):
+                if _elem not in _U:
+                    _U.relclear()
+                    _U.reladd(_elem)
+            ''', subst={})
+    elif not isinstance(maxsize, int) or maxsize <= 0:
+        raise L.ProgramError('Invalid value for demand_set_maxsize')
+    else:
+        code = L.Parser.ps('''
+            def _FUNC(_elem):
+                if _elem not in _U:
+                    while len(_U) >= _MAXSIZE:
+                        _stale = _U.peek()
+                        _U.relremove(_stale)
+                    _U.reladd(_elem)
+            ''', subst={'_FUNC': func, '_U': uset,
+                        '_MAXSIZE': L.Num(maxsize)})
+    
+    return code
 
 
 def determine_comp_demand_params(clausetools, comp, params, demand_params,
@@ -524,7 +549,8 @@ class DemandTransformer(ContextTracker):
         # Add declarations for demand functions.
         funcs = []
         for query in self.queries_with_usets:
-            func = make_demand_func(query)
+            query_sym = self.symtab.get_queries()[query]
+            func = make_demand_func(query_sym)
             funcs.append(func)
         
         node = node._replace(body=tuple(funcs) + node.body)

@@ -27,7 +27,9 @@ class ParamAnalysisCase(unittest.TestCase):
         self.assertSequenceEqual(queries, exp_queries)
     
     def test_make_demand_func(self):
-        tree = make_demand_func('Q')
+        symtab = S.SymbolTable()
+        query = symtab.define_query('Q')
+        tree = make_demand_func(query)
         exp_tree = L.Parser.ps('''
             def _demand_Q(_elem):
                 if _elem not in _U_Q:

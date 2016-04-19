@@ -444,6 +444,9 @@ class LRUSet(IncOQType, OrderedDict):
     def remove(self, elem):
         del self[elem]
     
+    def clear(self):
+        self.clear()
+    
     def ping(self, elem):
         """Bump elem to the beginning of the LRU priority."""
         self.move_to_end(elem)

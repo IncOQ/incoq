@@ -260,6 +260,8 @@ def transform_ast(input_ast, *, options=None):
     for q in symtab.get_queries().values():
         if q.impl is S.Unspecified:
             q.impl = symtab.config.default_impl
+        if q.demand_set_maxsize is None:
+            q.demand_set_maxsize = symtab.config.default_demand_set_maxsize
     # Eliminate nodes for Normal impl queries.
     tree = unmark_normal_impl(tree, symtab)
     

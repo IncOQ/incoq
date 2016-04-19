@@ -53,6 +53,10 @@ def _maint_R_Q_for_S_remove(_elem):
 
 def _demand_Q(_elem):
     if (_elem not in _U_Q):
+        while (len(_U_Q) >= 3):
+            _stale = _U_Q.peek()
+            _maint_R_Q_for__U_Q_remove(_stale)
+            _U_Q.remove(_stale)
         _U_Q.add(_elem)
         _maint_R_Q_for__U_Q_add(_elem)
 

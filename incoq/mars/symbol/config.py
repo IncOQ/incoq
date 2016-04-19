@@ -78,6 +78,12 @@ all_attributes = [
         Constants.parse,
         {'type': Constants.parse}),
     
+    ConfigAttribute('default_demand_set_maxsize', None,
+        'default value for demand_set_maxsize',
+        int,    # Should really use a better parse function
+                # that also supports None
+        {'type': int}),
+    
     ConfigAttribute('use_singletag_demand', False,
         'if True, only use one tag in the definition of each filter',
         parse_bool,
