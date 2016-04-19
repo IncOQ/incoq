@@ -356,6 +356,39 @@ class BuiltinsCase(unittest.TestCase):
         o = Obj(f=o1, g=6)
         c = o.get_children()
         self.assertEqual(c, [o1, 6])
+    
+    def test_lru_repr(self):
+        r = repr(LRUSet())
+        exp_r = 'LRUSet({})'
+        self.assertEqual(r, exp_r)
+        
+        r = repr(LRUSet({1}))
+        exp_r = 'LRUSet({1})'
+        self.assertEqual(r, exp_r)
+        
+        r = repr(LRUSet([5, 6]))
+        exp_r = 'LRUSet({5, 6})'
+        self.assertEqual(r, exp_r)
+        
+        s = LRUSet()
+        s.add(s)
+        r = repr(s)
+        exp_r = 'LRUSet({...})'
+        self.assertEqual(r, exp_r)
+    
+    def test_lru_set_order(self):
+        s = LRUSet()
+        s.add(1)
+        s.add(2)
+        s.add(3)
+        self.assertEqual(s.peek(), 1)
+        s.remove(1)
+        self.assertEqual(s.peek(), 2)
+        v = s.pop()
+        self.assertEqual(v, 2)
+        s.add(4)
+        s.ping(3)
+        self.assertEqual(s.peek(), 4)
 
 
 if __name__ == '__main__':

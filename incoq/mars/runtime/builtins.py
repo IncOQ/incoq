@@ -32,11 +32,13 @@ __all__ = [
     'Obj',
     
     'Tree',
+    
+    'LRUSet',
 ]
 
 
 from functools import wraps
-from collections import Counter
+from collections import Counter, OrderedDict
 from functools import partial
 import builtins
 
@@ -416,3 +418,44 @@ class Obj(IncOQType):
     
     def get_children(self):
         return [value for _attr, value in self.get_fields()]
+
+
+class LRUSet(IncOQType, OrderedDict):
+    
+    """A set augmented with least-recently-used tracking. Supports
+    element-wise operations and clear.
+    """
+    
+    # Implemented on top of OrderedDict where all values are None.
+    
+    def __init__(self, elems=()):
+        super().__init__()
+        for e in elems:
+            self[e] = None
+    
+    def _fmt_helper(self, fmt):
+        return ('{' + ', '.join('{}'.format(fmt(key))
+                                for key in self.keys()) + '}')
+    
+    def add(self, elem):
+        assert elem not in self
+        self[elem] = None
+    
+    def remove(self, elem):
+        del self[elem]
+    
+    def ping(self, elem):
+        """Bump elem to the beginning of the LRU priority."""
+        self.move_to_end(elem)
+    
+    def peek(self):
+        """Return the last / lowest priority element, or None if empty."""
+        return next(iter(self), None)
+    
+    def pop(self):
+        """Remove and return the last / lowest priority element. Must
+        not be empty.
+        """
+        elem = next(iter(self))
+        del self[elem]
+        return elem
