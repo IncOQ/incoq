@@ -148,9 +148,14 @@ def count_updates(tree, symtab):
         
         def rewrite_comp(self, symbol, name, comp):
             for cl in comp.clauses:
-                rel = ct.rhs_rel(cl)
-                if rel is not None:
-                    rels.add(rel)
+                if isinstance(cl, L.VarsMember):
+                    if isinstance(cl.iter, (L.Wrap, L.Unwrap)):
+                        if isinstance(cl.iter.value, L.Name):
+                            rels.add(cl.iter.value.id)
+                else:
+                    rel = ct.rhs_rel(cl)
+                    if rel is not None:
+                        rels.add(rel)
         
         def rewrite_aggr(self, symbol, name, aggr):
             oper = aggr.value

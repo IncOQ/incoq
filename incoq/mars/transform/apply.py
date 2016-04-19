@@ -298,14 +298,17 @@ def transform_ast(input_ast, *, options=None):
         symtab.clausetools = CoreClauseTools()
         symtab.clausetools_notc = CoreClauseTools()
     
+    # Count updates, before we add demand sets, before we muddy the
+    # updates with wraps/unwraps (we don't want to count updates to
+    # wrappers in place of the original relations).
+    count_updates(tree, symtab)
+    
     # Normalize to relations.
     tree = relation_rewritings.relationalize_comp_queries(tree, symtab)
     # Rewrite memberships over subqueries as VARS clauses.
     # (In the object domain, this would be done differently
     # due to tuple wrapping/unwrapping.)
     tree = rewrite_vars_clauses(tree, symtab)
-    
-    count_updates(tree, symtab)
     
     # Before we can transform for demand, we need to know the demand
     # params. Before we can do that, we need to rewrite patterns in
