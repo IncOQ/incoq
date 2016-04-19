@@ -20,7 +20,7 @@ from experiments.twitter.gendb_wrapper import (
                         steal_edges, move_edge)
 
 from experiments.util import (SmallExtractor, LargeExtractor,
-                              PosterExtractor, canonize)
+                              PosterExtractor)
 
 
 class TwitterDatagen(Datagen):
@@ -222,6 +222,8 @@ class TwitterDriver:
         self.reps = dataset['reps']
         self.upkind = dataset['upkind']
         
+        self.init_output()
+        
         self.setUp()
         
         from frexp.util import StopWatch, user_time
@@ -251,11 +253,22 @@ class TwitterDriver:
         # don't worry about the time spent demanding things.
         self.results['stdmetric'] = self.results['opstime_cpu']
         
+        self.results['output'] = self.freeze_output()
+        
         self.tearDown()
         
         
         with open(pipe_filename, 'wb') as pf:
             pickle.dump(self.results, pf)
+    
+    def init_output(self):
+        pass
+    
+    def log_output(self, output):
+        pass
+    
+    def freeze_output(self):
+        pass
     
     def setUp(self):
         # Import driven program.
@@ -333,80 +346,7 @@ class TwitterDriver:
         else:
             assert()
     
-    def tearDown(self):
-        pass
-
-class TwitterProfileDriver(TwitterDriver):
-    
-    def __init__(self, pipe_filename):
-        import line_profiler
-        import builtins
-        self.prof = line_profiler.LineProfiler()
-        builtins.__dict__['profile'] = self.prof
-        super().__init__(pipe_filename)
-    
-#    def run_ops(self):
-#        super().run_ops()
-    
-    def tearDown(self):
-        print()
-        self.prof.print_stats()
-        super().tearDown()
-
-class TwitterVerifyDriver(TwitterDriver):
-    
-    # Twitter-specific driver. TODO: refactor into frexp.
-    
-    condense_output = True
-    
-    def log_output(self, output):
-        canon_value = canonize(output, use_hash=self.condense_output)
-        self.results['output'].append(canon_value)
-    
-    def __init__(self, pipe_filename):
-        import gc
-        import pickle
-        
-        gc.disable()
-        
-        with open(pipe_filename, 'rb') as pf:
-            dataset, prog, other_tparams = pickle.load(pf)
-        os.remove(pipe_filename)
-        
-        
-        self.dataset = dataset
-        self.prog = prog
-        self.noq = other_tparams['noq']
-        self.module = None
-        self.results = {}
-        self.reps = dataset['reps']
-        self.upkind = dataset['upkind']
-        
-        self.setUp()
-        
-        from frexp.util import StopWatch, user_time
-        from time import process_time, perf_counter
-        timer_user = StopWatch(user_time)
-        timer_cpu = StopWatch(process_time)
-        timer_wall = StopWatch(perf_counter)
-        
-        self.results['output'] = []
-        
-        with timer_user, timer_cpu, timer_wall:
-            self.run_demand()
-        
-        with timer_user, timer_cpu, timer_wall:
-            self.run_ops()
-        
-        self.tearDown()
-        
-        self.results['output'] = canonize(self.results['output'],
-                                          use_hash=self.condense_output)
-        
-        with open(pipe_filename, 'wb') as pf:
-            pickle.dump(self.results, pf)
-    
-    def run_ops(self):
+    def run_ops_record_output(self):
         ops_queries = self.ops_queries
         ops_updates = self.ops_updates
         do_query = self.module.do_query_nodemand
@@ -434,6 +374,32 @@ class TwitterVerifyDriver(TwitterDriver):
                     follow(new_u, c)
         else:
             assert()
+    
+    def tearDown(self):
+        pass
+
+class TwitterVerifyDriver(TwitterDriver):
+    
+    condense = True
+    
+    def init_output(self):
+        self.output = []
+    
+    def log_output(self, output):
+        entry = frozenset(user_email for user_email in output)
+        if self.condense:
+            entry = hash(entry)
+        self.output.append(entry)
+    
+    def freeze_output(self):
+        output = tuple(self.output)
+        if self.condense:
+            output = hash(output)
+        print(output)
+        return output
+    
+    def run_ops(self):
+        self.run_ops_record_output()
 
 
 class TwitterExtractor(SimpleExtractor, SmallExtractor):
