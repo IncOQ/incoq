@@ -6,6 +6,7 @@ __all__ = [
     'unmark_normal_impl',
     'rewrite_vars_clauses',
     'lift_firstthen',
+    'count_updates',
 ]
 
 
@@ -129,3 +130,55 @@ def lift_firstthen(tree, symtab):
             return node
     
     return Trans.run(tree)
+
+
+def count_updates(tree, symtab):
+    """Gather statistics about the number of updates appearing in the
+    program.
+    
+    An update is a change to a relation that appears in at least
+    one of the relations used by a comprehension or aggregate.
+    """
+    ct = symtab.clausetools
+    
+    # Determine relations in use.
+    rels = set()
+    
+    class RelFinder(S.QueryRewriter):
+        
+        def rewrite_comp(self, symbol, name, comp):
+            for cl in comp.clauses:
+                rel = ct.rhs_rel(cl)
+                if rel is not None:
+                    rels.add(rel)
+        
+        def rewrite_aggr(self, symbol, name, aggr):
+            oper = aggr.value
+            if isinstance(oper, L.Unwrap):
+                oper = oper.value
+            if isinstance(oper, L.ImgLookup):
+                oper = oper.set
+            
+            if isinstance(oper, L.Name):
+                rels.add(oper.id)
+    
+    RelFinder.run(tree, symtab)
+    
+    # Find updates to used relations.
+    
+    count = 0
+    
+    class UpdateFinder(L.NodeVisitor):
+        def visit_RelUpdate(self, node):
+            nonlocal count
+            if node.rel in rels:
+                count += 1
+        
+        def visit_RelClear(self, node):
+            nonlocal count
+            if node.rel in rels:
+                count += 1
+    
+    UpdateFinder.run(tree)
+    
+    symtab.stats['updates_input'] = count
