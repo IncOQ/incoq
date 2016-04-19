@@ -45,6 +45,8 @@ all_tasks = [
     
     ('lamutex_orig_procs',              distalgo.LAMutexOrigProcs()),
     ('lamutex_orig_rounds',             distalgo.LAMutexOrigRounds()),
+    ('lamutex_specopt_procs',           distalgo.LAMutexSpecOptProcs()),
+    ('lamutex_specopt_rounds',          distalgo.LAMutexSpecOptRounds()),
     
     # RBAC.
     ('corerbac_roles',                  rbac.corerbac.CoreRoles()),

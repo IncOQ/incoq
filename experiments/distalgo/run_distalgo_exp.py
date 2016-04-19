@@ -111,6 +111,10 @@ class DistalgoWorkflow(ExpWorkflow):
              'green', '- ^ normal'),
             (('dem', 'time_wall'), 'filtered (wall time)',
              'green', '1-2 _^ normal'),
+            (('out', 'time_cpu'), 'transformed (total cpu time)',
+             'blue', '- ^ normal'),
+            (('out', 'time_wall'), 'transformed (wall time)',
+             'blue', '1-2 _^ normal'),
             
             (('dem_subdem', 'time_cpu'), 'filtered, subdem (total cpu time)',
              '#004400', '- ^ normal'),
@@ -140,6 +144,8 @@ class DistalgoWorkflow(ExpWorkflow):
                     new_prog = '{}_inc_dem{}'.format(
                         self.name,
                         '_noninline' if self.noninline else '')
+                elif prog == 'out':
+                    new_prog = '{}_inc_out'.format(self.name)
                 elif prog.startswith('opt '):
                     new_prog = self.name + '_opt_inc_' + prog[4:]
                 else:
@@ -358,7 +364,7 @@ class LAMutexSpecOptWorkflow(DistalgoWorkflow):
 #            ('lamutex/lamutex_opt1.da', 'lamutex_opt1_inc_inc'),
             
             ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_in'),
-            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_inc'),
+            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_out'),
         ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
@@ -377,7 +383,7 @@ class LAMutexOrigWorkflow(DistalgoWorkflow):
         use_progs_ex = True
         progs_ex = [
             ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_in'),
-            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_dem'),
+            ('lamutex/lamutex_orig.da', 'lamutex_orig_inc_out'),
         ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):

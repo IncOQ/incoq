@@ -92,12 +92,19 @@ jql_tasks = [
     ('jql/jql_3_in', 'jql/jql_3_dem',
      {'default_impl': S.Filtered}),
 ]
-distalgo_tasks = [
+lamutex_tasks = [
     ('distalgo/lamutex/lamutex_orig_inc_in',
-     'distalgo/lamutex/lamutex_orig_inc_dem',
-     {'default_impl': S.Filtered,
-      'auto_query': True}),
+     'distalgo/lamutex/lamutex_orig_inc_out',
+     {'default_impl': S.Inc,
+      'auto_query': True,
+      'default_demand_set_maxsize': 1}),
+    ('distalgo/lamutex/lamutex_opt2_inc_in',
+     'distalgo/lamutex/lamutex_opt2_inc_out',
+     {'default_impl': S.Inc,
+      'auto_query': True,
+      'default_demand_set_maxsize': 1}),
 ]
+distalgo_tasks = lamutex_tasks
 rbac_tasks = [
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_checkaccess_inc',
@@ -163,6 +170,7 @@ task_lists = [
     ('wifi', wifi_tasks),
     ('django', django_tasks),
     ('jql', jql_tasks),
+    ('lamutex', lamutex_tasks),
     ('distalgo', distalgo_tasks),
     ('rbac', rbac_tasks),
     ('graddb', graddb_tasks),
