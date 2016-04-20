@@ -56,6 +56,10 @@ class N:
         return '{}_unwrapped'.format(rel)
     
     @classmethod
+    def get_compute_func_name(cls, query):
+        return '_compute_{}'.format(query)
+    
+    @classmethod
     def get_maint_func_name(cls, inv, param, op):
         return '_maint_{}_for_{}_{}'.format(inv, param, op)
     

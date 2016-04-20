@@ -37,8 +37,9 @@ class Constants(ParseableEnumMixin, Enum):
     
     # impl
     Normal = 1
-    Inc = 2
-    Filtered = 3
+    Aux = 2
+    Inc = 3
+    Filtered = 4
     
     # demand_param_strat
     Unconstrained = 10
@@ -291,7 +292,7 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
     impl = EnumSymbolAttribute(
         doc='Implementation strategy',
         default=Unspecified,
-        allowed_values=[Unspecified, Normal, Inc, Filtered])
+        allowed_values=[Unspecified, Normal, Aux, Inc, Filtered])
     
     uses_demand = SymbolAttribute(
         doc='Whether or not the query uses demand',

@@ -12,6 +12,7 @@ __all__ = [
     'incrementalize_comp',
     'transform_comp_query',
     'rewrite_all_comps_with_patterns',
+    'transform_aux_comp_query',
 ]
 
 
@@ -422,3 +423,46 @@ def rewrite_all_comps_with_patterns(tree, symtab):
             return comp
     
     return Rewriter.run(tree, symtab)
+
+
+def transform_aux_comp_query(tree, symtab, query):
+    """Transform a comprehension using the auxiliary map strategy.
+    Create a compute function for it, and replace uses of the query
+    with calls to the function.
+    """
+    ct = symtab.clausetools
+    assert isinstance(query.node, L.Comp)
+    clauses = query.node.clauses
+    
+    func_name = N.get_compute_func_name(query.name)
+    
+    # Replace occurrences with calls to the compute function.
+    class Rewriter(S.QueryRewriter):
+        expand = True
+        def rewrite_comp(self, symbol, name, comp):
+            if name == query.name:
+                return L.Call(func_name, [L.Name(p) for p in query.params])
+    tree = Rewriter.run(tree, symtab)
+    
+    # Get code for running the clauses and adding to the result.
+    clauses = order_clauses(ct, clauses)
+    body = L.Parser.pc('''
+        if _RESEXP not in _result:
+            _result.add(_RESEXP)
+        ''', subst={'_RESEXP': query.node.resexp})
+    compute_code = ct.get_code_for_clauses(clauses, query.params, body)
+    
+    # Define the compute function.
+    compute_func = L.Parser.ps('''
+        def _FUNC(_ARGS):
+            _result = Set()
+            _COMPUTE
+            return _result
+        ''', subst={'_FUNC': func_name,
+                    '<c>_COMPUTE': compute_code})
+    compute_func = compute_func._replace(args=query.params)
+    
+    assert isinstance(tree, L.Module)
+    tree = tree._replace(body=(compute_func,) + tree.body)
+    
+    return tree

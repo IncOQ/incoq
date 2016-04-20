@@ -23,7 +23,7 @@ from incoq.mars.incast import L, P
 from incoq.mars.symbol import S, N
 from incoq.mars.auxmap import transform_auxmaps
 from incoq.mars.comp import (
-    CoreClauseTools, transform_comp_query,
+    CoreClauseTools, transform_comp_query, transform_aux_comp_query,
     rewrite_all_comps_with_patterns)
 from incoq.mars.demand import transform_comp_query_with_filtering
 from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
@@ -187,6 +187,10 @@ def transform_query(tree, symtab, query):
         if query.impl == S.Normal:
             success = False
         
+        elif query.impl == S.Aux:
+            tree = transform_aux_comp_query(tree, symtab, query)
+            success = True
+        
         elif query.impl == S.Inc:
             tree = transform_comp_query(tree, symtab, query)
             success = True
@@ -341,9 +345,11 @@ def transform_ast(input_ast, *, options=None, query_options=None):
     # comprehensions inherit the Filtered impl option from their
     # aggregate.)
     for q in symtab.get_queries().values():
-        if (isinstance(q.node, (L.Aggr, L.AggrRestr)) and
-            q.impl is S.Filtered):
-            q.impl = S.Inc
+        if isinstance(q.node, (L.Aggr, L.AggrRestr)):
+            if q.impl is S.Aux:
+                q.impl = S.Normal
+            elif q.impl is S.Filtered:
+                q.impl = S.Inc
     
     # Incrementalize queries.
     tree = transform_queries(tree, symtab)
