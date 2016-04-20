@@ -17,6 +17,9 @@ from incoq.mars import __main__ as main
 
 
 # Input file, output file, dictionary of config options.
+# The third component may also be a pair of a dictionary of config
+# options and a dictionary of query options (i.e., a mapping from
+# query name to another dictionary).
 twitter_tasks = [
     ('twitter/twitter_in', 'twitter/twitter_inc',
      {'default_impl': S.Inc}),
@@ -105,19 +108,26 @@ lamutex_tasks = [
       'default_demand_set_maxsize': 1}),
 ]
 distalgo_tasks = lamutex_tasks
+checkaccess_opts = {'CA': dict(
+    demand_param_strat = 'explicit',
+    demand_params = 'object',
+    clause_reorder = '3, 1, 2',
+)}
 rbac_tasks = [
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_checkaccess_inc',
      {'default_impl': S.Inc}),
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_checkaccess_dem',
-     {'default_impl': S.Filtered}),
+     ({'default_impl': S.Filtered},
+      checkaccess_opts)),
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_inc',
      {'default_impl': S.Inc, 'auto_query': True}),
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_dem',
-     {'default_impl': S.Filtered, 'auto_query': True}),
+     ({'default_impl': S.Filtered, 'auto_query': True},
+      checkaccess_opts)),
     
     ('rbac/constrainedrbac/crbac_in',
      'rbac/constrainedrbac/crbac_dem',
@@ -190,16 +200,24 @@ def compile_task(task, *, options=None):
     """Run a benchmark compilation task. Assume the root path is the
     current directory.
     """
-    in_name, out_name, task_opts = task
+    in_name, out_name, task_opts_qopts = task
     in_file = in_name + '.py'
     out_file = out_name + '.py'
     stats_file = out_name + '_stats.txt'
     
     opts = options.copy()
+    qopts = {}
+    if isinstance(task_opts_qopts, tuple) and len(task_opts_qopts) == 2:
+        task_opts, task_qopts = task_opts_qopts
+    else:
+        task_opts = task_opts_qopts
+        task_qopts = {}
     opts.update(task_opts)
+    qopts.update(task_qopts)
     
     print('Regenerating {}...'.format(out_name), flush=True)
-    main.invoke(in_file, out_file, options=opts,
+    main.invoke(in_file, out_file,
+                options=opts, query_options=qopts,
                 stats_filename=stats_file)
 
 

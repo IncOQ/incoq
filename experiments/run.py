@@ -56,8 +56,6 @@ all_tasks = [
     
     # Graddb.
     ('newstu_scale',                    newstudents.NewStudentsScale()),
-    
-#    ('lamutex_spec_unopt_procs',        distalgo.LAMutexSpecProcs()),
 ]
 
 all_tasks_dict = dict(all_tasks)

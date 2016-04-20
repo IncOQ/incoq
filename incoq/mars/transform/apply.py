@@ -110,7 +110,7 @@ class QueryNodeFinder(L.NodeVisitor):
             self.queries[node.name] = node.query
 
 
-def preprocess_tree(tree, symtab):
+def preprocess_tree(tree, symtab, query_options):
     """Take in a Python AST tree, as well as a symbol table and global
     configuration. Populate the symbol table and configuration, and
     return the preprocessed IncAST tree.
@@ -158,6 +158,10 @@ def preprocess_tree(tree, symtab):
         symtab.apply_symconfig(name, d)
     for name, d in query_name_attrs.items():
         symtab.apply_symconfig(name, d)
+    
+    # Add out-of-band query options.
+    for q, d in query_options.items():
+        symtab.apply_symconfig(q, d)
     
     return tree
 
@@ -237,20 +241,22 @@ def transform_queries(tree, symtab):
     return tree
 
 
-def transform_ast(input_ast, *, options=None):
+def transform_ast(input_ast, *, options=None, query_options=None):
     """Take in a Python AST and return the transformed AST and the
     symbol table.
     """
     tree = input_ast
     if options is None:
         options = {}
+    if query_options is None:
+        query_options = {}
     
     config = S.Config()
     config.update(**options)
     
     symtab = S.SymbolTable()
     symtab.config = config
-    tree = preprocess_tree(tree, symtab)
+    tree = preprocess_tree(tree, symtab, query_options)
     
     if config.auto_query:
         tree = mark_query_forms(tree, symtab)
@@ -390,14 +396,15 @@ def transform_ast(input_ast, *, options=None):
     return tree, symtab
 
 
-def transform_source(input_source, *, options=None):
+def transform_source(input_source, *, options=None, query_options=None):
     """Take in the Python source code to a module and return the
     transformed source code and the symbol table.
     """
     tree = P.Parser.p(input_source)
     
     t1 = process_time()
-    tree, symtab = transform_ast(tree, options=options)
+    tree, symtab = transform_ast(tree, options=options,
+                                 query_options=query_options)
     t2 = process_time()
     
     source = P.Parser.ts(tree)
@@ -411,18 +418,21 @@ def transform_source(input_source, *, options=None):
     return source, symtab
 
 
-def transform_file(input_file, output_file, *, options=None):
+def transform_file(input_file, output_file, *,
+                   options=None, query_options=None):
     """Take in input and output file-like objects, and write to the
     output the transformed Python code corresponding to the input.
     Return the symbol table.
     """
     source = input_file.read()
-    source, symtab = transform_source(source, options=options)
+    source, symtab = transform_source(source, options=options,
+                                      query_options=query_options)
     output_file.write(source)
     return symtab
 
 
-def transform_filename(input_filename, output_filename, *, options=None,
+def transform_filename(input_filename, output_filename, *,
+                       options=None, query_options=None,
                        stats_filename=None):
     """Take in an input and output path, and write to the output
     the transformed Python file for the given input file. Return the
@@ -452,7 +462,8 @@ def transform_filename(input_filename, output_filename, *, options=None,
         if input_file is not None and not stdinput:
             input_file.close()
     
-    source, symtab = transform_source(source, options=options)
+    source, symtab = transform_source(source, options=options,
+                                      query_options=query_options)
     
     stdoutput = output_filename == '-' or symtab.config.pretend
     try:

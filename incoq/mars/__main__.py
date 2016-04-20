@@ -14,10 +14,12 @@ from incoq.mars.symbol.config import get_argparser, extract_options
 from incoq.mars.transform import transform_filename
 
 
-def invoke(in_filename, out_filename, *, options=None,
+def invoke(in_filename, out_filename, *,
+           options=None, query_options=None,
            stats_filename=None):
     """Transform one file and report to the user."""
-    transform_filename(in_filename, out_filename, options=options,
+    transform_filename(in_filename, out_filename,
+                       options=options, query_options=query_options,
                        stats_filename=stats_filename)
 
 
@@ -33,6 +35,8 @@ def run(args):
     
     options = extract_options(ns)
     
+    # There's currently no way to pass query options from the
+    # command line directly.
     invoke(ns.in_file, ns.out_file, options=options,
            stats_filename=ns.stats[0])
 

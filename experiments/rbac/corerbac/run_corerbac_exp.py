@@ -458,8 +458,6 @@ class CoreRoles(CoreRBACWorkflow):
         
         xmin = 5
         xmax = 105
-        
-        y_ticklocs = [0, 1, 2, 3, 4]
 
 
 class CoreDemand(CoreRBACWorkflow):
