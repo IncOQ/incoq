@@ -274,7 +274,8 @@ def rewrite_comp_resexp(symtab, query, comp):
     return comp
 
 
-def preprocess_comp(tree, symtab, query):
+def preprocess_comp(tree, symtab, query, *,
+                    rewrite_resexp=True):
     """Preprocess a comprehension query for incrementalization."""
     ct = symtab.clausetools
     comp = query.node
@@ -285,8 +286,10 @@ def preprocess_comp(tree, symtab, query):
     # do it again to get any equality patterns introduced by other
     # rewritings (such as convert_subquery_clauses() above).
     comp = ct.elim_sameclause_eqs(comp)
-    # Broaden to express result for all parameter values.
-    comp = rewrite_comp_resexp(symtab, query, comp)
+    
+    if rewrite_resexp:
+        # Broaden to express result for all parameter values.
+        comp = rewrite_comp_resexp(symtab, query, comp)
     
     class Rewriter(S.QueryRewriter):
         def rewrite_comp(self, symbol, name, _comp):
@@ -432,6 +435,8 @@ def transform_aux_comp_query(tree, symtab, query):
     """
     ct = symtab.clausetools
     assert isinstance(query.node, L.Comp)
+    tree = preprocess_comp(tree, symtab, query, rewrite_resexp=False)
+    
     clauses = query.node.clauses
     
     func_name = N.get_compute_func_name(query.name)

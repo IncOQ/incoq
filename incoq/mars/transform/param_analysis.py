@@ -454,7 +454,12 @@ class DemandParamAnalyzer(ContextTracker):
         ct = symtab.clausetools
         query_sym = symtab.get_queries()[node.name]
         
-        if isinstance(node.query, L.Comp):
+        if query_sym.impl is S.Aux:
+            # No demand for aux impl.
+            demand_params = ()
+            uses_demand = False
+        
+        elif isinstance(node.query, L.Comp):
             demand_params = determine_comp_demand_params(
                 ct, node.query, query_sym.params,
                 query_sym.demand_params, query_sym.demand_param_strat)
