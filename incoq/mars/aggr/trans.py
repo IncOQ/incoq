@@ -284,8 +284,16 @@ class AggrMaintainer(L.NodeTransformer):
         return code
     
     def visit_RelClear(self, node):
-        if not (node.rel == self.aggrinv.rel or
-                self.aggrinv.uses_demand and node.rel == self.aggrinv.restr):
+        # We should clear if we are not using demand and our operand is
+        # being cleared, or if we are using demand and our demand set is
+        # being cleared.
+        aggrinv = self.aggrinv
+        uses_demand = aggrinv.uses_demand
+        if uses_demand:
+            should_clear = node.rel == aggrinv.restr
+        else:
+            should_clear = node.rel == aggrinv.rel
+        if not should_clear:
             return node
         
         clear_code = (L.MapClear(self.aggrinv.map),)
