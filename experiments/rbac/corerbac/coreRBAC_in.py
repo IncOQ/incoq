@@ -21,6 +21,12 @@
 
 from incoq.mars.runtime import *
 
+SYMCONFIG('CA',
+    demand_param_strat = 'explicit',
+    demand_params = 'object',
+    clause_reorder = '3, 1, 2',
+)
+
 OBJS = Set()  
 OPS = Set()   # an operation-object pair is called a permission
 USERS = Set()
