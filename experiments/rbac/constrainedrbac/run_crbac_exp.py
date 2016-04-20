@@ -7,7 +7,8 @@ import os
 import sys
 import importlib
 
-from frexp import ExpWorkflow, Datagen, MetricExtractor, Runner
+from frexp import (ExpWorkflow, Datagen, MetricExtractor,
+                   ScaledExtractor, Runner)
 
 from experiments.util import SmallExtractor
 
@@ -223,7 +224,7 @@ class CRBACScale(CRBACWorkflow):
     min_repeats = 10
     max_repeats = 50
     
-    class ExpExtractor(MetricExtractor, SmallExtractor):
+    class ExpExtractor(MetricExtractor, SmallExtractor, ScaledExtractor):
         
         series = [
             ('crbac_orig', 'original',
@@ -236,6 +237,10 @@ class CRBACScale(CRBACWorkflow):
              'green', '- ^ poly2'),
         ]
         
+        multipliers = {
+#            'crbac_inc': 5,
+        }
+        
         legend_loc = 'upper center'
         
         ylabel = 'Running time (in seconds)'
@@ -243,5 +248,7 @@ class CRBACScale(CRBACWorkflow):
         
         metric = 'time_cpu'
         
-        ymin = 0
+        ymin = -1
         ymax = 20
+        xmin = -5
+        xmax = 105

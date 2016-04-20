@@ -52,7 +52,7 @@ all_tasks = [
     ('corerbac_roles',                  rbac.corerbac.CoreRoles()),
     ('corerbac_demand',                 rbac.corerbac.CoreDemand()),
     ('corerbac_demand_norm',            rbac.corerbac.CoreDemandNorm()),
-    ('constrainedrbac',                 rbac.constrainedrbac.CRBACScale()),
+    ('crbac',                           rbac.constrainedrbac.CRBACScale()),
     
     # Graddb.
     ('newstu_scale',                    newstudents.NewStudentsScale()),
