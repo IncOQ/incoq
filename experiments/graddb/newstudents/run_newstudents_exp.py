@@ -255,8 +255,7 @@ class NewStudentsScale(NewStudentsWorkflow):
         ]
         
         multipliers = {
-            ('newstu_orig', False): 0.5,
-#            ('newstu_orig', False): 0.2,
+#            ('newstu_orig', False): 0.5,
         }
         
         @property
@@ -293,4 +292,4 @@ class NewStudentsScale(NewStudentsWorkflow):
         xmin = 250
         xmax = 5250
         ymin = -0.025
-        ymax = 0.45
+        ymax = 0.7
