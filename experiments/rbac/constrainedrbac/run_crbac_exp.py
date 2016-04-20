@@ -199,8 +199,8 @@ class CRBACScale(CRBACWorkflow):
         
         progs = [
             'crbac_orig',
-#            'crbac_aux',
-#            'crbac_inc',
+            'crbac_aux',
+            'crbac_inc',
             'crbac_dem',
         ]
         
@@ -244,4 +244,4 @@ class CRBACScale(CRBACWorkflow):
         metric = 'time_cpu'
         
         ymin = 0
-        ymax = 10
+        ymax = 20

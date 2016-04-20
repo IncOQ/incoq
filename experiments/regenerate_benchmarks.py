@@ -113,7 +113,7 @@ checkaccess_opts = {'CA': dict(
     demand_params = 'object',
     clause_reorder = '3, 1, 2',
 )}
-rbac_tasks = [
+corerbac_tasks = [
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_checkaccess_inc',
      {'default_impl': S.Inc}),
@@ -128,11 +128,19 @@ rbac_tasks = [
      'rbac/corerbac/coreRBAC_dem',
      ({'default_impl': S.Filtered, 'auto_query': True},
       checkaccess_opts)),
-    
+]
+crbac_tasks = [
+    ('rbac/constrainedrbac/crbac_in',
+     'rbac/constrainedrbac/crbac_aux',
+     {'default_impl': S.Aux}),
+    ('rbac/constrainedrbac/crbac_in',
+     'rbac/constrainedrbac/crbac_inc',
+     {'default_impl': S.Inc}),
     ('rbac/constrainedrbac/crbac_in',
      'rbac/constrainedrbac/crbac_dem',
      {'default_impl': S.Filtered}),
 ]
+rbac_tasks = corerbac_tasks + crbac_tasks
 graddb_tasks = [
     ('graddb/newstudents/newstu_in',
      'graddb/newstudents/newstu_dem',
@@ -182,6 +190,8 @@ task_lists = [
     ('jql', jql_tasks),
     ('lamutex', lamutex_tasks),
     ('distalgo', distalgo_tasks),
+    ('corerbac', corerbac_tasks),
+    ('crbac', crbac_tasks),
     ('rbac', rbac_tasks),
     ('graddb', graddb_tasks),
     ('other', other_tasks),

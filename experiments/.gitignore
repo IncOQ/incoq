@@ -5,6 +5,7 @@ mars
 backup_run.py
 
 # Generated files.
+*_aux.py
 *_inc.py
 *_dem.py
 *_stats.txt
