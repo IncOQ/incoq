@@ -177,10 +177,25 @@ graddb_tasks = [
      'graddb/queries/tas_and_instructors_dem',
      {'obj_domain': True, 'default_impl': S.Filtered}),
 ]
-other_tasks = [
-    ('other/bday/bday_in',
-     'other/bday/bday_inc',
-     {'obj_domain': True, 'default_impl': S.Inc, 'auto_query': True}),
+probinf_tasks = [
+    ('probinf/bday/bday_in',
+     'probinf/bday/bday_inc',
+     {'default_impl': S.Inc, 'auto_query': True}),
+    ('probinf/bday/bday_in',
+     'probinf/bday/bday_dem',
+     {'default_impl': S.Filtered, 'auto_query': True}),
+    ('probinf/pubauth/pubauth_in',
+     'probinf/pubauth/pubauth_inc',
+     {'default_impl': S.Inc, 'auto_query': True}),
+    ('probinf/pubauth/pubauth_in',
+     'probinf/pubauth/pubauth_dem',
+     {'default_impl': S.Filtered, 'auto_query': True}),
+    ('probinf/pubcite/pubcite_in',
+     'probinf/pubcite/pubcite_inc',
+     {'default_impl': S.Inc, 'auto_query': True}),
+    ('probinf/pubcite/pubcite_in',
+     'probinf/pubcite/pubcite_dem',
+     {'default_impl': S.Filtered, 'auto_query': True}),
 ]
 
 task_lists = [
@@ -194,7 +209,7 @@ task_lists = [
     ('crbac', crbac_tasks),
     ('rbac', rbac_tasks),
     ('graddb', graddb_tasks),
-    ('other', other_tasks),
+    ('probinf', probinf_tasks),
 ]
 task_groups = dict(task_lists)
 
