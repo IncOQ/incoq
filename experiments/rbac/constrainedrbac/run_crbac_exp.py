@@ -201,7 +201,7 @@ class CRBACScale(CRBACWorkflow):
             'crbac_orig',
             'crbac_aux',
             'crbac_inc',
-            'crbac_dem',
+#            'crbac_dem',
         ]
         
         def get_dsparams_list(self):

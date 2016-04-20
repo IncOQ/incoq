@@ -335,7 +335,6 @@ class CoreRBACExtractor(MetricExtractor, SmallExtractor):
     def get_series_points(self, datapoints, sid, *,
                           average):
         inner_sid, kind = sid
-        
         # Grab all data for the inner sid, and split based on noq.
         inner_data = self.get_series_data(datapoints, inner_sid)
         q_data = [p for p in inner_data
@@ -380,6 +379,12 @@ class CoreRoles(CoreRBACWorkflow):
     
     class ExpDatagen(CoreRBACWorkflow.ExpDatagen):
         
+        # The PEPM paper used the version where all queries were
+        # incrementalized, not just checkaccess and its two helper
+        # queries. But I think just checkaccess is more appropriate,
+        # and switching to the other implementation doesn't resolve
+        # our problems with reproducing PEPM results.
+        
         progs = [
             'coreRBAC_in',
             'coreRBAC_checkaccess_inc',
@@ -391,13 +396,20 @@ class CoreRoles(CoreRBACWorkflow):
             True,
         ]
         
+        # Looking at the source code for what is supposed to be the PEPM
+        # benchmark script, best I can figure, the number of queries per
+        # create/delete session pattern is 100, not 1000 as reported,
+        # and the number of active roles per session is 1, not 10, due
+        # to a bug and oversight where users only get assigned 5
+        # sessions.
+        
         def get_dsparams_list(self):
             return [
                 dict(
                     dsid =           str(x),
                     x =              x,
                     
-                    n_users =        10,
+                    n_users =        50,
                     n_roles =        x,
                     n_ops =          20,
                     n_objs =         20,
@@ -442,7 +454,9 @@ class CoreRoles(CoreRBACWorkflow):
              'green', '1-4 _^ poly1'),
         ]
         
-        multipliers = {('coreRBAC_in', 'queries'): .2}
+        multipliers = {
+            ('coreRBAC_in', 'queries'): .2,
+        }
         
         title = None
         ylabel = 'Running time (in seconds)'
@@ -458,6 +472,7 @@ class CoreRoles(CoreRBACWorkflow):
         
         xmin = 5
         xmax = 105
+        ymin = -0.2
 
 
 class CoreDemand(CoreRBACWorkflow):
@@ -477,7 +492,7 @@ class CoreDemand(CoreRBACWorkflow):
                     dsid =           str(x),
                     x =              x,
                     
-                    n_users =        10,
+                    n_users =        50,
                     n_roles =        100,
                     n_ops =          20,
                     n_objs =         1000,
@@ -544,4 +559,4 @@ class CoreDemandNorm(CoreDemand):
             return pre_y / base_y
         
         ylabel = 'Running time (normalized)'
-        ymax = None
+        ymax = 1.3

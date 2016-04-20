@@ -39,8 +39,7 @@ def AddUser(user):
 
 def DeleteUser(user):
     assert user in USERS
-    for _user, _r in set(QUERY('Helper2',
-            {(user,r) for r in ROLES if (user, r) in UR})): # maintain UR
+    for _user, _r in set({(user,r) for r in ROLES if (user, r) in UR}): # maintain UR
         UR.remove((_user, _r))
     for s in set({s for s in SESSIONS if (s,user) in SU}):
         DeleteSession(user,s)                             # maintain sessions
@@ -114,7 +113,7 @@ def DeleteSession(user, session):
     assert session in SESSIONS
     assert (session,user) in SU
     SU.remove((session,user))
-    for _session, _r in set(QUERY('Helper1',
+    for _session, _r in set(QUERY('Helper2',
             {(session,r) for r in ROLES if (session, r) in SR})): # maintain SR
         SR.remove((_session, _r))
     SESSIONS.remove(session)                        # maintain SESSIONS
@@ -161,7 +160,7 @@ def AssignedUsers(role):
 
 def AssignedRoles(user):
     assert user in USERS
-    return {r for r in ROLES if (user,r) in UR}
+    return QUERY('Helper1', {r for r in ROLES if (user,r) in UR})
 
 # advanced review functions
 
