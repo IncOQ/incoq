@@ -25,7 +25,8 @@ from collections import OrderedDict
 from incoq.mars.incast import L
 from incoq.mars.type import T
 
-from .common import parse_bool, parse_list, ParseableEnumMixin
+from .common import (parse_bool, parse_list, parse_int_list,
+                     ParseableEnumMixin)
 
 
 class Constants(ParseableEnumMixin, Enum):
@@ -317,6 +318,13 @@ class QuerySymbol(TypedSymbolMixin, Symbol):
         default=None)
         # Should also have parser but needs to accept int or None.
         # Wait to refactor parsing.
+    
+    clause_reorder = SymbolAttribute(
+        doc='Permute clauses by this order for demand strategy '
+            'selection; e.g., 3, 1, 2 means do the third clause, '
+            'then first, then second',
+        default=None,
+        parser=parse_int_list)
     
     count_elim_safe_override = SymbolAttribute(
         doc='If True, consider it safe to eliminate counting for this '

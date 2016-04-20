@@ -7,6 +7,7 @@ __all__ = [
     'rewrite_vars_clauses',
     'lift_firstthen',
     'count_updates',
+    'reorder_clauses',
 ]
 
 
@@ -148,7 +149,7 @@ def count_updates(tree, symtab):
         
         def rewrite_comp(self, symbol, name, comp):
             for cl in comp.clauses:
-                if isinstance(cl, L.VarsMember):
+                if isinstance(cl, (L.VarsMember, L.Member)):
                     if isinstance(cl.iter, (L.Wrap, L.Unwrap)):
                         if isinstance(cl.iter.value, L.Name):
                             rels.add(cl.iter.value.id)
@@ -187,3 +188,24 @@ def count_updates(tree, symtab):
     UpdateFinder.run(tree)
     
     symtab.stats['updates_input'] = count
+
+
+def reorder_clauses(tree, symtab):
+    """Rearrange clause orders on a per-query basis. This is useful for
+    changing the demand strategy.
+    """
+    class Rewriter(S.QueryRewriter):
+        def rewrite_comp(self, symbol, name, comp):
+            if symbol.clause_reorder is not None:
+                indices = [i - 1 for i in symbol.clause_reorder]
+                if not sorted(indices) == list(range(len(comp.clauses))):
+                    raise L.ProgramError(
+                        'Bad clause_reorder list for query: {}, {}'.format(
+                        name, symbol.clause_reorder))
+                clauses = [comp.clauses[i] for i in indices]
+                comp = comp._replace(clauses=clauses)
+            return comp
+    
+    tree = Rewriter.run(tree, symtab)
+    
+    return tree

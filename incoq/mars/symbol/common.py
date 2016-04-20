@@ -4,6 +4,7 @@
 __all__ = [
     'parse_bool',
     'parse_list',
+    'parse_int_list',
     'ParseableEnumMixin',
 ]
 
@@ -21,6 +22,11 @@ def parse_bool(s):
 def parse_list(s):
     result = s.split(',')
     result = [it.strip() for it in result]
+    return result
+
+def parse_int_list(s):
+    result = s.split(',')
+    result = [int(it.strip()) for it in result]
     return result
 
 
