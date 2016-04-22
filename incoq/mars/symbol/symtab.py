@@ -143,9 +143,11 @@ class N:
 # Initial transformation statistics.
 init_stats = {
     'lines': 0,
+    'ast_nodes': 0,
     'time': 0,
     'queries_input': 0,
     'updates_input': 0,
+    'updatekinds_input': 0,
     'tags_created': 0,
     'filters_created': 0,
     'comps_transformed': 0,

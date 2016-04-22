@@ -144,19 +144,29 @@ def count_updates(tree, symtab):
     
     # Determine relations in use.
     rels = set()
+    kindcount = 0
     
     class RelFinder(S.QueryRewriter):
         
         def rewrite_comp(self, symbol, name, comp):
+            # Count number of unique relations in this query,
+            # add that to the kind count, then union that with
+            # all the relations seen in any query so far.
+            thiscomp_rels = set()
+            
             for cl in comp.clauses:
                 if isinstance(cl, (L.VarsMember, L.Member)):
                     if isinstance(cl.iter, (L.Wrap, L.Unwrap)):
                         if isinstance(cl.iter.value, L.Name):
-                            rels.add(cl.iter.value.id)
+                            thiscomp_rels.add(cl.iter.value.id)
                 else:
                     rel = ct.rhs_rel(cl)
                     if rel is not None:
-                        rels.add(rel)
+                        thiscomp_rels.add(rel)
+            
+            nonlocal kindcount
+            kindcount += len(thiscomp_rels)
+            rels.update(thiscomp_rels)
         
         def rewrite_aggr(self, symbol, name, aggr):
             oper = aggr.value
@@ -166,7 +176,10 @@ def count_updates(tree, symtab):
                 oper = oper.set
             
             if isinstance(oper, L.Name):
-                rels.add(oper.id)
+                if oper.id not in rels:
+                    rels.add(oper.id)
+                    nonlocal kindcount
+                    kindcount += 1
     
     RelFinder.run(tree, symtab)
     
@@ -188,6 +201,8 @@ def count_updates(tree, symtab):
     UpdateFinder.run(tree)
     
     symtab.stats['updates_input'] = count
+    # Double kindcount for counting additions and removals.
+    symtab.stats['updatekinds_input'] = kindcount * 2
 
 
 def reorder_clauses(tree, symtab):

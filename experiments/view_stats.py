@@ -539,6 +539,33 @@ class RBACAggregator(LOCTimeAggregator):
          'Constrained RBAC, Filtered'),
     ]
 
+class GradDBAggregator(SimpleAggregator):
+    
+    cols = [
+        ('time', 'Time'),
+        ('updatekinds_input', 'Update kinds'),
+        ('lines', 'Lines'),
+        ('ast_nodes', 'AST nodes'),
+    ]
+    
+    _rows = [
+        ('cur_stu_dem',                 'Current Students'),
+        ('new_stu_dem',                 'New Students'),
+        ('tas_and_instructors_dem',     'TAs and Instructors'),
+        ('new_ta_emails_dem',           'New TA Emails'),
+        ('ta_waitlist_dem',             'TA Waitlist'),
+        ('good_tas_dem',                'Good TAs'),
+        ('qual_exam_results_dem',       'Qual Exam Results'),
+        ('advisors_by_student_dem',     'Advisors by Student'),
+        ('advisor_overdue_dem',         'Advisor Overdue'),
+        ('prelim_exam_overdue_dem',     'Prelim Exam Overdue'),
+    ]
+    
+    @property
+    def rows(self):
+        return [('graddb/queries/' + suffix, display)
+                for suffix, display in self._rows]
+
 aggregations = [
     ('twitter',                         TwitterAggregator),
     ('twitter_opt',                     TwitterOptAggregator),
@@ -548,6 +575,7 @@ aggregations = [
     ('comparisons',                     ComparisonsAggregator),
     ('comparisons_combined',            CombinedComparisonsAggregator),
     ('rbac',                            RBACAggregator),
+    ('graddb',                          GradDBAggregator),
 ]
 
 aggregations_dict = dict(aggregations)

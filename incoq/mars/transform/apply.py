@@ -397,6 +397,8 @@ def transform_ast(input_ast, *, options=None, query_options=None):
     # Turn relation updates back into set updates.
     tree = relation_rewritings.unspecialize_rels_and_maps(tree, symtab)
     
+    symtab.stats['ast_nodes'] = L.tree_size(tree)
+    
     tree = postprocess_tree(tree, symtab)
     
     return tree, symtab
