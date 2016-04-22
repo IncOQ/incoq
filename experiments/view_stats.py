@@ -145,6 +145,52 @@ collections = [
     ('jql/jql_3_in',                    loc_collector),
     ('jql/jql_3_inc',                   statfile_collector),
     ('jql/jql_3_dem',                   statfile_collector),
+    
+    # RBAC.
+    ('rbac/corerbac/coreRBAC_in',               loc_collector),
+    ('rbac/corerbac/coreRBAC_checkaccess_inc',  statfile_collector),
+    ('rbac/corerbac/coreRBAC_checkaccess_dem',  statfile_collector),
+    ('rbac/corerbac/coreRBAC_inc',              statfile_collector),
+    ('rbac/corerbac/coreRBAC_dem',              statfile_collector),
+    ('rbac/constrainedrbac/crbac_in',           loc_collector),
+    ('rbac/constrainedrbac/crbac_aux',          statfile_collector),
+    ('rbac/constrainedrbac/crbac_inc',          statfile_collector),
+    ('rbac/constrainedrbac/crbac_dem',          statfile_collector),
+    
+    # GradDB.
+    ('graddb/newstudents/newstu_in',            loc_collector),
+    ('graddb/newstudents/newstu_dem',           statfile_collector),
+    ('graddb/queries/advisor_overdue_in',       loc_collector),
+    ('graddb/queries/advisor_overdue_dem',      statfile_collector),
+    ('graddb/queries/advisors_by_student_in',   loc_collector),
+    ('graddb/queries/advisors_by_student_dem',  statfile_collector),
+    ('graddb/queries/cur_stu_in',               loc_collector),
+    ('graddb/queries/cur_stu_dem',              statfile_collector),
+    ('graddb/queries/good_tas_in',              loc_collector),
+    ('graddb/queries/good_tas_dem',             statfile_collector),
+    ('graddb/queries/new_stu_in',               loc_collector),
+    ('graddb/queries/new_stu_dem',              statfile_collector),
+    ('graddb/queries/new_ta_emails_in',         loc_collector),
+    ('graddb/queries/new_ta_emails_dem',        statfile_collector),
+    ('graddb/queries/prelim_exam_overdue_in',   loc_collector),
+    ('graddb/queries/prelim_exam_overdue_dem',  statfile_collector),
+    ('graddb/queries/qual_exam_results_in',     loc_collector),
+    ('graddb/queries/qual_exam_results_dem',    statfile_collector),
+    ('graddb/queries/ta_waitlist_in',           loc_collector),
+    ('graddb/queries/ta_waitlist_dem',          statfile_collector),
+    ('graddb/queries/tas_and_instructors_in',   loc_collector),
+    ('graddb/queries/tas_and_instructors_dem',  statfile_collector),
+    
+    # ProbInf.
+    ('probinf/bday/bday_in',            loc_collector),
+    ('probinf/bday/bday_inc',           statfile_collector),
+    ('probinf/bday/bday_dem',           statfile_collector),
+    ('probinf/pubauth/pubauth_in',      loc_collector),
+    ('probinf/pubauth/pubauth_inc',     statfile_collector),
+    ('probinf/pubauth/pubauth_dem',     statfile_collector),
+    ('probinf/pubcite/pubcite_in',      loc_collector),
+    ('probinf/pubcite/pubcite_inc',     statfile_collector),
+    ('probinf/pubcite/pubcite_dem',     statfile_collector),
 ]
 
 
@@ -445,6 +491,29 @@ class CombinedComparisonsAggregator(CombinedLOCTimeAggregator):
          'JQL 3'),
     ]
 
+class RBACAggregator(LOCTimeAggregator):
+    
+    rows = [
+        ('rbac/corerbac/coreRBAC_in',
+         'RBAC, Original'),
+        ('rbac/corerbac/coreRBAC_checkaccess_inc', 
+         'RBAC, Incremental (CheckAccess)'),
+        ('rbac/corerbac/coreRBAC_checkaccess_dem', 
+         'RBAC, Filtered (CheckAccess)'),
+        ('rbac/corerbac/coreRBAC_inc', 
+         'RBAC, Incremental (all)'),
+        ('rbac/corerbac/coreRBAC_dem', 
+         'RBAC, Filtered (all)'),
+        ('rbac/constrainedrbac/crbac_in',
+         'Constrained RBAC, Original'),
+        ('rbac/constrainedrbac/crbac_aux',
+         'Constrained RBAC, Auxmap'),
+        ('rbac/constrainedrbac/crbac_inc',
+         'Constrained RBAC, Incremental'),
+        ('rbac/constrainedrbac/crbac_dem',
+         'Constrained RBAC, Filtered'),
+    ]
+
 aggregations = [
     ('twitter',                         TwitterAggregator),
     ('twitter_opt',                     TwitterOptAggregator),
@@ -453,6 +522,7 @@ aggregations = [
     ('jql',                             JQLAggregator),
     ('comparisons',                     ComparisonsAggregator),
     ('comparisons_combined',            CombinedComparisonsAggregator),
+    ('rbac',                            RBACAggregator),
 ]
 
 aggregations_dict = dict(aggregations)
