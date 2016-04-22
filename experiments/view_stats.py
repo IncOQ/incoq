@@ -33,48 +33,26 @@ from incoq.util.linecount import get_loc_source
 root_path = normpath(dirname(__file__))
 
 
-# Custom TableFormat for Latex output that differs from the default
-# 'latex' format.
-def build_latex_table_format():
-    from tabulate import (_latex_line_begin_tabular, Line,
-                          _latex_row, TableFormat, LATEX_ESCAPE_RULES,
-                          DataRow, _build_simple_row)
+def latexrow_with_rowfunc(rowfunc):
+    """Return a version of tabulate._latex_row() that dispatches to
+    a custom function in place of tabulate._build_simple_row().
+    """
+    from tabulate import LATEX_ESCAPE_RULES, DataRow
+    my_escape_rules = dict(LATEX_ESCAPE_RULES)
+    del my_escape_rules['~']
     
-    # Provide our own version of _build_simple_row() that bolds the
-    # first entry in teletype using our \c{} macro.
-    def _bolded_build_simple_row(padded_cells, rowfmt):
-        begin, sep, end = rowfmt
-        
-        first_cell, *data_cells = padded_cells
-        first_cell = r'\c{' + first_cell + r'}'
-        padded_cells = [first_cell] + data_cells
-        
-        return (begin + sep.join(padded_cells) + end).rstrip()
-    
-    # Provide our own version of _latex_row() that uses this function.
-    def _bolded_latex_row(cell_values, colwidths, colaligns):
+    def _latex_row(cell_values, colwidths, colaligns):
+        """Version of tabulate._latex_row() that dispatches to a local
+        hook instead of tabulate()._build_simple_row().
+        """
         def escape_char(c):
-            return LATEX_ESCAPE_RULES.get(c, c)
+            return my_escape_rules.get(c, c)
         escaped_values = ["".join(map(escape_char, cell))
                           for cell in cell_values]
         rowfmt = DataRow("", "&", "\\\\")
-        return _bolded_build_simple_row(escaped_values, rowfmt)
+        return rowfunc(escaped_values, rowfmt)
     
-    # A version of _latex_row() that doesn't escape things.
-    def _unescaped_latex_row(cell_values, colwidths, colaligns):
-        rowfmt = DataRow("", "&", "\\\\")
-        return _build_simple_row(cell_values, rowfmt)
-    
-    # Use tabulate's latex format, except use _my_latex_row for the datarow.
-    return TableFormat(lineabove=_latex_line_begin_tabular,
-                       linebelowheader=Line("\\hline", "", "", ""),
-                       linebetweenrows=None,
-                       linebelow=Line("\\hline\n\\end{tabular}", "", "", ""),
-                       headerrow=_unescaped_latex_row,
-                       datarow=_bolded_latex_row,
-                       padding=1, with_header_hide=None)
-
-latex_table_format = build_latex_table_format()
+    return _latex_row
 
 
 def read_file(filename):
@@ -210,6 +188,7 @@ class BaseAggregator:
     """Base class for aggregators."""
     
     floatfmt = '.2f'
+    bold_firstcol = True
     
     def __init__(self, all_stats):
         self.all_stats = all_stats
@@ -217,15 +196,51 @@ class BaseAggregator:
     
     def get_data(self):
         """Return a pair of header data (list of values) and body data
-        (list of rows, i.e., list of lists of values).
+        (list of rows, i.e., list of lists of values). Newlines in the
+        data will be normalized depending on the output.
         """
         raise NotImplementedError
+    
+    def normalize_string(self, s, *, latex, align='c', vertalign='c'):
+        """If latex is False, turn newlines and tilde into spaces. If
+        latex is True, turn newlines into a tabular row and enclose the
+        whole string in a tabular environment (if any newlines are
+        present), and keep tilde's as-is. Return the new string.
+        
+        If a non-string value is given, return it as-is.
+        """
+        if not isinstance(s, str):
+            return s
+        
+        if not latex:
+            s = s.replace('\n', ' ')
+            s = s.replace('~', ' ')
+            return s
+        else:
+            if '\n' in s:
+                new_s = (r'\begin{tabular}[' + vertalign +
+                         ']{@{}' + align + '}')
+                new_s += s.replace('\n', r'\\')
+                new_s += r'\end{tabular}'
+                s = new_s
+            return s
+    
+    def normalize_data(self, header, body, **kargs):
+        """Apply normalize_string() to a header and body as returned
+        by get_data().
+        """
+        header = [self.normalize_string(s, **kargs) for s in header]
+        body = [[self.normalize_string(s, **kargs) for s in line]
+                for line in body]
+        return header, body
     
     def to_csv(self):
         """Return the data formatted as a CSV string."""
         filelike = io.StringIO(newline='')
         writer = csv.writer(filelike)
+        
         header, body = self.get_data()
+        header, body = self.normalize_data(header, body, latex=False)
         writer.writerow(header)
         for line in body:
             writer.writerow(line)
@@ -239,17 +254,47 @@ class BaseAggregator:
     
     def to_table(self):
         header, body = self.get_data()
+        header, body = self.normalize_data(header, body, latex=False)
         return self.tabulate(header, body,
                              tablefmt='simple',
                              floatfmt=self.floatfmt)
     
-    def latex_header_hook(self, header):
-        """Hook for modifying header for formatting in latex output."""
-        return header
+    def latex_build_headerrow(self, padded_cells, rowfmt):
+        """Hook for custom header row behavior."""
+        from tabulate import _build_simple_row
+        
+        padded_cells = [self.normalize_string(cell, latex=True)
+                        for cell in padded_cells]
+        
+        return _build_simple_row(padded_cells, rowfmt)
+    
+    def latex_build_datarow(self, padded_cells, rowfmt):
+        """Hook for custom data row behavior."""
+        from tabulate import _build_simple_row
+        
+        padded_cells = [self.normalize_string(cell, latex=True,
+                                              align='l', vertalign='t')
+                        for cell in padded_cells]
+        
+        if self.bold_firstcol:
+            first_cell, *remaining_cells = padded_cells
+            first_cell = r'\c{' + first_cell.lstrip() + '}'
+            padded_cells = [first_cell] + remaining_cells
+        
+        return _build_simple_row(padded_cells, rowfmt)
     
     def to_latex(self):
+        from tabulate import _latex_line_begin_tabular, Line, TableFormat
+        latex_table_format = TableFormat(
+            lineabove=_latex_line_begin_tabular,
+            linebelowheader=Line("\\hline", "", "", ""),
+            linebetweenrows=None,
+            linebelow=Line("\\hline\n\\end{tabular}", "", "", ""),
+            headerrow=latexrow_with_rowfunc(self.latex_build_headerrow),
+            datarow=latexrow_with_rowfunc(self.latex_build_datarow),
+            padding=1, with_header_hide=None)
+        
         header, body = self.get_data()
-        header = self.latex_header_hook(header)
         return self.tabulate(header, body,
                              tablefmt=latex_table_format,
                              floatfmt=self.floatfmt)
@@ -356,26 +401,6 @@ class CombinedAggregator(BaseAggregator):
                                          base_names[l_ind], l_attr,
                                          base_names[r_ind], r_attr))
         return header, body
-    
-    twoline_header = True
-    
-    def latex_header_hook(self, header):
-        # Make LOC/Time column headers take up two lines.
-        if self.twoline_header:
-            new_header = []
-            for h in header:
-                i = h.find(' LOC')
-                if i == -1:
-                    i = h.find(' Time')
-                if i == -1:
-                    new_header.append(h)
-                else:
-                    new_header.append(r'\begin{{tabular}}{{c}}{}\\{}'
-                                      r'\end{{tabular}}'
-                                      .format(h[:i], h[i+1:]))
-            return new_header
-        else:
-            return header
 
 
 class LOCAggregator(SimpleAggregator):
@@ -386,13 +411,13 @@ class LOCTimeAggregator(SimpleAggregator):
 
 class CombinedLOCTimeAggregator(CombinedAggregator):
     cols = [
-        (0, 'lines', 'Orig. LOC'),
-        (1, 'queries_input', r'\# queries'),
-        (1, 'updates_input', r'\# updates'),
-        (1, 'lines', 'Inc. LOC'),
-        (1, 'time', 'Inc. Time'),
-        (2, 'lines', 'Filt. LOC'),
-        (2, 'time', 'Filt. Time'),
+        (0, 'lines', 'Orig.\nLOC'),
+        (1, 'queries_input', '# queries'),
+        (1, 'updates_input', '# updates'),
+        (1, 'lines', 'Inc.\nLOC'),
+        (1, 'time', 'Inc.\nTime'),
+        (2, 'lines', 'Filt.\nLOC'),
+        (2, 'time', 'Filt.\nTime'),
     ]
     equalities = [
         ((1, 'queries_input'), (2, 'queries_input')),
@@ -476,7 +501,7 @@ class CombinedComparisonsAggregator(CombinedLOCTimeAggregator):
         (['django/django_simp_in',
           'django/django_simp_inc',
           'django/django_simp_dem'],
-         'Django (simp)'),
+         'Django,\n~simplified'),
         (['jql/jql_1_in',
           'jql/jql_1_inc',
           'jql/jql_1_dem'],
