@@ -1,13 +1,14 @@
 import random
-from time import clock
+from time import process_time
 #import bday_in as bday
 import bday_inc as bday
 
 num_bdays = 365
 people = range(23)
 K = 100000
+threshold = 1
 
-t1 = clock()
+t1 = process_time()
 
 bday.setup_bdays(num_bdays)
 
@@ -28,9 +29,9 @@ for _ in range(K):
     bday.add_brel(p, new_day)
     bdays[p] = new_day
     
-    results.append(bday.do_query() > 0)
+    results.append(bday.do_query(threshold) > 0)
 
-t2 = clock()
+t2 = process_time()
 
 print('{} people, {} changes'.format(len(people), K))
 print('Estimated probability: {:.6f}'.format(sum(results)/len(results)))

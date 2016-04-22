@@ -16,6 +16,6 @@ def remove_brel(person, day):
 def clear_all():
     BREL.clear()
 
-def do_query():
+def do_query(k):
     return count({b for b in bdays
-                    if count({p for (p, b2) in BREL if b2 == b}) > 1})
+                    if count({p for (p, b2) in BREL if b2 == b}) > k})

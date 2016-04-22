@@ -32,7 +32,7 @@ def run(bday, n, k):
     for person, old_day, new_day in actions:
         bday.remove_brel(person, old_day)
         bday.add_brel(person, new_day)
-        bday.do_query()
+        bday.do_query(1)
     t2 = clock()
     
     bday.clear_all()
