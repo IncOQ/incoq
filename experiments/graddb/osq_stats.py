@@ -26,16 +26,16 @@ osq_nodes = [int(row[4]) for row in osq_data]
 
 # python experiments/view_stats.py graddb --format csv
 incoq_text = '''
-Current Students,12,2.5,509,5089,6.359375,851,7615
-New Students,12,2.5,509,5107,5.765625,851,7633
-TAs and Instructors,18,3.171875,652,6193,7.890625,1194,10179
-New TA Emails,10,1.953125,422,3257,3.4375,754,5671
-TA Waitlist,10,1.875,480,3855,4.796875,878,6755
-Good TAs,8,1.109375,278,2429,2.40625,516,4171
-Qual Exam Results,18,2.828125,680,6131,6.34375,1069,9035
-Advisors by Student,14,3.5,576,5547,6.359375,945,8273
-Advisor Overdue,12,2.546875,508,4993,4.90625,850,7511
-Prelim Exam Overdue,10,1.828125,350,3077,2.875,638,5179
+Current Students,12,2.515625,509,5089,5.015625,851,7615
+New Students,12,2.515625,509,5107,5.03125,851,7633
+TAs and Instructors,18,2.953125,652,6193,7.15625,1194,10179
+New TA Emails,10,1.421875,422,3257,3.21875,754,5671
+TA Waitlist,10,1.640625,480,3855,3.9375,878,6755
+Good TAs,8,1.03125,278,2429,2.140625,516,4171
+Qual Exam Results,18,2.9375,680,6131,5.9375,1069,9035
+Advisors by Student,14,2.703125,576,5547,5.46875,945,8273
+Advisor Overdue,12,2.546875,508,4993,5.046875,850,7511
+Prelim Exam Overdue,10,1.34375,350,3077,2.84375,638,5179
 '''
 incoq_data = [row.rsplit(',')
               for row in incoq_text.split('\n')
