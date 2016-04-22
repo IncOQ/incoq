@@ -397,8 +397,6 @@ def transform_ast(input_ast, *, options=None, query_options=None):
     # Turn relation updates back into set updates.
     tree = relation_rewritings.unspecialize_rels_and_maps(tree, symtab)
     
-    symtab.stats['ast_nodes'] = L.tree_size(tree)
-    
     tree = postprocess_tree(tree, symtab)
     
     return tree, symtab
@@ -421,6 +419,9 @@ def transform_source(input_source, *, options=None, query_options=None):
     source = source + '\n'
     
     symtab.stats['lines'] = get_loc_source(source)
+    # L.tree_size() is for IncASTs, but it should also work for
+    # Python ASTs.
+    symtab.stats['ast_nodes'] = L.tree_size(tree)
     symtab.stats['time'] = t2 - t1
     
     return source, symtab
