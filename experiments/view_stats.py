@@ -139,24 +139,34 @@ collections = [
     ('graddb/newstudents/newstu_in',            loc_collector),
     ('graddb/newstudents/newstu_dem',           statfile_collector),
     ('graddb/queries/advisor_overdue_in',       loc_collector),
+    ('graddb/queries/advisor_overdue_inc',      statfile_collector),
     ('graddb/queries/advisor_overdue_dem',      statfile_collector),
     ('graddb/queries/advisors_by_student_in',   loc_collector),
+    ('graddb/queries/advisors_by_student_inc',  statfile_collector),
     ('graddb/queries/advisors_by_student_dem',  statfile_collector),
     ('graddb/queries/cur_stu_in',               loc_collector),
+    ('graddb/queries/cur_stu_inc',              statfile_collector),
     ('graddb/queries/cur_stu_dem',              statfile_collector),
     ('graddb/queries/good_tas_in',              loc_collector),
+    ('graddb/queries/good_tas_inc',             statfile_collector),
     ('graddb/queries/good_tas_dem',             statfile_collector),
     ('graddb/queries/new_stu_in',               loc_collector),
+    ('graddb/queries/new_stu_inc',              statfile_collector),
     ('graddb/queries/new_stu_dem',              statfile_collector),
     ('graddb/queries/new_ta_emails_in',         loc_collector),
+    ('graddb/queries/new_ta_emails_inc',        statfile_collector),
     ('graddb/queries/new_ta_emails_dem',        statfile_collector),
     ('graddb/queries/prelim_exam_overdue_in',   loc_collector),
+    ('graddb/queries/prelim_exam_overdue_inc',  statfile_collector),
     ('graddb/queries/prelim_exam_overdue_dem',  statfile_collector),
     ('graddb/queries/qual_exam_results_in',     loc_collector),
+    ('graddb/queries/qual_exam_results_inc',    statfile_collector),
     ('graddb/queries/qual_exam_results_dem',    statfile_collector),
     ('graddb/queries/ta_waitlist_in',           loc_collector),
+    ('graddb/queries/ta_waitlist_inc',          statfile_collector),
     ('graddb/queries/ta_waitlist_dem',          statfile_collector),
     ('graddb/queries/tas_and_instructors_in',   loc_collector),
+    ('graddb/queries/tas_and_instructors_inc',  statfile_collector),
     ('graddb/queries/tas_and_instructors_dem',  statfile_collector),
     
     # ProbInf.
@@ -539,32 +549,40 @@ class RBACAggregator(LOCTimeAggregator):
          'Constrained RBAC, Filtered'),
     ]
 
-class GradDBAggregator(SimpleAggregator):
+class GradDBAggregator(CombinedAggregator):
     
     cols = [
-        ('time', 'Time'),
-        ('updatekinds_input', 'Update kinds'),
-        ('lines', 'Lines'),
-        ('ast_nodes', 'AST nodes'),
+        (0, 'updatekinds_input', 'Update\nkinds'),
+        (0, 'time', 'Inc.\nTime'),
+        (0, 'lines', 'Inc.\nLines'),
+        (0, 'ast_nodes', 'Inc.\nAST nodes'),
+        (1, 'time', 'Filt.\nTime'),
+        (1, 'lines', 'Filt.\nLines'),
+        (1, 'ast_nodes', 'Filt.\nAST nodes'),
+    ]
+    
+    equalities = [
+        ((0, 'updatekinds_input'), (1, 'updatekinds_input')),
     ]
     
     _rows = [
-        ('cur_stu_dem',                 'Current Students'),
-        ('new_stu_dem',                 'New Students'),
-        ('tas_and_instructors_dem',     'TAs and Instructors'),
-        ('new_ta_emails_dem',           'New TA Emails'),
-        ('ta_waitlist_dem',             'TA Waitlist'),
-        ('good_tas_dem',                'Good TAs'),
-        ('qual_exam_results_dem',       'Qual Exam Results'),
-        ('advisors_by_student_dem',     'Advisors by Student'),
-        ('advisor_overdue_dem',         'Advisor Overdue'),
-        ('prelim_exam_overdue_dem',     'Prelim Exam Overdue'),
+        ('cur_stu',                     'Current Students'),
+        ('new_stu',                     'New Students'),
+        ('tas_and_instructors',         'TAs and Instructors'),
+        ('new_ta_emails',               'New TA Emails'),
+        ('ta_waitlist',                 'TA Waitlist'),
+        ('good_tas',                    'Good TAs'),
+        ('qual_exam_results',           'Qual Exam Results'),
+        ('advisors_by_student',         'Advisors by Student'),
+        ('advisor_overdue',             'Advisor Overdue'),
+        ('prelim_exam_overdue',         'Prelim Exam Overdue'),
     ]
     
     @property
     def rows(self):
-        return [('graddb/queries/' + suffix, display)
-                for suffix, display in self._rows]
+        return [(['graddb/queries/' + base + '_inc',
+                  'graddb/queries/' + base + '_dem'], display)
+                for base, display in self._rows]
 
 aggregations = [
     ('twitter',                         TwitterAggregator),

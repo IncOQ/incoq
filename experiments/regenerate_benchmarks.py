@@ -10,6 +10,7 @@ import sys
 import argparse
 from os import chdir
 from os.path import dirname, normpath
+from itertools import chain
 
 from incoq.mars.symbol.config import get_argparser, extract_options
 from incoq.mars.symbol import S
@@ -20,6 +21,7 @@ from incoq.mars import __main__ as main
 # The third component may also be a pair of a dictionary of config
 # options and a dictionary of query options (i.e., a mapping from
 # query name to another dictionary).
+
 twitter_tasks = [
     ('twitter/twitter_in', 'twitter/twitter_inc',
      {'default_impl': S.Inc}),
@@ -65,12 +67,14 @@ twitter_tasks = [
      {'default_impl': S.Filtered,
       'use_singletag_demand': True}),
 ]
+
 wifi_tasks = [
     ('wifi/wifi_in', 'wifi/wifi_inc',
      {'default_impl': S.Inc}),
     ('wifi/wifi_in', 'wifi/wifi_dem',
      {'default_impl': S.Filtered}),
 ]
+
 django_tasks = [
     ('django/django_in', 'django/django_inc',
      {'default_impl': S.Inc}),
@@ -81,6 +85,7 @@ django_tasks = [
     ('django/django_simp_in', 'django/django_simp_dem',
      {'default_impl': S.Filtered}),
 ]
+
 jql_tasks = [
     ('jql/jql_1_in', 'jql/jql_1_inc',
      {'default_impl': S.Inc}),
@@ -95,6 +100,7 @@ jql_tasks = [
     ('jql/jql_3_in', 'jql/jql_3_dem',
      {'default_impl': S.Filtered}),
 ]
+
 lamutex_tasks = [
     ('distalgo/lamutex/lamutex_orig_inc_in',
      'distalgo/lamutex/lamutex_orig_inc_out',
@@ -108,6 +114,7 @@ lamutex_tasks = [
       'default_demand_set_maxsize': 1}),
 ]
 distalgo_tasks = lamutex_tasks
+
 checkaccess_opts = {'CA': dict(
     demand_param_strat = 'explicit',
     demand_params = 'object',
@@ -141,42 +148,37 @@ crbac_tasks = [
      {'default_impl': S.Filtered}),
 ]
 rbac_tasks = corerbac_tasks + crbac_tasks
+
+graddb_queries = [
+    'advisor_overdue',
+    'advisors_by_student',
+    'cur_stu',
+    'good_tas',
+    'new_stu',
+    'new_ta_emails',
+    'prelim_exam_overdue',
+    'qual_exam_results',
+    'ta_waitlist',
+    'tas_and_instructors',
+]
+def graddb_helper(name):
+    prefix = 'graddb/queries/'
+    return [
+        (prefix + name + '_in',
+         prefix + name + '_inc',
+         {'obj_domain': True, 'default_impl': S.Inc}),
+        (prefix + name + '_in',
+         prefix + name + '_dem',
+         {'obj_domain': True, 'default_impl': S.Filtered}),
+    ]
+graddb_query_tasks = list(chain.from_iterable(graddb_helper(name)
+                          for name in graddb_queries))
 graddb_tasks = [
     ('graddb/newstudents/newstu_in',
      'graddb/newstudents/newstu_dem',
      {'obj_domain': True, 'default_impl': S.Filtered}),
-    
-    ('graddb/queries/advisor_overdue_in',
-     'graddb/queries/advisor_overdue_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
-    ('graddb/queries/advisors_by_student_in',
-     'graddb/queries/advisors_by_student_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
-    ('graddb/queries/cur_stu_in',
-     'graddb/queries/cur_stu_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
-    ('graddb/queries/good_tas_in',
-     'graddb/queries/good_tas_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
-    ('graddb/queries/new_stu_in',
-     'graddb/queries/new_stu_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
-    ('graddb/queries/new_ta_emails_in',
-     'graddb/queries/new_ta_emails_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
-    ('graddb/queries/prelim_exam_overdue_in',
-     'graddb/queries/prelim_exam_overdue_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
-    ('graddb/queries/qual_exam_results_in',
-     'graddb/queries/qual_exam_results_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
-    ('graddb/queries/ta_waitlist_in',
-     'graddb/queries/ta_waitlist_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
-    ('graddb/queries/tas_and_instructors_in',
-     'graddb/queries/tas_and_instructors_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
-]
+] + graddb_query_tasks
+
 probinf_tasks = [
     ('probinf/bday/bday_in',
      'probinf/bday/bday_inc',
