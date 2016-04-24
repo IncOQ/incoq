@@ -584,6 +584,23 @@ class GradDBAggregator(CombinedAggregator):
                   'graddb/queries/' + base + '_dem'], display)
                 for base, display in self._rows]
 
+class ProbInfAggregator(CombinedLOCTimeAggregator):
+    
+    rows = [
+        (['probinf/bday/bday_in',
+          'probinf/bday/bday_inc',
+          'probinf/bday/bday_dem'],
+         'Birthday'),
+        (['probinf/pubauth/pubauth_in',
+          'probinf/pubauth/pubauth_inc',
+          'probinf/pubauth/pubauth_dem'],
+         'Publications'),
+        (['probinf/pubcite/pubcite_in',
+          'probinf/pubcite/pubcite_inc',
+          'probinf/pubcite/pubcite_dem'],
+         'Citations'),
+    ]
+
 aggregations = [
     ('twitter',                         TwitterAggregator),
     ('twitter_opt',                     TwitterOptAggregator),
@@ -594,6 +611,7 @@ aggregations = [
     ('comparisons_combined',            CombinedComparisonsAggregator),
     ('rbac',                            RBACAggregator),
     ('graddb',                          GradDBAggregator),
+    ('probinf',                         ProbInfAggregator),
 ]
 
 aggregations_dict = dict(aggregations)
