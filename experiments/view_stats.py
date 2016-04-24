@@ -173,6 +173,9 @@ collections = [
     ('probinf/bday/bday_in',            loc_collector),
     ('probinf/bday/bday_inc',           statfile_collector),
     ('probinf/bday/bday_dem',           statfile_collector),
+    ('probinf/bday/bday_obj_in',        loc_collector),
+    ('probinf/bday/bday_obj_inc',       statfile_collector),
+    ('probinf/bday/bday_obj_dem',       statfile_collector),
     ('probinf/pubauth/pubauth_in',      loc_collector),
     ('probinf/pubauth/pubauth_inc',     statfile_collector),
     ('probinf/pubauth/pubauth_dem',     statfile_collector),
@@ -587,9 +590,13 @@ class GradDBAggregator(CombinedAggregator):
 class ProbInfAggregator(CombinedLOCTimeAggregator):
     
     rows = [
-        (['probinf/bday/bday_in',
-          'probinf/bday/bday_inc',
-          'probinf/bday/bday_dem'],
+#        (['probinf/bday/bday_in',
+#          'probinf/bday/bday_inc',
+#          'probinf/bday/bday_dem'],
+#         'Birthday'),
+        (['probinf/bday/bday_obj_in',
+          'probinf/bday/bday_obj_inc',
+          'probinf/bday/bday_obj_dem'],
          'Birthday'),
         (['probinf/pubauth/pubauth_in',
           'probinf/pubauth/pubauth_inc',
