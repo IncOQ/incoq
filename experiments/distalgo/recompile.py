@@ -75,10 +75,9 @@ tasks = [
 #    ('dscrash/spec', 'dscrash/dscrash'),
 #    ('hsleader/spec', 'hsleader/hsleader'),
 #    
-#    ('lamutex/spec_unopt_relack', 'lamutex/lamutex'),
-#    ('lamutex/spec_unopt_ack', 'lamutex/lamutex_opt1'),
-#    ('lamutex/spec', 'lamutex/lamutex_opt2'),
 #    ('lamutex/orig', 'lamutex/lamutex_orig'),
+#    ('lamutex/spec', 'lamutex/lamutex_spec'),
+#    ('lamutex/spec_lam', 'lamutex/lamutex_spec_lam'),
 #    
 #    ('lapaxos/orig', 'lapaxos/lapaxos'),
 #    ('ramutex/spec', 'ramutex/ramutex'),

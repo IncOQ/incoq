@@ -101,20 +101,6 @@ jql_tasks = [
      {'default_impl': S.Filtered}),
 ]
 
-lamutex_tasks = [
-    ('distalgo/lamutex/lamutex_orig_inc_in',
-     'distalgo/lamutex/lamutex_orig_inc_out',
-     {'default_impl': S.Inc,
-      'auto_query': True,
-      'default_demand_set_maxsize': 1}),
-    ('distalgo/lamutex/lamutex_opt2_inc_in',
-     'distalgo/lamutex/lamutex_opt2_inc_out',
-     {'default_impl': S.Inc,
-      'auto_query': True,
-      'default_demand_set_maxsize': 1}),
-]
-distalgo_tasks = lamutex_tasks
-
 checkaccess_opts = {'CA': dict(
     demand_param_strat = 'explicit',
     demand_params = 'object',
@@ -206,18 +192,37 @@ probinf_tasks = [
      {'default_impl': S.Filtered, 'auto_query': True}),
 ]
 
+lamutex_tasks = [
+    ('distalgo/lamutex/lamutex_orig_inc_in',
+     'distalgo/lamutex/lamutex_orig_inc_out',
+     {'default_impl': S.Inc,
+      'auto_query': True,
+      'default_demand_set_maxsize': 1}),
+    ('distalgo/lamutex/lamutex_spec_inc_in',
+     'distalgo/lamutex/lamutex_spec_inc_out',
+     {'default_impl': S.Inc,
+      'auto_query': True,
+      'default_demand_set_maxsize': 1}),
+    ('distalgo/lamutex/lamutex_spec_lam_inc_in',
+     'distalgo/lamutex/lamutex_spec_lam_inc_out',
+     {'default_impl': S.Inc,
+      'auto_query': True,
+      'default_demand_set_maxsize': 1}),
+]
+distalgo_tasks = lamutex_tasks
+
 task_lists = [
     ('twitter', twitter_tasks),
     ('wifi', wifi_tasks),
     ('django', django_tasks),
     ('jql', jql_tasks),
     ('lamutex', lamutex_tasks),
-    ('distalgo', distalgo_tasks),
     ('corerbac', corerbac_tasks),
     ('crbac', crbac_tasks),
     ('rbac', rbac_tasks),
     ('graddb', graddb_tasks),
     ('probinf', probinf_tasks),
+    ('distalgo', distalgo_tasks),
 ]
 task_groups = dict(task_lists)
 

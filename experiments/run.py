@@ -9,9 +9,9 @@ import experiments.twitter as twitter
 import experiments.wifi as wifi
 import experiments.django as django
 import experiments.jql as jql
-import experiments.distalgo as distalgo
 import experiments.rbac as rbac
 import experiments.graddb.newstudents as newstudents
+import experiments.distalgo as distalgo
 
 
 all_tasks = [
@@ -43,11 +43,6 @@ all_tasks = [
     ('jql_scale_2',                     jql.Scale2()),
     ('jql_scale_3',                     jql.Scale3()),
     
-    ('lamutex_orig_procs',              distalgo.LAMutexOrigProcs()),
-    ('lamutex_orig_rounds',             distalgo.LAMutexOrigRounds()),
-    ('lamutex_specopt_procs',           distalgo.LAMutexSpecOptProcs()),
-    ('lamutex_specopt_rounds',          distalgo.LAMutexSpecOptRounds()),
-    
     # RBAC.
     ('corerbac_roles',                  rbac.corerbac.CoreRoles()),
     ('corerbac_demand',                 rbac.corerbac.CoreDemand()),
@@ -56,6 +51,14 @@ all_tasks = [
     
     # Graddb.
     ('newstu_scale',                    newstudents.NewStudentsScale()),
+    
+    # DistAlgo.
+    ('lamutex_orig_procs',              distalgo.LAMutexOrigProcs()),
+    ('lamutex_orig_rounds',             distalgo.LAMutexOrigRounds()),
+    ('lamutex_spec_procs',              distalgo.LAMutexSpecProcs()),
+    ('lamutex_spec_rounds',             distalgo.LAMutexSpecRounds()),
+    ('lamutex_spec_lam_procs',          distalgo.LAMutexSpecLamProcs()),
+    ('lamutex_spec_lam_rounds',         distalgo.LAMutexSpecLamRounds()),
 ]
 
 all_tasks_dict = dict(all_tasks)

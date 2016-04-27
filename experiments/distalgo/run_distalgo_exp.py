@@ -330,49 +330,8 @@ class HSLeader(DistalgoWorkflow):
 
 
 class LAMutexDriver(DistalgoDriver):
-    dafilename = 'lamutex/lamutex.da'
+    dafilename = None
     argnames = ['n_procs', 'n_rounds']
-
-class LAMutexSpecWorkflow(DistalgoWorkflow):
-    
-    ExpDriver = LAMutexDriver
-    
-    class ExpDatagen(DistalgoWorkflow.ExpDatagen):
-        
-        use_progs_ex = True
-        progs_ex = [
-            ('lamutex/lamutex.da', 'lamutex_inc_in'),
-            ('lamutex/lamutex.da', 'lamutex_inc_inc'),
-        ]
-    
-    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
-        name = 'lamutex'
-        show_wall = True
-    
-    min_repeats = 5
-    max_repeats = 5
-
-class LAMutexSpecOptWorkflow(DistalgoWorkflow):
-    
-    ExpDriver = LAMutexDriver
-    
-    class ExpDatagen(DistalgoWorkflow.ExpDatagen):
-        
-        use_progs_ex = True
-        progs_ex = [
-#            ('lamutex/lamutex_opt1.da', 'lamutex_opt1_inc_in'),
-#            ('lamutex/lamutex_opt1.da', 'lamutex_opt1_inc_inc'),
-            
-            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_in'),
-            ('lamutex/lamutex_opt2.da', 'lamutex_opt2_inc_out'),
-        ]
-    
-    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
-        name = 'lamutex_opt2'
-        show_wall = True
-    
-    min_repeats = 5
-    max_repeats = 5
 
 class LAMutexOrigWorkflow(DistalgoWorkflow):
     
@@ -393,103 +352,47 @@ class LAMutexOrigWorkflow(DistalgoWorkflow):
     min_repeats = 5
     max_repeats = 5
 
-class LAMutexSpecProcs(LAMutexSpecWorkflow):
+class LAMutexSpecWorkflow(DistalgoWorkflow):
     
-    prefix = 'results/lamutexspec_procs'
+    ExpDriver = LAMutexDriver
     
-    class ExpDatagen(LAMutexSpecWorkflow.ExpDatagen):
+    class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
-        def get_dsparams_list(self):
-            return [
-                dict(
-                    dsid =     str(x),
-                    x =        x,
-                    
-                    n_procs =  x,
-                    n_rounds = 10,
-                )
-                for x in range(3, 30 + 1, 3)
-            ]
+        use_progs_ex = True
+        progs_ex = [
+            ('lamutex/lamutex_spec.da', 'lamutex_spec_inc_in'),
+            ('lamutex/lamutex_spec.da', 'lamutex_spec_inc_inc'),
+        ]
     
-    class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
-        ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of processes'  
-        xmin = 1
-        xmax = 31
+    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
+        name = 'lamutex_spec'
+        show_wall = True
+    
+    min_repeats = 5
+    max_repeats = 5
 
-class LAMutexSpecRounds(LAMutexSpecWorkflow):
+class LAMutexSpecLamWorkflow(DistalgoWorkflow):
     
-    prefix = 'results/lamutexspec_rounds'
+    ExpDriver = LAMutexDriver
     
-    class ExpDatagen(LAMutexSpecWorkflow.ExpDatagen):
-        def get_dsparams_list(self):
-            return [
-                dict(
-                    dsid =     str(x),
-                    x =        x,
-                    
-                    n_procs =  10,
-                    n_rounds = x,
-                )
-                for x in range(3, 30 + 1, 3)
-            ]
-    
-    class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
-        ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of rounds'
-        xmin = 1
-        xmax = 31
-
-class LAMutexSpecOptProcs(LAMutexSpecOptWorkflow):
-    
-    prefix = 'results/lamutexspecopt_procs'
-    
-    class ExpDatagen(LAMutexSpecOptWorkflow.ExpDatagen):
+    class ExpDatagen(DistalgoWorkflow.ExpDatagen):
         
-        def get_dsparams_list(self):
-            return [
-                dict(
-                    dsid =     str(x),
-                    x =        x,
-                    
-                    n_procs =  x,
-                    n_rounds = 10,
-                )
-                for x in range(3, 30 + 1, 3)
-            ]
+        use_progs_ex = True
+        progs_ex = [
+            ('lamutex/lamutex_spec_lam.da', 'lamutex_spec_lam_inc_in'),
+            ('lamutex/lamutex_spec_lam.da', 'lamutex_spec_lam_inc_out'),
+        ]
     
-    class ExpExtractor(LAMutexSpecOptWorkflow.ExpExtractor):
-        ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of processes'
-        xmin = 1
-        xmax = 31
-
-class LAMutexSpecOptRounds(LAMutexSpecOptWorkflow):
+    class ExpExtractor(DistalgoWorkflow.ExpExtractor):
+        name = 'lamutex_spec_lam'
+        show_wall = True
     
-    prefix = 'results/lamutexspecopt_rounds'
-    
-    class ExpDatagen(LAMutexSpecOptWorkflow.ExpDatagen):
-        def get_dsparams_list(self):
-            return [
-                dict(
-                    dsid =     str(x),
-                    x =        x,
-                    
-                    n_procs =  10,
-                    n_rounds = x,
-                )
-                for x in range(3, 30 + 1, 3)
-            ]
-    
-    class ExpExtractor(LAMutexSpecOptWorkflow.ExpExtractor):
-        ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of rounds'
-        xmin = 1
-        xmax = 31
+    min_repeats = 5
+    max_repeats = 5
 
 class LAMutexOrigProcs(LAMutexOrigWorkflow):
     
-    prefix = 'results/lamutexorig_procs'
+    prefix = 'results/da_lamutex_orig_procs'
     
     class ExpDatagen(LAMutexOrigWorkflow.ExpDatagen):
         
@@ -513,7 +416,7 @@ class LAMutexOrigProcs(LAMutexOrigWorkflow):
 
 class LAMutexOrigRounds(LAMutexOrigWorkflow):
     
-    prefix = 'results/lamutexorig_rounds'
+    prefix = 'results/da_lamutex_orig_rounds'
     
     class ExpDatagen(LAMutexOrigWorkflow.ExpDatagen):
         
@@ -534,6 +437,100 @@ class LAMutexOrigRounds(LAMutexOrigWorkflow):
         xlabel = 'Number of rounds'
         xmin = 50
         xmax = 1050
+
+class LAMutexSpecProcs(LAMutexSpecWorkflow):
+    
+    prefix = 'results/da_lamutex_spec_procs'
+    
+    class ExpDatagen(LAMutexSpecWorkflow.ExpDatagen):
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  x,
+                    n_rounds = 10,
+                )
+                for x in range(3, 30 + 1, 3)
+            ]
+    
+    class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
+        ylabel = 'Running time (in seconds)'
+        xlabel = 'Number of processes'  
+        xmin = 1
+        xmax = 31
+
+class LAMutexSpecRounds(LAMutexSpecWorkflow):
+    
+    prefix = 'results/da_lamutex_spec_rounds'
+    
+    class ExpDatagen(LAMutexSpecWorkflow.ExpDatagen):
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  10,
+                    n_rounds = x,
+                )
+                for x in range(3, 30 + 1, 3)
+            ]
+    
+    class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
+        ylabel = 'Running time (in seconds)'
+        xlabel = 'Number of rounds'
+        xmin = 1
+        xmax = 31
+
+class LAMutexSpecLamProcs(LAMutexSpecLamWorkflow):
+    
+    prefix = 'results/da_lamutex_spec_lam_procs'
+    
+    class ExpDatagen(LAMutexSpecLamWorkflow.ExpDatagen):
+        
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  x,
+                    n_rounds = 10,
+                )
+                for x in range(3, 30 + 1, 3)
+            ]
+    
+    class ExpExtractor(LAMutexSpecLamWorkflow.ExpExtractor):
+        ylabel = 'Running time (in seconds)'
+        xlabel = 'Number of processes'
+        xmin = 1
+        xmax = 31
+
+class LAMutexSpecLamRounds(LAMutexSpecLamWorkflow):
+    
+    prefix = 'results/da_lamutex_spec_lam_rounds'
+    
+    class ExpDatagen(LAMutexSpecLamWorkflow.ExpDatagen):
+        def get_dsparams_list(self):
+            return [
+                dict(
+                    dsid =     str(x),
+                    x =        x,
+                    
+                    n_procs =  10,
+                    n_rounds = x,
+                )
+                for x in range(3, 30 + 1, 3)
+            ]
+    
+    class ExpExtractor(LAMutexSpecLamWorkflow.ExpExtractor):
+        ylabel = 'Running time (in seconds)'
+        xlabel = 'Number of rounds'
+        xmin = 1
+        xmax = 31
 
 
 class LAPaxosDriver(DistalgoDriver):
