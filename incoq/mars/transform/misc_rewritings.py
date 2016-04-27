@@ -8,6 +8,7 @@ __all__ = [
     'lift_firstthen',
     'count_updates',
     'reorder_clauses',
+    'distalgo_preprocess',
 ]
 
 
@@ -223,4 +224,23 @@ def reorder_clauses(tree, symtab):
     
     tree = Rewriter.run(tree, symtab)
     
+    return tree
+
+
+def distalgo_preprocess(tree, symtab):
+    """Special rewriting for DistAlgo inc interface.
+    
+    Effects:
+        - replace len() with count()
+    """
+    class LenReplacer(L.NodeTransformer):
+        def visit_Call(self, node):
+            node = self.generic_visit(node)
+            if node.func == 'len':
+                if not len(node.args) == 1:
+                    raise L.ProgramError('Expected one argument for len()')
+                return L.Aggr(L.Count(), node.args[0])
+            return node
+    
+    tree = LenReplacer.run(tree)
     return tree

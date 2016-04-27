@@ -35,7 +35,8 @@ from .incast_rewritings import incast_preprocess, incast_postprocess
 from . import relation_rewritings
 from .misc_rewritings import (mark_query_forms, unmark_normal_impl,
                               rewrite_vars_clauses, lift_firstthen,
-                              count_updates, reorder_clauses)
+                              count_updates, reorder_clauses,
+                              distalgo_preprocess)
 from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
                              transform_demand)
@@ -162,6 +163,10 @@ def preprocess_tree(tree, symtab, query_options):
     # Add out-of-band query options.
     for q, d in query_options.items():
         symtab.apply_symconfig(q, d)
+    
+    # Apply extra distalgo rewriting.
+    if symtab.config.distalgo_mode:
+        tree = distalgo_preprocess(tree, symtab)
     
     return tree
 

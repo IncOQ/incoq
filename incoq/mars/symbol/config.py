@@ -124,6 +124,11 @@ all_attributes = [
         'if true, eliminate type checks where safe',
         parse_bool,
         {'action': 'store_true'}),
+    
+    ConfigAttribute('distalgo_mode', True,
+        'enable special rewritings for DistAlgo inc interface',
+        parse_bool,
+        {'action': 'store_true'}),
 ]
 
 

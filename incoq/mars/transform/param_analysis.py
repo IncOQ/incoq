@@ -66,7 +66,7 @@ def make_demand_func(query):
                 if _elem not in _U:
                     _U.relclear()
                     _U.reladd(_elem)
-            ''', subst={})
+            ''', subst={'_FUNC': func, '_U': uset})
     elif not isinstance(maxsize, int) or maxsize <= 0:
         raise L.ProgramError('Invalid value for demand_set_maxsize')
     else:
