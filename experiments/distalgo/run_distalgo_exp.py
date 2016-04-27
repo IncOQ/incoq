@@ -361,7 +361,7 @@ class LAMutexSpecWorkflow(DistalgoWorkflow):
         use_progs_ex = True
         progs_ex = [
             ('lamutex/lamutex_spec.da', 'lamutex_spec_inc_in'),
-            ('lamutex/lamutex_spec.da', 'lamutex_spec_inc_inc'),
+            ('lamutex/lamutex_spec.da', 'lamutex_spec_inc_out'),
         ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):

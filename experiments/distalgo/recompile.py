@@ -20,18 +20,24 @@ def get_benchmark_path():
     return join(dapath, 'benchmarks')
 
 
-def compile(dafile, pyfile, incfile):
+def compile(dafile, pyfile, incfile, *, use_table34=False):
     """Compile the input dafile to two output files: the main module
     pyfile and the incrementalization interface incfile.
     """
-    sys.argv = [
+    new_args = [
         sys.argv[0],
         '-o', pyfile,
         '-i', '-m', incfile,
         '--jb-style',
-        '--no-table3', '--no-table4',
+    ]
+    if not use_table34:
+        new_args += [
+            '--no-table3', '--no-table4',
+        ]
+    new_args += [
         dafile
     ]
+    sys.argv = new_args
     
     # Use a separate subprocess because the distalgo compiler
     # doesn't like being called multiple times from the same
@@ -58,13 +64,22 @@ def do_tasks(tasks):
     os.chdir(mydir)
     benchpath = get_benchmark_path()
     
-    for inpath, outpath in tasks:
+    for task in tasks:
+        if len(task) == 2:
+            inpath, outpath = task
+            opts = {}
+        elif len(task) == 3:
+            inpath, outpath, opts = task
+        else:
+            assert()
+        
         os.makedirs(dirname(outpath), exist_ok=True)
         orig_dafile = join(benchpath, '{}.da'.format(inpath))
         copy(orig_dafile, '{}.da'.format(outpath))
         compile('{}.da'.format(outpath),
                 '{}.py'.format(outpath),
-                '{}_inc_in.py'.format(outpath))
+                '{}_inc_in.py'.format(outpath),
+                **opts)
     
     copy(join(benchpath, 'controller.da'), 'controller.da')
 
@@ -76,6 +91,8 @@ tasks = [
 #    ('hsleader/spec', 'hsleader/hsleader'),
 #    
 #    ('lamutex/orig', 'lamutex/lamutex_orig'),
+#    ('lamutex/orig', 'lamutex/lamutex_orig_quant',
+#     {'use_table34': True}),
 #    ('lamutex/spec', 'lamutex/lamutex_spec'),
 #    ('lamutex/spec_lam', 'lamutex/lamutex_spec_lam'),
 #    
