@@ -80,8 +80,8 @@ class DistalgoWorkflow(ExpWorkflow):
             ]
     
     stddev_window = .1
-    min_repeats = 1
-    max_repeats = 1
+    min_repeats = 5
+    max_repeats = 5
     
     class ExpExtractor(SmallExtractor, Extractor):
         
@@ -175,7 +175,7 @@ class CLPaxosDriver(DistalgoDriver):
 
 class CLPaxos(DistalgoWorkflow):
     
-    prefix = 'results/clpaxos'
+    prefix = 'results/da_clpaxos'
     
     ExpDriver = CLPaxosDriver
     
@@ -183,8 +183,7 @@ class CLPaxos(DistalgoWorkflow):
         
         progs = [
             'clpaxos_inc_in',
-            'clpaxos_inc_inc',
-#            'clpaxos_inc_dem',
+            'clpaxos_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -217,7 +216,7 @@ class CRLeaderDriver(DistalgoDriver):
 
 class CRLeader(DistalgoWorkflow):
     
-    prefix = 'results/crleader'
+    prefix = 'results/da_crleader'
     
     ExpDriver = CRLeaderDriver
     
@@ -225,7 +224,7 @@ class CRLeader(DistalgoWorkflow):
         
         progs = [
             'crleader_inc_in',
-            'crleader_inc_dem',
+            'crleader_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -238,9 +237,6 @@ class CRLeader(DistalgoWorkflow):
                 )
                 for x in range(10, 80 + 1, 10)
             ]
-    
-#    min_repeats = 5
-#    max_repeats = 5
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
@@ -258,7 +254,7 @@ class DSCrashDriver(DistalgoDriver):
 
 class DSCrash(DistalgoWorkflow):
     
-    prefix = 'results/dscrash'
+    prefix = 'results/da_dscrash'
     
     ExpDriver = DSCrashDriver
     
@@ -266,7 +262,7 @@ class DSCrash(DistalgoWorkflow):
         
         progs = [
             'dscrash_inc_in',
-            'dscrash_inc_dem',
+            'dscrash_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -295,7 +291,7 @@ class HSLeaderDriver(DistalgoDriver):
 
 class HSLeader(DistalgoWorkflow):
     
-    prefix = 'results/hsleader'
+    prefix = 'results/da_hsleader'
     
     ExpDriver = HSLeaderDriver
     
@@ -303,8 +299,7 @@ class HSLeader(DistalgoWorkflow):
         
         progs = [
             'hsleader_inc_in',
-            'hsleader_inc_inc',
-#            'hsleader_inc_dem',
+            'hsleader_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -317,9 +312,6 @@ class HSLeader(DistalgoWorkflow):
                 )
                 for x in range(10, 100 + 1, 10)
             ]
-    
-#    min_repeats = 5
-#    max_repeats = 5
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
@@ -348,9 +340,6 @@ class LAMutexOrigWorkflow(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         name = 'lamutex_orig'
         show_wall = True
-    
-    min_repeats = 5
-    max_repeats = 5
 
 class LAMutexSpecWorkflow(DistalgoWorkflow):
     
@@ -367,9 +356,6 @@ class LAMutexSpecWorkflow(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         name = 'lamutex_spec'
         show_wall = True
-    
-    min_repeats = 5
-    max_repeats = 5
 
 class LAMutexSpecLamWorkflow(DistalgoWorkflow):
     
@@ -386,9 +372,6 @@ class LAMutexSpecLamWorkflow(DistalgoWorkflow):
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         name = 'lamutex_spec_lam'
         show_wall = True
-    
-    min_repeats = 5
-    max_repeats = 5
 
 class LAMutexOrigProcs(LAMutexOrigWorkflow):
     
@@ -539,7 +522,7 @@ class LAPaxosDriver(DistalgoDriver):
 
 class LAPaxos(DistalgoWorkflow):
     
-    prefix = 'results/lapaxos'
+    prefix = 'results/da_lapaxos'
     
     ExpDriver = LAPaxosDriver
     
@@ -547,7 +530,7 @@ class LAPaxos(DistalgoWorkflow):
         
         progs = [
             'lapaxos_inc_in',
-            'lapaxos_inc_inc',
+            'lapaxos_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -573,16 +556,13 @@ class LAPaxos(DistalgoWorkflow):
         
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
-    
-    min_repeats = 10
-    max_repeats = 10
 
 
 class LAPaxosExcludeDriver(LAPaxosDriver):
     rugroup_id = 'bo_measured'
 
 class LAPaxosExclude(LAPaxos):
-    prefix = 'results/lapaxos_exclude'
+    prefix = 'results/da_lapaxos_exclude'
     ExpDriver = LAPaxosExcludeDriver
 
 
@@ -592,7 +572,7 @@ class RAMutexDriver(DistalgoDriver):
 
 class RAMutex(DistalgoWorkflow):
     
-    prefix = 'results/ramutex'
+    prefix = 'results/da_ramutex'
     
     ExpDriver = RAMutexDriver
     
@@ -600,8 +580,7 @@ class RAMutex(DistalgoWorkflow):
         
         progs = [
             'ramutex_inc_in',
-            'ramutex_inc_inc',
-            'ramutex_inc_dem',
+            'ramutex_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -615,9 +594,6 @@ class RAMutex(DistalgoWorkflow):
                 )
                 for x in range(2, 20 + 1, 2)
             ]
-    
-#    min_repeats = 5
-#    max_repeats = 5
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
@@ -633,7 +609,7 @@ class RATokenDriver(DistalgoDriver):
 
 class RATokenProcs(DistalgoWorkflow):
     
-    prefix = 'results/ratoken'
+    prefix = 'results/da_ratoken_procs'
     
     ExpDriver = RATokenDriver
     
@@ -641,7 +617,7 @@ class RATokenProcs(DistalgoWorkflow):
         
         progs = [
             'ratoken_inc_in',
-            'ratoken_inc_dem',
+            'ratoken_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -656,9 +632,6 @@ class RATokenProcs(DistalgoWorkflow):
                 for x in range(10, 70 + 1, 10)
             ]
     
-#    min_repeats = 3
-#    max_repeats = 3
-    
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
         name = 'ratoken'
@@ -668,7 +641,7 @@ class RATokenProcs(DistalgoWorkflow):
 
 class RATokenRounds(DistalgoWorkflow):
     
-    prefix = 'results/ratoken_rounds'
+    prefix = 'results/da_ratoken_rounds'
     
     ExpDriver = RATokenDriver
     
@@ -676,7 +649,7 @@ class RATokenRounds(DistalgoWorkflow):
         
         progs = [
             'ratoken_inc_in',
-            'ratoken_inc_dem',
+            'ratoken_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -690,9 +663,6 @@ class RATokenRounds(DistalgoWorkflow):
                 )
                 for x in range(10, 100 + 1, 10)
             ]
-    
-#    min_repeats = 3
-#    max_repeats = 3
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         
@@ -708,7 +678,7 @@ class SKTokenDriver(DistalgoDriver):
 
 class SKToken(DistalgoWorkflow):
     
-    prefix = 'results/sktoken'
+    prefix = 'results/da_sktoken'
     
     ExpDriver = SKTokenDriver
     
@@ -716,7 +686,7 @@ class SKToken(DistalgoWorkflow):
         
         progs = [
             'sktoken_inc_in',
-            'sktoken_inc_dem',
+            'sktoken_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -745,7 +715,7 @@ class TPCommitDriver(DistalgoDriver):
 
 class TPCommit(DistalgoWorkflow):
     
-    prefix = 'results/twophasecommit'
+    prefix = 'results/da_tpcommit'
     
     ExpDriver = TPCommitDriver
     
@@ -753,8 +723,7 @@ class TPCommit(DistalgoWorkflow):
         
         progs = [
             'tpcommit_inc_in',
-            'tpcommit_inc_inc',
-#            'tpcommit_inc_dem',
+            'tpcommit_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -768,9 +737,6 @@ class TPCommit(DistalgoWorkflow):
                 )
                 for x in range(10, 60 + 1, 10)
             ]
-    
-    min_repeats = 5
-    max_repeats = 5
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
         

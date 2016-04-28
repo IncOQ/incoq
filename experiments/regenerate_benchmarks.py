@@ -192,30 +192,61 @@ probinf_tasks = [
      {'default_impl': S.Filtered, 'auto_query': True}),
 ]
 
+distalgo_options = {
+    'distalgo_mode': True,
+    'auto_query': True,
+    'default_impl': S.Inc,
+}
+distalgo_obj_options = distalgo_options.copy()
+distalgo_obj_options.update({
+    'obj_domain': True,
+    'default_impl': S.Filtered,
+})
+distalgo_lamutex_options = distalgo_options.copy()
+distalgo_lamutex_options.update({
+    'default_demand_set_maxsize': 1,
+})
 lamutex_tasks = [
     ('distalgo/lamutex/lamutex_orig_inc_in',
      'distalgo/lamutex/lamutex_orig_inc_out',
-     {'distalgo_mode': True,
-      'obj_domain': True,
-      'default_impl': S.Inc,
-      'auto_query': True,
-      'default_demand_set_maxsize': 1}),
+     distalgo_lamutex_options),
     ('distalgo/lamutex/lamutex_spec_inc_in',
      'distalgo/lamutex/lamutex_spec_inc_out',
-     {'distalgo_mode': True,
-      'obj_domain': True,
-      'default_impl': S.Filtered,
-      'auto_query': True,
-      'default_demand_set_maxsize': 1}),
+     distalgo_lamutex_options),
     ('distalgo/lamutex/lamutex_spec_lam_inc_in',
      'distalgo/lamutex/lamutex_spec_lam_inc_out',
-     {'distalgo_mode': True,
-      'obj_domain': True,
-      'default_impl': S.Filtered,
-      'auto_query': True,
-      'default_demand_set_maxsize': 1}),
+     distalgo_lamutex_options),
 ]
-distalgo_tasks = lamutex_tasks
+distalgo_other_tasks = [
+    ('distalgo/clpaxos/clpaxos_inc_in',
+     'distalgo/clpaxos/clpaxos_inc_out',
+     distalgo_options),
+    ('distalgo/crleader/crleader_inc_in',
+     'distalgo/crleader/crleader_inc_out',
+     distalgo_options),
+    ('distalgo/dscrash/dscrash_inc_in',
+     'distalgo/dscrash/dscrash_inc_out',
+     distalgo_obj_options),
+    ('distalgo/hsleader/hsleader_inc_in',
+     'distalgo/hsleader/hsleader_inc_out',
+     distalgo_options),
+    ('distalgo/lapaxos/lapaxos_inc_in',
+     'distalgo/lapaxos/lapaxos_inc_out',
+     distalgo_options),
+    ('distalgo/ramutex/ramutex_inc_in',
+     'distalgo/ramutex/ramutex_inc_out',
+     distalgo_options),
+    ('distalgo/ratoken/ratoken_inc_in',
+     'distalgo/ratoken/ratoken_inc_out',
+     distalgo_obj_options),
+    ('distalgo/sktoken/sktoken_inc_in',
+     'distalgo/sktoken/sktoken_inc_out',
+     distalgo_obj_options),
+    ('distalgo/tpcommit/tpcommit_inc_in',
+     'distalgo/tpcommit/tpcommit_inc_out',
+     distalgo_options),
+]
+distalgo_tasks = lamutex_tasks + distalgo_other_tasks
 
 task_lists = [
     ('twitter', twitter_tasks),

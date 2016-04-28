@@ -59,6 +59,17 @@ all_tasks = [
     ('lamutex_spec_rounds',             distalgo.LAMutexSpecRounds()),
     ('lamutex_spec_lam_procs',          distalgo.LAMutexSpecLamProcs()),
     ('lamutex_spec_lam_rounds',         distalgo.LAMutexSpecLamRounds()),
+    
+    ('clpaxos',                         distalgo.CLPaxos()),
+    ('crleader',                        distalgo.CRLeader()),
+    ('dscrash',                         distalgo.DSCrash()),
+    ('hsleader',                        distalgo.HSLeader()),
+    ('lapaxos',                         distalgo.LAPaxos()),
+    ('ramutex',                         distalgo.RAMutex()),
+    ('ratoken_procs',                   distalgo.RATokenProcs()),
+    ('ratoken_rounds',                  distalgo.RATokenRounds()),
+    ('sktoken',                         distalgo.SKToken()),
+    ('tpcommit',                        distalgo.TPCommit()),
 ]
 
 all_tasks_dict = dict(all_tasks)
