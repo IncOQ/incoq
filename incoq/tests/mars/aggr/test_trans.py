@@ -197,7 +197,6 @@ class TransCase(unittest.TestCase):
                 _maint_A_for_U_add(x)
                 _maint_A_for_U_remove(x)
                 U.relremove(x)
-                A.mapclear()
                 R.relclear()
                 A.mapclear()
                 U.relclear()

@@ -3,7 +3,7 @@ from incoq.mars.runtime import *
 # S : {(Number)}
 S = Set()
 # _U_Q : {(Number)}
-_U_Q = Set()
+_U_Q = LRUSet()
 # R_Q_bu : {Number: {(Number)}}
 R_Q_bu = Map()
 def _maint_R_Q_bu_for_R_Q_add(_elem):
