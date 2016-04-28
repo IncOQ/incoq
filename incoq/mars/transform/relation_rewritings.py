@@ -81,6 +81,16 @@ for _ELEM in list(_VALUE):
         _TARGET.add(_ELEM)
 '''
 
+# Make sure they aren't aliased so we don't wipe out the value when
+# clearing the target.
+dictcopy_template = '''
+if _TARGET is not _VALUE:
+    for _ELEM in list(_TARGET):
+        del _TARGET[_ELEM]
+    for _ELEM in _VALUE:
+        _TARGET[_ELEM] = _VALUE[_ELEM]
+'''
+
 class BulkUpdateExpander(L.NodeTransformer):
     
     def __init__(self, fresh_vars):
@@ -98,10 +108,19 @@ class BulkUpdateExpander(L.NodeTransformer):
                                             '_VALUE': node.value,
                                             '_ELEM': var})
         return code
+    
+    def visit_DictBulkUpdate(self, node):
+        template = {L.DictCopy: dictcopy_template}[node.op.__class__]
+        var = next(self.fresh_vars)
+        code = L.Parser.pc(template, subst={'_TARGET': node.target,
+                                            '_VALUE': node.value,
+                                            '_ELEM': var})
+        return code
 
 
 def expand_bulkupdates(tree, symtab):
-    """Expand BulkUpdate nodes into elementary update operations."""
+    """Expand BulkUpdate and DictBulkUpdate nodes into elementary update
+    operations."""
     tree = BulkUpdateExpander.run(tree, symtab.fresh_names.vars)
     return tree
 

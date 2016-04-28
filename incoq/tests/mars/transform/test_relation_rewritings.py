@@ -39,6 +39,7 @@ class UpdateRewritingsCase(unittest.TestCase):
                 S.difference_update(T)
                 S.symmetric_difference_update(T)
                 S.copy_update(T)
+                D.dictcopy_update(E)
             ''')
         tree = expand_bulkupdates(tree, symtab)
         exp_tree = L.Parser.p('''
@@ -63,6 +64,11 @@ class UpdateRewritingsCase(unittest.TestCase):
                 for _v5 in list(T):
                     if (_v5 not in S):
                         S.add(_v5)
+                if (D is not E):
+                    for _v6 in list(D):
+                        del D[_v6]
+                    for _v6 in E:
+                        D[_v6] = E[_v6]
             ''')
         self.assertEqual(tree, exp_tree)
     

@@ -470,20 +470,20 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_ms_deccount(self, _func, set_, elem):
         return L.SetUpdate(set_, L.DecCount(), elem)
     
-    def handle_ms_update(self, _func, set_, elem):
-        return L.SetBulkUpdate(set_, L.Union(), elem)
+    def handle_ms_update(self, _func, set_, other):
+        return L.SetBulkUpdate(set_, L.Union(), other)
     
-    def handle_ms_intersection_update(self, _func, set_, elem):
-        return L.SetBulkUpdate(set_, L.Inter(), elem)
+    def handle_ms_intersection_update(self, _func, set_, other):
+        return L.SetBulkUpdate(set_, L.Inter(), other)
     
-    def handle_ms_difference_update(self, _func, set_, elem):
-        return L.SetBulkUpdate(set_, L.Diff(), elem)
+    def handle_ms_difference_update(self, _func, set_, other):
+        return L.SetBulkUpdate(set_, L.Diff(), other)
     
-    def handle_ms_symmetric_difference_update(self, _func, set_, elem):
-        return L.SetBulkUpdate(set_, L.SymDiff(), elem)
+    def handle_ms_symmetric_difference_update(self, _func, set_, other):
+        return L.SetBulkUpdate(set_, L.SymDiff(), other)
     
-    def handle_ms_copy_update(self, _func, set_, elem):
-        return L.SetBulkUpdate(set_, L.Copy(), elem)
+    def handle_ms_copy_update(self, _func, set_, other):
+        return L.SetBulkUpdate(set_, L.Copy(), other)
     
     def handle_ms_clear(self, _func, set_):
         return L.SetClear(set_)
@@ -507,6 +507,9 @@ class IncLangSpecialImporter(L.MacroExpander):
     def handle_ms_relclear(self, _func, rel):
         self.assert_isname([rel], 'relclear')
         return L.RelClear(rel.id)
+    
+    def handle_ms_dictcopy_update(self, _func, target, other):
+        return L.DictBulkUpdate(target, L.DictCopy(), other)
     
     def handle_ms_dictclear(self, _func, target):
         return L.DictClear(target)
@@ -684,6 +687,11 @@ class IncLangSpecialExporter(L.NodeTransformer):
         return L.Expr(L.GeneralCall(L.Attribute(L.Name(node.rel),
                                                 'relclear'),
                                     []))
+    
+    def visit_DictBulkUpdate(self, node):
+        op = {L.DictCopy: 'dictcopy_update'}[node.op.__class__]
+        return L.Expr(L.GeneralCall(L.Attribute(node.target, op),
+                                    [node.value]))
     
     def visit_DictClear(self, node):
         node = self.generic_visit(node)

@@ -67,7 +67,12 @@ class BaseClauseVisitor:
         clsname = cl.__class__.__name__
         handler = getattr(self, 'handle_' + clsname)
         method = getattr(handler, operation)
-        return method(cl, *args, **kargs)
+        try:
+            result = method(cl, *args, **kargs)
+        except NotImplementedError:
+            raise NotImplementedError('{} on {}: {}'.format(
+                                      operation, clsname, L.Parser.ts(cl)))
+        return result
     
     # Individual dispatchers for each operation are defined as
     #     <op_name> = partialmethod('<op_name>')

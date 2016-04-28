@@ -260,6 +260,10 @@ class ParseImportCase(unittest.TestCase):
         exp_tree = L.DictDelete(L.Name('M'), L.Name('k'))
         self.assertEqual(tree, exp_tree)
         
+        tree = Parser.ps('M.dictcopy_update(v)')
+        exp_tree = L.DictBulkUpdate(L.Name('M'), L.DictCopy(), L.Name('v'))
+        self.assertEqual(tree, exp_tree)
+        
         tree = Parser.ps('M.dictclear()')
         exp_tree = L.DictClear(L.Name('M'))
         self.assertEqual(tree, exp_tree)
@@ -512,6 +516,7 @@ class RoundTripCase(unittest.TestCase):
     def test_dictupdates(self):
         self.trip.ps('M[k] = v')
         self.trip.ps('del M[k]')
+        self.trip.ps('M.dictcopy_update(v)')
         self.trip.ps('M.dictclear()')
         self.trip.ps('M.mapassign(k, v)')
         self.trip.ps('M.mapdelete(k)')

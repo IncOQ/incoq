@@ -51,6 +51,7 @@ module IncAST
          
          | DictAssign(expr target, expr key, expr value)
          | DictDelete(expr target, expr key)
+         | DictBulkUpdate(expr target, dictbulkop op, expr value)
          | DictClear(expr target)
          | MapAssign(identifier map, identifier key, identifier value)
          | MapDelete(identifier map, identifier key)
@@ -147,6 +148,8 @@ module IncAST
             | IncCount | DecCount
     
     setbulkop = Union | Inter | Diff | SymDiff | Copy
+    
+    dictbulkop = DictCopy
     
     aggrop = Count | Sum
            | Min | Max
