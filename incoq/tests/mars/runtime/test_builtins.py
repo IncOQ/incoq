@@ -34,6 +34,12 @@ class BuiltinsCase(unittest.TestCase):
         self.assertEqual(max([2, 1, 3]), 3)
         self.assertEqual(min([]), None)
         self.assertEqual(max([]), None)
+        self.assertEqual(min2(None, 1, 3), 1)
+        self.assertEqual(max2(None, 1, 3), 3)
+        self.assertEqual(min2(), None)
+        self.assertEqual(min2(None), None)
+        self.assertEqual(max2(), None)
+        self.assertEqual(max2(None), None)
     
     def test_typechecks(self):
         self.assertTrue(isset({1}))

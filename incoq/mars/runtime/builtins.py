@@ -14,6 +14,8 @@ __all__ = [
     'sum',
     'min',
     'max',
+    'min2',
+    'max2',
     
     'isset',
     'hasfield',
@@ -95,6 +97,17 @@ count = builtins.len
 sum = builtins.sum
 min = partial(builtins.min, default=None)
 max = partial(builtins.max, default=None)
+
+# Versions of min/max that return the lowest or highest argument,
+# not counting Nones, and that return None if all arguments are None.
+
+def min2(*args):
+    return builtins.min(filter(lambda x: x is not None, args),
+                        default=None)
+
+def max2(*args):
+    return builtins.max(filter(lambda x: x is not None, args),
+                        default=None)
 
 
 # Type checks.
