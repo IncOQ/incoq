@@ -137,6 +137,16 @@ class UtilCase(unittest.TestCase):
         
         tree = Parser.pe('(1 + 1)')
         self.assertFalse(is_injective(tree))
+    
+    def test_get_setunion(self):
+        tree = Parser.pe('1 | 2 | (3 + 4)')
+        parts = get_setunion(tree)
+        exp_parts = [
+            Parser.pe('1'),
+            Parser.pe('2'),
+            Parser.pe('3 + 4'),
+        ]
+        self.assertSequenceEqual(parts, exp_parts)
 
 
 if __name__ == '__main__':

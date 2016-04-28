@@ -10,6 +10,7 @@ __all__ = [
     'apply_renamer',
     'Unwrapper',
     'is_injective',
+    'get_setunion',
 ]
 
 
@@ -136,3 +137,27 @@ def is_injective(expr):
     
     assert isinstance(expr, L.expr)
     return Visitor.run(expr)
+
+
+def get_setunion(tree):
+    """Given a set union of several expressions, return a list of the
+    expressions. If the given tree is not a union, return a list with
+    it as the only element.
+    """
+    class Visitor(L.NodeVisitor):
+        def process(self, tree):
+            self.parts = []
+            super().process(tree)
+            return self.parts
+        
+        def generic_visit(self, node):
+            # Don't recurse. Only traverse BinOps of BitOrs.
+            self.parts.append(node)
+        
+        def visit_BinOp(self, node):
+            if isinstance(node.op, L.BitOr):
+                self.visit(node.left)
+                self.visit(node.right)
+            else:
+                self.parts.append(node)
+    return Visitor.run(tree)

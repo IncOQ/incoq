@@ -98,6 +98,23 @@ class MiscRewritingsCase(unittest.TestCase):
                 FIRSTTHEN(a, unwrap(b))
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_rewrite_aggregates(self):
+        symtab = S.SymbolTable()
+        aggr = L.Parser.pe('max(A | {1, 2} | {3})')
+        query = symtab.define_query('Q', node=aggr)
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', max(A | {1, 2} | {3})))
+            ''')
+        tree = rewrite_aggregates(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                print(max2(QUERY('Q', max(A)), 1, 2, 3))
+            ''')
+        self.assertEqual(tree, exp_tree)
+        exp_aggr = L.Parser.pe('max(A)')
+        self.assertEqual(query.node, exp_aggr)
 
 
 if __name__ == '__main__':

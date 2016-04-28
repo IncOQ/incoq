@@ -9,6 +9,7 @@ __all__ = [
     'count_updates',
     'reorder_clauses',
     'distalgo_preprocess',
+    'rewrite_aggregates',
 ]
 
 
@@ -243,4 +244,51 @@ def distalgo_preprocess(tree, symtab):
             return node
     
     tree = LenReplacer.run(tree)
+    return tree
+
+
+def rewrite_aggregates(tree, symtab):
+    """Rewrite a min/max of a set union of set literals and one non-
+    literal term, by pushing the query down to the non-literal term,
+    and combining the terms with min2/max2.
+    """
+    class Rewriter(S.QueryRewriter):
+        expand = True
+        
+        def rewrite_aggr(self, symbol, name, aggr):
+            # Only operate on min and max nodes.
+            if isinstance(aggr.op, L.Min):
+                func = 'min2'
+            elif isinstance(aggr.op, L.Max):
+                func = 'max2'
+            else:
+                return
+            
+            parts = L.get_setunion(aggr.value)
+            # Only operate on aggregates of set unions.
+            if len(parts) <= 1:
+                return
+            # Only operate where at most one of the unioned sets is
+            # not a set literal.
+            if len([p for p in parts if not isinstance(p, L.Set)]) > 1:
+                return
+            
+            found_nonliteral = False
+            new_parts = []
+            for p in parts:
+                if isinstance(p, L.Set):
+                    # Flatten the literal elements as arguments to
+                    # min2/max2.
+                    new_parts.extend(p.elts)
+                else:
+                    # Push the Query node down to the non-literal argument.
+                    assert not found_nonliteral
+                    new_query_node = aggr._replace(value=p)
+                    new_parts.append(L.Query(name, new_query_node, None))
+                    symbol.node = new_query_node
+                    found_nonliteral = True
+            
+            return L.Call(func, new_parts)
+    
+    tree = Rewriter.run(tree, symtab)
     return tree

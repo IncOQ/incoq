@@ -36,7 +36,7 @@ from . import relation_rewritings
 from .misc_rewritings import (mark_query_forms, unmark_normal_impl,
                               rewrite_vars_clauses, lift_firstthen,
                               count_updates, reorder_clauses,
-                              distalgo_preprocess)
+                              distalgo_preprocess, rewrite_aggregates)
 from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
                              transform_demand)
@@ -280,6 +280,9 @@ def transform_ast(input_ast, *, options=None, query_options=None):
             q.demand_set_maxsize = symtab.config.default_demand_set_maxsize
     # Eliminate nodes for Normal impl queries.
     tree = unmark_normal_impl(tree, symtab)
+    
+    # Rewrite aggregates of unions.
+    tree = rewrite_aggregates(tree, symtab)
     
     # Replace membership conditions with membership clauses.
     tree = relation_rewritings.rewrite_memberconds(tree, symtab)
