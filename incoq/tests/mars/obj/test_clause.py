@@ -142,6 +142,7 @@ class ClauseCase(unittest.TestCase):
                 for (k, v) in m.items():
                     pass
             ''')
+        self.assertEqual(code, exp_code)
         
         # Other use.
         code = v.get_code(cl, ['v'], (L.Pass(),))

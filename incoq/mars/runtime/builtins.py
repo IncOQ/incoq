@@ -397,6 +397,11 @@ class Map(IncOQType, dict, SetFromMapMixin):
         return ('{' + ', '.join('{}: {}'.format(fmt(key), fmt(value))
                                 for key, value in self.items()) + '}')
     
+    def dictcopy_update(self, other):
+        if self is not other:
+            self.clear()
+            self.update(other)
+    
     # Aliased to clear(). We use a separate name so as to not
     # syntactically conflict with the name of the set clearing
     # operation.

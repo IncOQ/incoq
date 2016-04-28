@@ -175,7 +175,7 @@ class MAPMemberHandler(RelMemberHandler):
             code += body
             needs_typecheck = True
         
-        elif mask == L.mask('bu'):
+        elif mask == L.mask('buu'):
             items_expr = L.Parser.pe('_MAP.items()', subst={'_MAP': cl.map})
             code = (L.DecompFor([cl.key, cl.value], items_expr, body),)
             needs_typecheck = True
