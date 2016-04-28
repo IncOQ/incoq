@@ -265,9 +265,6 @@ def rewrite_aggregates(tree, symtab):
                 return
             
             parts = L.get_setunion(aggr.value)
-            # Only operate on aggregates of set unions.
-            if len(parts) <= 1:
-                return
             # Only operate where at most one of the unioned sets is
             # not a set literal.
             if len([p for p in parts if not isinstance(p, L.Set)]) > 1:

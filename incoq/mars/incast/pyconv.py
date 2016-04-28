@@ -43,12 +43,11 @@ trivial_nodes = [
     
     'Return', 'If', 'Expr', 'Pass', 'Break', 'Continue',
     
-    'ExceptHandler',
-    
     'UnaryOp', 'BoolOp', 'BinOp', 'IfExp',
     'Num', 'Str', 'NameConstant', 'Set', 'Dict',
+    'ListComp',
     
-    'alias',
+    'comprehension', 'ExceptHandler', 'alias',
     
     'And', 'Or',
     'Add', 'Sub', 'Mult', 'Div', 'Mod', 'Pow', 'LShift',
@@ -264,7 +263,8 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
     def visit_SetComp(self, node):
         clauses = []
         for gen in node.generators:
-            clauses.extend(self.visit(gen))
+            new_clauses = self.comprehension_helper(gen)
+            clauses.extend(new_clauses)
         return L.Comp(self.visit(node.elt), clauses)
     
     def member_clause_helper(self, target, iter):
@@ -382,9 +382,10 @@ class IncLangNodeImporter(NodeMapper, P.AdvNodeVisitor):
         
         return member
     
-    def visit_comprehension(self, node):
+    def comprehension_helper(self, node):
         # Switch on iter to determine what kind of membership clause
         # to produce.
+        assert isinstance(node, P.comprehension)
         iter = self.visit(node.iter)
         member = self.member_clause_helper(node.target, iter)
         conds = [L.Cond(self.visit(c)) for c in node.ifs]

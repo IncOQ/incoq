@@ -85,6 +85,8 @@ module IncAST
          | Subscript(expr value, expr index)
          | DictLookup(expr value, expr key, expr? default)
          
+         | ListComp(expr elt, comprehension* generators)
+         
            -- Utility expressions.
          | FirstThen(expr first, expr then)
          | ImgLookup(expr set, mask mask, identifier* bounds)
@@ -124,6 +126,9 @@ module IncAST
            | TUPMember(identifier tup, identifier* elts)
            
            | Cond(expr cond)
+    
+    -- For ListComp nodes.
+    comprehension = (expr target, expr iter, expr* ifs)
     
     excepthandler = ExceptHandler(expr? type, identifier? name, stmt* body)
     
