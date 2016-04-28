@@ -118,7 +118,10 @@ def make_demand_set(symtab, query):
     uset_tuple = L.tuplify(query.demand_params)
     uset_tuple_type = symtab.analyze_expr_type(uset_tuple)
     uset_type = T.Set(uset_tuple_type)
-    uset_sym = symtab.define_relation(uset_name, type=uset_type)
+    maxsize = query.demand_set_maxsize
+    uset_lru = maxsize is not None and maxsize > 1
+    uset_sym = symtab.define_relation(uset_name, type=uset_type,
+                                      lru=uset_lru)
     
     query.demand_set = uset_name
     

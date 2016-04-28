@@ -237,6 +237,11 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
         default=False,
         parser=parse_bool)
     
+    lru = SymbolAttribute(
+        doc='Support LRU operations',
+        default=False,
+        parser=parse_bool)
+    
     min_type = T.Set(T.Bottom)
     max_type = T.Set(T.Top)
     
@@ -251,7 +256,12 @@ class RelationSymbol(TypedSymbolMixin, Symbol):
     
     @property
     def decl_constructor(self):
-        return 'CSet' if self.counted else 'Set'
+        if self.lru:
+            return 'LRUSet'
+        elif self.counted:
+            return 'CSet'
+        else:
+            return 'Set'
 
 
 class MapSymbol(TypedSymbolMixin, Symbol):
