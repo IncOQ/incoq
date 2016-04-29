@@ -115,6 +115,21 @@ class MiscRewritingsCase(unittest.TestCase):
         self.assertEqual(tree, exp_tree)
         exp_aggr = L.Parser.pe('max(A)')
         self.assertEqual(query.node, exp_aggr)
+        
+        # Don't fire where inapplicable.
+        symtab = S.SymbolTable()
+        aggr1 = L.Parser.pe('max(A)')
+        query1 = symtab.define_query('Q1', node=aggr1)
+        aggr2 = L.Parser.pe('max(A | {1} | B)')
+        query2 = symtab.define_query('Q2', node=aggr2)
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', max(A)))
+                print(QUERY('Q2', max(A | {1} | B)))
+            ''')
+        exp_tree = tree
+        tree = rewrite_aggregates(tree, symtab)
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':

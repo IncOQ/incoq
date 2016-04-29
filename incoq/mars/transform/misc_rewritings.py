@@ -269,6 +269,10 @@ def rewrite_aggregates(tree, symtab):
             # not a set literal.
             if len([p for p in parts if not isinstance(p, L.Set)]) > 1:
                 return
+            # Only operate where at least one of the parts is a set
+            # literal.
+            if len([p for p in parts if isinstance(p, L.Set)]) == 0:
+                return
             
             found_nonliteral = False
             new_parts = []
