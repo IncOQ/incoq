@@ -34,8 +34,6 @@ R_Q_T_y = CSet()
 R_Q_d_F_f_1 = Set()
 # R_Q_d_F_f_2 : Bottom
 R_Q_d_F_f_2 = Set()
-# _MAP_buu : {Top: Top}
-_MAP_buu = Map()
 # R_Q_d_MAP_uub : {Bottom: {(Bottom, Bottom)}}
 R_Q_d_MAP_uub = Map()
 # R_Q_d_M_ub : {Bottom: {Bottom}}
@@ -46,107 +44,90 @@ R_Q_d_TUP_2_ubu = Map()
 R_Q_d_TUP_2_uub = Map()
 # R_Q_bbu : {(Top, Number): {(Top, Top)}}
 R_Q_bbu = Map()
-def _maint__MAP_buu_for__MAP_add(_elem):
-    (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v51_key = _elem_v1
-    _v51_value = (_elem_v2, _elem_v3)
-    if (_v51_key not in _MAP_buu):
-        _v52 = Set()
-        _MAP_buu[_v51_key] = _v52
-    _MAP_buu[_v51_key].add(_v51_value)
-
-def _maint__MAP_buu_for__MAP_remove(_elem):
-    (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v53_key = _elem_v1
-    _v53_value = (_elem_v2, _elem_v3)
-    _MAP_buu[_v53_key].remove(_v53_value)
-    if (len(_MAP_buu[_v53_key]) == 0):
-        del _MAP_buu[_v53_key]
-
 def _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_add(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v54_key = _elem_v3
-    _v54_value = (_elem_v1, _elem_v2)
-    if (_v54_key not in R_Q_d_MAP_uub):
-        _v55 = Set()
-        R_Q_d_MAP_uub[_v54_key] = _v55
-    R_Q_d_MAP_uub[_v54_key].add(_v54_value)
+    _v51_key = _elem_v3
+    _v51_value = (_elem_v1, _elem_v2)
+    if (_v51_key not in R_Q_d_MAP_uub):
+        _v52 = Set()
+        R_Q_d_MAP_uub[_v51_key] = _v52
+    R_Q_d_MAP_uub[_v51_key].add(_v51_value)
 
 def _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_remove(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v56_key = _elem_v3
-    _v56_value = (_elem_v1, _elem_v2)
-    R_Q_d_MAP_uub[_v56_key].remove(_v56_value)
-    if (len(R_Q_d_MAP_uub[_v56_key]) == 0):
-        del R_Q_d_MAP_uub[_v56_key]
+    _v53_key = _elem_v3
+    _v53_value = (_elem_v1, _elem_v2)
+    R_Q_d_MAP_uub[_v53_key].remove(_v53_value)
+    if (len(R_Q_d_MAP_uub[_v53_key]) == 0):
+        del R_Q_d_MAP_uub[_v53_key]
 
 def _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v57_key = _elem_v2
-    _v57_value = _elem_v1
-    if (_v57_key not in R_Q_d_M_ub):
-        _v58 = Set()
-        R_Q_d_M_ub[_v57_key] = _v58
-    R_Q_d_M_ub[_v57_key].add(_v57_value)
+    _v54_key = _elem_v2
+    _v54_value = _elem_v1
+    if (_v54_key not in R_Q_d_M_ub):
+        _v55 = Set()
+        R_Q_d_M_ub[_v54_key] = _v55
+    R_Q_d_M_ub[_v54_key].add(_v54_value)
 
 def _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_elem):
     (_elem_v1, _elem_v2) = _elem
-    _v59_key = _elem_v2
-    _v59_value = _elem_v1
-    R_Q_d_M_ub[_v59_key].remove(_v59_value)
-    if (len(R_Q_d_M_ub[_v59_key]) == 0):
-        del R_Q_d_M_ub[_v59_key]
+    _v56_key = _elem_v2
+    _v56_value = _elem_v1
+    R_Q_d_M_ub[_v56_key].remove(_v56_value)
+    if (len(R_Q_d_M_ub[_v56_key]) == 0):
+        del R_Q_d_M_ub[_v56_key]
 
 def _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_add(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v60_key = _elem_v2
-    _v60_value = (_elem_v1, _elem_v3)
-    if (_v60_key not in R_Q_d_TUP_2_ubu):
-        _v61 = Set()
-        R_Q_d_TUP_2_ubu[_v60_key] = _v61
-    R_Q_d_TUP_2_ubu[_v60_key].add(_v60_value)
+    _v57_key = _elem_v2
+    _v57_value = (_elem_v1, _elem_v3)
+    if (_v57_key not in R_Q_d_TUP_2_ubu):
+        _v58 = Set()
+        R_Q_d_TUP_2_ubu[_v57_key] = _v58
+    R_Q_d_TUP_2_ubu[_v57_key].add(_v57_value)
 
 def _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_remove(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v62_key = _elem_v2
-    _v62_value = (_elem_v1, _elem_v3)
-    R_Q_d_TUP_2_ubu[_v62_key].remove(_v62_value)
-    if (len(R_Q_d_TUP_2_ubu[_v62_key]) == 0):
-        del R_Q_d_TUP_2_ubu[_v62_key]
+    _v59_key = _elem_v2
+    _v59_value = (_elem_v1, _elem_v3)
+    R_Q_d_TUP_2_ubu[_v59_key].remove(_v59_value)
+    if (len(R_Q_d_TUP_2_ubu[_v59_key]) == 0):
+        del R_Q_d_TUP_2_ubu[_v59_key]
 
 def _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_add(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v63_key = _elem_v3
-    _v63_value = (_elem_v1, _elem_v2)
-    if (_v63_key not in R_Q_d_TUP_2_uub):
-        _v64 = Set()
-        R_Q_d_TUP_2_uub[_v63_key] = _v64
-    R_Q_d_TUP_2_uub[_v63_key].add(_v63_value)
+    _v60_key = _elem_v3
+    _v60_value = (_elem_v1, _elem_v2)
+    if (_v60_key not in R_Q_d_TUP_2_uub):
+        _v61 = Set()
+        R_Q_d_TUP_2_uub[_v60_key] = _v61
+    R_Q_d_TUP_2_uub[_v60_key].add(_v60_value)
 
 def _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_remove(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v65_key = _elem_v3
-    _v65_value = (_elem_v1, _elem_v2)
-    R_Q_d_TUP_2_uub[_v65_key].remove(_v65_value)
-    if (len(R_Q_d_TUP_2_uub[_v65_key]) == 0):
-        del R_Q_d_TUP_2_uub[_v65_key]
+    _v62_key = _elem_v3
+    _v62_value = (_elem_v1, _elem_v2)
+    R_Q_d_TUP_2_uub[_v62_key].remove(_v62_value)
+    if (len(R_Q_d_TUP_2_uub[_v62_key]) == 0):
+        del R_Q_d_TUP_2_uub[_v62_key]
 
 def _maint_R_Q_bbu_for_R_Q_add(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v66_key = (_elem_v1, _elem_v2)
-    _v66_value = _elem_v3
-    if (_v66_key not in R_Q_bbu):
-        _v67 = Set()
-        R_Q_bbu[_v66_key] = _v67
-    R_Q_bbu[_v66_key].add(_v66_value)
+    _v63_key = (_elem_v1, _elem_v2)
+    _v63_value = _elem_v3
+    if (_v63_key not in R_Q_bbu):
+        _v64 = Set()
+        R_Q_bbu[_v63_key] = _v64
+    R_Q_bbu[_v63_key].add(_v63_value)
 
 def _maint_R_Q_bbu_for_R_Q_remove(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
-    _v68_key = (_elem_v1, _elem_v2)
-    _v68_value = _elem_v3
-    R_Q_bbu[_v68_key].remove(_v68_value)
-    if (len(R_Q_bbu[_v68_key]) == 0):
-        del R_Q_bbu[_v68_key]
+    _v65_key = (_elem_v1, _elem_v2)
+    _v65_value = _elem_v3
+    R_Q_bbu[_v65_key].remove(_v65_value)
+    if (len(R_Q_bbu[_v65_key]) == 0):
+        del R_Q_bbu[_v65_key]
 
 def _maint_R_Q_d_F_f_2_for_R_Q_T_y_add(_elem):
     (_v47_y,) = _elem
@@ -350,19 +331,21 @@ def _maint_R_Q_T_m_k_for_R_Q_d_MAP_remove(_elem):
 
 def _maint_R_Q_d_MAP_for_R_Q_T_m_add(_elem):
     (_v23_m,) = _elem
-    for (_v23_k, _v23_m_k) in (_MAP_buu[_v23_m] if (_v23_m in _MAP_buu) else Set()):
-        _v23_result = (_v23_m, _v23_k, _v23_m_k)
-        R_Q_d_MAP.add(_v23_result)
-        _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_add(_v23_result)
-        _maint_R_Q_T_m_k_for_R_Q_d_MAP_add(_v23_result)
+    if ismap(_v23_m):
+        for (_v23_k, _v23_m_k) in _v23_m.items():
+            _v23_result = (_v23_m, _v23_k, _v23_m_k)
+            R_Q_d_MAP.add(_v23_result)
+            _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_add(_v23_result)
+            _maint_R_Q_T_m_k_for_R_Q_d_MAP_add(_v23_result)
 
 def _maint_R_Q_d_MAP_for_R_Q_T_m_remove(_elem):
     (_v24_m,) = _elem
-    for (_v24_k, _v24_m_k) in (_MAP_buu[_v24_m] if (_v24_m in _MAP_buu) else Set()):
-        _v24_result = (_v24_m, _v24_k, _v24_m_k)
-        _maint_R_Q_T_m_k_for_R_Q_d_MAP_remove(_v24_result)
-        _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_remove(_v24_result)
-        R_Q_d_MAP.remove(_v24_result)
+    if ismap(_v24_m):
+        for (_v24_k, _v24_m_k) in _v24_m.items():
+            _v24_result = (_v24_m, _v24_k, _v24_m_k)
+            _maint_R_Q_T_m_k_for_R_Q_d_MAP_remove(_v24_result)
+            _maint_R_Q_d_MAP_uub_for_R_Q_d_MAP_remove(_v24_result)
+            R_Q_d_MAP.remove(_v24_result)
 
 def _maint_R_Q_d_MAP_for__MAP_add(_elem):
     (_v25_m, _v25_k, _v25_m_k) = _elem
@@ -395,40 +378,42 @@ def _maint_R_Q_T_m_for__U_Q_remove(_elem):
 def _maint_R_Q_for__U_Q_add(_elem):
     (_v11_m,) = _elem
     if ((_v11_m,) in _U_Q):
-        for (_v11_k, _v11_m_k) in (_MAP_buu[_v11_m] if (_v11_m in _MAP_buu) else Set()):
-            if isset(_v11_m_k):
-                for _v11_t_x_y in _v11_m_k:
-                    if hasarity(_v11_t_x_y, 2):
-                        (_v11_x, _v11_y) = _v11_t_x_y
-                        if hasfield(_v11_x, 'f'):
-                            _v11_x_f = _v11_x.f
-                            if hasfield(_v11_y, 'f'):
-                                _v11_y_f = _v11_y.f
-                                _v11_result = (_v11_m, _v11_k, (_v11_x_f, _v11_y_f))
-                                if (_v11_result not in R_Q):
-                                    R_Q.add(_v11_result)
-                                    _maint_R_Q_bbu_for_R_Q_add(_v11_result)
-                                else:
-                                    R_Q.inccount(_v11_result)
+        if ismap(_v11_m):
+            for (_v11_k, _v11_m_k) in _v11_m.items():
+                if isset(_v11_m_k):
+                    for _v11_t_x_y in _v11_m_k:
+                        if hasarity(_v11_t_x_y, 2):
+                            (_v11_x, _v11_y) = _v11_t_x_y
+                            if hasfield(_v11_x, 'f'):
+                                _v11_x_f = _v11_x.f
+                                if hasfield(_v11_y, 'f'):
+                                    _v11_y_f = _v11_y.f
+                                    _v11_result = (_v11_m, _v11_k, (_v11_x_f, _v11_y_f))
+                                    if (_v11_result not in R_Q):
+                                        R_Q.add(_v11_result)
+                                        _maint_R_Q_bbu_for_R_Q_add(_v11_result)
+                                    else:
+                                        R_Q.inccount(_v11_result)
 
 def _maint_R_Q_for__U_Q_remove(_elem):
     (_v12_m,) = _elem
     if ((_v12_m,) in _U_Q):
-        for (_v12_k, _v12_m_k) in (_MAP_buu[_v12_m] if (_v12_m in _MAP_buu) else Set()):
-            if isset(_v12_m_k):
-                for _v12_t_x_y in _v12_m_k:
-                    if hasarity(_v12_t_x_y, 2):
-                        (_v12_x, _v12_y) = _v12_t_x_y
-                        if hasfield(_v12_x, 'f'):
-                            _v12_x_f = _v12_x.f
-                            if hasfield(_v12_y, 'f'):
-                                _v12_y_f = _v12_y.f
-                                _v12_result = (_v12_m, _v12_k, (_v12_x_f, _v12_y_f))
-                                if (R_Q.getcount(_v12_result) == 1):
-                                    _maint_R_Q_bbu_for_R_Q_remove(_v12_result)
-                                    R_Q.remove(_v12_result)
-                                else:
-                                    R_Q.deccount(_v12_result)
+        if ismap(_v12_m):
+            for (_v12_k, _v12_m_k) in _v12_m.items():
+                if isset(_v12_m_k):
+                    for _v12_t_x_y in _v12_m_k:
+                        if hasarity(_v12_t_x_y, 2):
+                            (_v12_x, _v12_y) = _v12_t_x_y
+                            if hasfield(_v12_x, 'f'):
+                                _v12_x_f = _v12_x.f
+                                if hasfield(_v12_y, 'f'):
+                                    _v12_y_f = _v12_y.f
+                                    _v12_result = (_v12_m, _v12_k, (_v12_x_f, _v12_y_f))
+                                    if (R_Q.getcount(_v12_result) == 1):
+                                        _maint_R_Q_bbu_for_R_Q_remove(_v12_result)
+                                        R_Q.remove(_v12_result)
+                                    else:
+                                        R_Q.deccount(_v12_result)
 
 def _maint_R_Q_for__MAP_add(_elem):
     (_v13_m, _v13_k, _v13_m_k) = _elem
@@ -627,7 +612,6 @@ def main():
         if (i not in r):
             _v3 = (r, i, Set())
             index(_v3, 0)[index(_v3, 1)] = index(_v3, 2)
-            _maint__MAP_buu_for__MAP_add(_v3)
             _maint_R_Q_d_MAP_for__MAP_add(_v3)
             _maint_R_Q_for__MAP_add(_v3)
         _v4 = (r[i], (p, q))
@@ -649,11 +633,9 @@ def main():
     _v6 = (b, 1, b[1])
     _maint_R_Q_for__MAP_remove(_v6)
     _maint_R_Q_d_MAP_for__MAP_remove(_v6)
-    _maint__MAP_buu_for__MAP_remove(_v6)
     del index(_v6, 0)[index(_v6, 1)]
     _v7 = (b, 1, Set())
     index(_v7, 0)[index(_v7, 1)] = index(_v7, 2)
-    _maint__MAP_buu_for__MAP_add(_v7)
     _maint_R_Q_d_MAP_for__MAP_add(_v7)
     _maint_R_Q_for__MAP_add(_v7)
     p = Obj()
