@@ -9,7 +9,7 @@ import incoq.mars.cost.costs as C
 class CostCase(unittest.TestCase):
     
     def test_eval_coststr(self):
-        cost = C.eval_coststr('Product([Name("A"), Unit()])')
+        cost = C.eval_coststr("Product([Name('A'), Unit()])")
         exp_cost = C.Product([C.Name('A'), C.Unit()])
         self.assertEqual(cost, exp_cost)
     
@@ -36,13 +36,13 @@ class CostCase(unittest.TestCase):
         self.assertEqual(cost, exp_cost)
     
     def test_prettyprint(self):
-        cost = C.Sum((C.Product((C.Name('a'), C.Name('b'),
-                                 C.Name('a'), C.Name('b'),
-                                 C.Name('b'), C.Name('c'),
-                                 C.Name('a'))),
+        cost = C.Sum((C.Product((C.Name('A'), C.Name('B'),
+                                 C.Name('A'), C.Name('B'),
+                                 C.Name('B'), C.Name('C'),
+                                 C.Name('A'))),
                       C.Product((C.Unknown(), C.Unknown(), C.Unit()))))
         output = C.PrettyPrinter.run(cost)
-        exp_output = '((a^3 * b^3 * c) + (1 * ?^2))'
+        exp_output = '((A^3 * B^3 * C) + (1 * ?^2))'
         self.assertEqual(output, exp_output)
 
 

@@ -7,6 +7,9 @@ __all__ = [
 ]
 
 
+from itertools import chain
+from collections import Counter
+
 from incoq.util.collections import OrderedSet
 
 from .costs import *
@@ -72,3 +75,64 @@ class BasicSimplifier(CostTransformer):
         cost = self.recurse_helper(cost)
         cost = self.unique_helper(cost)
         return cost
+
+
+# A factor index is a mapping whose keys are Products, and whose values
+# are themselves mappings from each term of the Product to the number of
+# occurrences it has in that Product. For instance, the factor index for
+#
+#     p1 = Product([Name('A'), Name('A'), Name('B')])
+#     p2 = Product([Name('B'), Unit()])
+#
+# is
+#
+#     {p1: {Name('A'): 2, Name('B'): 1},
+#      p2: {Name('B'): 1, Unit(): 1}}.
+#
+# The below functions take a factor_index optional argument to avoid
+# recomputing the factor index when a suitable one is already available.
+
+def build_factor_index(prods):
+    """Return a new factor index covering the given list of products."""
+    assert all(isinstance(p, Product) for p in prods)
+    result = {}
+    for p in prods:
+        # The same Product may appear multiple times in prods;
+        # this is fine.
+        result[p] = Counter(p.terms)
+    return result
+
+
+# A product p1 dominates another product p2 if every term in p2
+# appears at least that many times in p1, not counting Unit terms.
+
+def product_dominates(prod1, prod2, factor_index=None):
+    """Return whether Product prod1 dominates Product prod2."""
+    if factor_index is None:
+        factor_index = build_factor_index([prod1, prod2])
+    
+    c1 = factor_index[prod1]
+    c2 = factor_index[prod2]
+    return all(c1[t] >= c2[t]
+               for t in c2.keys() if t != Unit())
+
+
+def all_products_dominated(prods1, prods2, factor_index=None):
+    """Return True if for every Product in prods1, there is some
+    Product in prods2 that dominates it.
+    """
+    allprods = list(chain(prods1, prods2))
+    assert all(isinstance(p, Product) for p in allprods)
+    
+    if factor_index is None:
+        factor_index = build_factor_index(allprods)
+    
+    # Do a pairwise comparison.
+    for p1 in prods1:
+        for p2 in prods2:
+            if product_dominates(p2, p1, factor_index):
+                break
+        else:
+            return False
+    return True
+
