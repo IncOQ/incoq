@@ -204,10 +204,14 @@ class CLPaxos(DistalgoWorkflow):
         
         name = 'clpaxos'
         noninline = True
-        show_wall = True
+        show_wall = False
         
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
+        
+        xmin = 0.75
+        xmax = 6.25
+        ymin = -2
 
 
 class CRLeaderDriver(DistalgoDriver):
@@ -394,8 +398,9 @@ class LAMutexOrigProcs(LAMutexOrigWorkflow):
     class ExpExtractor(LAMutexOrigWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
-        xmin = 5
-        xmax = 55
+        xmin = 2.5
+        xmax = 52.5
+        ymin = -2.5
 
 class LAMutexOrigRounds(LAMutexOrigWorkflow):
     
@@ -420,6 +425,7 @@ class LAMutexOrigRounds(LAMutexOrigWorkflow):
         xlabel = 'Number of rounds'
         xmin = 50
         xmax = 1050
+        ymin = -15
 
 class LAMutexSpecProcs(LAMutexSpecWorkflow):
     
@@ -444,6 +450,7 @@ class LAMutexSpecProcs(LAMutexSpecWorkflow):
         xlabel = 'Number of processes'  
         xmin = 1
         xmax = 31
+        ymin = -1
 
 class LAMutexSpecRounds(LAMutexSpecWorkflow):
     
@@ -465,8 +472,9 @@ class LAMutexSpecRounds(LAMutexSpecWorkflow):
     class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of rounds'
-        xmin = 1
+        xmin = 2
         xmax = 31
+        ymin = -1
 
 class LAMutexSpecLamProcs(LAMutexSpecLamWorkflow):
     
@@ -489,8 +497,9 @@ class LAMutexSpecLamProcs(LAMutexSpecLamWorkflow):
     class ExpExtractor(LAMutexSpecLamWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
-        xmin = 1
+        xmin = 2
         xmax = 31
+        ymin = -1
 
 class LAMutexSpecLamRounds(LAMutexSpecLamWorkflow):
     
@@ -512,8 +521,9 @@ class LAMutexSpecLamRounds(LAMutexSpecLamWorkflow):
     class ExpExtractor(LAMutexSpecLamWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of rounds'
-        xmin = 1
+        xmin = 2
         xmax = 31
+        ymin = -0.25
 
 
 class LAPaxosDriver(DistalgoDriver):
@@ -601,6 +611,10 @@ class RAMutex(DistalgoWorkflow):
         
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
+        
+        xmin = 1
+        xmax = 21
+        ymin = -5
 
 
 class RATokenDriver(DistalgoDriver):
@@ -638,6 +652,10 @@ class RATokenProcs(DistalgoWorkflow):
         
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
+        
+        xmin = 5
+        xmax = 75
+        ymin = -5
 
 class RATokenRounds(DistalgoWorkflow):
     
@@ -670,6 +688,10 @@ class RATokenRounds(DistalgoWorkflow):
         
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of rounds'
+        
+        xmin = 2.5
+        xmax = 52.5
+        ymin = -5
 
 
 class SKTokenDriver(DistalgoDriver):
