@@ -6,8 +6,8 @@ __all__ = [
     'Unknown',
     'Unit',
     'Name',
-    'IndefImageset',
-    'DefImageset',
+    'IndefImgset',
+    'DefImgset',
     'Product',
     'Sum',
     'Min',
@@ -56,7 +56,7 @@ class Name(Cost):
         return self.name
 
 
-class IndefImageset(Cost):
+class IndefImgset(Cost):
     
     """Indefinite image set, i.e., the size of the largest image set
     under any key for a given relation and mask.
@@ -69,7 +69,7 @@ class IndefImageset(Cost):
         return '{}_{}'.format(self.rel, self.mask)
 
 
-class DefImageset(Cost):
+class DefImgset(Cost):
     
     """Definite image set, i.e., the size of a particular image set
     under a given sequence of key variables, for the given relation and
@@ -88,7 +88,7 @@ class DefImageset(Cost):
         """Return the indefinite image-set cost that generalizes this
         cost.
         """
-        return IndefImageset(self.rel, self.mask)
+        return IndefImgset(self.rel, self.mask)
 
 
 class Product(Cost):
