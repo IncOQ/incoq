@@ -3,14 +3,14 @@
 
 __all__ = [
     'Cost',
-    'UnknownCost',
-    'UnitCost',
-    'NameCost',
-    'IndefImagesetCost',
-    'DefImagesetCost',
-    'ProductCost',
-    'SumCost',
-    'MinCost',
+    'Unknown',
+    'Unit',
+    'Name',
+    'IndefImageset',
+    'DefImageset',
+    'Product',
+    'Sum',
+    'Min',
     
     'eval_coststr',
     'CostVisitor',
@@ -30,7 +30,7 @@ class Cost(Struct):
     """Base of the cost term hierarchy."""
 
 
-class UnknownCost(Cost):
+class Unknown(Cost):
     
     """Unknown cost."""
     
@@ -38,7 +38,7 @@ class UnknownCost(Cost):
         return '?'
 
 
-class UnitCost(Cost):
+class Unit(Cost):
     
     """Constant cost."""
     
@@ -46,7 +46,7 @@ class UnitCost(Cost):
         return '1'
 
 
-class NameCost(Cost):
+class Name(Cost):
     
     """Atomic cost, e.g. a domain size or a relation size."""
     
@@ -56,7 +56,7 @@ class NameCost(Cost):
         return self.name
 
 
-class IndefImagesetCost(Cost):
+class IndefImageset(Cost):
     
     """Indefinite image set, i.e., the size of the largest image set
     under any key for a given relation and mask.
@@ -69,7 +69,7 @@ class IndefImagesetCost(Cost):
         return '{}_{}'.format(self.rel, self.mask)
 
 
-class DefImagesetCost(Cost):
+class DefImageset(Cost):
     
     """Definite image set, i.e., the size of a particular image set
     under a given sequence of key variables, for the given relation and
@@ -85,13 +85,13 @@ class DefImagesetCost(Cost):
                                   ', '.join(self.key))
     
     def to_indef(self):
-        """Return the indefinite image set cost that generalizes this
+        """Return the indefinite image-set cost that generalizes this
         cost.
         """
-        return IndefImagesetCost(self.rel, self.mask)
+        return IndefImageset(self.rel, self.mask)
 
 
-class ProductCost(Cost):
+class Product(Cost):
     
     """Product of a sequence of costs."""
     
@@ -101,7 +101,7 @@ class ProductCost(Cost):
         return '(' + ' * '.join(str(t) for t in self.terms) + ')'
 
 
-class SumCost(Cost):
+class Sum(Cost):
     
     """Sum of a sequence of costs."""
     
@@ -111,7 +111,7 @@ class SumCost(Cost):
         return '(' + ' + '.join(str(t) for t in self.terms) + ')'
 
 
-class MinCost(Cost):
+class Min(Cost):
     
     """Minimum of a sequence of costs."""
     
@@ -167,19 +167,19 @@ class CostVisitor(BaseCostVisitor):
     def do_nothing(self, cost):
         return
     
-    visit_UnknownCost = do_nothing
-    visit_UnitCost = do_nothing
-    visit_NameCost = do_nothing
-    visit_IndefImgsetCost = do_nothing
-    visit_DefImgsetCost = do_nothing
+    visit_Unknown = do_nothing
+    visit_Unit = do_nothing
+    visit_Name = do_nothing
+    visit_IndefImgset = do_nothing
+    visit_DefImgset = do_nothing
     
     def do_termlist(self, cost):
         for c in cost.terms:
             self.visit(c)
     
-    visit_ProductCost = do_termlist
-    visit_SumCost = do_termlist
-    visit_MinCost = do_termlist
+    visit_Product = do_termlist
+    visit_Sum = do_termlist
+    visit_Min = do_termlist
 
 
 class CostTransformer(BaseCostVisitor):
@@ -198,11 +198,11 @@ class CostTransformer(BaseCostVisitor):
     def do_nothing(self, cost):
         return cost
     
-    visit_UnknownCost = do_nothing
-    visit_UnitCost = do_nothing
-    visit_NameCost = do_nothing
-    visit_IndefImgsetCost = do_nothing
-    visit_DefImgsetCost = do_nothing
+    visit_Unknown = do_nothing
+    visit_Unit = do_nothing
+    visit_Name = do_nothing
+    visit_IndefImgset = do_nothing
+    visit_DefImgset = do_nothing
     
     def do_termlist(self, cost):
         changed = False
@@ -222,9 +222,9 @@ class CostTransformer(BaseCostVisitor):
         else:
             return cost
     
-    visit_ProductCost = do_termlist
-    visit_SumCost = do_termlist
-    visit_MinCost = do_termlist
+    visit_Product = do_termlist
+    visit_Sum = do_termlist
+    visit_Min = do_termlist
 
 
 class PrettyPrinter(CostVisitor):
@@ -236,13 +236,13 @@ class PrettyPrinter(CostVisitor):
     def helper(self, cost):
         return str(cost)
     
-    visit_UnknownCost = helper
-    visit_UnitCost = helper
-    visit_NameCost = helper
-    visit_IndefImgsetCost = helper
-    visit_DefImgsetCost = helper
+    visit_Unknown = helper
+    visit_Unit = helper
+    visit_Name = helper
+    visit_IndefImgset = helper
+    visit_DefImgset = helper
     
-    def visit_ProductCost(self, cost):
+    def visit_Product(self, cost):
         termstrs = []
         
         # Sort terms by string representation first, then group.
@@ -259,8 +259,8 @@ class PrettyPrinter(CostVisitor):
         
         return '(' + ' * '.join(termstrs) + ')'
     
-    def visit_SumCost(self, cost):
+    def visit_Sum(self, cost):
         return '(' + ' + '.join(self.visit(t) for t in cost.terms) + ')'
     
-    def visit_MinCost(self, cost):
+    def visit_Min(self, cost):
         return 'min(' + ', '.join(self.visit(t) for t in cost.terms) + ')'
