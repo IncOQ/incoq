@@ -182,6 +182,33 @@ collections = [
     ('probinf/pubcite/pubcite_in',      loc_collector),
     ('probinf/pubcite/pubcite_inc',     statfile_collector),
     ('probinf/pubcite/pubcite_dem',     statfile_collector),
+    
+    # DistAlgo.
+    ('distalgo/lamutex/lamutex_orig_inc_in',        loc_collector),
+    ('distalgo/lamutex/lamutex_orig_inc_out',       statfile_collector),
+    ('distalgo/lamutex/lamutex_spec_inc_in',        loc_collector),
+    ('distalgo/lamutex/lamutex_spec_inc_out',       statfile_collector),
+    ('distalgo/lamutex/lamutex_spec_lam_inc_in',    loc_collector),
+    ('distalgo/lamutex/lamutex_spec_lam_inc_out',   statfile_collector),
+    
+    ('distalgo/clpaxos/clpaxos_inc_in',             loc_collector),
+    ('distalgo/clpaxos/clpaxos_inc_out',            statfile_collector),
+    ('distalgo/crleader/crleader_inc_in',           loc_collector),
+    ('distalgo/crleader/crleader_inc_out',          statfile_collector),
+    ('distalgo/dscrash/dscrash_inc_in',             loc_collector),
+    ('distalgo/dscrash/dscrash_inc_out',            statfile_collector),
+    ('distalgo/hsleader/hsleader_inc_in',           loc_collector),
+    ('distalgo/hsleader/hsleader_inc_out',          statfile_collector),
+    ('distalgo/lapaxos/lapaxos_inc_in',             loc_collector),
+    ('distalgo/lapaxos/lapaxos_inc_out',            statfile_collector),
+    ('distalgo/ramutex/ramutex_inc_in',             loc_collector),
+    ('distalgo/ramutex/ramutex_inc_out',            statfile_collector),
+    ('distalgo/ratoken/ratoken_inc_in',             loc_collector),
+    ('distalgo/ratoken/ratoken_inc_out',            statfile_collector),
+    ('distalgo/sktoken/sktoken_inc_in',             loc_collector),
+    ('distalgo/sktoken/sktoken_inc_out',            statfile_collector),
+    ('distalgo/tpcommit/tpcommit_inc_in',           loc_collector),
+    ('distalgo/tpcommit/tpcommit_inc_out',          statfile_collector),
 ]
 
 
@@ -608,6 +635,48 @@ class ProbInfAggregator(CombinedLOCTimeAggregator):
          'Citations'),
     ]
 
+class DistAlgoAggregator(CombinedAggregator):
+    cols = [
+        (0, 'lines', 'Orig.\nLOC'),
+        (1, 'queries_input', '# queries'),
+        (1, 'updates_input', '# updates'),
+        (1, 'lines', 'Trans.\nLOC'),
+        (1, 'time', 'Trans.\nTime'),
+    ]
+    _rows1 = [
+        'clpaxos',
+        'crleader',
+        'dscrash',
+        'hsleader',
+    ]
+    _rows2 = [
+        'lapaxos',
+        'ramutex',
+        'ratoken',
+        'sktoken',
+        'tpcommit',
+    ]
+    @property
+    def rows(self):
+        rows1 = [(['distalgo/{0}/{0}_inc_in'.format(name),
+                   'distalgo/{0}/{0}_inc_out'.format(name)],
+                  name)
+                 for name in self._rows1]
+        rows2 = [(['distalgo/{0}/{0}_inc_in'.format(name),
+                   'distalgo/{0}/{0}_inc_out'.format(name)],
+                  name)
+                 for name in self._rows2]
+        rows_lamutex = [(['distalgo/lamutex/lamutex_orig_inc_in',
+                          'distalgo/lamutex/lamutex_orig_inc_out'],
+                         'lamutex_orig'),
+                        (['distalgo/lamutex/lamutex_spec_inc_in',
+                          'distalgo/lamutex/lamutex_spec_inc_out'],
+                         'lamutex_spec'),
+                        (['distalgo/lamutex/lamutex_spec_lam_inc_in',
+                          'distalgo/lamutex/lamutex_spec_lam_inc_out'],
+                         'lamutex_spec_lam')]
+        return rows1 + rows_lamutex + rows2
+
 aggregations = [
     ('twitter',                         TwitterAggregator),
     ('twitter_opt',                     TwitterOptAggregator),
@@ -619,6 +688,7 @@ aggregations = [
     ('rbac',                            RBACAggregator),
     ('graddb',                          GradDBAggregator),
     ('probinf',                         ProbInfAggregator),
+    ('distalgo',                        DistAlgoAggregator),
 ]
 
 aggregations_dict = dict(aggregations)

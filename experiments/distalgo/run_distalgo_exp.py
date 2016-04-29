@@ -661,7 +661,7 @@ class RATokenRounds(DistalgoWorkflow):
                     n_procs =  20,
                     n_rounds = x,
                 )
-                for x in range(10, 100 + 1, 10)
+                for x in range(5, 50 + 1, 5)
             ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
