@@ -8,7 +8,8 @@ from incoq.mars.incast import L
 import incoq.mars.cost.costs as costs
 import incoq.mars.cost.algebra as algebra
 from incoq.mars.cost.algebra import (
-    build_factor_index, product_dominates, all_products_dominated)
+    build_factor_index, product_dominates, all_products_dominated,
+    simplify_sum_of_products, simplify_min_of_sums, multiply_sums_of_products)
 
 C = new_namespace(costs, algebra)
 
@@ -23,11 +24,11 @@ class AlgebraCase(unittest.TestCase):
                               C.DefImgset('S', L.mask('ubb'), ['y', 'c'])])
         self.assertEqual(cost, exp_cost)
     
-    def test_basicsimplifier(self):
+    def test_trivialsimplifier(self):
         cost = C.Sum([C.Unit(), C.Name('A'), C.Name('A'),
                       C.Product([C.Name('A'), C.Unit(), C.Unit()]),
                       C.Min([C.Name('A'), C.Unit()])])
-        cost = C.BasicSimplifier.run(cost)
+        cost = C.TrivialSimplifier.run(cost)
         exp_cost = C.Sum([C.Name('A'),
                           C.Product([C.Name('A')]),
                           C.Min([C.Name('A'), C.Unit()])])
@@ -77,6 +78,58 @@ class AlgebraCase(unittest.TestCase):
         # [a]
         right = [p([n('a')])]
         self.assertTrue(all_products_dominated(left, right))
+    
+    def test_simplify_sum_of_products(self):
+        s, p, n = C.Sum, C.Product, C.Name
+        
+        # a*a + a*a + a + a*b -> a*a + a*b
+        cost = s([p([n('a'), n('a')]),
+                  p([n('a'), n('a')]),
+                  p([n('a')]),
+                  p([n('a'), n('b')])])
+        cost = simplify_sum_of_products(cost)
+        exp_cost = s([p([n('a'), n('a')]),
+                      p([n('a'), n('b')])])
+        self.assertEqual(cost, exp_cost)
+        
+        # a*b + b*a -> a*b
+        cost = s([p([n('a'), n('b')]),
+                  p([n('b'), n('a')])])
+        cost = simplify_sum_of_products(cost)
+        exp_cost = s([p([n('a'), n('b')])])
+        self.assertEqual(cost, exp_cost)
+    
+    def test_simplify_min_of_sums(self):
+        m, s, p, n = C.Min, C.Sum, C.Product, C.Name
+        
+        # min(a + b, a*a*a, b) -> min(a*a*a, b)
+        cost = m([s([p([n('a')]), p([n('b')])]),
+                  s([p([n('a'), n('a'), n('a')])]),
+                  s([p([n('b')])])])
+        cost = simplify_min_of_sums(cost)
+        exp_cost = m([s([p([n('a'), n('a'), n('a')])]),
+                      s([p([n('b')])])])
+        self.assertEqual(cost, exp_cost)
+    
+    def test_multiply_sums_of_products(self):
+        s, p, n = C.Sum, C.Product, C.Name
+        
+        # [(a + b), (c + d), (e + f)]
+        costs = [s([p([n('a')]), p([n('b')])]),
+                 s([p([n('c')]), p([n('d')])]),
+                 s([p([n('e')]), p([n('f')])])]
+        cost = multiply_sums_of_products(costs)
+        # a*c*e + a*c*f + a*d*e + a*d*f +
+        # b*c*e + b*c*f + b*d*e + b*d*f
+        exp_cost = s([p([n('a'), n('c'), n('e')]),
+                      p([n('a'), n('c'), n('f')]),
+                      p([n('a'), n('d'), n('e')]),
+                      p([n('a'), n('d'), n('f')]),
+                      p([n('b'), n('c'), n('e')]),
+                      p([n('b'), n('c'), n('f')]),
+                      p([n('b'), n('d'), n('e')]),
+                      p([n('b'), n('d'), n('f')])])
+        self.assertEqual(cost, exp_cost)
 
 
 if __name__ == '__main__':

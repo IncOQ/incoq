@@ -3,11 +3,11 @@
 
 __all__ = [
     'ImgkeySubstitutor',
-    'BasicSimplifier',
+    'TrivialSimplifier',
 ]
 
 
-from itertools import chain
+from itertools import chain, product
 from collections import Counter
 
 from incoq.util.collections import OrderedSet
@@ -34,47 +34,43 @@ class ImgkeySubstitutor(CostTransformer):
             return cost.to_indef()
 
 
-class BasicSimplifier(CostTransformer):
+def trivial_simplify(cost):
+    """For Sum and Min cost terms, rewrite them to eliminate duplicate
+    entries. For Product and Sum, eliminate unit cost entries. Other
+    costs are returned verbatim.
+    """
+    if not isinstance(cost, (Product, Sum, Min)):
+        return cost
+    terms = cost.terms
+    
+    if isinstance(cost, (Product, Sum)):
+        terms = [t for t in terms if t != Unit()]
+    
+    if isinstance(cost, (Sum, Min)):
+        terms = OrderedSet(terms)
+    
+    cost = cost._replace(terms=terms)
+    return cost
+
+
+class TrivialSimplifier(CostTransformer):
     
     """Return an algebraically equivalent cost tree that is either
-    simpler than this one or the same as this one.
-    
-    For sum and min cost terms, rewrite them to eliminate duplicate
-    entries. For product and sum, eliminate unit cost entries.
+    simpler than this one or the same as this one, applying
+    trivial_simplify() to each term.
     """
     
-    def recurse_helper(self, cost):
-        """Recurse over terms. Analogous to NodeVisitor.generic_visit()
-        but for Product/Sum/Min only.
-        """
+    def helper(self, cost):
         terms = [self.visit(t) for t in cost.terms]
-        return cost._replace(terms=terms)
-    
-    def unique_helper(self, cost):
-        """Eliminate duplicate terms."""
-        terms = OrderedSet(cost.terms)
-        return cost._replace(terms=terms)
-    
-    def elimunit_helper(self, cost):
-        """Eliminate Unit terms."""
-        terms = [t for t in cost.terms if t != Unit()]
-        return cost._replace(terms=terms)
-    
-    def visit_Product(self, cost):
-        cost = self.recurse_helper(cost)
-        cost = self.elimunit_helper(cost)
+        cost = cost._replace(terms=terms)
+        
+        cost = trivial_simplify(cost)
+        
         return cost
     
-    def visit_Sum(self, cost):
-        cost = self.recurse_helper(cost)
-        cost = self.unique_helper(cost)
-        cost = self.elimunit_helper(cost)
-        return cost
-    
-    def visit_Min(self, cost):
-        cost = self.recurse_helper(cost)
-        cost = self.unique_helper(cost)
-        return cost
+    visit_Product = helper
+    visit_Sum = helper
+    visit_Min = helper
 
 
 # A factor index is a mapping whose keys are Products, and whose values
@@ -105,6 +101,7 @@ def build_factor_index(prods):
 
 # A product p1 dominates another product p2 if every term in p2
 # appears at least that many times in p1, not counting Unit terms.
+# The domination relation is a partial order.
 
 def product_dominates(prod1, prod2, factor_index=None):
     """Return whether Product prod1 dominates Product prod2."""
@@ -136,3 +133,83 @@ def all_products_dominated(prods1, prods2, factor_index=None):
             return False
     return True
 
+
+def simplify_sum_of_products(sumcost):
+    """For a Sum of Products, return a version of this cost where
+    Products that are dominated by other Products are removed.
+    """
+    assert isinstance(sumcost, Sum)
+    assert all(isinstance(p, Product) for p in sumcost.terms)
+    terms = sumcost.terms
+    
+    factor_index = build_factor_index(terms)
+    
+    # If two terms dominate each other (i.e., they are the same term),
+    # we don't want to remove both of them. We'll walk from right to
+    # left, eliminating terms using any other term that has not already
+    # been eliminated.
+    new_terms = []
+    product_counts = Counter(terms)
+    for prod in reversed(list(terms)):
+        product_counts[prod] -= 1
+        other_terms = [t for t, c in product_counts.items()
+                         if c > 0]
+        if all_products_dominated([prod], other_terms,
+                                  factor_index):
+            # Remove it.
+            pass
+        else:
+            # Keep it, and add it back into the pool of available terms
+            # for dominating other terms.
+            new_terms.append(prod)
+            product_counts[prod] += 1
+    new_terms.reverse()
+    
+    return sumcost._replace(terms=new_terms)
+
+
+def simplify_min_of_sums(mincost):
+    """For a Min of Sums of Products, return a version of this cost
+    where Sums that dominate other Sums are removed.
+    """
+    assert isinstance(mincost, Min)
+    assert all(isinstance(s, Sum) for s in mincost.terms)
+    assert all(isinstance(p, Product)
+               for s in mincost.terms for p in s.terms)
+    terms = mincost.terms
+    
+    factor_index = build_factor_index([p for s in terms for p in s.terms])
+    
+    new_terms = []
+    sum_counts = Counter(terms)
+    for sum in reversed(list(terms)):
+        sum_counts[sum] -= 1
+        other_terms = [t for t, c in sum_counts.items()
+                         if c > 0]
+        for other_sum in other_terms:
+            if all_products_dominated(other_sum.terms, sum.terms,
+                                      factor_index):
+                break
+        else:
+            new_terms.append(sum)
+            sum_counts[sum] += 1
+    new_terms.reverse()
+    
+    return mincost._replace(terms=new_terms)
+
+
+def multiply_sums_of_products(sums):
+    """Given a list of Sums of Products, produce their overall product
+    in Sum-of-Product form.
+    """
+    assert all(isinstance(s, Sum) for s in sums)
+    assert all(isinstance(p, Product) for s in sums for p in s.terms)
+    
+    product_lists = [s.terms for s in sums]
+    new_terms = []
+    # Generate all combinations.
+    for comb in product(*product_lists):
+        nt = Product(list(chain.from_iterable(c.terms for c in comb)))
+        new_terms.append(nt)
+    
+    return Sum(new_terms)
