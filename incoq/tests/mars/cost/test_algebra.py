@@ -11,7 +11,7 @@ from incoq.mars.cost.algebra import (
     TrivialSimplifier, build_factor_index,
     product_dominates, all_products_dominated,
     simplify_sum_of_products, simplify_min_of_sums,
-    multiply_sums_of_products)
+    multiply_sums_of_products, Normalizer)
 
 C = new_namespace(costs, algebra)
 
@@ -139,14 +139,50 @@ class AlgebraCase(unittest.TestCase):
         
         # a * min(b, c * (d + min(e, f))) -->
         # min(a*b, a*c*d + a*c*e, a*c*d + a*c*f)
-        cost = p([n('A'), m([n('B'), p([n('C'),
-               s([n('D'), m([n('E'), n('F')])])])])])
-        cost = C.normalize(cost)
+        orig_cost = p([n('A'), m([n('B'), p([n('C'),
+                    s([n('D'), m([n('E'), n('F')])])])])])
+        # Use Normalizer directly because we don't want to unwrap
+        # anything.
+        cost = Normalizer.run(orig_cost)
         exp_cost = m([s([p([n('A'), n('B')])]),
                       s([p([n('A'), n('C'), n('D')]),
                          p([n('A'), n('C'), n('E')])]),
                       s([p([n('A'), n('C'), n('D')]),
                          p([n('A'), n('C'), n('F')])])])
+        self.assertEqual(cost, exp_cost)
+        
+        # Check that it unwraps.
+        
+        cost = n('A')
+        cost = C.normalize(cost)
+        exp_cost = n('A')
+        self.assertEqual(cost, exp_cost)
+        
+        cost = C.normalize(orig_cost)
+        exp_cost = m([p([n('A'), n('B')]),
+                      s([p([n('A'), n('C'), n('D')]),
+                         p([n('A'), n('C'), n('E')])]),
+                      s([p([n('A'), n('C'), n('D')]),
+                         p([n('A'), n('C'), n('F')])])])
+        self.assertEqual(cost, exp_cost)
+    
+    def test_normalize_hard(self):
+        # Regression test based on a bigger example.
+        
+        # ((1 + (S * ((1 + (T * ((1))))))) + (1 + (R * ((1)))))
+        src = L.trim('''
+            Sum(terms=(Sum(terms=(Unit(), Product(terms=(Name(name='S'),
+            Sum(terms=(Sum(terms=(Unit(), Product(terms=(Name(name='T'),
+            Sum(terms=(Sum(terms=(Unit(),)),)))))),)))))),
+            Sum(terms=(Unit(), Product(terms=(Name(name='R'),
+            Sum(terms=(Sum(terms=(Unit(),)),))))))))
+            ''')
+        # Should return (S * T) + R, but without simplifying products
+        # it returns (S * T * 1) + (R * 1).
+        cost = C.eval_coststr(src)
+        cost = C.normalize(cost)
+        exp_cost = C.Sum([C.Product([C.Name('S'), C.Name('T')]),
+                          C.Name('R')])
         self.assertEqual(cost, exp_cost)
 
 

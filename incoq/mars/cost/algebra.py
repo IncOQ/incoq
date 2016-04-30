@@ -208,7 +208,8 @@ def simplify_min_of_sums(mincost):
 
 def multiply_sums_of_products(sums):
     """Given a list of Sums of Products, produce their overall product
-    in Sum-of-Product form.
+    in Sum-of-Product form. The terms of the Sum are simplified, but
+    the Sum itself might not be.
     """
     assert all(isinstance(s, Sum) for s in sums)
     assert all(isinstance(p, Product) for s in sums for p in s.terms)
@@ -218,6 +219,7 @@ def multiply_sums_of_products(sums):
     # Generate all combinations.
     for comb in product(*product_lists):
         nt = Product(list(chain.from_iterable(c.terms for c in comb)))
+        nt = trivial_simplify(nt)
         new_terms.append(nt)
     
     return Sum(new_terms)
@@ -230,11 +232,9 @@ class Normalizer(CostTransformer):
     
     """Rewrite a cost in normalized form."""
     
-    # Each recursive call returns a normalized cost. The visitors
-    # combine normalized costs together.
-    #
-    # We simplify each complex term before returning it, in hopes
-    # of avoiding an explosion in the size of intermediate terms.
+    # Each recursive call returns a normalized cost that has already
+    # been simplified. The visitors combine these normalized costs
+    # together.
     
     def wrapper_helper(self, cost):
         """Return the normalized cost for a simple term."""
@@ -292,4 +292,29 @@ class Normalizer(CostTransformer):
         return cost
 
 
-normalize = Normalizer.run
+class Unwrapper(CostTransformer):
+    
+    """Get rid of superfluous nodes -- Products, Sums, and Mins that
+     have zero or one arguments.
+     """
+    
+    def helper(self, cost):
+        terms = [self.visit(t) for t in cost.terms]
+        cost = cost._replace(terms=terms)
+        
+        if len(cost.terms) == 0:
+            return Unit()
+        elif len(cost.terms) == 1:
+            return cost.terms[0]
+        else:
+            return cost
+    
+    visit_Product = helper
+    visit_Sum = helper
+    visit_Min = helper
+
+
+def normalize(cost):
+    cost = Normalizer.run(cost)
+    cost = Unwrapper.run(cost)
+    return cost
