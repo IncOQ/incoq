@@ -3,7 +3,7 @@
 
 __all__ = [
     'ImgkeySubstitutor',
-    'TrivialSimplifier',
+    'normalize',
 ]
 
 
@@ -134,14 +134,25 @@ def all_products_dominated(prods1, prods2, factor_index=None):
     return True
 
 
+# The simplify functions remove terms that are redundant because they
+# dominate, or are dominated by, other terms. They subsume the actions
+# of trivial_simplify().
+#
+# The simplify functions are coded in a way that accounts for the case
+# that two distinct terms can dominate each other (i.e., that the
+# domination relation is a preorder). This may be useful in the future
+# if we pass in user-defined rules for deciding one term dominates
+# another.
+
 def simplify_sum_of_products(sumcost):
     """For a Sum of Products, return a version of this cost where
     Products that are dominated by other Products are removed.
     """
     assert isinstance(sumcost, Sum)
     assert all(isinstance(p, Product) for p in sumcost.terms)
-    terms = sumcost.terms
     
+    sumcost = trivial_simplify(sumcost)
+    terms = sumcost.terms
     factor_index = build_factor_index(terms)
     
     # If two terms dominate each other (i.e., they are the same term),
@@ -149,12 +160,10 @@ def simplify_sum_of_products(sumcost):
     # left, eliminating terms using any other term that has not already
     # been eliminated.
     new_terms = []
-    product_counts = Counter(terms)
+    available_terms = set(terms)
     for prod in reversed(list(terms)):
-        product_counts[prod] -= 1
-        other_terms = [t for t, c in product_counts.items()
-                         if c > 0]
-        if all_products_dominated([prod], other_terms,
+        available_terms.remove(prod)
+        if all_products_dominated([prod], available_terms,
                                   factor_index):
             # Remove it.
             pass
@@ -162,7 +171,7 @@ def simplify_sum_of_products(sumcost):
             # Keep it, and add it back into the pool of available terms
             # for dominating other terms.
             new_terms.append(prod)
-            product_counts[prod] += 1
+            available_terms.add(prod)
     new_terms.reverse()
     
     return sumcost._replace(terms=new_terms)
@@ -176,23 +185,22 @@ def simplify_min_of_sums(mincost):
     assert all(isinstance(s, Sum) for s in mincost.terms)
     assert all(isinstance(p, Product)
                for s in mincost.terms for p in s.terms)
-    terms = mincost.terms
     
+    mincost = trivial_simplify(mincost)
+    terms = mincost.terms
     factor_index = build_factor_index([p for s in terms for p in s.terms])
     
     new_terms = []
-    sum_counts = Counter(terms)
+    available_terms = set(terms)
     for sum in reversed(list(terms)):
-        sum_counts[sum] -= 1
-        other_terms = [t for t, c in sum_counts.items()
-                         if c > 0]
-        for other_sum in other_terms:
+        available_terms.remove(sum)
+        for other_sum in available_terms:
             if all_products_dominated(other_sum.terms, sum.terms,
                                       factor_index):
                 break
         else:
             new_terms.append(sum)
-            sum_counts[sum] += 1
+            available_terms.add(sum)
     new_terms.reverse()
     
     return mincost._replace(terms=new_terms)
@@ -213,3 +221,75 @@ def multiply_sums_of_products(sums):
         new_terms.append(nt)
     
     return Sum(new_terms)
+
+
+# A cost is in normalized form if it is a Min of Sums of Products of
+# other kinds of terms.
+
+class Normalizer(CostTransformer):
+    
+    """Rewrite a cost in normalized form."""
+    
+    # Each recursive call returns a normalized cost. The visitors
+    # combine normalized costs together.
+    #
+    # We simplify each complex term before returning it, in hopes
+    # of avoiding an explosion in the size of intermediate terms.
+    
+    def wrapper_helper(self, cost):
+        """Return the normalized cost for a simple term."""
+        return Min([Sum([Product([cost])])])
+    
+    visit_Unknown = wrapper_helper
+    visit_Unit = wrapper_helper
+    visit_Name = wrapper_helper
+    visit_IndefImgset = wrapper_helper
+    visit_DefImgset = wrapper_helper
+    
+    def visit_Product(self, cost):
+        # Recurse, putting us in the form of a Product of normalized
+        # costs.
+        cost = super().visit_Product(cost)
+        
+        # Distribute the multiplication over all arguments to the Mins,
+        # obtaining one top-level Min.
+        sum_lists = [m.terms for m in cost.terms]
+        new_terms = []
+        for comb in product(*sum_lists):
+            term = multiply_sums_of_products(comb)
+            term = simplify_sum_of_products(term)
+            new_terms.append(term)
+        
+        cost = Min(new_terms)
+        cost = simplify_min_of_sums(cost)
+        return cost
+    
+    def visit_Sum(self, cost):
+        # Recurse to get a Sum of normalized costs.
+        cost = super().visit_Sum(cost)
+        
+        # Choose all possible combinations of arguments to the Mins,
+        # and take the Sums of those combinations. Pick the Min of that.
+        sum_lists = [m.terms for m in cost.terms]
+        new_terms = []
+        for comb in product(*sum_lists):
+            term = Sum(list(chain.from_iterable([s.terms for s in comb])))
+            term = simplify_sum_of_products(term)
+            new_terms.append(term)
+        
+        cost = Min(new_terms)
+        cost = simplify_min_of_sums(cost)
+        return cost
+    
+    def visit_Min(self, cost):
+        # Recurse to get a Min of normalized costs.
+        cost = super().visit_Min(cost)
+        
+        # Flatten the argument Mins together.
+        sum_lists = [m.terms for m in cost.terms]
+        cost = Min(list(chain.from_iterable(sum_lists)))
+        cost = simplify_min_of_sums(cost)
+        return cost
+
+
+normalize = Normalizer.run
