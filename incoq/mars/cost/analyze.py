@@ -15,13 +15,24 @@ from .algebra import *
 class BaseCostAnalyzer(L.NodeVisitor):
     
     """Base class for a visitor that traverses code and returns an
-    asymptotic term. This class allows a subclass to specify three lists
-    of node types: nodes that have a constant cost, nodes that have a
-    cost that is the sum of their children, and nodes that have an
-    unknown cost. Any node that is not handled in one of these lists
-    must either have its own visit handler defined or else it raises
-    an exception. The lists may include non-terminal node types (such
-    as "operator") that summarize all the corresponding terminal types.
+    asymptotic term.
+    
+    This class allows a subclass to specify three lists
+    of node types:
+    
+        - nodes that have a constant cost
+        
+        - nodes that have a cost that is the sum of their children
+        
+        - and nodes that have an unknown cost
+    
+    Any node that is not handled in one of these lists must either have
+    its own visit handler defined or else it raises an exception. The
+    lists may include non-terminal node types (such as "operator") that
+    summarize all the corresponding terminal types.
+    
+    Additionally, there are another three lists as above for names of
+    functions that have the associated costs.
     """
     
     @property
@@ -34,6 +45,18 @@ class BaseCostAnalyzer(L.NodeVisitor):
     
     @property
     def unknown_nodes(self):
+        raise NotImplementedError
+    
+    @property
+    def const_funcs(self):
+        raise NotImplementedError
+    
+    @property
+    def sum_funcs(self):
+        raise NotImplementedError
+    
+    @property
+    def unknown_funcs(self):
         raise NotImplementedError
     
     def process(self, tree):
@@ -80,12 +103,30 @@ class BaseCostAnalyzer(L.NodeVisitor):
             cost = self.visit(item)
             costs.append(cost)
         return Sum(costs)
+    
+    def visit_Call(self, node):
+        # Check if it matches one of the known function cases.
+        if node.name in self.const_funcs:
+            return Unit()
+        
+        elif node.name in self.sum_funcs:
+            costs = []
+            for arg in node.args:
+                cost = self.visit(arg)
+                costs.append(cost)
+            return Sum(costs)
+        
+        elif node.name in self.unknown_funcs:
+            return Unknown()
+        
+        else:
+            raise NotImplementedError('Unknown function call')
 
 
 class TrivialCostAnalyzer(BaseCostAnalyzer):
     
     """Determine a cost for a piece of code that does not contain loops
-    or function calls.
+    or calls to unknown functions.
     """
     
     # The three lists are populated with names and programmatically
@@ -136,6 +177,7 @@ class TrivialCostAnalyzer(BaseCostAnalyzer):
         # Should not appear at cost analysis stage.
         'SetBulkUpdate', 'DictBulkUpdate',
         # Should not appear in our generated code.
+        'GeneralCall',
         'ListComp', 'Comp', 'Aggr', 'AggrRestr',
         'clause', 'comprehension',
     ]
@@ -144,6 +186,12 @@ class TrivialCostAnalyzer(BaseCostAnalyzer):
     sum_nodes = tuple(getattr(L, n) for n in sum_nodes)
     unknown_nodes = tuple(getattr(L, n) for n in unknown_nodes)
     
+    # Note that non-nullary functions cannot be constant-time since
+    # we need to spend time to evaluate their arguments.
+    const_funcs = []
+    sum_funcs = []
+    unknown_funcs = []
+    
     def notimpl_helper(self, node):
         raise NotImplementedError('Cannot handle {} node'.format(
                                   node.__class__.__name__))
@@ -151,9 +199,6 @@ class TrivialCostAnalyzer(BaseCostAnalyzer):
     visit_For = notimpl_helper
     visit_DecompFor = notimpl_helper
     visit_While = notimpl_helper
-    
-    visit_GeneralCall = notimpl_helper
-    visit_Call = notimpl_helper
     
     def visit_Query(self, node):
         return self.visit(node.query)
@@ -178,7 +223,7 @@ class SizeAnalyzer(BaseCostAnalyzer):
     ]
     
     unknown_nodes = [
-        'GeneralCall', 'Call',
+        'GeneralCall',
         'Attribute', 'Subscript', 'DictLookup',
         'ListComp',
         'SetFromMap',
@@ -193,6 +238,12 @@ class SizeAnalyzer(BaseCostAnalyzer):
         body = self.visit(node.body)
         orelse = self.visit(node.orelse)
         return Sum([body, orelse])
+    
+    def visit_Call(self, node):
+        try:
+            return super().visit_Call(node)
+        except NotImplementedError:
+            return Unknown()
     
     def visit_Name(self, node):
         return Name(node.id)
