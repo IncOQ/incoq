@@ -59,6 +59,16 @@ class AnalyzeCase(unittest.TestCase):
         cost = LoopCostAnalyzer.run(tree)
         exp_cost = C.Product([C.Unknown(), C.Name('R')])
         self.assertEqual(cost, exp_cost)
+        
+        tree = L.Parser.pc('''
+            for y in R.imglookup('bu', (x,)):
+                for z in S.imglookup('bu', (y,)):
+                    pass
+            ''')
+        cost = LoopCostAnalyzer.run(tree)
+        exp_cost = C.Product([C.DefImgset('R', L.mask('bu'), ['x']),
+                              C.DefImgset('S', L.mask('bu'), ['y'])])
+        self.assertEqual(cost, exp_cost)
 
 
 if __name__ == '__main__':

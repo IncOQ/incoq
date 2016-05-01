@@ -181,7 +181,7 @@ class SizeAnalyzer(BaseCostAnalyzer):
         'GeneralCall', 'Call',
         'Attribute', 'Subscript', 'DictLookup',
         'ListComp',
-        'ImgLookup', 'SetFromMap',
+        'SetFromMap',
         'Comp',
     ]
     
@@ -199,6 +199,12 @@ class SizeAnalyzer(BaseCostAnalyzer):
     
     def visit_FirstThen(self, node):
         return self.visit(node.then)
+    
+    def visit_ImgLookup(self, node):
+        if isinstance(node.set, L.Name):
+            return DefImgset(node.set.id, node.mask, node.bounds)
+        else:
+            return Unknown()
     
     def visit_Query(self, node):
         return self.visit(node.query)

@@ -80,6 +80,9 @@ class DefImgset(Cost):
     mask = TypedField(L.mask)
     key = TypedField(str, seq=True)
     
+    def __init__(self, rel, mask, key):
+        assert mask.m.count('b') == len(key)
+    
     def __str__(self):
         return '{}_{}[{}]'.format(self.rel, self.mask,
                                   ', '.join(self.key))
