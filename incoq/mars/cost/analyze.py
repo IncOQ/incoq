@@ -106,17 +106,17 @@ class BaseCostAnalyzer(L.NodeVisitor):
     
     def visit_Call(self, node):
         # Check if it matches one of the known function cases.
-        if node.name in self.const_funcs:
+        if node.func in self.const_funcs:
             return Unit()
         
-        elif node.name in self.sum_funcs:
+        elif node.func in self.sum_funcs:
             costs = []
             for arg in node.args:
                 cost = self.visit(arg)
                 costs.append(cost)
             return Sum(costs)
         
-        elif node.name in self.unknown_funcs:
+        elif node.func in self.unknown_funcs:
             return Unknown()
         
         else:
@@ -281,3 +281,47 @@ class LoopCostAnalyzer(TrivialCostAnalyzer):
         # Return the body cost times an unknown number of iterations.
         body_cost = self.visit(node.body)
         return Product([Unknown(), body_cost])
+
+
+class CallCostAnalyzer(LoopCostAnalyzer):
+    
+    """Extends the loop cost analyzer to handle function calls."""
+    
+    def __init__(self, func_params, func_costs):
+        super().__init__()
+        self.func_params = func_params
+        """Map from function name to list of formal parameter names."""
+        self.func_costs = func_costs
+        """Map from function name to known cost for it, in terms of its
+        formal parameters.
+        """
+    
+    def visit_Call(self, node):
+        arg_cost = Sum([self.visit(arg) for arg in node.args])
+        
+        # Check for one of the special cases.
+        try:
+            call_cost = super().visit_Call(node)
+        except NotImplementedError:
+            call_cost = None
+        
+        if call_cost is None:
+            # Try retrieving and instantiating the cost from the map.
+            name = node.func
+            if name in self.func_costs:
+                cost = self.func_costs[name]
+                params = self.func_params[name]
+                assert len(params) == len(node.args)
+                
+                # Create a substitution from formal parameter name to
+                # argument variable name, or None if the argument is not
+                # a variable.
+                arg_names = [arg.id if isinstance(arg, L.Name) else None
+                             for arg in node.args]
+                subst = dict(zip(params, arg_names))
+                # Instantiate.
+                call_cost = ImgkeySubstitutor.run(cost, subst)
+            else:
+                call_cost = Unknown()
+        
+        return Sum([arg_cost, call_cost])

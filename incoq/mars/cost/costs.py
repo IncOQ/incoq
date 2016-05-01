@@ -66,7 +66,7 @@ class IndefImgset(Cost):
     mask = TypedField(L.mask)
     
     def __str__(self):
-        return '{}_{}'.format(self.rel, self.mask)
+        return '{}_{}'.format(self.rel, self.mask.m)
 
 
 class DefImgset(Cost):
@@ -84,7 +84,7 @@ class DefImgset(Cost):
         assert mask.m.count('b') == len(key)
     
     def __str__(self):
-        return '{}_{}[{}]'.format(self.rel, self.mask,
+        return '{}_{}[{}]'.format(self.rel, self.mask.m,
                                   ', '.join(self.key))
     
     def to_indef(self):

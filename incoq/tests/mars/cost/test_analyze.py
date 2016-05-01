@@ -9,7 +9,8 @@ import incoq.mars.cost.costs as costs
 import incoq.mars.cost.algebra as algebra
 import incoq.mars.cost.analyze as analyze
 from incoq.mars.cost.analyze import (
-    TrivialCostAnalyzer, SizeAnalyzer, LoopCostAnalyzer)
+    TrivialCostAnalyzer, SizeAnalyzer,
+    LoopCostAnalyzer, CallCostAnalyzer)
 
 C = new_namespace(costs, algebra, analyze)
 
@@ -68,6 +69,31 @@ class AnalyzeCase(unittest.TestCase):
         cost = LoopCostAnalyzer.run(tree)
         exp_cost = C.Product([C.DefImgset('R', L.mask('bu'), ['x']),
                               C.DefImgset('S', L.mask('bu'), ['y'])])
+        self.assertEqual(cost, exp_cost)
+    
+    def test_callcostanalyzer(self):
+        func_params = {
+            'f': ['w', 'x'],
+            'g': ['y', 'z'],
+            'h': ['u'],
+        }
+        func_costs = {
+            'f': C.DefImgset('R', L.mask('bbu'), ['w', 'x']),
+            'g': C.Sum([C.DefImgset('S', L.mask('bu'), ['y']),
+                        C.DefImgset('S', L.mask('ub'), ['z'])]),
+            'h': C.Name('T'),
+        }
+        tree = L.Parser.pc('''
+            n = f(a, b)
+            n = n + f(c, d)
+            n = n + g(e, h(e))
+            ''')
+        cost = CallCostAnalyzer.run(tree, func_params, func_costs)
+        exp_cost = C.Sum([C.DefImgset('R', L.mask('bbu'), ['a', 'b']),
+                          C.DefImgset('R', L.mask('bbu'), ['c', 'd']),
+                          C.Name('T'),
+                          C.DefImgset('S', L.mask('bu'), ['e']),
+                          C.IndefImgset('S', L.mask('ub'))])
         self.assertEqual(cost, exp_cost)
 
 
