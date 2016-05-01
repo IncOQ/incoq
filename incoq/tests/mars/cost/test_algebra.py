@@ -19,11 +19,16 @@ C = new_namespace(costs, algebra)
 class AlgebraCase(unittest.TestCase):
     
     def test_imgkeysubstitutor(self):
-        cost = C.Product([C.DefImgset('R', L.mask('bbu'), ['A', 'B']),
-                          C.DefImgset('S', L.mask('ubb'), ['B', 'C'])])
-        cost = C.ImgkeySubstitutor.run(cost, {'A': 'x', 'B': 'y'})
+        orig_cost = C.Product([C.DefImgset('R', L.mask('bbu'), ['A', 'B']),
+                               C.DefImgset('S', L.mask('ubb'), ['B', 'C'])])
+        cost = C.ImgkeySubstitutor.run(orig_cost, {'A': 'x', 'B': 'y'})
         exp_cost = C.Product([C.DefImgset('R', L.mask('bbu'), ['x', 'y']),
                               C.DefImgset('S', L.mask('ubb'), ['y', 'C'])])
+        self.assertEqual(cost, exp_cost)
+        
+        cost = C.ImgkeySubstitutor.run(orig_cost, lambda x: x * 2)
+        exp_cost = C.Product([C.DefImgset('R', L.mask('bbu'), ['AA', 'BB']),
+                              C.DefImgset('S', L.mask('ubb'), ['BB', 'CC'])])
         self.assertEqual(cost, exp_cost)
     
     def test_trivialsimplifier(self):

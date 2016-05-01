@@ -20,6 +20,8 @@ class ImgkeySubstitutor(CostTransformer):
     """Apply a substitution to the keys of definite image-set costs.
     Use None in the mapping to replace any definite image-set costs that
     uses that key with its corresponding indefinite image-set cost.
+    
+    subst may also be a callable.
     """
     
     def __init__(self, subst):
@@ -27,7 +29,14 @@ class ImgkeySubstitutor(CostTransformer):
         self.subst = subst
     
     def visit_DefImgset(self, cost):
-        new_key = tuple(self.subst.get(k, k) for k in cost.key)
+        new_key = []
+        for k in cost.key:
+            try:
+                new_k = self.subst(k)
+            except TypeError:
+                new_k = self.subst.get(k, k)
+            new_key.append(new_k)
+        
         if None not in new_key:
             return cost._replace(key=new_key)
         else:

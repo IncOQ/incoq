@@ -2,7 +2,7 @@
 
 
 __all__ = [
-    
+    'analyze_costs',
 ]
 
 
@@ -325,3 +325,27 @@ class CallCostAnalyzer(LoopCostAnalyzer):
                 call_cost = Unknown()
         
         return Sum([arg_cost, call_cost])
+
+
+def analyze_costs(tree, funcs):
+    """Analyze the costs of the functions whose names are given in
+    funcs, and return a map from function name to cost. The functions
+    must be defined in the program, top-level, and non-recursive.
+    """
+    graph = L.analyze_functions(tree, funcs)
+    
+    # Analyze the functions in topological order, constructing
+    # func_costs as we go.
+    func_costs = {}
+    func_params = graph.param_map
+    for f in graph.order:
+        body = graph.body_map[f]
+        cost = CallCostAnalyzer.run(body, func_params, func_costs)
+        
+        # Eliminate image key terms that aren't formal parameters.
+        key_filter = lambda p: p if p in func_params[f] else None
+        cost = ImgkeySubstitutor.run(cost, key_filter)
+        
+        func_costs[f] = cost
+    
+    return func_costs

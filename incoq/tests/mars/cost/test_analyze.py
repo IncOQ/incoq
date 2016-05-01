@@ -95,6 +95,46 @@ class AnalyzeCase(unittest.TestCase):
                           C.DefImgset('S', L.mask('bu'), ['e']),
                           C.IndefImgset('S', L.mask('ub'))])
         self.assertEqual(cost, exp_cost)
+    
+    def test_analyze_costs_simple(self):
+        tree = L.Parser.pc('''
+            def f():
+                for x in S:
+                    for y in T:
+                        foo
+            def g():
+                for z in R:
+                    f()
+            ''')
+        func_costs = C.analyze_costs(tree, ['f', 'g'])
+        exp_func_costs = {
+            'f': C.Product([C.Name('S'), C.Name('T')]),
+            'g': C.Product([C.Name('R'), C.Name('S'), C.Name('T')]),
+        }
+        self.assertEqual(func_costs, exp_func_costs)
+    
+    def test_interproc_setmatch(self):
+        tree = L.Parser.pc('''
+            def f(x, y):
+                for a in R.imglookup('bu', (x,)):
+                    for b in S.imglookup('bu', (y,)):
+                        for c in T.imglookup('bu', (z,)):
+                            foo
+            def g(u):
+                for v in Z:
+                    f(u, v)
+            ''')
+        func_costs = C.analyze_costs(tree, ['f', 'g'])
+        exp_func_costs = {
+            'f': C.Product([C.DefImgset('R', L.mask('bu'), ['x']),
+                            C.DefImgset('S', L.mask('bu'), ['y']),
+                            C.IndefImgset('T', L.mask('bu'))]),
+            'g': C.Product([C.Name('Z'),
+                            C.DefImgset('R', L.mask('bu'), ['u']),
+                            C.IndefImgset('S', L.mask('bu')),
+                            C.IndefImgset('T', L.mask('bu'))]),
+        }
+        self.assertEqual(func_costs, exp_func_costs)
 
 
 if __name__ == '__main__':
