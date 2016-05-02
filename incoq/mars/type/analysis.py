@@ -121,7 +121,8 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     information was inferred).
     """
     
-    def __init__(self, store, height_limit=None, unknown=Top):
+    def __init__(self, store, height_limit=None, unknown=Top,
+                 fixed_vars=None):
         super().__init__()
         self.store = store
         """Mapping from symbol names to inferred types.
@@ -140,6 +141,10 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
         Top, or None. None indicates that an error should be raised for
         unknown variables.
         """
+        if fixed_vars is None:
+            fixed_vars = []
+        self.fixed_vars = fixed_vars
+        """Names of variables whose types cannot be changed by inference."""
     
     def process(self, tree):
         self.changed = False
@@ -156,6 +161,9 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
                 return self.unknown
     
     def update_store(self, name, type):
+        if name in self.fixed_vars:
+            return self.store[name]
+        
         old_type = self.get_store(name)
         new_type = old_type.join(type)
         if self.height_limit is not None:
@@ -779,20 +787,21 @@ class TypeAnalysisStepper(L.AdvNodeVisitor):
     # Remaining nodes require no handler.
 
 
-def analyze_types(tree, store):
-    """Given a mapping, store, from variable identifiers to types,
-    return a modified version of the store that expands types according
-    to the requirements of the program. Also return an OrderedSet of
-    nodes where well-typedness is violated. Each type may only increase,
-    not decrease. Variables not appearing in the store mapping are
-    assumed to be Bottom.
+def analyze_types(tree, store, fixed_vars=None):
+    """Given a mapping from variable identifiers to types, return a
+    modified version of the store that expands types according to the
+    requirements of the program. Also return an OrderedSet of nodes
+    where well-typedness is violated. Each type may only increase, not
+    decrease. Variables not appearing in the store mapping are assumed
+    to be Bottom.
     """
     store = dict(store)
     
     height_limit = 5
     limit = 20
     steps = 0
-    analyzer = TypeAnalysisStepper(store, height_limit, unknown=Bottom)
+    analyzer = TypeAnalysisStepper(store, height_limit, unknown=Bottom,
+                                   fixed_vars=fixed_vars)
     while analyzer.changed:
         if steps == limit:
             print('Warning: Type analysis did not converge after '

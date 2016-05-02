@@ -249,12 +249,21 @@ class SymbolTable:
     
     def get_type_store(self):
         """Return a type store (mapping from symbol name to type) based
-        on all current symbol type information.
+        on all current symbol type information. Also return a set of
+        fixed vars (vars whose types cannot be changed by inference).
         """
         store = {name: sym.min_type.join(sym.type) 
                  for name, sym in self.symbols.items()
                  if hasattr(sym, 'type')}
-        return store
+        
+        fixed_vars = set()
+        for name, sym in self.symbols.items():
+            ann_type = getattr(sym, 'ann_type', None)
+            if ann_type is not None:
+                fixed_vars.add(name)
+                store[name] = ann_type
+        
+        return store, fixed_vars
     
     def run_type_inference(self, tree):
         """Run type inference over the program, using each symbol's
@@ -262,9 +271,9 @@ class SymbolTable:
         well-typedness is violated, and a list of variables whose max
         type is exceeded.
         """
-        store = self.get_type_store()
+        store, fixed_vars = self.get_type_store()
         
-        store, illtyped = T.analyze_types(tree, store)
+        store, illtyped = T.analyze_types(tree, store, fixed_vars)
         
         # Write back non-query symbol types.
         badsyms = set()
@@ -282,7 +291,7 @@ class SymbolTable:
         return illtyped, badsyms
     
     def analyze_expr_type(self, expr):
-        store = self.get_type_store()
+        store, _fixed_vars = self.get_type_store()
         return T.analyze_expr_type(expr, store)
 
 

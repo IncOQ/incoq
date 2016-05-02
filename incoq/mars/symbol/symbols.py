@@ -221,6 +221,11 @@ class TypedSymbolMixin(Symbol):
         default=None,
         parser=lambda t: T.eval_typestr(t))
     
+    ann_type = SymbolAttribute(
+        doc='Type of symbol as dictated by user',
+        default=None,
+        parser=lambda t: T.eval_typestr(t))
+    
     @property
     def default_type(self):
         return self.min_type
