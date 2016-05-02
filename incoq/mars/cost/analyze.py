@@ -8,6 +8,8 @@ __all__ = [
 
 
 from incoq.mars.incast import L
+from incoq.mars.type import T
+from incoq.mars.symbol import N
 
 from .costs import *
 from .algebra import *
@@ -352,6 +354,90 @@ def analyze_costs(tree, funcs):
     return func_costs
 
 
+def type_to_cost(t):
+    """Turn a type into a cost term representing the size of its
+    domain.
+    """
+    if t in [T.Top, T.Bottom]:
+        return Unknown()
+    elif isinstance(t, T.Primitive):
+        if t is T.Bool:
+            return Unit()
+        else:
+            return Name(t.t.__name__)
+    elif isinstance(t, T.Tuple):
+        return Product([type_to_cost(e) for e in t.elts])
+    elif isinstance(t, T.Refine):
+        return Name(t.name)
+    elif isinstance(t, T.Enum):
+        return Unit()
+    else:
+        return Unknown()
+
+
+def rewrite_cost_using_types(cost, symtab):
+    """Rewrite a cost expression by using type information. Name costs
+    for Set-typed variables are replaced by the domains of their
+    elements. IndefImgset and DefImgset costs over relation-typed
+    variables are replaced by the domains of the unbound components.
+    """
+    class Trans(CostTransformer):
+        def visit_Name(self, cost):
+            # Retrieve symbol.
+            sym = symtab.get_symbols().get(cost.name, None)
+            if sym is None:
+                return cost
+            
+            # Retrieve element type.
+            t = sym.type
+            if t is None:
+                return cost
+            t = t.join(T.Set(T.Bottom))
+            if not t.issmaller(T.Set(T.Top)):
+                return cost
+            elt_t = t.elt
+            
+            # Convert to cost.
+            return type_to_cost(elt_t)
+        
+        def visit_IndefImgset(self, cost):
+            # Field lookups are constant time.
+            if N.is_F(cost.rel) and cost.mask == L.mask('bu'):
+                return Unit()
+            
+            sym = symtab.get_symbols().get(cost.rel, None)
+            if sym is None:
+                return cost
+            
+            # Get types for unbound components.
+            t = sym.type
+            if t is None:
+                return cost
+            if not (isinstance(t, T.Set) and
+                    isinstance(t.elt, T.Tuple) and
+                    len(t.elt.elts) == len(cost.mask.m)):
+                return cost
+            
+            mask = cost.mask
+            elts = t.elt.elts
+            # Process out aggregate SetFromMap result components,
+            # which are functionally determined by the map keys.
+            if N.is_SA(cost.rel) and mask.m[-1] == 'u':
+                mask = mask._replace(m=mask.m[:-1])
+                elts = elts[:-1]
+            
+            _b_elts, u_elts = L.split_by_mask(mask, elts)
+            
+            return type_to_cost(T.Tuple(u_elts))
+        
+        # Same logic for definite image sets.
+        visit_DefImgset = visit_IndefImgset
+    
+    cost = Trans.run(cost)
+    cost = normalize(cost)
+    return cost
+
+
 def annotate_costs(tree, symtab):
     """Analyze and annotate the costs of maintenance functions."""
     func_costs = analyze_costs(tree, symtab.maint_funcs)
@@ -361,8 +447,12 @@ def annotate_costs(tree, symtab):
             node = self.generic_visit(node)
             
             if node.name in func_costs:
-                cost = 'Cost: O({})'.format(func_costs[node.name])
-                comment = (L.Comment(cost),)
+                cost = func_costs[node.name]
+                simp_cost = rewrite_cost_using_types(cost, symtab)
+                cost_str = PrettyPrinter.run(cost)
+                simp_cost_str = PrettyPrinter.run(simp_cost)
+                comment = (L.Comment('Cost: O({})'.format(cost_str)),
+                           L.Comment('      O({})'.format(simp_cost_str)))
                 node = node._replace(body=comment + node.body)
             return node
     tree = Trans.run(tree)

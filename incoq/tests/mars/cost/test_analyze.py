@@ -5,13 +5,15 @@ import unittest
 
 from incoq.util.misc import new_namespace
 from incoq.mars.incast import L
+from incoq.mars.type import T
 from incoq.mars.symbol import S
 import incoq.mars.cost.costs as costs
 import incoq.mars.cost.algebra as algebra
 import incoq.mars.cost.analyze as analyze
 from incoq.mars.cost.analyze import (
     TrivialCostAnalyzer, SizeAnalyzer,
-    LoopCostAnalyzer, CallCostAnalyzer)
+    LoopCostAnalyzer, CallCostAnalyzer,
+    type_to_cost, rewrite_cost_using_types)
 
 C = new_namespace(costs, algebra, analyze)
 
@@ -137,6 +139,43 @@ class AnalyzeCase(unittest.TestCase):
         }
         self.assertEqual(func_costs, exp_func_costs)
     
+    def test_type_to_cost(self):
+        # Unknown type.
+        cost = type_to_cost(T.Top)
+        exp_cost = C.Unknown()
+        self.assertEqual(cost, exp_cost)
+        cost = type_to_cost(T.Bottom)
+        exp_cost = C.Unknown()
+        self.assertEqual(cost, exp_cost)
+        
+        # Atomic types.
+        cost = type_to_cost(T.Number)
+        exp_cost = C.Name('Number')
+        self.assertEqual(cost, exp_cost)
+        cost = type_to_cost(T.Refine('address', T.String))
+        exp_cost = C.Name('address')
+        self.assertEqual(cost, exp_cost)
+        
+        # Set of tuples.
+        cost = type_to_cost(T.Tuple([T.Number, T.String]))
+        exp_cost = C.Product([C.Name('Number'), C.Name('str')])
+        self.assertEqual(cost, exp_cost)
+        cost = type_to_cost(T.Tuple([T.Number, T.Tuple([T.String, T.Bool])]))
+        exp_cost = C.Product([C.Name('Number'),
+                              C.Product([C.Name('str'), C.Unit()])])
+        self.assertEqual(cost, exp_cost)
+    
+    def test_rewrite_cost_using_types(self):
+        symtab = S.SymbolTable()
+        symtab.define_relation('R', type=T.Set(T.Number))
+        symtab.define_relation('S', type=T.Set(T.Tuple(
+                               [T.Bool, T.String, T.Bool, T.Enum('color')])))
+        
+        cost = C.Sum([C.Name('R'), C.IndefImgset('S', L.mask('buuu'))])
+        cost = rewrite_cost_using_types(cost, symtab)
+        exp_cost = C.Sum([C.Name('Number'), C.Name('str')])
+        self.assertEqual(cost, exp_cost)
+    
     def test_annotate_costs(self):
         symtab = S.SymbolTable()
         symtab.maint_funcs = ['f']
@@ -149,6 +188,7 @@ class AnalyzeCase(unittest.TestCase):
         exp_tree = L.Parser.p('''
             def f(x):
                 COMMENT('Cost: O(R)')
+                COMMENT('      O(R)')
                 for y in R:
                     pass
             ''')
