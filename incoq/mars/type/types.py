@@ -18,6 +18,7 @@ following type constructors:
     - Set<T>
     - List<T>
     - Map<K, V>
+    - Refine<T>
 
 Each type represents a domain of values, although multiple types may
 have the same domain. Types are arranged in a lattice with order
@@ -29,7 +30,7 @@ does not mean that A <= B.
 A <= B is defined to hold in only the following cases, plus those
 cases that are implied by reflexivity and transitivity:
 
-  - A is bottom or B is top
+  - A is Bottom or B is Top
   
   - A is Tuple<T1, ..., Tn> and B is Tuple<S1, ..., Sn>, and
     Ti <= Si for each i in 1..n (covariance of tuple components)
@@ -43,6 +44,8 @@ cases that are implied by reflexivity and transitivity:
     (covariance of keys and values)
   
   - A is Set<T> or List<T> and B is Sequence<T> (subtyping of Sequence)
+  
+  - A is Refine<B> (definition of Refine)
 """
 
 
@@ -58,6 +61,7 @@ __all__ = [
     'Set',
     'List',
     'Map',
+    'Refine',
     
     'eval_typestr',
 ]
@@ -333,6 +337,50 @@ class Map(Type):
         new_key = self.key.widen(height - 1)
         new_value = self.value.widen(height - 1)
         return self._replace(key=new_key, value=new_value)
+
+
+class Refine(Type):
+    
+    name = TypedField(str)
+    base = TypedField(Type)
+    
+    def __str__(self):
+        return '{}:{}'.format(self.name, self.base)
+    
+    def smaller_cmp(self, other):
+        return self.base.issmaller(other)
+    
+    def join_helper(self, other, *, inverted=False):
+        # Since we don't have Union types, the only direct ancestor of
+        # this type is the base. Therefore, the join of this type with
+        # any other type T is the same as the join of the base with T.
+        #
+        # The only descendants of this type are Bottom and other Refine
+        # types. The Refine types only have one parent, so they don't
+        # have any ancestors that are incomparable with this type.
+        # Consequently, the meet of this type with any incomparable
+        # type is Bottom.
+        if not inverted:
+            return self.base.join(other, inverted=inverted)
+        else:
+            return Bottom
+    
+    def widen_helper(self, height):
+        # Suppose this type is Refine<T>, and that widening is needed.
+        # Let U be a widened version of T with T <= U.
+        #
+        # We can't return Refine<U> as our widening, because it is not
+        # generally true that Refine<T> <= Refine<U>. Instead, our
+        # widening is just T itself.
+        widened_base = self.base.widen(height - 1)
+        if widened_base == self.base:
+            # Turns out widening is not even needed.
+            return self
+        else:
+            # Something has to give. Return the base with widening, but
+            # give it one more level of leeway since we're getting rid
+            # of ourselves.
+            return self.base.widen(height)
 
 
 def eval_typestr(s):

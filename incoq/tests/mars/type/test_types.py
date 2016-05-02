@@ -12,7 +12,8 @@ class TypeCase(unittest.TestCase):
     @property
     def sample_types(self):
         return [Bottom, Bool, Top, Tuple([Number]),
-                Set(String), Map(String, Bool)]
+                Set(String), Map(String, Bool),
+                Refine('name', String)]
     
     @property
     def sample_types_simple(self):
@@ -28,6 +29,8 @@ class TypeCase(unittest.TestCase):
         
         self.assertEqual(str(Tuple([Bool, String])), '(bool, str)')
         self.assertEqual(str(Set(Bool)), '{bool}')
+        
+        self.assertEqual(str(Refine('name', String)), 'name:str')
     
     def test_singleton(self):
         obj = TopClass()
@@ -124,6 +127,23 @@ class TypeCase(unittest.TestCase):
         self.assertEqual(t.widen(2), Map(String, Map(Top, Top)))
         self.assertEqual(t.widen(1), Map(Top, Top))
         self.assertEqual(t.widen(0), Top)
+    
+    def test_refine(self):
+        t1 = Refine('name', String)
+        t2 = Refine('firstname', t1)
+        t3 = Refine('address', String)
+        self.assertTrue(String.isbigger(t1))
+        self.assertTrue(t2.issmaller(t1))
+        self.assertFalse(t1.isbigger(t3))
+        
+        self.assertEqual(t1.join(t2), t1)
+        self.assertEqual(t1.meet(t2), t2)
+        self.assertEqual(t2.join(t3), String)
+        self.assertEqual(t2.meet(t3), Bottom)
+        
+        self.assertEqual(t2.widen(3), t2)
+        self.assertEqual(t2.widen(2), t1)
+        self.assertEqual(t2.widen(1), String)
     
     def test_eval(self):
         t = eval_typestr('Set(Tuple([Bool, Number]))')
