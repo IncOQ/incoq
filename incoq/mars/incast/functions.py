@@ -11,7 +11,7 @@ __all__ = [
 
 
 from incoq.util.collections import OrderedSet
-from incoq.util.topsort import topsort, get_cycle
+from incoq.util.topsort import topsort_helper, get_cycle
 
 from . import nodes as L
 from .tools import BindingFinder, Templater
@@ -110,8 +110,8 @@ def analyze_functions(tree, funcs, *, allow_recursion=False):
     
     edges = [(x, y) for x, outedges in graph.calledby_map.items()
                     for y in outedges]
-    order = topsort(funcs, edges)
-    if order is None and not allow_recursion:
+    order, rem_funcs, _rem_edges = topsort_helper(funcs, edges)
+    if len(rem_funcs) > 0 and not allow_recursion:
         raise ProgramError('Recursive functions found: ' +
                            str(get_cycle(funcs, edges)))
     graph.order = order

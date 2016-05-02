@@ -7,6 +7,7 @@ __all__ = [
 ]
 
 
+from incoq.util.collections import OrderedSet
 from incoq.mars.incast import L
 from incoq.mars.type import T
 from incoq.mars.symbol import N
@@ -330,12 +331,14 @@ class CallCostAnalyzer(LoopCostAnalyzer):
         return Sum([arg_cost, call_cost])
 
 
-def analyze_costs(tree, funcs):
-    """Analyze the costs of the functions whose names are given in
-    funcs, and return a map from function name to cost. The functions
-    must be defined in the program, top-level, and non-recursive.
+def analyze_costs(tree):
+    """Analyze the costs of the functions in the program and return
+    a map from function name to cost. If recursion is present, only
+    non-recursive functions are analyzed.
     """
-    graph = L.analyze_functions(tree, funcs)
+    all_funcs = L.get_defined_functions(tree)
+    graph = L.analyze_functions(tree, all_funcs,
+                                allow_recursion=True)
     
     # Analyze the functions in topological order, constructing
     # func_costs as we go.
@@ -375,14 +378,62 @@ def type_to_cost(t):
         return Unknown()
 
 
+def get_constant_bounded_rels(symtab):
+    """Return a set of all names of relations whose size is bounded by a
+    constant.
+    """
+    ct = symtab.clausetools
+    
+    const_rels = set()
+    
+    # Get constant-bounded U-sets.
+    for q in symtab.get_queries().values():
+        if (q.demand_set is not None and
+            q.demand_set_maxsize is not None):
+            const_rels.add(q.demand_set)
+    
+    # Get constant-bounded comprehension results.
+    #
+    # Iterate over all relations in order of their definition. (This
+    # is consistent with the order in which the comprehension invariants
+    # were transformed.)
+    for r in symtab.get_relations().values():
+        # Look for the hackish for_comp attribute to know that it's
+        # a relation for a comprehension query.
+        if not hasattr(r, 'for_comp'):
+            continue
+        comp = r.for_comp
+        assert isinstance(comp, L.Comp)
+        
+        # Find all the LHS vars that are constrained to be in a
+        # constant-bounded relation.
+        determined = set()
+        for cl in comp.clauses:
+            if ct.rhs_rel(cl) in const_rels:
+                determined.update(ct.lhs_vars(cl))
+        
+        # If all variables are determined, this comprehension is itself
+        # constant-bounded.
+        if ct.all_vars_determined(comp.clauses, determined):
+            const_rels.add(r.name)
+    
+    return const_rels
+
+
 def rewrite_cost_using_types(cost, symtab):
     """Rewrite a cost expression by using type information. Name costs
     for Set-typed variables are replaced by the domains of their
     elements. IndefImgset and DefImgset costs over relation-typed
     variables are replaced by the domains of the unbound components.
     """
+    const_rels = get_constant_bounded_rels(symtab)
+    
     class Trans(CostTransformer):
         def visit_Name(self, cost):
+            # See if this is a constant-size relation.
+            if cost.name in const_rels:
+                return Unit()
+            
             # Retrieve symbol.
             sym = symtab.get_symbols().get(cost.name, None)
             if sym is None:
@@ -401,6 +452,10 @@ def rewrite_cost_using_types(cost, symtab):
             return type_to_cost(elt_t)
         
         def visit_IndefImgset(self, cost):
+            # Check for constant-time relations.
+            if cost.rel in const_rels:
+                return Unit()
+            
             # Field lookups are constant time.
             if N.is_F(cost.rel) and cost.mask == L.mask('bu'):
                 return Unit()
@@ -440,7 +495,7 @@ def rewrite_cost_using_types(cost, symtab):
 
 def annotate_costs(tree, symtab):
     """Analyze and annotate the costs of maintenance functions."""
-    func_costs = analyze_costs(tree, symtab.maint_funcs)
+    func_costs = analyze_costs(tree)
     
     class Trans(L.NodeTransformer):
         def visit_Fun(self, node):

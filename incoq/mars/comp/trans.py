@@ -372,8 +372,10 @@ def incrementalize_comp(tree, symtab, query, result_var):
     
     tree = CompExpander.run(tree, symtab)
     
-    symtab.define_relation(result_var, counted=counted,
-                           type=query.type)
+    rel = symtab.define_relation(result_var, counted=counted,
+                                 type=query.type)
+    # Hack for cost analysis.
+    rel.for_comp = comp
     
     return tree
 

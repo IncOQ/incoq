@@ -124,7 +124,7 @@ class ClauseTools(ClauseVisitor):
     
     def all_vars_determined(self, clauses, bindenv):
         """Return True if the vars in the binding environment determine
-        all remaining lHS vars in the clauses.
+        all remaining LHS vars in the clauses.
         """
         # Whenever a clause is determined, add its LHS vars to the
         # binding environment. Repeat until fixpoint, and see if any

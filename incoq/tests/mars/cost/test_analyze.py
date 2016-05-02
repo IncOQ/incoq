@@ -109,10 +109,22 @@ class AnalyzeCase(unittest.TestCase):
                 for z in R:
                     f()
             ''')
-        func_costs = C.analyze_costs(tree, ['f', 'g'])
+        func_costs = C.analyze_costs(tree)
         exp_func_costs = {
             'f': C.Product([C.Name('S'), C.Name('T')]),
             'g': C.Product([C.Name('R'), C.Name('S'), C.Name('T')]),
+        }
+        self.assertEqual(func_costs, exp_func_costs)
+        
+        tree = L.Parser.pc('''
+            def f():
+                pass
+            def g():
+                g()
+            ''')
+        func_costs = C.analyze_costs(tree)
+        exp_func_costs = {
+            'f': C.Unit(),
         }
         self.assertEqual(func_costs, exp_func_costs)
     
@@ -127,7 +139,7 @@ class AnalyzeCase(unittest.TestCase):
                 for v in Z:
                     f(u, v)
             ''')
-        func_costs = C.analyze_costs(tree, ['f', 'g'])
+        func_costs = C.analyze_costs(tree)
         exp_func_costs = {
             'f': C.Product([C.DefImgset('R', L.mask('bu'), ['x']),
                             C.DefImgset('S', L.mask('bu'), ['y']),
