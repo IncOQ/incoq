@@ -43,6 +43,7 @@ def _maint_R_Q_bu_for_R_Q_remove(_elem):
         del R_Q_bu[_v16_key]
 
 def _maint_R_Q_for__U_Q_add(_elem):
+    # Cost: O(_v5_z)
     (_v5_z,) = _elem
     if isset(_v5_z):
         for _v5_x in _v5_z:
@@ -51,6 +52,7 @@ def _maint_R_Q_for__U_Q_add(_elem):
                 _maint_R_Q_bu_for_R_Q_add(_v5_result)
 
 def _maint_R_Q_for__U_Q_remove(_elem):
+    # Cost: O(_v6_z)
     (_v6_z,) = _elem
     if isset(_v6_z):
         for _v6_x in _v6_z:
@@ -59,6 +61,7 @@ def _maint_R_Q_for__U_Q_remove(_elem):
                 _maint_R_Q_bu_for_R_Q_remove(_v6_result)
 
 def _maint_R_Q_for__M_add(_elem):
+    # Cost: O(1)
     (_v7_z, _v7_x) = _elem
     if ((_v7_z,) in _U_Q):
         if ((_v7_x,) in S_wrapped):
@@ -66,6 +69,7 @@ def _maint_R_Q_for__M_add(_elem):
             _maint_R_Q_bu_for_R_Q_add(_v7_result)
 
 def _maint_R_Q_for__M_remove(_elem):
+    # Cost: O(1)
     (_v8_z, _v8_x) = _elem
     if ((_v8_z,) in _U_Q):
         if ((_v8_x,) in S_wrapped):
@@ -73,6 +77,7 @@ def _maint_R_Q_for__M_remove(_elem):
             _maint_R_Q_bu_for_R_Q_remove(_v8_result)
 
 def _maint_R_Q_for_S_wrapped_add(_elem):
+    # Cost: O(_M_ub)
     (_v9_x,) = _elem
     for _v9_z in (_M_ub[_v9_x] if (_v9_x in _M_ub) else ()):
         if ((_v9_z,) in _U_Q):
@@ -80,6 +85,7 @@ def _maint_R_Q_for_S_wrapped_add(_elem):
             _maint_R_Q_bu_for_R_Q_add(_v9_result)
 
 def _maint_R_Q_for_S_wrapped_remove(_elem):
+    # Cost: O(_M_ub)
     (_v10_x,) = _elem
     for _v10_z in (_M_ub[_v10_x] if (_v10_x in _M_ub) else ()):
         if ((_v10_z,) in _U_Q):
@@ -92,11 +98,13 @@ def _demand_Q(_elem):
         _maint_R_Q_for__U_Q_add(_elem)
 
 def _maint_S_wrapped_for_S_add(_elem):
+    # Cost: O(_M_ub)
     _v3_v = (_elem,)
     S_wrapped.add(_v3_v)
     _maint_R_Q_for_S_wrapped_add(_v3_v)
 
 def _maint_S_wrapped_for_S_remove(_elem):
+    # Cost: O(_M_ub)
     _v4_v = (_elem,)
     _maint_R_Q_for_S_wrapped_remove(_v4_v)
     S_wrapped.remove(_v4_v)

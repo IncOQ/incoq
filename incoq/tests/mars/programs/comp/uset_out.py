@@ -24,6 +24,7 @@ def _maint_R_Q_bu_for_R_Q_remove(_elem):
         del R_Q_bu[_v9_key]
 
 def _maint_R_Q_for__U_Q_add(_elem):
+    # Cost: O(S)
     (_v3_a,) = _elem
     for (_v3_x,) in S:
         if (_v3_x > _v3_a):
@@ -31,6 +32,7 @@ def _maint_R_Q_for__U_Q_add(_elem):
             _maint_R_Q_bu_for_R_Q_add(_v3_result)
 
 def _maint_R_Q_for__U_Q_remove(_elem):
+    # Cost: O(S)
     (_v4_a,) = _elem
     for (_v4_x,) in S:
         if (_v4_x > _v4_a):
@@ -38,6 +40,7 @@ def _maint_R_Q_for__U_Q_remove(_elem):
             _maint_R_Q_bu_for_R_Q_remove(_v4_result)
 
 def _maint_R_Q_for_S_add(_elem):
+    # Cost: O(_U_Q)
     (_v5_x,) = _elem
     for (_v5_a,) in _U_Q:
         if (_v5_x > _v5_a):
@@ -45,6 +48,7 @@ def _maint_R_Q_for_S_add(_elem):
             _maint_R_Q_bu_for_R_Q_add(_v5_result)
 
 def _maint_R_Q_for_S_remove(_elem):
+    # Cost: O(_U_Q)
     (_v6_x,) = _elem
     for (_v6_a,) in _U_Q:
         if (_v6_x > _v6_a):

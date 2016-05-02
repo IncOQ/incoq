@@ -21,6 +21,7 @@ import json
 from incoq.util.linecount import get_loc_source
 from incoq.mars.incast import L, P
 from incoq.mars.symbol import S, N
+from incoq.mars.cost import C
 from incoq.mars.auxmap import transform_auxmaps
 from incoq.mars.comp import (
     CoreClauseTools, transform_comp_query, transform_aux_comp_query,
@@ -368,6 +369,9 @@ def transform_ast(input_ast, *, options=None, query_options=None):
 #            if sym.name in symtab.ignored_queries:
 #                print('{:<10} {}'.format(sym.name + ':',
 #                                        L.Parser.ts(sym.node)))
+    
+    symtab.print('Analyzing costs')
+    tree = C.annotate_costs(tree, symtab)
     
     symtab.print('Incrementalizing auxiliary maps')
     

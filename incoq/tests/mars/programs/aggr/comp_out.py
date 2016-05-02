@@ -4,6 +4,7 @@ from incoq.mars.runtime import *
 # A_Q2 : {(Number): Number}
 A_Q2 = Map()
 def _maint_A_Q2_for_R_Q1_add(_elem):
+    # Cost: O(1)
     (_elem_v1, _elem_v2) = _elem
     _v5_key = (_elem_v1,)
     _v5_value = _elem_v2
@@ -14,6 +15,7 @@ def _maint_A_Q2_for_R_Q1_add(_elem):
     A_Q2[_v5_key] = _v5_state
 
 def _maint_A_Q2_for_R_Q1_remove(_elem):
+    # Cost: O(1)
     (_elem_v1, _elem_v2) = _elem
     _v6_key = (_elem_v1,)
     _v6_value = _elem_v2
@@ -24,11 +26,13 @@ def _maint_A_Q2_for_R_Q1_remove(_elem):
         A_Q2[_v6_key] = _v6_state
 
 def _maint_R_Q1_for_S_add(_elem):
+    # Cost: O(1)
     (_v3_a, _v3_b) = _elem
     _v3_result = (_v3_a, _v3_b)
     _maint_A_Q2_for_R_Q1_add(_v3_result)
 
 def _maint_R_Q1_for_S_remove(_elem):
+    # Cost: O(1)
     (_v4_a, _v4_b) = _elem
     _v4_result = (_v4_a, _v4_b)
     _maint_A_Q2_for_R_Q1_remove(_v4_result)

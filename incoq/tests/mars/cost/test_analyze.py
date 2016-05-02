@@ -5,6 +5,7 @@ import unittest
 
 from incoq.util.misc import new_namespace
 from incoq.mars.incast import L
+from incoq.mars.symbol import S
 import incoq.mars.cost.costs as costs
 import incoq.mars.cost.algebra as algebra
 import incoq.mars.cost.analyze as analyze
@@ -135,6 +136,27 @@ class AnalyzeCase(unittest.TestCase):
                             C.IndefImgset('T', L.mask('bu'))]),
         }
         self.assertEqual(func_costs, exp_func_costs)
+    
+    def test_annotate_costs(self):
+        symtab = S.SymbolTable()
+        symtab.maint_funcs = ['f']
+        tree = L.Parser.p('''
+            def f(x):
+                for y in R:
+                    pass
+            ''')
+        tree = C.annotate_costs(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def f(x):
+                COMMENT('Cost: O(R)')
+                for y in R:
+                    pass
+            ''')
+        self.assertEqual(tree, exp_tree)
+        exp_func_costs = {
+            'f': C.Name('R'),
+        }
+        self.assertEqual(symtab.func_costs, exp_func_costs)
 
 
 if __name__ == '__main__':

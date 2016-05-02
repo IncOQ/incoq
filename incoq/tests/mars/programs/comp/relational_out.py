@@ -55,6 +55,7 @@ def _maint_R_Q_unwrapped_for_R_Q_remove(_elem):
     R_Q_unwrapped.remove(_v16_v)
 
 def _maint_R_Q_for_S_add(_elem):
+    # Cost: O((S_bu + S_ub))
     (_v5_a, _v5_b) = _elem
     if ((_v5_a,) in R_wrapped):
         for _v5_c in (S_bu[_v5_b] if (_v5_b in S_bu) else ()):
@@ -76,6 +77,7 @@ def _maint_R_Q_for_S_add(_elem):
                 R_Q.inccount(_v5_result)
 
 def _maint_R_Q_for_S_remove(_elem):
+    # Cost: O((S_bu + S_ub))
     (_v6_a, _v6_b) = _elem
     if ((_v6_a,) in R_wrapped):
         for _v6_c in (S_bu[_v6_b] if (_v6_b in S_bu) else ()):
@@ -97,6 +99,7 @@ def _maint_R_Q_for_S_remove(_elem):
                 R_Q.deccount(_v6_result)
 
 def _maint_R_Q_for_R_wrapped_add(_elem):
+    # Cost: O((S_bu * S_bu))
     (_v7_a,) = _elem
     for _v7_b in (S_bu[_v7_a] if (_v7_a in S_bu) else ()):
         for _v7_c in (S_bu[_v7_b] if (_v7_b in S_bu) else ()):
@@ -108,6 +111,7 @@ def _maint_R_Q_for_R_wrapped_add(_elem):
                 R_Q.inccount(_v7_result)
 
 def _maint_R_Q_for_R_wrapped_remove(_elem):
+    # Cost: O((S_bu * S_bu))
     (_v8_a,) = _elem
     for _v8_b in (S_bu[_v8_a] if (_v8_a in S_bu) else ()):
         for _v8_c in (S_bu[_v8_b] if (_v8_b in S_bu) else ()):
@@ -119,11 +123,13 @@ def _maint_R_Q_for_R_wrapped_remove(_elem):
                 R_Q.deccount(_v8_result)
 
 def _maint_R_wrapped_for_R_add(_elem):
+    # Cost: O((S_bu * S_bu))
     _v3_v = (_elem,)
     R_wrapped.add(_v3_v)
     _maint_R_Q_for_R_wrapped_add(_v3_v)
 
 def _maint_R_wrapped_for_R_remove(_elem):
+    # Cost: O((S_bu * S_bu))
     _v4_v = (_elem,)
     _maint_R_Q_for_R_wrapped_remove(_v4_v)
     R_wrapped.remove(_v4_v)

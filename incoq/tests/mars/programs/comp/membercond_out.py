@@ -24,6 +24,7 @@ def _maint_S_bu_for_S_remove(_elem):
         del S_bu[_v9_key]
 
 def _maint_R_Q_for_S_add(_elem):
+    # Cost: O(1)
     (_v3_a, _v3_b) = _elem
     if ((_v3_a,) in R):
         _v3_result = (_v3_b,)
@@ -33,6 +34,7 @@ def _maint_R_Q_for_S_add(_elem):
             R_Q.inccount(_v3_result)
 
 def _maint_R_Q_for_S_remove(_elem):
+    # Cost: O(1)
     (_v4_a, _v4_b) = _elem
     if ((_v4_a,) in R):
         _v4_result = (_v4_b,)
@@ -42,6 +44,7 @@ def _maint_R_Q_for_S_remove(_elem):
             R_Q.deccount(_v4_result)
 
 def _maint_R_Q_for_R_add(_elem):
+    # Cost: O(S_bu)
     (_v5_a,) = _elem
     for _v5_b in (S_bu[_v5_a] if (_v5_a in S_bu) else ()):
         _v5_result = (_v5_b,)
@@ -51,6 +54,7 @@ def _maint_R_Q_for_R_add(_elem):
             R_Q.inccount(_v5_result)
 
 def _maint_R_Q_for_R_remove(_elem):
+    # Cost: O(S_bu)
     (_v6_a,) = _elem
     for _v6_b in (S_bu[_v6_a] if (_v6_a in S_bu) else ()):
         _v6_result = (_v6_b,)

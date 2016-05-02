@@ -20,11 +20,13 @@ def _maint_R_Q_bu_for_R_Q_remove(_elem):
         del R_Q_bu[_v6_key]
 
 def _maint_R_Q_for_S_add(_elem):
+    # Cost: O(1)
     (_v2_a, _v2_b) = _elem
     _v2_result = (_v2_a, _v2_b)
     _maint_R_Q_bu_for_R_Q_add(_v2_result)
 
 def _maint_R_Q_for_S_remove(_elem):
+    # Cost: O(1)
     (_v3_a, _v3_b) = _elem
     _v3_result = (_v3_a, _v3_b)
     _maint_R_Q_bu_for_R_Q_remove(_v3_result)

@@ -3,6 +3,7 @@
 
 __all__ = [
     'analyze_costs',
+    'annotate_costs',
 ]
 
 
@@ -349,3 +350,23 @@ def analyze_costs(tree, funcs):
         func_costs[f] = cost
     
     return func_costs
+
+
+def annotate_costs(tree, symtab):
+    """Analyze and annotate the costs of maintenance functions."""
+    func_costs = analyze_costs(tree, symtab.maint_funcs)
+    
+    class Trans(L.NodeTransformer):
+        def visit_Fun(self, node):
+            node = self.generic_visit(node)
+            
+            if node.name in func_costs:
+                cost = 'Cost: O({})'.format(func_costs[node.name])
+                comment = (L.Comment(cost),)
+                node = node._replace(body=comment + node.body)
+            return node
+    tree = Trans.run(tree)
+    
+    symtab.func_costs = func_costs
+    
+    return tree
