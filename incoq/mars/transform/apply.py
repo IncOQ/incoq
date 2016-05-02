@@ -157,6 +157,8 @@ def preprocess_tree(tree, symtab, query_options):
     for d in info.config_info:
         symtab.config.parse_and_update(**d)
     for name, d in info.symconfig_info:
+        if name not in symtab.get_symbols():
+            symtab.define_var(name)
         symtab.apply_symconfig(name, d)
     for name, d in query_name_attrs.items():
         symtab.apply_symconfig(name, d)
@@ -301,7 +303,8 @@ def transform_ast(input_ast, *, options=None, query_options=None):
     names.difference_update(symtab.get_relations().keys(),
                             symtab.get_maps().keys())
     for name in names:
-        symtab.define_var(name)
+        if name not in symtab.get_symbols():
+            symtab.define_var(name)
     
     # Run type inference.
     illtyped, badsyms = symtab.run_type_inference(tree)

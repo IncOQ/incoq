@@ -29,6 +29,10 @@ from .common import (parse_bool, parse_list, parse_int_list,
                      ParseableEnumMixin)
 
 
+def eval_typestr(symtab, s):
+    return T.eval_typestr(s, symtab.config.typedefs)
+
+
 class Constants(ParseableEnumMixin, Enum):
     
     """Enumeration for symbol attribute constants."""
@@ -170,7 +174,7 @@ class Symbol(metaclass=MetaSymbol):
                 raise KeyError('Unknown symbol attribute "{}"'.format(attr))
             setattr(self, attr, value)
     
-    def parse_and_update(self, **kargs):
+    def parse_and_update(self, symtab, **kargs):
         """Like update(), but run the values through the symbol
         attributes' parser functions if present.
         """
@@ -181,7 +185,7 @@ class Symbol(metaclass=MetaSymbol):
             if desc.parser is None:
                 raise ValueError('Attribute "{}" cannot be parsed'
                                  .format(attr))
-            value = desc.parser(value)
+            value = desc.parser(symtab, value)
             setattr(self, attr, value)
     
     def clone_attrs(self):
@@ -219,12 +223,12 @@ class TypedSymbolMixin(Symbol):
     type = SymbolAttribute(
         doc='Current annotated or inferred type of the symbol',
         default=None,
-        parser=lambda t: T.eval_typestr(t))
+        parser=eval_typestr)
     
     ann_type = SymbolAttribute(
         doc='Type of symbol as dictated by user',
         default=None,
-        parser=lambda t: T.eval_typestr(t))
+        parser=eval_typestr)
     
     @property
     def default_type(self):

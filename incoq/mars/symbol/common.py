@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 
-def parse_bool(s):
+def parse_bool(s, symtab=None):
     s = s.lower()
     if s == 'true':
         return True
@@ -19,12 +19,12 @@ def parse_bool(s):
         raise ValueError('Bad attribute value')
 
 
-def parse_list(s):
+def parse_list(s, symtab=None):
     result = s.split(',')
     result = [it.strip() for it in result]
     return result
 
-def parse_int_list(s):
+def parse_int_list(s, symtab=None):
     result = s.split(',')
     result = [int(it.strip()) for it in result]
     return result

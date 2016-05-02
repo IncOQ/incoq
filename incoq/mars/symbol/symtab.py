@@ -260,7 +260,7 @@ class SymbolTable:
         if name not in self.symbols:
             raise L.ProgramError('No symbol "{}"'.format(name))
         sym = self.symbols[name]
-        sym.parse_and_update(**info)
+        sym.parse_and_update(self, **info)
     
     def dump_symbols(self):
         """Return a string describing the defined global symbols."""

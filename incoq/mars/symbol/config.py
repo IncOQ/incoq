@@ -12,8 +12,22 @@ __all__ = [
 import argparse
 from simplestruct import Struct, Field
 
+from incoq.mars.type import T
+
 from .common import parse_bool
 from .symbols import Constants
+
+
+def parse_typedef(s):
+    typedefs = {}
+    lines = [line for line in s.split(';')
+                  if line and not line.isspace()]
+    for line in lines:
+        name, definition = line.split('=')
+        name = name.strip()
+        t = T.eval_typestr(definition, typedefs)
+        typedefs[name] = t
+    return typedefs
 
 
 # Each configuration attribute is a descriptor, listed in the
@@ -129,6 +143,11 @@ all_attributes = [
         'enable special rewritings for DistAlgo inc interface',
         parse_bool,
         {'action': 'store_true'}),
+    
+    ConfigAttribute('typedefs', {},
+        'mapping from type identifiers to type definition',
+        parse_typedef,
+        {})
 ]
 
 
