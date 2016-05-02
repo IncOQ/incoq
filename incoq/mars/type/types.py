@@ -18,7 +18,8 @@ following type constructors:
     - Set<T>
     - List<T>
     - Map<K, V>
-    - Refine<T>
+    - Refine<name, T>
+    - Enum<name>
 
 Each type represents a domain of values, although multiple types may
 have the same domain. Types are arranged in a lattice with order
@@ -45,7 +46,7 @@ cases that are implied by reflexivity and transitivity:
   
   - A is Set<T> or List<T> and B is Sequence<T> (subtyping of Sequence)
   
-  - A is Refine<B> (definition of Refine)
+  - A is Refine<name, B> for some name (definition of Refine)
 """
 
 
@@ -53,6 +54,7 @@ __all__ = [
     'Type',
     'Top',
     'Bottom',
+    'Primitive',
     'Bool',
     'Number',
     'String',
@@ -62,6 +64,7 @@ __all__ = [
     'List',
     'Map',
     'Refine',
+    'Enum',
     
     'eval_typestr',
 ]
@@ -366,12 +369,12 @@ class Refine(Type):
             return Bottom
     
     def widen_helper(self, height):
-        # Suppose this type is Refine<T>, and that widening is needed.
-        # Let U be a widened version of T with T <= U.
+        # Suppose this type is Refine<name, T>, and that widening is
+        # needed. Let U be a widened version of T with T <= U.
         #
-        # We can't return Refine<U> as our widening, because it is not
-        # generally true that Refine<T> <= Refine<U>. Instead, our
-        # widening is just T itself.
+        # We can't return Refine<..., U> as our widening, because it is
+        # not generally true that Refine<..., T> <= Refine<..., U>.
+        # Instead, our widening is just T itself.
         widened_base = self.base.widen(height - 1)
         if widened_base == self.base:
             # Turns out widening is not even needed.
@@ -382,10 +385,19 @@ class Refine(Type):
             # of ourselves.
             return self.base.widen(height)
 
+class Enum(Type):
+    
+    name = TypedField(str)
+    
+    def __str__(self):
+        return self.name
 
-def eval_typestr(s):
+
+def eval_typestr(s, typedefs=None):
     """Eval a string to construct a type expression."""
     ns = {k: v for k, v in globals().items()
                if (isinstance(v, Type) or
                    (isinstance(v, type) and issubclass(v, Type)))}
+    if typedefs is not None:
+        ns.update(typedefs)
     return eval(s, ns)

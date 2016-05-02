@@ -13,7 +13,7 @@ class TypeCase(unittest.TestCase):
     def sample_types(self):
         return [Bottom, Bool, Top, Tuple([Number]),
                 Set(String), Map(String, Bool),
-                Refine('name', String)]
+                Refine('name', String), Enum('color')]
     
     @property
     def sample_types_simple(self):
@@ -31,6 +31,8 @@ class TypeCase(unittest.TestCase):
         self.assertEqual(str(Set(Bool)), '{bool}')
         
         self.assertEqual(str(Refine('name', String)), 'name:str')
+        
+        self.assertEqual(str(Enum('color')), 'color')
     
     def test_singleton(self):
         obj = TopClass()
