@@ -279,7 +279,7 @@ class InvariantFinder(L.NodeVisitor):
             return
         map = node.map.id
         
-        rel = N.get_setfrommap_name(map, node.mask)
+        rel = N.SA_name(map, node.mask)
         setfrommap = SetFromMapInvariant(rel, map, node.mask)
         self.setfrommaps.add(setfrommap)
     

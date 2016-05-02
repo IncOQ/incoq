@@ -44,16 +44,38 @@ class N:
         return '{}_{}'.format(map, mask.m)
     
     @classmethod
-    def get_setfrommap_name(cls, map, mask):
-        return 'S{}'.format(map)
-    
-    @classmethod
     def get_wrap_name(cls, rel):
         return '{}_wrapped'.format(rel)
     
     @classmethod
     def get_unwrap_name(cls, rel):
         return '{}_unwrapped'.format(rel)
+    
+    Aprefix = 'A_'
+    @classmethod
+    def A_name(cls, oper):
+        assert isinstance(oper, str)
+        return cls.Aprefix + oper
+    @classmethod
+    def is_A(cls, name):
+        return name.startswith(cls.Aprefix)
+    @classmethod
+    def get_A(cls, name):
+        assert cls.is_A(name)
+        return name[len(cls.Aprefix):]
+    
+    # SetFromMap prefix.
+    SAprefix = 'SA_'
+    @classmethod
+    def SA_name(cls, map, mask):
+        return 'S{}'.format(map)
+    @classmethod
+    def is_SA(cls, name):
+        return name.startswith(cls.SAprefix)
+    @classmethod
+    def get_SA(cls, name):
+        assert cls.is_SA(name)
+        return name[len(cls.SAprefix):]
     
     @classmethod
     def get_compute_func_name(cls, query):

@@ -53,7 +53,7 @@ class AggrMapReplacer(L.NodeTransformer):
         var = self.repls.get(node, None)
         if var is None:
             mask = L.mapmask_from_len(len(keyvars))
-            rel = N.get_setfrommap_name(map, mask)
+            rel = N.SA_name(map, mask)
             
             # Create a fresh variable.
             self.repls[node] = var = next(self.fresh_names)

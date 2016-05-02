@@ -215,7 +215,7 @@ def transform_query(tree, symtab, query):
             success = False
         
         elif query.impl == S.Inc:
-            result_var = 'A_' + query.name
+            result_var = N.A_name(query.name)
             tree = incrementalize_aggr(tree, symtab, query, result_var)
             # Transform any aggregate map lookups inside comprehensions,
             # including incrementalizing the SetFromMaps used in the
@@ -266,6 +266,7 @@ def transform_ast(input_ast, *, options=None, query_options=None):
     
     symtab = S.SymbolTable()
     symtab.config = config
+    
     tree = preprocess_tree(tree, symtab, query_options)
     
     if config.auto_query:
