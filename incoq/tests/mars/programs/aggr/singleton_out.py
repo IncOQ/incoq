@@ -12,8 +12,6 @@ A_Q3 = Map()
 # A_Q4 : {(): (Number)}
 A_Q4 = Map()
 def _maint_A_Q4_for_S_wrapped_add(_elem):
-    # Cost: O(?)
-    #       O(?)
     (_elem_v1,) = _elem
     _v9_key = ()
     _v9_value = _elem_v1
@@ -26,8 +24,6 @@ def _maint_A_Q4_for_S_wrapped_add(_elem):
     A_Q4[_v9_key] = _v9_state
 
 def _maint_A_Q4_for_S_wrapped_remove(_elem):
-    # Cost: O(?)
-    #       O(?)
     (_elem_v1,) = _elem
     _v10_key = ()
     _v10_value = _elem_v1
@@ -40,8 +36,6 @@ def _maint_A_Q4_for_S_wrapped_remove(_elem):
         A_Q4[_v10_key] = _v10_state
 
 def _maint_A_Q3_for_S_wrapped_add(_elem):
-    # Cost: O(?)
-    #       O(?)
     (_elem_v1,) = _elem
     _v7_key = ()
     _v7_value = _elem_v1
@@ -54,8 +48,6 @@ def _maint_A_Q3_for_S_wrapped_add(_elem):
     A_Q3[_v7_key] = _v7_state
 
 def _maint_A_Q3_for_S_wrapped_remove(_elem):
-    # Cost: O(?)
-    #       O(?)
     (_elem_v1,) = _elem
     _v8_key = ()
     _v8_value = _elem_v1
@@ -68,8 +60,6 @@ def _maint_A_Q3_for_S_wrapped_remove(_elem):
         A_Q3[_v8_key] = _v8_state
 
 def _maint_A_Q2_for_S_wrapped_add(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_elem_v1,) = _elem
     _v5_key = ()
     _v5_value = _elem_v1
@@ -80,8 +70,6 @@ def _maint_A_Q2_for_S_wrapped_add(_elem):
     A_Q2[_v5_key] = _v5_state
 
 def _maint_A_Q2_for_S_wrapped_remove(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_elem_v1,) = _elem
     _v6_key = ()
     _v6_value = _elem_v1
@@ -92,8 +80,6 @@ def _maint_A_Q2_for_S_wrapped_remove(_elem):
         A_Q2[_v6_key] = _v6_state
 
 def _maint_A_Q1_for_S_wrapped_add(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_elem_v1,) = _elem
     _v3_key = ()
     _v3_value = _elem_v1
@@ -104,8 +90,6 @@ def _maint_A_Q1_for_S_wrapped_add(_elem):
     A_Q1[_v3_key] = _v3_state
 
 def _maint_A_Q1_for_S_wrapped_remove(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_elem_v1,) = _elem
     _v4_key = ()
     _v4_value = _elem_v1
@@ -116,8 +100,6 @@ def _maint_A_Q1_for_S_wrapped_remove(_elem):
         A_Q1[_v4_key] = _v4_state
 
 def _maint_S_wrapped_for_S_add(_elem):
-    # Cost: O(?)
-    #       O(?)
     _v1_v = (_elem,)
     _maint_A_Q4_for_S_wrapped_add(_v1_v)
     _maint_A_Q3_for_S_wrapped_add(_v1_v)
@@ -125,8 +107,6 @@ def _maint_S_wrapped_for_S_add(_elem):
     _maint_A_Q1_for_S_wrapped_add(_v1_v)
 
 def _maint_S_wrapped_for_S_remove(_elem):
-    # Cost: O(?)
-    #       O(?)
     _v2_v = (_elem,)
     _maint_A_Q1_for_S_wrapped_remove(_v2_v)
     _maint_A_Q2_for_S_wrapped_remove(_v2_v)
@@ -134,8 +114,6 @@ def _maint_S_wrapped_for_S_remove(_elem):
     _maint_A_Q4_for_S_wrapped_remove(_v2_v)
 
 def main():
-    # Cost: O(?)
-    #       O(?)
     for x in [1, 2, 3, 4]:
         _maint_S_wrapped_for_S_add(x)
     print(A_Q1.get((), 0))

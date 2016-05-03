@@ -78,8 +78,6 @@ def _maint_R_Q_unwrapped_for_R_Q_remove(_elem):
     R_Q_unwrapped.remove(_v20_v)
 
 def _maint_R_Q_dS_for_R_Q_T_b_1_add(_elem):
-    # Cost: O(S_bu)
-    #       O(Number)
     (_v6_b,) = _elem
     for _v6_c in (S_bu[_v6_b] if (_v6_b in S_bu) else ()):
         _v6_result = (_v6_b, _v6_c)
@@ -87,8 +85,6 @@ def _maint_R_Q_dS_for_R_Q_T_b_1_add(_elem):
         _maint_R_Q_dS_bu_for_R_Q_dS_add(_v6_result)
 
 def _maint_R_Q_dS_for_R_Q_T_b_1_remove(_elem):
-    # Cost: O(S_bu)
-    #       O(Number)
     (_v7_b,) = _elem
     for _v7_c in (S_bu[_v7_b] if (_v7_b in S_bu) else ()):
         _v7_result = (_v7_b, _v7_c)
@@ -96,8 +92,6 @@ def _maint_R_Q_dS_for_R_Q_T_b_1_remove(_elem):
         R_Q_dS.remove(_v7_result)
 
 def _maint_R_Q_dS_for_S_add(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_v8_b, _v8_c) = _elem
     if ((_v8_b,) in R_Q_T_b_1):
         _v8_result = (_v8_b, _v8_c)
@@ -105,8 +99,6 @@ def _maint_R_Q_dS_for_S_add(_elem):
         _maint_R_Q_dS_bu_for_R_Q_dS_add(_v8_result)
 
 def _maint_R_Q_dS_for_S_remove(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_v9_b, _v9_c) = _elem
     if ((_v9_b,) in R_Q_T_b_1):
         _v9_result = (_v9_b, _v9_c)
@@ -114,8 +106,6 @@ def _maint_R_Q_dS_for_S_remove(_elem):
         R_Q_dS.remove(_v9_result)
 
 def _maint_R_Q_T_b_1_for_S_add(_elem):
-    # Cost: O(S_bu)
-    #       O(Number)
     (_v4_a, _v4_b) = _elem
     _v4_result = (_v4_b,)
     if (_v4_result not in R_Q_T_b_1):
@@ -125,8 +115,6 @@ def _maint_R_Q_T_b_1_for_S_add(_elem):
         R_Q_T_b_1.inccount(_v4_result)
 
 def _maint_R_Q_T_b_1_for_S_remove(_elem):
-    # Cost: O(S_bu)
-    #       O(Number)
     (_v5_a, _v5_b) = _elem
     _v5_result = (_v5_b,)
     if (R_Q_T_b_1.getcount(_v5_result) == 1):
@@ -136,8 +124,6 @@ def _maint_R_Q_T_b_1_for_S_remove(_elem):
         R_Q_T_b_1.deccount(_v5_result)
 
 def _maint_R_Q_for_S_add(_elem):
-    # Cost: O((R_Q_dS_bu + S_ub))
-    #       O((R_Q_dS_bu + Number))
     (_v2_a, _v2_b) = _elem
     if ((_v2_a, _v2_b) in S):
         for _v2_c in (R_Q_dS_bu[_v2_b] if (_v2_b in R_Q_dS_bu) else ()):
@@ -158,8 +144,6 @@ def _maint_R_Q_for_S_add(_elem):
                 R_Q.inccount(_v2_result)
 
 def _maint_R_Q_for_S_remove(_elem):
-    # Cost: O((R_Q_dS_bu + S_ub))
-    #       O((R_Q_dS_bu + Number))
     (_v3_a, _v3_b) = _elem
     if ((_v3_a, _v3_b) in S):
         for _v3_c in (R_Q_dS_bu[_v3_b] if (_v3_b in R_Q_dS_bu) else ()):
@@ -180,8 +164,6 @@ def _maint_R_Q_for_S_remove(_elem):
                 R_Q.deccount(_v3_result)
 
 def main():
-    # Cost: O((S_bu + R_Q_dS_bu + S_ub + ?))
-    #       O((Number + R_Q_dS_bu + ?))
     for (x, y) in [(1, 2), (1, 3), (2, 3), (2, 4)]:
         _v1 = (x, y)
         S.add(_v1)

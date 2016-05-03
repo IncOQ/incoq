@@ -20,8 +20,6 @@ def _maint_S_bu_for_S_remove(_elem):
         del S_bu[_v4_key]
 
 def _compute_Q(a):
-    # Cost: O((S_bu * S_bu[a]))
-    #       O((Number^2))
     _result = Set()
     for b in (S_bu[a] if (a in S_bu) else ()):
         for c in (S_bu[b] if (b in S_bu) else ()):
@@ -30,8 +28,6 @@ def _compute_Q(a):
     return _result
 
 def main():
-    # Cost: O(((S_bu^2) + ?))
-    #       O(((Number^2) + ?))
     for (x, y) in [(1, 2), (1, 3), (2, 3), (2, 4), (4, 5)]:
         _v1 = (x, y)
         _maint_S_bu_for_S_add(_v1)

@@ -6,14 +6,10 @@ R_Q1 = CSet()
 # R_Q2 : {(Bottom)}
 R_Q2 = Set()
 def main():
-    # Cost: O(?)
-    #       O(?)
     for (x, y) in [(1, 1), (1, 2), (2, 2), (2, 3)]:
         _v1 = (x, y)
         # Begin inlined _maint_R_Q1_for_S_add.
         (_i3_elem,) = (_v1,)
-        # Cost: O(1)
-        #       O(1)
         (_i3_v2_a, _i3_v2_a_2) = _i3_elem
         if (_i3_v2_a == _i3_v2_a_2):
             _i3_v2_result = (_i3_v2_a,)
@@ -21,8 +17,6 @@ def main():
                 R_Q1.add(_i3_v2_result)
                 # Begin inlined _maint_R_Q2_for_R_Q1_add.
                 (_i3_i1_elem,) = (_i3_v2_result,)
-                # Cost: O(1)
-                #       O(1)
                 (_i3_i1_v4_v,) = _i3_i1_elem
                 if (_i3_i1_v4_v > 1):
                     _i3_i1_v4_result = (_i3_i1_v4_v,)

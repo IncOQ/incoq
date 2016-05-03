@@ -35,6 +35,10 @@ test_directory = os.path.split(__file__)[0]
 MAXDIFF = None
 
 
+def transform(in_source):
+    return transform_source(in_source, options={'costs': False})
+
+
 def make_transform_test(base_name, in_name, outpy_name, outtxt_name):
     
     def template(self):
@@ -43,7 +47,7 @@ def make_transform_test(base_name, in_name, outpy_name, outtxt_name):
             in_source = in_file.read()
             exp_source = outpy_file.read()
         
-        result_source, _symtab = transform_source(in_source)
+        result_source, _symtab = transform(in_source)
         
         self.assertEqual(result_source, exp_source)
     
@@ -60,7 +64,7 @@ def make_behavior_test(base_name, in_name, outpy_name, outtxt_name):
             in_source = in_file.read()
             exp_txt = outtxt_file.read()
         
-        result_source, _symtab = transform_source(in_source)
+        result_source, _symtab = transform(in_source)
         
         in_txt = pyexec_source(in_source)
         result_txt = pyexec_source(result_source)

@@ -66,8 +66,6 @@ def _maint_R_Q2_bbu_for_R_Q2_remove(_elem):
         del R_Q2_bbu[_v21_key]
 
 def _maint_R_Q2_for__U_Q2_add(_elem):
-    # Cost: O(R_Q1_bu)
-    #       O(Number)
     (_v9_k, _v9_j) = _elem
     for _v9_b in (R_Q1_bu[_v9_k] if (_v9_k in R_Q1_bu) else ()):
         if (_v9_b <= _v9_j):
@@ -75,8 +73,6 @@ def _maint_R_Q2_for__U_Q2_add(_elem):
             _maint_R_Q2_bbu_for_R_Q2_add(_v9_result)
 
 def _maint_R_Q2_for__U_Q2_remove(_elem):
-    # Cost: O(R_Q1_bu)
-    #       O(Number)
     (_v10_k, _v10_j) = _elem
     for _v10_b in (R_Q1_bu[_v10_k] if (_v10_k in R_Q1_bu) else ()):
         if (_v10_b <= _v10_j):
@@ -84,8 +80,6 @@ def _maint_R_Q2_for__U_Q2_remove(_elem):
             _maint_R_Q2_bbu_for_R_Q2_remove(_v10_result)
 
 def _maint_R_Q2_for_R_Q1_add(_elem):
-    # Cost: O(_U_Q2_bu)
-    #       O(Number)
     (_v11_k, _v11_b) = _elem
     for _v11_j in (_U_Q2_bu[_v11_k] if (_v11_k in _U_Q2_bu) else ()):
         if (_v11_b <= _v11_j):
@@ -93,8 +87,6 @@ def _maint_R_Q2_for_R_Q1_add(_elem):
             _maint_R_Q2_bbu_for_R_Q2_add(_v11_result)
 
 def _maint_R_Q2_for_R_Q1_remove(_elem):
-    # Cost: O(_U_Q2_bu)
-    #       O(Number)
     (_v12_k, _v12_b) = _elem
     for _v12_j in (_U_Q2_bu[_v12_k] if (_v12_k in _U_Q2_bu) else ()):
         if (_v12_b <= _v12_j):
@@ -102,8 +94,6 @@ def _maint_R_Q2_for_R_Q1_remove(_elem):
             _maint_R_Q2_bbu_for_R_Q2_remove(_v12_result)
 
 def _maint_R_Q1_for_R__QU_Q1_add(_elem):
-    # Cost: O((_U_Q2_bu * S))
-    #       O((Number^2))
     (_v5_k,) = _elem
     for (_v5_a,) in S:
         if (_v5_a >= _v5_k):
@@ -112,8 +102,6 @@ def _maint_R_Q1_for_R__QU_Q1_add(_elem):
             _maint_R_Q2_for_R_Q1_add(_v5_result)
 
 def _maint_R_Q1_for_R__QU_Q1_remove(_elem):
-    # Cost: O((_U_Q2_bu * S))
-    #       O((Number^2))
     (_v6_k,) = _elem
     for (_v6_a,) in S:
         if (_v6_a >= _v6_k):
@@ -122,8 +110,6 @@ def _maint_R_Q1_for_R__QU_Q1_remove(_elem):
             _maint_R_Q1_bu_for_R_Q1_remove(_v6_result)
 
 def _maint_R_Q1_for_S_add(_elem):
-    # Cost: O((_U_Q2_bu * R__QU_Q1))
-    #       O((Number^2))
     (_v7_a,) = _elem
     for (_v7_k,) in R__QU_Q1:
         if (_v7_a >= _v7_k):
@@ -132,8 +118,6 @@ def _maint_R_Q1_for_S_add(_elem):
             _maint_R_Q2_for_R_Q1_add(_v7_result)
 
 def _maint_R_Q1_for_S_remove(_elem):
-    # Cost: O((_U_Q2_bu * R__QU_Q1))
-    #       O((Number^2))
     (_v8_a,) = _elem
     for (_v8_k,) in R__QU_Q1:
         if (_v8_a >= _v8_k):
@@ -142,8 +126,6 @@ def _maint_R_Q1_for_S_remove(_elem):
             _maint_R_Q1_bu_for_R_Q1_remove(_v8_result)
 
 def _maint_R__QU_Q1_for__U_Q2_add(_elem):
-    # Cost: O((_U_Q2_bu * S))
-    #       O((Number^2))
     (_v3__v2k, _v3__v2j) = _elem
     _v3_result = (_v3__v2k,)
     if (_v3_result not in R__QU_Q1):
@@ -153,8 +135,6 @@ def _maint_R__QU_Q1_for__U_Q2_add(_elem):
         R__QU_Q1.inccount(_v3_result)
 
 def _maint_R__QU_Q1_for__U_Q2_remove(_elem):
-    # Cost: O((_U_Q2_bu * S))
-    #       O((Number^2))
     (_v4__v2k, _v4__v2j) = _elem
     _v4_result = (_v4__v2k,)
     if (R__QU_Q1.getcount(_v4_result) == 1):
@@ -164,8 +144,6 @@ def _maint_R__QU_Q1_for__U_Q2_remove(_elem):
         R__QU_Q1.deccount(_v4_result)
 
 def _demand_Q2(_elem):
-    # Cost: O((R_Q1_bu + (_U_Q2_bu * S)))
-    #       O((Number^2))
     if (_elem not in _U_Q2):
         _U_Q2.add(_elem)
         _maint__U_Q2_bu_for__U_Q2_add(_elem)
@@ -173,8 +151,6 @@ def _demand_Q2(_elem):
         _maint_R__QU_Q1_for__U_Q2_add(_elem)
 
 def main():
-    # Cost: O(((_U_Q2_bu * R__QU_Q1) + R_Q1_bu + (_U_Q2_bu * S) + ?))
-    #       O(((Number^2) + ?))
     for x in [1, 2, 3, 4, 5]:
         _v1 = (x,)
         S.add(_v1)

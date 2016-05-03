@@ -47,8 +47,6 @@ def _maint__F_f_ub_for__F_f_remove(_elem):
         del _F_f_ub[_v22_key]
 
 def _maint_A_Q_for_R_Q_oper_add(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_elem_v1, _elem_v2) = _elem
     _v14_key = (_elem_v1,)
     _v14_value = _elem_v2
@@ -59,8 +57,6 @@ def _maint_A_Q_for_R_Q_oper_add(_elem):
         A_Q[_v14_key] = _v14_state
 
 def _maint_A_Q_for_R_Q_oper_remove(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_elem_v1, _elem_v2) = _elem
     _v15_key = (_elem_v1,)
     _v15_value = _elem_v2
@@ -71,8 +67,6 @@ def _maint_A_Q_for_R_Q_oper_remove(_elem):
         A_Q[_v15_key] = _v15_state
 
 def _maint_A_Q_for__U_Q_add(_key):
-    # Cost: O(R_Q_oper_bu)
-    #       O(?)
     _v16_state = (0, 0)
     (_key_v1,) = _key
     for (_v16_value,) in (R_Q_oper_bu[_key_v1] if (_key_v1 in R_Q_oper_bu) else Set()):
@@ -80,13 +74,9 @@ def _maint_A_Q_for__U_Q_add(_key):
     A_Q[_key] = _v16_state
 
 def _maint_A_Q_for__U_Q_remove(_key):
-    # Cost: O(1)
-    #       O(1)
     del A_Q[_key]
 
 def _maint_R_Q_oper_for_R__QU_Q_oper_add(_elem):
-    # Cost: O(_v8_o_f)
-    #       O(_v8_o_f)
     (_v8_o,) = _elem
     if hasfield(_v8_o, 'f'):
         _v8_o_f = _v8_o.f
@@ -97,8 +87,6 @@ def _maint_R_Q_oper_for_R__QU_Q_oper_add(_elem):
                 _maint_A_Q_for_R_Q_oper_add(_v8_result)
 
 def _maint_R_Q_oper_for_R__QU_Q_oper_remove(_elem):
-    # Cost: O(_v9_o_f)
-    #       O(_v9_o_f)
     (_v9_o,) = _elem
     if hasfield(_v9_o, 'f'):
         _v9_o_f = _v9_o.f
@@ -109,8 +97,6 @@ def _maint_R_Q_oper_for_R__QU_Q_oper_remove(_elem):
                 _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v9_result)
 
 def _maint_R_Q_oper_for__F_f_add(_elem):
-    # Cost: O(_v10_o_f)
-    #       O(_v10_o_f)
     (_v10_o, _v10_o_f) = _elem
     if ((_v10_o,) in R__QU_Q_oper):
         if isset(_v10_o_f):
@@ -120,8 +106,6 @@ def _maint_R_Q_oper_for__F_f_add(_elem):
                 _maint_A_Q_for_R_Q_oper_add(_v10_result)
 
 def _maint_R_Q_oper_for__F_f_remove(_elem):
-    # Cost: O(_v11_o_f)
-    #       O(_v11_o_f)
     (_v11_o, _v11_o_f) = _elem
     if ((_v11_o,) in R__QU_Q_oper):
         if isset(_v11_o_f):
@@ -131,8 +115,6 @@ def _maint_R_Q_oper_for__F_f_remove(_elem):
                 _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v11_result)
 
 def _maint_R_Q_oper_for__M_add(_elem):
-    # Cost: O(_F_f_ub)
-    #       O(?)
     (_v12_o_f, _v12__v1) = _elem
     for _v12_o in (_F_f_ub[_v12_o_f] if (_v12_o_f in _F_f_ub) else ()):
         if ((_v12_o,) in R__QU_Q_oper):
@@ -141,8 +123,6 @@ def _maint_R_Q_oper_for__M_add(_elem):
             _maint_A_Q_for_R_Q_oper_add(_v12_result)
 
 def _maint_R_Q_oper_for__M_remove(_elem):
-    # Cost: O(_F_f_ub)
-    #       O(?)
     (_v13_o_f, _v13__v1) = _elem
     for _v13_o in (_F_f_ub[_v13_o_f] if (_v13_o_f in _F_f_ub) else ()):
         if ((_v13_o,) in R__QU_Q_oper):
@@ -151,32 +131,24 @@ def _maint_R_Q_oper_for__M_remove(_elem):
             _maint_R_Q_oper_bu_for_R_Q_oper_remove(_v13_result)
 
 def _maint_R__QU_Q_oper_for__U_Q_add(_elem):
-    # Cost: O(_v8_o_f)
-    #       O(_v8_o_f)
     (_v6__v5o,) = _elem
     _v6_result = (_v6__v5o,)
     R__QU_Q_oper.add(_v6_result)
     _maint_R_Q_oper_for_R__QU_Q_oper_add(_v6_result)
 
 def _maint_R__QU_Q_oper_for__U_Q_remove(_elem):
-    # Cost: O(_v9_o_f)
-    #       O(_v9_o_f)
     (_v7__v5o,) = _elem
     _v7_result = (_v7__v5o,)
     _maint_R_Q_oper_for_R__QU_Q_oper_remove(_v7_result)
     R__QU_Q_oper.remove(_v7_result)
 
 def _demand_Q(_elem):
-    # Cost: O((R_Q_oper_bu + _v8_o_f))
-    #       O((? + _v8_o_f))
     if (_elem not in _U_Q):
         _U_Q.add(_elem)
         _maint_A_Q_for__U_Q_add(_elem)
         _maint_R__QU_Q_oper_for__U_Q_add(_elem)
 
 def main():
-    # Cost: O((_v10_o_f + _F_f_ub + R_Q_oper_bu + _v8_o_f + ?))
-    #       O((_v10_o_f + ? + _v8_o_f))
     p = Obj()
     q = Obj()
     _v2 = (p, Set())

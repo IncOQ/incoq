@@ -66,40 +66,30 @@ def _maint_R_Q2_bu_for_R_Q2_remove(_elem):
         del R_Q2_bu[_v23_key]
 
 def _maint_R_Q2_for__U_Q2_add(_elem):
-    # Cost: O(R_Q1_bu)
-    #       O((?^2))
     (_v11_s,) = _elem
     for _v11_z in (R_Q1_bu[_v11_s] if (_v11_s in R_Q1_bu) else ()):
         _v11_result = (_v11_s, _v11_z)
         _maint_R_Q2_bu_for_R_Q2_add(_v11_result)
 
 def _maint_R_Q2_for__U_Q2_remove(_elem):
-    # Cost: O(R_Q1_bu)
-    #       O((?^2))
     (_v12_s,) = _elem
     for _v12_z in (R_Q1_bu[_v12_s] if (_v12_s in R_Q1_bu) else ()):
         _v12_result = (_v12_s, _v12_z)
         _maint_R_Q2_bu_for_R_Q2_remove(_v12_result)
 
 def _maint_R_Q2_for_R_Q1_add(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_v13_s, _v13_z) = _elem
     if ((_v13_s,) in _U_Q2):
         _v13_result = (_v13_s, _v13_z)
         _maint_R_Q2_bu_for_R_Q2_add(_v13_result)
 
 def _maint_R_Q2_for_R_Q1_remove(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_v14_s, _v14_z) = _elem
     if ((_v14_s,) in _U_Q2):
         _v14_result = (_v14_s, _v14_z)
         _maint_R_Q2_bu_for_R_Q2_remove(_v14_result)
 
 def _maint_R_Q1_for_R__QU_Q1_add(_elem):
-    # Cost: O(_v5_s)
-    #       O(_v5_s)
     (_v5_s,) = _elem
     if isset(_v5_s):
         for _v5_t_x_y in _v5_s:
@@ -114,8 +104,6 @@ def _maint_R_Q1_for_R__QU_Q1_add(_elem):
                     R_Q1.inccount(_v5_result)
 
 def _maint_R_Q1_for_R__QU_Q1_remove(_elem):
-    # Cost: O(_v6_s)
-    #       O(_v6_s)
     (_v6_s,) = _elem
     if isset(_v6_s):
         for _v6_t_x_y in _v6_s:
@@ -130,8 +118,6 @@ def _maint_R_Q1_for_R__QU_Q1_remove(_elem):
                     R_Q1.deccount(_v6_result)
 
 def _maint_R_Q1_for__M_add(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_v7_s, _v7_t_x_y) = _elem
     if ((_v7_s,) in R__QU_Q1):
         if hasarity(_v7_t_x_y, 2):
@@ -145,8 +131,6 @@ def _maint_R_Q1_for__M_add(_elem):
                 R_Q1.inccount(_v7_result)
 
 def _maint_R_Q1_for__M_remove(_elem):
-    # Cost: O(1)
-    #       O(1)
     (_v8_s, _v8_t_x_y) = _elem
     if ((_v8_s,) in R__QU_Q1):
         if hasarity(_v8_t_x_y, 2):
@@ -160,8 +144,6 @@ def _maint_R_Q1_for__M_remove(_elem):
                 R_Q1.deccount(_v8_result)
 
 def _maint_R_Q1_for__TUP_2_add(_elem):
-    # Cost: O(_M_ub)
-    #       O(?)
     (_v9_t_x_y, _v9_x, _v9_y) = _elem
     for _v9_s in (_M_ub[_v9_t_x_y] if (_v9_t_x_y in _M_ub) else ()):
         if ((_v9_s,) in R__QU_Q1):
@@ -174,8 +156,6 @@ def _maint_R_Q1_for__TUP_2_add(_elem):
                 R_Q1.inccount(_v9_result)
 
 def _maint_R_Q1_for__TUP_2_remove(_elem):
-    # Cost: O(_M_ub)
-    #       O(?)
     (_v10_t_x_y, _v10_x, _v10_y) = _elem
     for _v10_s in (_M_ub[_v10_t_x_y] if (_v10_t_x_y in _M_ub) else ()):
         if ((_v10_s,) in R__QU_Q1):
@@ -188,32 +168,24 @@ def _maint_R_Q1_for__TUP_2_remove(_elem):
                 R_Q1.deccount(_v10_result)
 
 def _maint_R__QU_Q1_for__U_Q2_add(_elem):
-    # Cost: O(_v5_s)
-    #       O(_v5_s)
     (_v3__v2s,) = _elem
     _v3_result = (_v3__v2s,)
     R__QU_Q1.add(_v3_result)
     _maint_R_Q1_for_R__QU_Q1_add(_v3_result)
 
 def _maint_R__QU_Q1_for__U_Q2_remove(_elem):
-    # Cost: O(_v6_s)
-    #       O(_v6_s)
     (_v4__v2s,) = _elem
     _v4_result = (_v4__v2s,)
     _maint_R_Q1_for_R__QU_Q1_remove(_v4_result)
     R__QU_Q1.remove(_v4_result)
 
 def _demand_Q2(_elem):
-    # Cost: O((R_Q1_bu + _v5_s))
-    #       O(((?^2) + _v5_s))
     if (_elem not in _U_Q2):
         _U_Q2.add(_elem)
         _maint_R_Q2_for__U_Q2_add(_elem)
         _maint_R__QU_Q1_for__U_Q2_add(_elem)
 
 def main():
-    # Cost: O((R_Q1_bu + _v5_s + ?))
-    #       O(((?^2) + _v5_s))
     s = Set()
     for e in [(1, 2), (3, 4)]:
         _v1 = (s, e)

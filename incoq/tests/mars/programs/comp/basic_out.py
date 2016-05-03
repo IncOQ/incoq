@@ -41,8 +41,6 @@ def _maint_S_ub_for_S_remove(_elem):
         del S_ub[_v9_key]
 
 def _maint_R_Q_for_S_add(_elem):
-    # Cost: O((S_bu + S_ub))
-    #       O(Number)
     (_v2_a, _v2_b) = _elem
     for _v2_c in (S_bu[_v2_b] if (_v2_b in S_bu) else ()):
         if ((_v2_b, _v2_c) != _elem):
@@ -60,8 +58,6 @@ def _maint_R_Q_for_S_add(_elem):
             R_Q.inccount(_v2_result)
 
 def _maint_R_Q_for_S_remove(_elem):
-    # Cost: O((S_bu + S_ub))
-    #       O(Number)
     (_v3_a, _v3_b) = _elem
     for _v3_c in (S_bu[_v3_b] if (_v3_b in S_bu) else ()):
         if ((_v3_b, _v3_c) != _elem):
@@ -79,8 +75,6 @@ def _maint_R_Q_for_S_remove(_elem):
             R_Q.deccount(_v3_result)
 
 def main():
-    # Cost: O((S_bu + S_ub + ?))
-    #       O((Number + ?))
     for (x, y) in [(1, 2), (1, 3), (2, 3), (2, 4)]:
         _v1 = (x, y)
         _maint_S_bu_for_S_add(_v1)

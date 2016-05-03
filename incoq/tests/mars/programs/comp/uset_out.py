@@ -24,8 +24,6 @@ def _maint_R_Q_bu_for_R_Q_remove(_elem):
         del R_Q_bu[_v9_key]
 
 def _maint_R_Q_for__U_Q_add(_elem):
-    # Cost: O(S)
-    #       O(Number)
     (_v3_a,) = _elem
     for (_v3_x,) in S:
         if (_v3_x > _v3_a):
@@ -33,8 +31,6 @@ def _maint_R_Q_for__U_Q_add(_elem):
             _maint_R_Q_bu_for_R_Q_add(_v3_result)
 
 def _maint_R_Q_for__U_Q_remove(_elem):
-    # Cost: O(S)
-    #       O(Number)
     (_v4_a,) = _elem
     for (_v4_x,) in S:
         if (_v4_x > _v4_a):
@@ -42,8 +38,6 @@ def _maint_R_Q_for__U_Q_remove(_elem):
             _maint_R_Q_bu_for_R_Q_remove(_v4_result)
 
 def _maint_R_Q_for_S_add(_elem):
-    # Cost: O(_U_Q)
-    #       O(1)
     (_v5_x,) = _elem
     for (_v5_a,) in _U_Q:
         if (_v5_x > _v5_a):
@@ -51,8 +45,6 @@ def _maint_R_Q_for_S_add(_elem):
             _maint_R_Q_bu_for_R_Q_add(_v5_result)
 
 def _maint_R_Q_for_S_remove(_elem):
-    # Cost: O(_U_Q)
-    #       O(1)
     (_v6_x,) = _elem
     for (_v6_a,) in _U_Q:
         if (_v6_x > _v6_a):
@@ -60,8 +52,6 @@ def _maint_R_Q_for_S_remove(_elem):
             _maint_R_Q_bu_for_R_Q_remove(_v6_result)
 
 def _demand_Q(_elem):
-    # Cost: O(((?^2) + (? * S)))
-    #       O(((?^2) + (? * Number)))
     if (_elem not in _U_Q):
         while (len(_U_Q) >= 3):
             _stale = _U_Q.peek()
@@ -71,8 +61,6 @@ def _demand_Q(_elem):
         _maint_R_Q_for__U_Q_add(_elem)
 
 def main():
-    # Cost: O((_U_Q + (?^2) + (? * S)))
-    #       O(((?^2) + (? * Number)))
     for v in [1, 3]:
         _v1 = (v,)
         S.add(_v1)
