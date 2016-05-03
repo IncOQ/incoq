@@ -55,15 +55,15 @@ class MetaCase(unittest.TestCase):
     def test_symbol_update(self):
         class Sym(Symbol):
             A = SymbolAttribute()
-            B = SymbolAttribute(parser=lambda x: 5)
+            B = SymbolAttribute(parser=lambda x, symtab=None: 5)
             C = SymbolAttribute(parser=None)
         s = Sym('s')
         s.update(A=1)
         self.assertEqual(s.A, 1)
-        s.parse_and_update(B=2)
+        s.parse_and_update(None, B=2)
         self.assertEqual(s.B, 5)
         with self.assertRaises(ValueError):
-            s.parse_and_update(C=3)
+            s.parse_and_update(None, C=3)
     
     def test_symbol_clone_attrs(self):
         class Sym(Symbol):

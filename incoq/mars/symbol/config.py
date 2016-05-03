@@ -147,7 +147,12 @@ all_attributes = [
     ConfigAttribute('typedefs', {},
         'mapping from type identifiers to type definition',
         parse_typedef,
-        {})
+        {}),
+    
+    ConfigAttribute('costs', True,
+        'write cost annotation comments',
+        parse_bool,
+        {'action': 'store_true'}),
 ]
 
 

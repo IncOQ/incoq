@@ -14,6 +14,7 @@ from incoq.mars.cost.analyze import (
     TrivialCostAnalyzer, SizeAnalyzer,
     LoopCostAnalyzer, CallCostAnalyzer,
     type_to_cost, rewrite_cost_using_types)
+from incoq.mars.comp import CoreClauseTools
 
 C = new_namespace(costs, algebra, analyze)
 
@@ -179,6 +180,7 @@ class AnalyzeCase(unittest.TestCase):
     
     def test_rewrite_cost_using_types(self):
         symtab = S.SymbolTable()
+        symtab.clausetools = CoreClauseTools()
         symtab.define_relation('R', type=T.Set(T.Number))
         symtab.define_relation('S', type=T.Set(T.Tuple(
                                [T.Bool, T.String, T.Bool, T.Enum('color')])))
@@ -190,6 +192,7 @@ class AnalyzeCase(unittest.TestCase):
     
     def test_annotate_costs(self):
         symtab = S.SymbolTable()
+        symtab.clausetools = CoreClauseTools()
         symtab.maint_funcs = ['f']
         tree = L.Parser.p('''
             def f(x):

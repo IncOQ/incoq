@@ -374,8 +374,9 @@ def transform_ast(input_ast, *, options=None, query_options=None):
 #                print('{:<10} {}'.format(sym.name + ':',
 #                                        L.Parser.ts(sym.node)))
     
-    symtab.print('Analyzing costs')
-    tree = C.annotate_costs(tree, symtab)
+    if config.costs:
+        symtab.print('Analyzing costs')
+        tree = C.annotate_costs(tree, symtab)
     
     symtab.print('Incrementalizing auxiliary maps')
     
