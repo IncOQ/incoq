@@ -106,6 +106,7 @@ def _maint_R_Q2_bbu_for_R_Q2_remove(_elem):
 
 def _maint_R_Q2_for__U_Q2_add(_elem):
     # Cost: O(_v14_s)
+    #       O(_v14_s)
     (_v14_s, _v14_t) = _elem
     if isset(_v14_s):
         for _v14_o in _v14_s:
@@ -122,6 +123,7 @@ def _maint_R_Q2_for__U_Q2_add(_elem):
 
 def _maint_R_Q2_for__U_Q2_remove(_elem):
     # Cost: O(_v15_s)
+    #       O(_v15_s)
     (_v15_s, _v15_t) = _elem
     if isset(_v15_s):
         for _v15_o in _v15_s:
@@ -138,6 +140,7 @@ def _maint_R_Q2_for__U_Q2_remove(_elem):
 
 def _maint_R_Q2_for__M_add(_elem):
     # Cost: O((_U_Q2_bu + _U_Q2_ub))
+    #       O(?)
     (_v16_s, _v16_o) = _elem
     if hasfield(_v16_o, 'f'):
         _v16_o_f = _v16_o.f
@@ -166,6 +169,7 @@ def _maint_R_Q2_for__M_add(_elem):
 
 def _maint_R_Q2_for__M_remove(_elem):
     # Cost: O((_U_Q2_bu + _U_Q2_ub))
+    #       O(?)
     (_v17_s, _v17_o) = _elem
     if hasfield(_v17_o, 'f'):
         _v17_o_f = _v17_o.f
@@ -194,6 +198,7 @@ def _maint_R_Q2_for__M_remove(_elem):
 
 def _maint_R_Q2_for__F_f_add(_elem):
     # Cost: O((_M_ub * _U_Q2_bu))
+    #       O((?^2))
     (_v18_o, _v18_o_f) = _elem
     for _v18_s in (_M_ub[_v18_o] if (_v18_o in _M_ub) else ()):
         for _v18_t in (_U_Q2_bu[_v18_s] if (_v18_s in _U_Q2_bu) else ()):
@@ -208,6 +213,7 @@ def _maint_R_Q2_for__F_f_add(_elem):
 
 def _maint_R_Q2_for__F_f_remove(_elem):
     # Cost: O((_M_ub * _U_Q2_bu))
+    #       O((?^2))
     (_v19_o, _v19_o_f) = _elem
     for _v19_s in (_M_ub[_v19_o] if (_v19_o in _M_ub) else ()):
         for _v19_t in (_U_Q2_bu[_v19_s] if (_v19_s in _U_Q2_bu) else ()):
@@ -222,6 +228,7 @@ def _maint_R_Q2_for__F_f_remove(_elem):
 
 def _maint_R_Q1_for__U_Q1_add(_elem):
     # Cost: O(_v8_z)
+    #       O(_v8_z)
     (_v8_z,) = _elem
     if isset(_v8_z):
         for _v8_o in _v8_z:
@@ -236,6 +243,7 @@ def _maint_R_Q1_for__U_Q1_add(_elem):
 
 def _maint_R_Q1_for__U_Q1_remove(_elem):
     # Cost: O(_v9_z)
+    #       O(_v9_z)
     (_v9_z,) = _elem
     if isset(_v9_z):
         for _v9_o in _v9_z:
@@ -250,6 +258,7 @@ def _maint_R_Q1_for__U_Q1_remove(_elem):
 
 def _maint_R_Q1_for__M_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v10_z, _v10_o) = _elem
     if ((_v10_z,) in _U_Q1):
         if hasfield(_v10_o, 'f'):
@@ -263,6 +272,7 @@ def _maint_R_Q1_for__M_add(_elem):
 
 def _maint_R_Q1_for__M_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v11_z, _v11_o) = _elem
     if ((_v11_z,) in _U_Q1):
         if hasfield(_v11_o, 'f'):
@@ -276,6 +286,7 @@ def _maint_R_Q1_for__M_remove(_elem):
 
 def _maint_R_Q1_for__F_f_add(_elem):
     # Cost: O(_M_ub)
+    #       O(?)
     (_v12_o, _v12_o_f) = _elem
     for _v12_z in (_M_ub[_v12_o] if (_v12_o in _M_ub) else ()):
         if ((_v12_z,) in _U_Q1):
@@ -288,6 +299,7 @@ def _maint_R_Q1_for__F_f_add(_elem):
 
 def _maint_R_Q1_for__F_f_remove(_elem):
     # Cost: O(_M_ub)
+    #       O(?)
     (_v13_o, _v13_o_f) = _elem
     for _v13_z in (_M_ub[_v13_o] if (_v13_o in _M_ub) else ()):
         if ((_v13_z,) in _U_Q1):
@@ -299,11 +311,15 @@ def _maint_R_Q1_for__F_f_remove(_elem):
                 R_Q1.deccount(_v13_result)
 
 def _demand_Q1(_elem):
+    # Cost: O(_v8_z)
+    #       O(_v8_z)
     if (_elem not in _U_Q1):
         _U_Q1.add(_elem)
         _maint_R_Q1_for__U_Q1_add(_elem)
 
 def _demand_Q2(_elem):
+    # Cost: O(_v14_s)
+    #       O(_v14_s)
     if (_elem not in _U_Q2):
         _U_Q2.add(_elem)
         _maint__U_Q2_bu_for__U_Q2_add(_elem)
@@ -311,6 +327,8 @@ def _demand_Q2(_elem):
         _maint_R_Q2_for__U_Q2_add(_elem)
 
 def main():
+    # Cost: O(((_M_ub * _U_Q2_bu) + _v8_z + _v14_s + (? * _U_Q2_bu) + (? * _U_Q2_ub)))
+    #       O(((?^2) + _v8_z + _v14_s))
     s = Set()
     t = Set()
     for i in [1, 2, 3, 4]:

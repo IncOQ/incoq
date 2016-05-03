@@ -12,6 +12,7 @@ def _maint_R_Q_unwrapped_for_R_Q_remove(_elem):
 
 def _maint_R_Q_for_S_wrapped_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v3_x,) = _elem
     if (_v3_x > 2):
         _v3_result = (_v3_x,)
@@ -19,6 +20,7 @@ def _maint_R_Q_for_S_wrapped_add(_elem):
 
 def _maint_R_Q_for_S_wrapped_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v4_x,) = _elem
     if (_v4_x > 2):
         _v4_result = (_v4_x,)
@@ -26,15 +28,19 @@ def _maint_R_Q_for_S_wrapped_remove(_elem):
 
 def _maint_S_wrapped_for_S_add(_elem):
     # Cost: O(1)
+    #       O(1)
     _v1_v = (_elem,)
     _maint_R_Q_for_S_wrapped_add(_v1_v)
 
 def _maint_S_wrapped_for_S_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     _v2_v = (_elem,)
     _maint_R_Q_for_S_wrapped_remove(_v2_v)
 
 def main():
+    # Cost: O(?)
+    #       O(?)
     for a in [1, 2, 3, 4]:
         _maint_S_wrapped_for_S_add(a)
     print(sorted(R_Q_unwrapped))

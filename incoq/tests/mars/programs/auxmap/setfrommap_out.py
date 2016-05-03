@@ -36,6 +36,8 @@ def _maint_SM_for_M_delete(_key):
     SM.remove(_v2_elem)
 
 def main():
+    # Cost: O(?)
+    #       O(?)
     for (k1, k2, v1) in [(1, 2, 'a'), (3, 4, 'b')]:
         k = (k1, k2)
         v = v1

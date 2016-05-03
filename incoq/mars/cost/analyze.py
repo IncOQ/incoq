@@ -192,7 +192,9 @@ class TrivialCostAnalyzer(BaseCostAnalyzer):
     
     # Note that non-nullary functions cannot be constant-time since
     # we need to spend time to evaluate their arguments.
-    const_funcs = []
+    const_funcs = [
+        'Set', 'Obj',
+    ]
     sum_funcs = []
     unknown_funcs = []
     

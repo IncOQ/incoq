@@ -19,6 +19,8 @@ def _maint_S_bu_for_S_remove(_elem):
         del S_bu[_v6_key]
 
 def main():
+    # Cost: O(?)
+    #       O(?)
     for (x, y) in [(1, 2), (1, 3), (2, 3), (2, 4)]:
         _v1 = (x, y)
         _maint_S_bu_for_S_add(_v1)

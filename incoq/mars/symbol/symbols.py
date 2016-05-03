@@ -29,7 +29,7 @@ from .common import (parse_bool, parse_list, parse_int_list,
                      ParseableEnumMixin)
 
 
-def eval_typestr(symtab, s):
+def eval_typestr(s, symtab):
     return T.eval_typestr(s, symtab.config.typedefs)
 
 
@@ -93,7 +93,7 @@ class SymbolAttribute:
     def defined(self, inst):
         return hasattr(inst, '_' + self.name)
     
-    def parser(self, value):
+    def parser(self, value, symtab=None):
         # Default parser, identity function.
         return value
 
@@ -117,7 +117,7 @@ class EnumSymbolAttribute(SymbolAttribute):
                                  .format(self.name, vals))
         super().__set__(inst, value)
     
-    def parser(self, value):
+    def parser(self, value, symtab=None):
         """Default parser, construct constant from string representation."""
         assert isinstance(value, str)
         lv = value.lower()
@@ -185,7 +185,7 @@ class Symbol(metaclass=MetaSymbol):
             if desc.parser is None:
                 raise ValueError('Attribute "{}" cannot be parsed'
                                  .format(attr))
-            value = desc.parser(symtab, value)
+            value = desc.parser(value, symtab)
             setattr(self, attr, value)
     
     def clone_attrs(self):

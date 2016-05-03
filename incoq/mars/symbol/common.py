@@ -37,7 +37,7 @@ class ParseableEnumMixin:
     """
     
     @classmethod
-    def parse(cls, s):
+    def parse(cls, s, symtab=None):
         d = {k.lower(): v for k, v in cls.__members__.items()}
         if s in d:
             return d[s]

@@ -131,6 +131,7 @@ def _maint_R_Q_bbu_for_R_Q_remove(_elem):
 
 def _maint_R_Q_d_F_f_2_for_R_Q_T_y_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v47_y,) = _elem
     if hasfield(_v47_y, 'f'):
         _v47_y_f = _v47_y.f
@@ -139,6 +140,7 @@ def _maint_R_Q_d_F_f_2_for_R_Q_T_y_add(_elem):
 
 def _maint_R_Q_d_F_f_2_for_R_Q_T_y_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v48_y,) = _elem
     if hasfield(_v48_y, 'f'):
         _v48_y_f = _v48_y.f
@@ -147,6 +149,7 @@ def _maint_R_Q_d_F_f_2_for_R_Q_T_y_remove(_elem):
 
 def _maint_R_Q_d_F_f_2_for__F_f_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v49_y, _v49_y_f) = _elem
     if ((_v49_y,) in R_Q_T_y):
         _v49_result = (_v49_y, _v49_y_f)
@@ -154,6 +157,7 @@ def _maint_R_Q_d_F_f_2_for__F_f_add(_elem):
 
 def _maint_R_Q_d_F_f_2_for__F_f_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v50_y, _v50_y_f) = _elem
     if ((_v50_y,) in R_Q_T_y):
         _v50_result = (_v50_y, _v50_y_f)
@@ -161,6 +165,7 @@ def _maint_R_Q_d_F_f_2_for__F_f_remove(_elem):
 
 def _maint_R_Q_d_F_f_1_for_R_Q_T_x_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v43_x,) = _elem
     if hasfield(_v43_x, 'f'):
         _v43_x_f = _v43_x.f
@@ -169,6 +174,7 @@ def _maint_R_Q_d_F_f_1_for_R_Q_T_x_add(_elem):
 
 def _maint_R_Q_d_F_f_1_for_R_Q_T_x_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v44_x,) = _elem
     if hasfield(_v44_x, 'f'):
         _v44_x_f = _v44_x.f
@@ -177,6 +183,7 @@ def _maint_R_Q_d_F_f_1_for_R_Q_T_x_remove(_elem):
 
 def _maint_R_Q_d_F_f_1_for__F_f_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v45_x, _v45_x_f) = _elem
     if ((_v45_x,) in R_Q_T_x):
         _v45_result = (_v45_x, _v45_x_f)
@@ -184,6 +191,7 @@ def _maint_R_Q_d_F_f_1_for__F_f_add(_elem):
 
 def _maint_R_Q_d_F_f_1_for__F_f_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v46_x, _v46_x_f) = _elem
     if ((_v46_x,) in R_Q_T_x):
         _v46_result = (_v46_x, _v46_x_f)
@@ -191,6 +199,7 @@ def _maint_R_Q_d_F_f_1_for__F_f_remove(_elem):
 
 def _maint_R_Q_T_y_for_R_Q_d_TUP_2_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v41_t_x_y, _v41_x, _v41_y) = _elem
     _v41_result = (_v41_y,)
     if (_v41_result not in R_Q_T_y):
@@ -201,6 +210,7 @@ def _maint_R_Q_T_y_for_R_Q_d_TUP_2_add(_elem):
 
 def _maint_R_Q_T_y_for_R_Q_d_TUP_2_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v42_t_x_y, _v42_x, _v42_y) = _elem
     _v42_result = (_v42_y,)
     if (R_Q_T_y.getcount(_v42_result) == 1):
@@ -211,6 +221,7 @@ def _maint_R_Q_T_y_for_R_Q_d_TUP_2_remove(_elem):
 
 def _maint_R_Q_T_x_for_R_Q_d_TUP_2_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v39_t_x_y, _v39_x, _v39_y) = _elem
     _v39_result = (_v39_x,)
     if (_v39_result not in R_Q_T_x):
@@ -221,6 +232,7 @@ def _maint_R_Q_T_x_for_R_Q_d_TUP_2_add(_elem):
 
 def _maint_R_Q_T_x_for_R_Q_d_TUP_2_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v40_t_x_y, _v40_x, _v40_y) = _elem
     _v40_result = (_v40_x,)
     if (R_Q_T_x.getcount(_v40_result) == 1):
@@ -231,6 +243,7 @@ def _maint_R_Q_T_x_for_R_Q_d_TUP_2_remove(_elem):
 
 def _maint_R_Q_d_TUP_2_for_R_Q_T_t_x_y_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v35_t_x_y,) = _elem
     if hasarity(_v35_t_x_y, 2):
         (_v35_x, _v35_y) = _v35_t_x_y
@@ -243,6 +256,7 @@ def _maint_R_Q_d_TUP_2_for_R_Q_T_t_x_y_add(_elem):
 
 def _maint_R_Q_d_TUP_2_for_R_Q_T_t_x_y_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v36_t_x_y,) = _elem
     if hasarity(_v36_t_x_y, 2):
         (_v36_x, _v36_y) = _v36_t_x_y
@@ -255,6 +269,7 @@ def _maint_R_Q_d_TUP_2_for_R_Q_T_t_x_y_remove(_elem):
 
 def _maint_R_Q_d_TUP_2_for__TUP_2_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v37_t_x_y, _v37_x, _v37_y) = _elem
     if ((_v37_t_x_y,) in R_Q_T_t_x_y):
         _v37_result = (_v37_t_x_y, _v37_x, _v37_y)
@@ -266,6 +281,7 @@ def _maint_R_Q_d_TUP_2_for__TUP_2_add(_elem):
 
 def _maint_R_Q_d_TUP_2_for__TUP_2_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v38_t_x_y, _v38_x, _v38_y) = _elem
     if ((_v38_t_x_y,) in R_Q_T_t_x_y):
         _v38_result = (_v38_t_x_y, _v38_x, _v38_y)
@@ -277,6 +293,7 @@ def _maint_R_Q_d_TUP_2_for__TUP_2_remove(_elem):
 
 def _maint_R_Q_T_t_x_y_for_R_Q_d_M_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v33_m_k, _v33_t_x_y) = _elem
     _v33_result = (_v33_t_x_y,)
     if (_v33_result not in R_Q_T_t_x_y):
@@ -287,6 +304,7 @@ def _maint_R_Q_T_t_x_y_for_R_Q_d_M_add(_elem):
 
 def _maint_R_Q_T_t_x_y_for_R_Q_d_M_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v34_m_k, _v34_t_x_y) = _elem
     _v34_result = (_v34_t_x_y,)
     if (R_Q_T_t_x_y.getcount(_v34_result) == 1):
@@ -297,6 +315,7 @@ def _maint_R_Q_T_t_x_y_for_R_Q_d_M_remove(_elem):
 
 def _maint_R_Q_d_M_for_R_Q_T_m_k_add(_elem):
     # Cost: O(_v29_m_k)
+    #       O(_v29_m_k)
     (_v29_m_k,) = _elem
     if isset(_v29_m_k):
         for _v29_t_x_y in _v29_m_k:
@@ -307,6 +326,7 @@ def _maint_R_Q_d_M_for_R_Q_T_m_k_add(_elem):
 
 def _maint_R_Q_d_M_for_R_Q_T_m_k_remove(_elem):
     # Cost: O(_v30_m_k)
+    #       O(_v30_m_k)
     (_v30_m_k,) = _elem
     if isset(_v30_m_k):
         for _v30_t_x_y in _v30_m_k:
@@ -317,6 +337,7 @@ def _maint_R_Q_d_M_for_R_Q_T_m_k_remove(_elem):
 
 def _maint_R_Q_d_M_for__M_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v31_m_k, _v31_t_x_y) = _elem
     if ((_v31_m_k,) in R_Q_T_m_k):
         _v31_result = (_v31_m_k, _v31_t_x_y)
@@ -326,6 +347,7 @@ def _maint_R_Q_d_M_for__M_add(_elem):
 
 def _maint_R_Q_d_M_for__M_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_v32_m_k, _v32_t_x_y) = _elem
     if ((_v32_m_k,) in R_Q_T_m_k):
         _v32_result = (_v32_m_k, _v32_t_x_y)
@@ -335,6 +357,7 @@ def _maint_R_Q_d_M_for__M_remove(_elem):
 
 def _maint_R_Q_T_m_k_for_R_Q_d_MAP_add(_elem):
     # Cost: O(_v29_m_k)
+    #       O(_v29_m_k)
     (_v27_m, _v27_k, _v27_m_k) = _elem
     _v27_result = (_v27_m_k,)
     if (_v27_result not in R_Q_T_m_k):
@@ -345,6 +368,7 @@ def _maint_R_Q_T_m_k_for_R_Q_d_MAP_add(_elem):
 
 def _maint_R_Q_T_m_k_for_R_Q_d_MAP_remove(_elem):
     # Cost: O(_v30_m_k)
+    #       O(_v30_m_k)
     (_v28_m, _v28_k, _v28_m_k) = _elem
     _v28_result = (_v28_m_k,)
     if (R_Q_T_m_k.getcount(_v28_result) == 1):
@@ -355,6 +379,7 @@ def _maint_R_Q_T_m_k_for_R_Q_d_MAP_remove(_elem):
 
 def _maint_R_Q_d_MAP_for_R_Q_T_m_add(_elem):
     # Cost: O((? * _v29_m_k))
+    #       O((? * _v29_m_k))
     (_v23_m,) = _elem
     if ismap(_v23_m):
         for (_v23_k, _v23_m_k) in _v23_m.items():
@@ -365,6 +390,7 @@ def _maint_R_Q_d_MAP_for_R_Q_T_m_add(_elem):
 
 def _maint_R_Q_d_MAP_for_R_Q_T_m_remove(_elem):
     # Cost: O((? * _v30_m_k))
+    #       O((? * _v30_m_k))
     (_v24_m,) = _elem
     if ismap(_v24_m):
         for (_v24_k, _v24_m_k) in _v24_m.items():
@@ -375,6 +401,7 @@ def _maint_R_Q_d_MAP_for_R_Q_T_m_remove(_elem):
 
 def _maint_R_Q_d_MAP_for__MAP_add(_elem):
     # Cost: O(_v29_m_k)
+    #       O(_v29_m_k)
     (_v25_m, _v25_k, _v25_m_k) = _elem
     if ((_v25_m,) in R_Q_T_m):
         _v25_result = (_v25_m, _v25_k, _v25_m_k)
@@ -384,6 +411,7 @@ def _maint_R_Q_d_MAP_for__MAP_add(_elem):
 
 def _maint_R_Q_d_MAP_for__MAP_remove(_elem):
     # Cost: O(_v30_m_k)
+    #       O(_v30_m_k)
     (_v26_m, _v26_k, _v26_m_k) = _elem
     if ((_v26_m,) in R_Q_T_m):
         _v26_result = (_v26_m, _v26_k, _v26_m_k)
@@ -393,6 +421,7 @@ def _maint_R_Q_d_MAP_for__MAP_remove(_elem):
 
 def _maint_R_Q_T_m_for__U_Q_add(_elem):
     # Cost: O((? * _v29_m_k))
+    #       O((? * _v29_m_k))
     (_v21_m,) = _elem
     _v21_result = (_v21_m,)
     R_Q_T_m.add(_v21_result)
@@ -400,6 +429,7 @@ def _maint_R_Q_T_m_for__U_Q_add(_elem):
 
 def _maint_R_Q_T_m_for__U_Q_remove(_elem):
     # Cost: O((? * _v30_m_k))
+    #       O((? * _v30_m_k))
     (_v22_m,) = _elem
     _v22_result = (_v22_m,)
     _maint_R_Q_d_MAP_for_R_Q_T_m_remove(_v22_result)
@@ -407,6 +437,7 @@ def _maint_R_Q_T_m_for__U_Q_remove(_elem):
 
 def _maint_R_Q_for__U_Q_add(_elem):
     # Cost: O((? * _v11_m_k))
+    #       O((? * _v11_m_k))
     (_v11_m,) = _elem
     if ((_v11_m,) in _U_Q):
         if ismap(_v11_m):
@@ -428,6 +459,7 @@ def _maint_R_Q_for__U_Q_add(_elem):
 
 def _maint_R_Q_for__U_Q_remove(_elem):
     # Cost: O((? * _v12_m_k))
+    #       O((? * _v12_m_k))
     (_v12_m,) = _elem
     if ((_v12_m,) in _U_Q):
         if ismap(_v12_m):
@@ -449,6 +481,7 @@ def _maint_R_Q_for__U_Q_remove(_elem):
 
 def _maint_R_Q_for__MAP_add(_elem):
     # Cost: O(_v13_m_k)
+    #       O(_v13_m_k)
     (_v13_m, _v13_k, _v13_m_k) = _elem
     if ((_v13_m, _v13_k, _v13_m_k) in R_Q_d_MAP):
         if ((_v13_m,) in _U_Q):
@@ -469,6 +502,7 @@ def _maint_R_Q_for__MAP_add(_elem):
 
 def _maint_R_Q_for__MAP_remove(_elem):
     # Cost: O(_v14_m_k)
+    #       O(_v14_m_k)
     (_v14_m, _v14_k, _v14_m_k) = _elem
     if ((_v14_m, _v14_k, _v14_m_k) in R_Q_d_MAP):
         if ((_v14_m,) in _U_Q):
@@ -489,6 +523,7 @@ def _maint_R_Q_for__MAP_remove(_elem):
 
 def _maint_R_Q_for__M_add(_elem):
     # Cost: O(R_Q_d_MAP_uub)
+    #       O(R_Q_d_MAP_uub)
     (_v15_m_k, _v15_t_x_y) = _elem
     if ((_v15_m_k, _v15_t_x_y) in R_Q_d_M):
         if hasarity(_v15_t_x_y, 2):
@@ -508,6 +543,7 @@ def _maint_R_Q_for__M_add(_elem):
 
 def _maint_R_Q_for__M_remove(_elem):
     # Cost: O(R_Q_d_MAP_uub)
+    #       O(R_Q_d_MAP_uub)
     (_v16_m_k, _v16_t_x_y) = _elem
     if ((_v16_m_k, _v16_t_x_y) in R_Q_d_M):
         if hasarity(_v16_t_x_y, 2):
@@ -527,6 +563,7 @@ def _maint_R_Q_for__M_remove(_elem):
 
 def _maint_R_Q_for__TUP_2_add(_elem):
     # Cost: O((R_Q_d_M_ub * R_Q_d_MAP_uub))
+    #       O((R_Q_d_M_ub * R_Q_d_MAP_uub))
     (_v17_t_x_y, _v17_x, _v17_y) = _elem
     if ((_v17_t_x_y, _v17_x, _v17_y) in R_Q_d_TUP_2):
         if hasfield(_v17_x, 'f'):
@@ -545,6 +582,7 @@ def _maint_R_Q_for__TUP_2_add(_elem):
 
 def _maint_R_Q_for__TUP_2_remove(_elem):
     # Cost: O((R_Q_d_M_ub * R_Q_d_MAP_uub))
+    #       O((R_Q_d_M_ub * R_Q_d_MAP_uub))
     (_v18_t_x_y, _v18_x, _v18_y) = _elem
     if ((_v18_t_x_y, _v18_x, _v18_y) in R_Q_d_TUP_2):
         if hasfield(_v18_x, 'f'):
@@ -562,7 +600,8 @@ def _maint_R_Q_for__TUP_2_remove(_elem):
                                 R_Q.deccount(_v18_result)
 
 def _maint_R_Q_for__F_f_add(_elem):
-    # Cost: O(((R_Q_d_TUP_2_ubu * R_Q_d_M_ub * R_Q_d_MAP_uub) + (R_Q_d_TUP_2_uub * R_Q_d_M_ub * R_Q_d_MAP_uub)))
+    # Cost: O(((R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_ubu) + (R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_uub)))
+    #       O(((R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_ubu) + (R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_uub)))
     (_v19_x, _v19_x_f) = _elem
     if ((_v19_x, _v19_x_f) in R_Q_d_F_f_1):
         for (_v19_t_x_y, _v19_y) in (R_Q_d_TUP_2_ubu[_v19_x] if (_v19_x in R_Q_d_TUP_2_ubu) else Set()):
@@ -594,7 +633,8 @@ def _maint_R_Q_for__F_f_add(_elem):
                                 R_Q.inccount(_v19_result)
 
 def _maint_R_Q_for__F_f_remove(_elem):
-    # Cost: O(((R_Q_d_TUP_2_ubu * R_Q_d_M_ub * R_Q_d_MAP_uub) + (R_Q_d_TUP_2_uub * R_Q_d_M_ub * R_Q_d_MAP_uub)))
+    # Cost: O(((R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_ubu) + (R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_uub)))
+    #       O(((R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_ubu) + (R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_uub)))
     (_v20_x, _v20_x_f) = _elem
     if ((_v20_x, _v20_x_f) in R_Q_d_F_f_1):
         for (_v20_t_x_y, _v20_y) in (R_Q_d_TUP_2_ubu[_v20_x] if (_v20_x in R_Q_d_TUP_2_ubu) else Set()):
@@ -626,6 +666,8 @@ def _maint_R_Q_for__F_f_remove(_elem):
                                 R_Q.deccount(_v20_result)
 
 def _demand_Q(_elem):
+    # Cost: O(((? * _v29_m_k) + (? * _v11_m_k)))
+    #       O(((? * _v29_m_k) + (? * _v11_m_k)))
     if (_elem not in _U_Q):
         _U_Q.add(_elem)
         _maint_R_Q_T_m_for__U_Q_add(_elem)
@@ -633,6 +675,8 @@ def _demand_Q(_elem):
 
 from itertools import product
 def main():
+    # Cost: O(((? * R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_ubu) + (? * R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_uub) + (? * _v29_m_k) + (? * _v13_m_k) + (? * _v11_m_k) + _v14_m_k + _v30_m_k))
+    #       O(((? * R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_ubu) + (? * R_Q_d_M_ub * R_Q_d_MAP_uub * R_Q_d_TUP_2_uub) + (? * _v29_m_k) + (? * _v13_m_k) + (? * _v11_m_k) + _v14_m_k + _v30_m_k))
     a = Map()
     b = Map()
     for (i, j) in product(range(4), range(4)):

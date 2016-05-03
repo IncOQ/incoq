@@ -18,7 +18,7 @@ from .common import parse_bool
 from .symbols import Constants
 
 
-def parse_typedef(s):
+def parse_typedef(s, symtab=None):
     typedefs = {}
     lines = [line for line in s.split(';')
                   if line and not line.isspace()]

@@ -19,6 +19,7 @@ A_Q5 = Map()
 A_Q6 = Map()
 def _maint_A_Q6_for_S_add(_elem):
     # Cost: O(?)
+    #       O(?)
     (_elem_v1,) = _elem
     _v13_key = ()
     _v13_value = (_elem_v1,)
@@ -32,6 +33,7 @@ def _maint_A_Q6_for_S_add(_elem):
 
 def _maint_A_Q6_for_S_remove(_elem):
     # Cost: O(?)
+    #       O(?)
     (_elem_v1,) = _elem
     _v14_key = ()
     _v14_value = (_elem_v1,)
@@ -45,6 +47,7 @@ def _maint_A_Q6_for_S_remove(_elem):
 
 def _maint_A_Q5_for_S_add(_elem):
     # Cost: O(?)
+    #       O(?)
     (_elem_v1,) = _elem
     _v11_key = ()
     _v11_value = (_elem_v1,)
@@ -58,6 +61,7 @@ def _maint_A_Q5_for_S_add(_elem):
 
 def _maint_A_Q5_for_S_remove(_elem):
     # Cost: O(?)
+    #       O(?)
     (_elem_v1,) = _elem
     _v12_key = ()
     _v12_value = (_elem_v1,)
@@ -71,6 +75,7 @@ def _maint_A_Q5_for_S_remove(_elem):
 
 def _maint_A_Q4_for_S_add(_elem):
     # Cost: O(?)
+    #       O(?)
     (_elem_v1,) = _elem
     _v9_key = ()
     _v9_value = _elem_v1
@@ -84,6 +89,7 @@ def _maint_A_Q4_for_S_add(_elem):
 
 def _maint_A_Q4_for_S_remove(_elem):
     # Cost: O(?)
+    #       O(?)
     (_elem_v1,) = _elem
     _v10_key = ()
     _v10_value = _elem_v1
@@ -97,6 +103,7 @@ def _maint_A_Q4_for_S_remove(_elem):
 
 def _maint_A_Q3_for_S_add(_elem):
     # Cost: O(?)
+    #       O(?)
     (_elem_v1,) = _elem
     _v7_key = ()
     _v7_value = _elem_v1
@@ -110,6 +117,7 @@ def _maint_A_Q3_for_S_add(_elem):
 
 def _maint_A_Q3_for_S_remove(_elem):
     # Cost: O(?)
+    #       O(?)
     (_elem_v1,) = _elem
     _v8_key = ()
     _v8_value = _elem_v1
@@ -123,6 +131,7 @@ def _maint_A_Q3_for_S_remove(_elem):
 
 def _maint_A_Q2_for_S_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_elem_v1,) = _elem
     _v5_key = ()
     _v5_value = _elem_v1
@@ -134,6 +143,7 @@ def _maint_A_Q2_for_S_add(_elem):
 
 def _maint_A_Q2_for_S_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_elem_v1,) = _elem
     _v6_key = ()
     _v6_value = _elem_v1
@@ -145,6 +155,7 @@ def _maint_A_Q2_for_S_remove(_elem):
 
 def _maint_A_Q1_for_S_add(_elem):
     # Cost: O(1)
+    #       O(1)
     (_elem_v1,) = _elem
     _v3_key = ()
     _v3_value = _elem_v1
@@ -156,6 +167,7 @@ def _maint_A_Q1_for_S_add(_elem):
 
 def _maint_A_Q1_for_S_remove(_elem):
     # Cost: O(1)
+    #       O(1)
     (_elem_v1,) = _elem
     _v4_key = ()
     _v4_value = _elem_v1
@@ -166,6 +178,8 @@ def _maint_A_Q1_for_S_remove(_elem):
         A_Q1[_v4_key] = _v4_state
 
 def main():
+    # Cost: O(?)
+    #       O(?)
     for x in [1, 2, 3, 4]:
         _v1 = (x,)
         _maint_A_Q6_for_S_add(_v1)

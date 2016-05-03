@@ -87,6 +87,7 @@ def _maint_R_Q3_bu_for_R_Q3_remove(_elem):
 
 def _maint_R_Q3_for_S_add(_elem):
     # Cost: O((S_bu + S_ub))
+    #       O(Number)
     (_v13_x, _v13_y) = _elem
     if ((_v13_x,) in A_Q2):
         _v13__v10 = A_Q2[(_v13_x,)]
@@ -113,6 +114,7 @@ def _maint_R_Q3_for_S_add(_elem):
 
 def _maint_R_Q3_for_S_remove(_elem):
     # Cost: O((S_bu + S_ub))
+    #       O(Number)
     (_v14_x, _v14_y) = _elem
     if ((_v14_x,) in A_Q2):
         _v14__v10 = A_Q2[(_v14_x,)]
@@ -138,7 +140,8 @@ def _maint_R_Q3_for_S_remove(_elem):
                     R_Q3.deccount(_v14_result)
 
 def _maint_R_Q3_for_SA_Q2_add(_elem):
-    # Cost: O((S_bu * S_bu))
+    # Cost: O((S_bu^2))
+    #       O((Number^2))
     (_v15_x, _v15__v10) = _elem
     for _v15_y in (S_bu[_v15_x] if (_v15_x in S_bu) else ()):
         if (_v15_y <= index(_v15__v10, 1)):
@@ -151,7 +154,8 @@ def _maint_R_Q3_for_SA_Q2_add(_elem):
                     R_Q3.inccount(_v15_result)
 
 def _maint_R_Q3_for_SA_Q2_remove(_elem):
-    # Cost: O((S_bu * S_bu))
+    # Cost: O((S_bu^2))
+    #       O((Number^2))
     (_v16_x, _v16__v10) = _elem
     for _v16_y in (S_bu[_v16_x] if (_v16_x in S_bu) else ()):
         if (_v16_y <= index(_v16__v10, 1)):
@@ -164,20 +168,23 @@ def _maint_R_Q3_for_SA_Q2_remove(_elem):
                     R_Q3.deccount(_v16_result)
 
 def _maint_SA_Q2_for_A_Q2_assign(_key, _val):
-    # Cost: O((S_bu * S_bu))
+    # Cost: O((S_bu^2))
+    #       O((Number^2))
     (_key_v1,) = _key
     _v11_elem = (_key_v1, _val)
     _maint_R_Q3_for_SA_Q2_add(_v11_elem)
 
 def _maint_SA_Q2_for_A_Q2_delete(_key):
-    # Cost: O((S_bu * S_bu))
+    # Cost: O((S_bu^2))
+    #       O((Number^2))
     _val = A_Q2[_key]
     (_key_v1,) = _key
     _v12_elem = (_key_v1, _val)
     _maint_R_Q3_for_SA_Q2_remove(_v12_elem)
 
 def _maint_A_Q2_for_R_Q1_add(_elem):
-    # Cost: O((? + (S_bu * S_bu)))
+    # Cost: O((? + (S_bu^2)))
+    #       O((? + (Number^2)))
     (_elem_v1, _elem_v2) = _elem
     _v7_key = (_elem_v1,)
     _v7_value = _elem_v2
@@ -192,7 +199,8 @@ def _maint_A_Q2_for_R_Q1_add(_elem):
         _maint_SA_Q2_for_A_Q2_assign(_v7_key, _v7_state)
 
 def _maint_A_Q2_for_R_Q1_remove(_elem):
-    # Cost: O((? + (S_bu * S_bu)))
+    # Cost: O((? + (S_bu^2)))
+    #       O((? + (Number^2)))
     (_elem_v1, _elem_v2) = _elem
     _v8_key = (_elem_v1,)
     _v8_value = _elem_v2
@@ -207,7 +215,8 @@ def _maint_A_Q2_for_R_Q1_remove(_elem):
         _maint_SA_Q2_for_A_Q2_assign(_v8_key, _v8_state)
 
 def _maint_A_Q2_for_R__QU_Q2_add(_key):
-    # Cost: O(((R_Q1_bu * ?) + (S_bu * S_bu)))
+    # Cost: O(((? * R_Q1_bu) + (S_bu^2)))
+    #       O(((? * Number) + (Number^2)))
     _v9_state = (Tree(), None)
     (_key_v1,) = _key
     for (_v9_value,) in (R_Q1_bu[_key_v1] if (_key_v1 in R_Q1_bu) else Set()):
@@ -218,12 +227,14 @@ def _maint_A_Q2_for_R__QU_Q2_add(_key):
     _maint_SA_Q2_for_A_Q2_assign(_key, _v9_state)
 
 def _maint_A_Q2_for_R__QU_Q2_remove(_key):
-    # Cost: O((S_bu * S_bu))
+    # Cost: O((S_bu^2))
+    #       O((Number^2))
     _maint_SA_Q2_for_A_Q2_delete(_key)
     del A_Q2[_key]
 
 def _maint_R__QU_Q2_for_S_add(_elem):
-    # Cost: O(((S_bu * R_Q1_bu * ?) + (S_bu * S_bu * S_bu) + (S_ub * R_Q1_bu * ?) + (S_ub * S_bu * S_bu)))
+    # Cost: O(((? * R_Q1_bu * S_bu) + (S_bu^3) + (? * R_Q1_bu * S_ub) + (S_bu^2 * S_ub)))
+    #       O(((? * Number^2) + (Number^3)))
     (_v5__v2x, _v5__v2y) = _elem
     for _v5__v2z in (S_bu[_v5__v2y] if (_v5__v2y in S_bu) else ()):
         if ((_v5__v2y, _v5__v2z) != _elem):
@@ -243,7 +254,8 @@ def _maint_R__QU_Q2_for_S_add(_elem):
             R__QU_Q2.inccount(_v5_result)
 
 def _maint_R__QU_Q2_for_S_remove(_elem):
-    # Cost: O(((S_bu * S_bu * S_bu) + (S_ub * S_bu * S_bu)))
+    # Cost: O(((S_bu^3) + (S_bu^2 * S_ub)))
+    #       O((Number^3))
     (_v6__v2x, _v6__v2y) = _elem
     for _v6__v2z in (S_bu[_v6__v2y] if (_v6__v2y in S_bu) else ()):
         if ((_v6__v2y, _v6__v2z) != _elem):
@@ -263,20 +275,24 @@ def _maint_R__QU_Q2_for_S_remove(_elem):
             R__QU_Q2.deccount(_v6_result)
 
 def _maint_R_Q1_for_S_add(_elem):
-    # Cost: O((? + (S_bu * S_bu)))
+    # Cost: O((? + (S_bu^2)))
+    #       O((? + (Number^2)))
     (_v3_x, _v3_w) = _elem
     _v3_result = (_v3_x, _v3_w)
     _maint_R_Q1_bu_for_R_Q1_add(_v3_result)
     _maint_A_Q2_for_R_Q1_add(_v3_result)
 
 def _maint_R_Q1_for_S_remove(_elem):
-    # Cost: O((? + (S_bu * S_bu)))
+    # Cost: O((? + (S_bu^2)))
+    #       O((? + (Number^2)))
     (_v4_x, _v4_w) = _elem
     _v4_result = (_v4_x, _v4_w)
     _maint_A_Q2_for_R_Q1_remove(_v4_result)
     _maint_R_Q1_bu_for_R_Q1_remove(_v4_result)
 
 def main():
+    # Cost: O(((? * R_Q1_bu * S_bu) + (S_bu^3) + (? * R_Q1_bu * S_ub) + (S_bu^2 * S_ub)))
+    #       O(((? * Number^2) + (Number^3)))
     for (a, b) in [(1, 2), (2, 3), (2, 4), (1, 3), (3, 5)]:
         _v1 = (a, b)
         _maint_S_bu_for_S_add(_v1)
