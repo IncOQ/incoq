@@ -197,7 +197,7 @@ class CLPaxos(DistalgoWorkflow):
                     n_rounds = 1,
                     timeout =  3,
                 )
-                for x in range(1, 6 + 1, 1)
+                for x in range(1, 8 + 1, 1)
             ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
@@ -207,10 +207,10 @@ class CLPaxos(DistalgoWorkflow):
         show_wall = False
         
         ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of processes'
+        xlabel = 'Number of acceptors'
         
         xmin = 0.75
-        xmax = 6.25
+        xmax = 8.25
         ymin = -2
 
 
@@ -425,7 +425,7 @@ class LAMutexOrigRounds(LAMutexOrigWorkflow):
         xlabel = 'Number of rounds'
         xmin = 50
         xmax = 1050
-        ymin = -15
+        ymin = -5
 
 class LAMutexSpecProcs(LAMutexSpecWorkflow):
     
@@ -448,9 +448,9 @@ class LAMutexSpecProcs(LAMutexSpecWorkflow):
     class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'  
-        xmin = 1
-        xmax = 31
-        ymin = -1
+        xmin = 1.5
+        xmax = 31.5
+        ymin = -8
 
 class LAMutexSpecRounds(LAMutexSpecWorkflow):
     
@@ -472,9 +472,9 @@ class LAMutexSpecRounds(LAMutexSpecWorkflow):
     class ExpExtractor(LAMutexSpecWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of rounds'
-        xmin = 2
-        xmax = 31
-        ymin = -1
+        xmin = 1.5
+        xmax = 31.5
+        ymin = -2
 
 class LAMutexSpecLamProcs(LAMutexSpecLamWorkflow):
     
@@ -497,9 +497,9 @@ class LAMutexSpecLamProcs(LAMutexSpecLamWorkflow):
     class ExpExtractor(LAMutexSpecLamWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of processes'
-        xmin = 2
-        xmax = 31
-        ymin = -1
+        xmin = 1.5
+        xmax = 31.5
+        ymin = -10
 
 class LAMutexSpecLamRounds(LAMutexSpecLamWorkflow):
     
@@ -521,9 +521,9 @@ class LAMutexSpecLamRounds(LAMutexSpecLamWorkflow):
     class ExpExtractor(LAMutexSpecLamWorkflow.ExpExtractor):
         ylabel = 'Running time (in seconds)'
         xlabel = 'Number of rounds'
-        xmin = 2
-        xmax = 31
-        ymin = -0.25
+        xmin = 1.5
+        xmax = 31.5
+        ymin = -2
 
 
 class LAPaxosDriver(DistalgoDriver):
