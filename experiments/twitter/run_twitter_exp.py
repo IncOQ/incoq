@@ -761,7 +761,7 @@ class DemandTimeDem(DemandTime):
     class ExpExtractor(DemandTime.ExpExtractor):
         metric = 'demtime_cpu'
         ylabel = 'Demand time (in seconds)'
-#        y_ticklocs = [5, 10, 15, 20, 25, 30]
+        y_ticklocs = None
     
     imagename = 'demtime'
 
@@ -769,7 +769,7 @@ class DemandTimeTotal(DemandTime):
     
     class ExpExtractor(DemandTime.ExpExtractor):
         ylabel = 'Total time (in seconds)'
-#        y_ticklocs = [5, 10, 15, 20, 25, 30]
+        y_ticklocs = None
         def project_y(self, p):
             return p['results']['demtime_cpu'] + p['results']['opstime_cpu']
     

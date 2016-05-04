@@ -21,6 +21,8 @@ all_tasks = [
     
     ('twitter_demand_time',             twitter.DemandTimeOps()),
     ('twitter_demand_size',             twitter.DemandSize()),
+    ('twitter_demand_demtime',          twitter.DemandTimeDem()),
+    ('twitter_demand_tottime',          twitter.DemandTimeTotal()),
     
     ('twitter_density',                 twitter.DensityLoc()),
     ('twitter_density_norm',            twitter.DensityLocNorm()),
