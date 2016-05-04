@@ -451,7 +451,12 @@ def rewrite_cost_using_types(cost, symtab):
             elt_t = t.elt
             
             # Convert to cost.
-            return type_to_cost(elt_t)
+            new_cost = type_to_cost(elt_t)
+            new_cost = normalize(new_cost)
+            if not isinstance(new_cost, Unknown):
+                cost = new_cost
+            
+            return cost
         
         def visit_IndefImgset(self, cost):
             # Check for constant-time relations.
@@ -485,7 +490,12 @@ def rewrite_cost_using_types(cost, symtab):
             
             _b_elts, u_elts = L.split_by_mask(mask, elts)
             
-            return type_to_cost(T.Tuple(u_elts))
+            new_cost = type_to_cost(T.Tuple(u_elts))
+            new_cost = normalize(new_cost)
+            if not isinstance(new_cost, Unknown):
+                cost = new_cost
+            
+            return cost
         
         # Same logic for definite image sets.
         visit_DefImgset = visit_IndefImgset
