@@ -12,7 +12,8 @@ from os import chdir
 from os.path import dirname, normpath
 from itertools import chain
 
-from incoq.mars.symbol.config import get_argparser, extract_options
+from incoq.mars.symbol.config import (
+    get_argparser, extract_options, parse_typedef)
 from incoq.mars.symbol import S
 from incoq.mars import __main__ as main
 
@@ -207,17 +208,37 @@ distalgo_obj_options.update({
 distalgo_lamutex_options = distalgo_options.copy()
 distalgo_lamutex_options.update({
     'default_demand_set_maxsize': 1,
+    'typedefs': parse_typedef('''Label = Enum("Label");
+                   Clock = Refine("Clock", Number);
+                   Proc = Refine("Proc", Top);
+                   Msgset = Set(Tuple([Label, Clock, Proc]));
+                '''),
 })
+distalgo_lamutex_orig_symconfig = {
+    '_PReceivedEvent_0': {'ann_type': 'Msgset'},
+    'P_q': {'ann_type': 'Msgset'},
+    'P_s': {'ann_type': 'Set(Proc)'},
+    'SELF_ID': {'ann_type': 'Enum("SELF_ID")'},
+    'P_mutex_c': {'ann_type': 'Clock'},
+}
+distalgo_lamutex_spec_symconfig = {
+    '_PReceivedEvent_0': {'ann_type': 'Msgset'},
+    '_PReceivedEvent_1': {'ann_type': 'Msgset'},
+    '_PReceivedEvent_2': {'ann_type': 'Msgset'},
+    'P_s': {'ann_type': 'Set(Proc)'},
+    'SELF_ID': {'ann_type': 'Enum("SELF_ID")'},
+    'P_mutex_c': {'ann_type': 'Clock'},
+}
 lamutex_tasks = [
     ('distalgo/lamutex/lamutex_orig_inc_in',
      'distalgo/lamutex/lamutex_orig_inc_out',
-     distalgo_lamutex_options),
+     (distalgo_lamutex_options, distalgo_lamutex_orig_symconfig)),
     ('distalgo/lamutex/lamutex_spec_inc_in',
      'distalgo/lamutex/lamutex_spec_inc_out',
-     distalgo_lamutex_options),
+     (distalgo_lamutex_options, distalgo_lamutex_spec_symconfig)),
     ('distalgo/lamutex/lamutex_spec_lam_inc_in',
      'distalgo/lamutex/lamutex_spec_lam_inc_out',
-     distalgo_lamutex_options),
+     (distalgo_lamutex_options, distalgo_lamutex_spec_symconfig)),
 ]
 distalgo_other_tasks = [
     ('distalgo/clpaxos/clpaxos_inc_in',

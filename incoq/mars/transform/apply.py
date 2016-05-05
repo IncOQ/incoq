@@ -166,6 +166,9 @@ def preprocess_tree(tree, symtab, query_options):
     
     # Add out-of-band query options.
     for q, d in query_options.items():
+        if q not in symtab.get_symbols():
+            # If it doesn't exist, assume it's a variable.
+            symtab.define_var(q)
         symtab.apply_symconfig(q, d)
     
     # Apply extra distalgo rewriting.
