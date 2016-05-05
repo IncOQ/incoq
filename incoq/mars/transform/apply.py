@@ -441,7 +441,9 @@ def transform_source(input_source, *, options=None, query_options=None):
     
     symtab.stats['lines'] = get_loc_source(source)
     # L.tree_size() is for IncASTs, but it should also work for
-    # Python ASTs.
+    # Python ASTs. We have to re-parse the source to get rid of
+    # our Comment pseudo-nodes.
+    tree = P.Parser.p(source)
     symtab.stats['ast_nodes'] = L.tree_size(tree)
     symtab.stats['time'] = t2 - t1
     
