@@ -24,11 +24,6 @@ def _maint_R_Q_for_S_add(_elem):
     _v2_result = (_v2_a, _v2_b)
     _maint_R_Q_bu_for_R_Q_add(_v2_result)
 
-def _maint_R_Q_for_S_remove(_elem):
-    (_v3_a, _v3_b) = _elem
-    _v3_result = (_v3_a, _v3_b)
-    _maint_R_Q_bu_for_R_Q_remove(_v3_result)
-
 def main():
     for (x, y) in [(1, 2), (2, 3), (3, 4)]:
         _v1 = (x, y)

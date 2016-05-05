@@ -152,10 +152,12 @@ def graddb_helper(name):
     return [
         (prefix + name + '_in',
          prefix + name + '_inc',
-         {'obj_domain': True, 'default_impl': S.Inc}),
+         {'obj_domain': True, 'default_impl': S.Inc,
+          'elim_dead_funcs': False}),
         (prefix + name + '_in',
          prefix + name + '_dem',
-         {'obj_domain': True, 'default_impl': S.Filtered}),
+         {'obj_domain': True, 'default_impl': S.Filtered,
+          'elim_dead_funcs': False}),
     ]
 graddb_query_tasks = list(chain.from_iterable(graddb_helper(name)
                           for name in graddb_queries))

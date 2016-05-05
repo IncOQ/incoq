@@ -106,13 +106,6 @@ def _maint_S_wrapped_for_S_add(_elem):
     _maint_A_Q2_for_S_wrapped_add(_v1_v)
     _maint_A_Q1_for_S_wrapped_add(_v1_v)
 
-def _maint_S_wrapped_for_S_remove(_elem):
-    _v2_v = (_elem,)
-    _maint_A_Q1_for_S_wrapped_remove(_v2_v)
-    _maint_A_Q2_for_S_wrapped_remove(_v2_v)
-    _maint_A_Q3_for_S_wrapped_remove(_v2_v)
-    _maint_A_Q4_for_S_wrapped_remove(_v2_v)
-
 def main():
     for x in [1, 2, 3, 4]:
         _maint_S_wrapped_for_S_add(x)

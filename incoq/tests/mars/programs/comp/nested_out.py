@@ -27,16 +27,6 @@ def _maint_R_Q1_for_S_add(_elem):
         else:
             R_Q1.inccount(_v2_result)
 
-def _maint_R_Q1_for_S_remove(_elem):
-    (_v3_a, _v3_a_2) = _elem
-    if (_v3_a == _v3_a_2):
-        _v3_result = (_v3_a,)
-        if (R_Q1.getcount(_v3_result) == 1):
-            _maint_R_Q2_for_R_Q1_remove(_v3_result)
-            R_Q1.remove(_v3_result)
-        else:
-            R_Q1.deccount(_v3_result)
-
 def main():
     for (x, y) in [(1, 1), (1, 2), (2, 2), (2, 3)]:
         _v1 = (x, y)

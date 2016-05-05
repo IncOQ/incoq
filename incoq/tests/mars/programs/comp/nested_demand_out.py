@@ -40,14 +40,6 @@ def _maint__U_Q2_bu_for__U_Q2_add(_elem):
         _U_Q2_bu[_v16_key] = _v17
     _U_Q2_bu[_v16_key].add(_v16_value)
 
-def _maint__U_Q2_bu_for__U_Q2_remove(_elem):
-    (_elem_v1, _elem_v2) = _elem
-    _v18_key = _elem_v1
-    _v18_value = _elem_v2
-    _U_Q2_bu[_v18_key].remove(_v18_value)
-    if (len(_U_Q2_bu[_v18_key]) == 0):
-        del _U_Q2_bu[_v18_key]
-
 def _maint_R_Q2_bbu_for_R_Q2_add(_elem):
     (_elem_v1, _elem_v2, _elem_v3) = _elem
     _v19_key = (_elem_v1, _elem_v2)
@@ -71,13 +63,6 @@ def _maint_R_Q2_for__U_Q2_add(_elem):
         if (_v9_b <= _v9_j):
             _v9_result = (_v9_k, _v9_j, _v9_b)
             _maint_R_Q2_bbu_for_R_Q2_add(_v9_result)
-
-def _maint_R_Q2_for__U_Q2_remove(_elem):
-    (_v10_k, _v10_j) = _elem
-    for _v10_b in (R_Q1_bu[_v10_k] if (_v10_k in R_Q1_bu) else ()):
-        if (_v10_b <= _v10_j):
-            _v10_result = (_v10_k, _v10_j, _v10_b)
-            _maint_R_Q2_bbu_for_R_Q2_remove(_v10_result)
 
 def _maint_R_Q2_for_R_Q1_add(_elem):
     (_v11_k, _v11_b) = _elem
@@ -117,14 +102,6 @@ def _maint_R_Q1_for_S_add(_elem):
             _maint_R_Q1_bu_for_R_Q1_add(_v7_result)
             _maint_R_Q2_for_R_Q1_add(_v7_result)
 
-def _maint_R_Q1_for_S_remove(_elem):
-    (_v8_a,) = _elem
-    for (_v8_k,) in R__QU_Q1:
-        if (_v8_a >= _v8_k):
-            _v8_result = (_v8_k, _v8_a)
-            _maint_R_Q2_for_R_Q1_remove(_v8_result)
-            _maint_R_Q1_bu_for_R_Q1_remove(_v8_result)
-
 def _maint_R__QU_Q1_for__U_Q2_add(_elem):
     (_v3__v2k, _v3__v2j) = _elem
     _v3_result = (_v3__v2k,)
@@ -133,15 +110,6 @@ def _maint_R__QU_Q1_for__U_Q2_add(_elem):
         _maint_R_Q1_for_R__QU_Q1_add(_v3_result)
     else:
         R__QU_Q1.inccount(_v3_result)
-
-def _maint_R__QU_Q1_for__U_Q2_remove(_elem):
-    (_v4__v2k, _v4__v2j) = _elem
-    _v4_result = (_v4__v2k,)
-    if (R__QU_Q1.getcount(_v4_result) == 1):
-        _maint_R_Q1_for_R__QU_Q1_remove(_v4_result)
-        R__QU_Q1.remove(_v4_result)
-    else:
-        R__QU_Q1.deccount(_v4_result)
 
 def _demand_Q2(_elem):
     if (_elem not in _U_Q2):

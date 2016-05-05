@@ -44,13 +44,6 @@ def _maint_R_Q_for_S_add(_elem):
             _v5_result = (_v5_a, _v5_x)
             _maint_R_Q_bu_for_R_Q_add(_v5_result)
 
-def _maint_R_Q_for_S_remove(_elem):
-    (_v6_x,) = _elem
-    for (_v6_a,) in _U_Q:
-        if (_v6_x > _v6_a):
-            _v6_result = (_v6_a, _v6_x)
-            _maint_R_Q_bu_for_R_Q_remove(_v6_result)
-
 def _demand_Q(_elem):
     if (_elem not in _U_Q):
         while (len(_U_Q) >= 3):

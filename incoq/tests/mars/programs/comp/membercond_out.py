@@ -15,14 +15,6 @@ def _maint_S_bu_for_S_add(_elem):
         S_bu[_v7_key] = _v8
     S_bu[_v7_key].add(_v7_value)
 
-def _maint_S_bu_for_S_remove(_elem):
-    (_elem_v1, _elem_v2) = _elem
-    _v9_key = _elem_v1
-    _v9_value = _elem_v2
-    S_bu[_v9_key].remove(_v9_value)
-    if (len(S_bu[_v9_key]) == 0):
-        del S_bu[_v9_key]
-
 def _maint_R_Q_for_S_add(_elem):
     (_v3_a, _v3_b) = _elem
     if ((_v3_a,) in R):
@@ -32,15 +24,6 @@ def _maint_R_Q_for_S_add(_elem):
         else:
             R_Q.inccount(_v3_result)
 
-def _maint_R_Q_for_S_remove(_elem):
-    (_v4_a, _v4_b) = _elem
-    if ((_v4_a,) in R):
-        _v4_result = (_v4_b,)
-        if (R_Q.getcount(_v4_result) == 1):
-            R_Q.remove(_v4_result)
-        else:
-            R_Q.deccount(_v4_result)
-
 def _maint_R_Q_for_R_add(_elem):
     (_v5_a,) = _elem
     for _v5_b in (S_bu[_v5_a] if (_v5_a in S_bu) else ()):
@@ -49,15 +32,6 @@ def _maint_R_Q_for_R_add(_elem):
             R_Q.add(_v5_result)
         else:
             R_Q.inccount(_v5_result)
-
-def _maint_R_Q_for_R_remove(_elem):
-    (_v6_a,) = _elem
-    for _v6_b in (S_bu[_v6_a] if (_v6_a in S_bu) else ()):
-        _v6_result = (_v6_b,)
-        if (R_Q.getcount(_v6_result) == 1):
-            R_Q.remove(_v6_result)
-        else:
-            R_Q.deccount(_v6_result)
 
 def main():
     for (x, y) in [(1, 2), (1, 3), (2, 3), (2, 4)]:

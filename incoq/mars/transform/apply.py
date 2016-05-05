@@ -37,7 +37,8 @@ from . import relation_rewritings
 from .misc_rewritings import (mark_query_forms, unmark_normal_impl,
                               rewrite_vars_clauses, lift_firstthen,
                               count_updates, reorder_clauses,
-                              distalgo_preprocess, rewrite_aggregates)
+                              distalgo_preprocess, rewrite_aggregates,
+                              elim_dead_funcs)
 from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
                              transform_demand)
@@ -403,6 +404,9 @@ def transform_ast(input_ast, *, options=None, query_options=None):
     
     if config.elim_dead_relations:
         tree = relation_rewritings.eliminate_dead_relations(tree, symtab)
+    
+    if config.elim_dead_funcs:
+        tree = elim_dead_funcs(tree, symtab)
     
     # Get comment header.
     header = []

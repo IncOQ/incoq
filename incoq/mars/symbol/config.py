@@ -139,6 +139,11 @@ all_attributes = [
         parse_bool,
         {'action': 'store_true'}),
     
+    ConfigAttribute('elim_dead_funcs', True,
+        'if true, eliminate uncalled maintenance functions',
+        parse_bool,
+        {'action': 'store_true'}),
+    
     ConfigAttribute('distalgo_mode', True,
         'enable special rewritings for DistAlgo inc interface',
         parse_bool,

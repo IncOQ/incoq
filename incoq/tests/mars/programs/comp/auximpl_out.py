@@ -11,14 +11,6 @@ def _maint_S_bu_for_S_add(_elem):
         S_bu[_v2_key] = _v3
     S_bu[_v2_key].add(_v2_value)
 
-def _maint_S_bu_for_S_remove(_elem):
-    (_elem_v1, _elem_v2) = _elem
-    _v4_key = _elem_v1
-    _v4_value = _elem_v2
-    S_bu[_v4_key].remove(_v4_value)
-    if (len(S_bu[_v4_key]) == 0):
-        del S_bu[_v4_key]
-
 def _compute_Q(a):
     _result = Set()
     for b in (S_bu[a] if (a in S_bu) else ()):

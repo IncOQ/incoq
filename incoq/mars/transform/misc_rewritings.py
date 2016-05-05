@@ -10,6 +10,7 @@ __all__ = [
     'reorder_clauses',
     'distalgo_preprocess',
     'rewrite_aggregates',
+    'elim_dead_funcs',
 ]
 
 
@@ -292,4 +293,25 @@ def rewrite_aggregates(tree, symtab):
             return L.Call(func, new_parts)
     
     tree = Rewriter.run(tree, symtab)
+    return tree
+
+
+def elim_dead_funcs(tree, symtab):
+    """Remove uncalled maintenance functions."""
+    called = set()
+    
+    class CallFinder(L.NodeVisitor):
+        def visit_Call(self, node):
+            self.generic_visit(node)
+            if node.func in symtab.maint_funcs:
+                called.add(node.func)
+    CallFinder.run(tree)
+    
+    class CallDeleter(L.NodeTransformer):
+        def visit_Fun(self, node):
+            if (node.name in symtab.maint_funcs and
+                node.name not in called):
+                return ()
+    tree = CallDeleter.run(tree)
+    
     return tree

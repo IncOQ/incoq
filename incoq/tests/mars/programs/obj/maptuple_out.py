@@ -149,12 +149,6 @@ def _maint_R_Q_d_F_f_2_for__F_f_add(_elem):
         _v49_result = (_v49_y, _v49_y_f)
         R_Q_d_F_f_2.add(_v49_result)
 
-def _maint_R_Q_d_F_f_2_for__F_f_remove(_elem):
-    (_v50_y, _v50_y_f) = _elem
-    if ((_v50_y,) in R_Q_T_y):
-        _v50_result = (_v50_y, _v50_y_f)
-        R_Q_d_F_f_2.remove(_v50_result)
-
 def _maint_R_Q_d_F_f_1_for_R_Q_T_x_add(_elem):
     (_v43_x,) = _elem
     if hasfield(_v43_x, 'f'):
@@ -174,12 +168,6 @@ def _maint_R_Q_d_F_f_1_for__F_f_add(_elem):
     if ((_v45_x,) in R_Q_T_x):
         _v45_result = (_v45_x, _v45_x_f)
         R_Q_d_F_f_1.add(_v45_result)
-
-def _maint_R_Q_d_F_f_1_for__F_f_remove(_elem):
-    (_v46_x, _v46_x_f) = _elem
-    if ((_v46_x,) in R_Q_T_x):
-        _v46_result = (_v46_x, _v46_x_f)
-        R_Q_d_F_f_1.remove(_v46_result)
 
 def _maint_R_Q_T_y_for_R_Q_d_TUP_2_add(_elem):
     (_v41_t_x_y, _v41_x, _v41_y) = _elem
@@ -239,26 +227,6 @@ def _maint_R_Q_d_TUP_2_for_R_Q_T_t_x_y_remove(_elem):
         _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_remove(_v36_result)
         R_Q_d_TUP_2.remove(_v36_result)
 
-def _maint_R_Q_d_TUP_2_for__TUP_2_add(_elem):
-    (_v37_t_x_y, _v37_x, _v37_y) = _elem
-    if ((_v37_t_x_y,) in R_Q_T_t_x_y):
-        _v37_result = (_v37_t_x_y, _v37_x, _v37_y)
-        R_Q_d_TUP_2.add(_v37_result)
-        _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_add(_v37_result)
-        _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_add(_v37_result)
-        _maint_R_Q_T_y_for_R_Q_d_TUP_2_add(_v37_result)
-        _maint_R_Q_T_x_for_R_Q_d_TUP_2_add(_v37_result)
-
-def _maint_R_Q_d_TUP_2_for__TUP_2_remove(_elem):
-    (_v38_t_x_y, _v38_x, _v38_y) = _elem
-    if ((_v38_t_x_y,) in R_Q_T_t_x_y):
-        _v38_result = (_v38_t_x_y, _v38_x, _v38_y)
-        _maint_R_Q_T_x_for_R_Q_d_TUP_2_remove(_v38_result)
-        _maint_R_Q_T_y_for_R_Q_d_TUP_2_remove(_v38_result)
-        _maint_R_Q_d_TUP_2_uub_for_R_Q_d_TUP_2_remove(_v38_result)
-        _maint_R_Q_d_TUP_2_ubu_for_R_Q_d_TUP_2_remove(_v38_result)
-        R_Q_d_TUP_2.remove(_v38_result)
-
 def _maint_R_Q_T_t_x_y_for_R_Q_d_M_add(_elem):
     (_v33_m_k, _v33_t_x_y) = _elem
     _v33_result = (_v33_t_x_y,)
@@ -302,14 +270,6 @@ def _maint_R_Q_d_M_for__M_add(_elem):
         R_Q_d_M.add(_v31_result)
         _maint_R_Q_d_M_ub_for_R_Q_d_M_add(_v31_result)
         _maint_R_Q_T_t_x_y_for_R_Q_d_M_add(_v31_result)
-
-def _maint_R_Q_d_M_for__M_remove(_elem):
-    (_v32_m_k, _v32_t_x_y) = _elem
-    if ((_v32_m_k,) in R_Q_T_m_k):
-        _v32_result = (_v32_m_k, _v32_t_x_y)
-        _maint_R_Q_T_t_x_y_for_R_Q_d_M_remove(_v32_result)
-        _maint_R_Q_d_M_ub_for_R_Q_d_M_remove(_v32_result)
-        R_Q_d_M.remove(_v32_result)
 
 def _maint_R_Q_T_m_k_for_R_Q_d_MAP_add(_elem):
     (_v27_m, _v27_k, _v27_m_k) = _elem
@@ -369,12 +329,6 @@ def _maint_R_Q_T_m_for__U_Q_add(_elem):
     R_Q_T_m.add(_v21_result)
     _maint_R_Q_d_MAP_for_R_Q_T_m_add(_v21_result)
 
-def _maint_R_Q_T_m_for__U_Q_remove(_elem):
-    (_v22_m,) = _elem
-    _v22_result = (_v22_m,)
-    _maint_R_Q_d_MAP_for_R_Q_T_m_remove(_v22_result)
-    R_Q_T_m.remove(_v22_result)
-
 def _maint_R_Q_for__U_Q_add(_elem):
     (_v11_m,) = _elem
     if ((_v11_m,) in _U_Q):
@@ -394,26 +348,6 @@ def _maint_R_Q_for__U_Q_add(_elem):
                                         _maint_R_Q_bbu_for_R_Q_add(_v11_result)
                                     else:
                                         R_Q.inccount(_v11_result)
-
-def _maint_R_Q_for__U_Q_remove(_elem):
-    (_v12_m,) = _elem
-    if ((_v12_m,) in _U_Q):
-        if ismap(_v12_m):
-            for (_v12_k, _v12_m_k) in _v12_m.items():
-                if isset(_v12_m_k):
-                    for _v12_t_x_y in _v12_m_k:
-                        if hasarity(_v12_t_x_y, 2):
-                            (_v12_x, _v12_y) = _v12_t_x_y
-                            if hasfield(_v12_x, 'f'):
-                                _v12_x_f = _v12_x.f
-                                if hasfield(_v12_y, 'f'):
-                                    _v12_y_f = _v12_y.f
-                                    _v12_result = (_v12_m, _v12_k, (_v12_x_f, _v12_y_f))
-                                    if (R_Q.getcount(_v12_result) == 1):
-                                        _maint_R_Q_bbu_for_R_Q_remove(_v12_result)
-                                        R_Q.remove(_v12_result)
-                                    else:
-                                        R_Q.deccount(_v12_result)
 
 def _maint_R_Q_for__MAP_add(_elem):
     (_v13_m, _v13_k, _v13_m_k) = _elem
@@ -471,58 +405,6 @@ def _maint_R_Q_for__M_add(_elem):
                             else:
                                 R_Q.inccount(_v15_result)
 
-def _maint_R_Q_for__M_remove(_elem):
-    (_v16_m_k, _v16_t_x_y) = _elem
-    if ((_v16_m_k, _v16_t_x_y) in R_Q_d_M):
-        if hasarity(_v16_t_x_y, 2):
-            (_v16_x, _v16_y) = _v16_t_x_y
-            if hasfield(_v16_x, 'f'):
-                _v16_x_f = _v16_x.f
-                if hasfield(_v16_y, 'f'):
-                    _v16_y_f = _v16_y.f
-                    for (_v16_m, _v16_k) in (R_Q_d_MAP_uub[_v16_m_k] if (_v16_m_k in R_Q_d_MAP_uub) else Set()):
-                        if ((_v16_m,) in _U_Q):
-                            _v16_result = (_v16_m, _v16_k, (_v16_x_f, _v16_y_f))
-                            if (R_Q.getcount(_v16_result) == 1):
-                                _maint_R_Q_bbu_for_R_Q_remove(_v16_result)
-                                R_Q.remove(_v16_result)
-                            else:
-                                R_Q.deccount(_v16_result)
-
-def _maint_R_Q_for__TUP_2_add(_elem):
-    (_v17_t_x_y, _v17_x, _v17_y) = _elem
-    if ((_v17_t_x_y, _v17_x, _v17_y) in R_Q_d_TUP_2):
-        if hasfield(_v17_x, 'f'):
-            _v17_x_f = _v17_x.f
-            if hasfield(_v17_y, 'f'):
-                _v17_y_f = _v17_y.f
-                for _v17_m_k in (R_Q_d_M_ub[_v17_t_x_y] if (_v17_t_x_y in R_Q_d_M_ub) else ()):
-                    for (_v17_m, _v17_k) in (R_Q_d_MAP_uub[_v17_m_k] if (_v17_m_k in R_Q_d_MAP_uub) else Set()):
-                        if ((_v17_m,) in _U_Q):
-                            _v17_result = (_v17_m, _v17_k, (_v17_x_f, _v17_y_f))
-                            if (_v17_result not in R_Q):
-                                R_Q.add(_v17_result)
-                                _maint_R_Q_bbu_for_R_Q_add(_v17_result)
-                            else:
-                                R_Q.inccount(_v17_result)
-
-def _maint_R_Q_for__TUP_2_remove(_elem):
-    (_v18_t_x_y, _v18_x, _v18_y) = _elem
-    if ((_v18_t_x_y, _v18_x, _v18_y) in R_Q_d_TUP_2):
-        if hasfield(_v18_x, 'f'):
-            _v18_x_f = _v18_x.f
-            if hasfield(_v18_y, 'f'):
-                _v18_y_f = _v18_y.f
-                for _v18_m_k in (R_Q_d_M_ub[_v18_t_x_y] if (_v18_t_x_y in R_Q_d_M_ub) else ()):
-                    for (_v18_m, _v18_k) in (R_Q_d_MAP_uub[_v18_m_k] if (_v18_m_k in R_Q_d_MAP_uub) else Set()):
-                        if ((_v18_m,) in _U_Q):
-                            _v18_result = (_v18_m, _v18_k, (_v18_x_f, _v18_y_f))
-                            if (R_Q.getcount(_v18_result) == 1):
-                                _maint_R_Q_bbu_for_R_Q_remove(_v18_result)
-                                R_Q.remove(_v18_result)
-                            else:
-                                R_Q.deccount(_v18_result)
-
 def _maint_R_Q_for__F_f_add(_elem):
     (_v19_x, _v19_x_f) = _elem
     if ((_v19_x, _v19_x_f) in R_Q_d_F_f_1):
@@ -553,37 +435,6 @@ def _maint_R_Q_for__F_f_add(_elem):
                                 _maint_R_Q_bbu_for_R_Q_add(_v19_result)
                             else:
                                 R_Q.inccount(_v19_result)
-
-def _maint_R_Q_for__F_f_remove(_elem):
-    (_v20_x, _v20_x_f) = _elem
-    if ((_v20_x, _v20_x_f) in R_Q_d_F_f_1):
-        for (_v20_t_x_y, _v20_y) in (R_Q_d_TUP_2_ubu[_v20_x] if (_v20_x in R_Q_d_TUP_2_ubu) else Set()):
-            if hasfield(_v20_y, 'f'):
-                _v20_y_f = _v20_y.f
-                if ((_v20_y, _v20_y_f) != _elem):
-                    for _v20_m_k in (R_Q_d_M_ub[_v20_t_x_y] if (_v20_t_x_y in R_Q_d_M_ub) else ()):
-                        for (_v20_m, _v20_k) in (R_Q_d_MAP_uub[_v20_m_k] if (_v20_m_k in R_Q_d_MAP_uub) else Set()):
-                            if ((_v20_m,) in _U_Q):
-                                _v20_result = (_v20_m, _v20_k, (_v20_x_f, _v20_y_f))
-                                if (R_Q.getcount(_v20_result) == 1):
-                                    _maint_R_Q_bbu_for_R_Q_remove(_v20_result)
-                                    R_Q.remove(_v20_result)
-                                else:
-                                    R_Q.deccount(_v20_result)
-    (_v20_y, _v20_y_f) = _elem
-    if ((_v20_y, _v20_y_f) in R_Q_d_F_f_2):
-        for (_v20_t_x_y, _v20_x) in (R_Q_d_TUP_2_uub[_v20_y] if (_v20_y in R_Q_d_TUP_2_uub) else Set()):
-            if hasfield(_v20_x, 'f'):
-                _v20_x_f = _v20_x.f
-                for _v20_m_k in (R_Q_d_M_ub[_v20_t_x_y] if (_v20_t_x_y in R_Q_d_M_ub) else ()):
-                    for (_v20_m, _v20_k) in (R_Q_d_MAP_uub[_v20_m_k] if (_v20_m_k in R_Q_d_MAP_uub) else Set()):
-                        if ((_v20_m,) in _U_Q):
-                            _v20_result = (_v20_m, _v20_k, (_v20_x_f, _v20_y_f))
-                            if (R_Q.getcount(_v20_result) == 1):
-                                _maint_R_Q_bbu_for_R_Q_remove(_v20_result)
-                                R_Q.remove(_v20_result)
-                            else:
-                                R_Q.deccount(_v20_result)
 
 def _demand_Q(_elem):
     if (_elem not in _U_Q):

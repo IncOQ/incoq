@@ -36,14 +36,6 @@ def _maint_S_bu_for_S_add(_elem):
         S_bu[_v23_key] = _v24
     S_bu[_v23_key].add(_v23_value)
 
-def _maint_S_bu_for_S_remove(_elem):
-    (_elem_v1, _elem_v2) = _elem
-    _v25_key = _elem_v1
-    _v25_value = _elem_v2
-    S_bu[_v25_key].remove(_v25_value)
-    if (len(S_bu[_v25_key]) == 0):
-        del S_bu[_v25_key]
-
 def _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v26_key = _elem_v1
@@ -104,12 +96,6 @@ def _maint_R_Q2_dT_for_T_add(_elem):
         _v21_result = (_v21_w,)
         R_Q2_dT.add(_v21_result)
 
-def _maint_R_Q2_dT_for_T_remove(_elem):
-    (_v22_w,) = _elem
-    if ((_v22_w,) in R_Q2_T_w_1):
-        _v22_result = (_v22_w,)
-        R_Q2_dT.remove(_v22_result)
-
 def _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_elem):
     (_v17_v, _v17_w) = _elem
     _v17_result = (_v17_w,)
@@ -154,15 +140,6 @@ def _maint_R_Q2_dS_for_S_add(_elem):
         _maint_R_Q2_dS_bu_for_R_Q2_dS_add(_v15_result)
         _maint_R_Q2_dS_ub_for_R_Q2_dS_add(_v15_result)
         _maint_R_Q2_T_w_1_for_R_Q2_dS_add(_v15_result)
-
-def _maint_R_Q2_dS_for_S_remove(_elem):
-    (_v16_v, _v16_w) = _elem
-    if ((_v16_v,) in R_Q2_T_v_1):
-        _v16_result = (_v16_v, _v16_w)
-        _maint_R_Q2_T_w_1_for_R_Q2_dS_remove(_v16_result)
-        _maint_R_Q2_dS_ub_for_R_Q2_dS_remove(_v16_result)
-        _maint_R_Q2_dS_bu_for_R_Q2_dS_remove(_v16_result)
-        R_Q2_dS.remove(_v16_result)
 
 def _maint_R_Q2_T_v_1_for_R_Q1_add(_elem):
     (_v11_v,) = _elem
@@ -212,18 +189,6 @@ def _maint_R_Q2_for_S_add(_elem):
                 else:
                     R_Q2.inccount(_v7_result)
 
-def _maint_R_Q2_for_S_remove(_elem):
-    (_v8_v, _v8_w) = _elem
-    if ((_v8_v, _v8_w) in R_Q2_dS):
-        if ((_v8_v,) in R_Q1):
-            if ((_v8_w,) in T):
-                _v8_result = (_v8_w,)
-                if (R_Q2.getcount(_v8_result) == 1):
-                    _maint_R_Q2_unwrapped_for_R_Q2_remove(_v8_result)
-                    R_Q2.remove(_v8_result)
-                else:
-                    R_Q2.deccount(_v8_result)
-
 def _maint_R_Q2_for_T_add(_elem):
     (_v9_w,) = _elem
     if ((_v9_w,) in R_Q2_dT):
@@ -236,18 +201,6 @@ def _maint_R_Q2_for_T_add(_elem):
                 else:
                     R_Q2.inccount(_v9_result)
 
-def _maint_R_Q2_for_T_remove(_elem):
-    (_v10_w,) = _elem
-    if ((_v10_w,) in R_Q2_dT):
-        for _v10_v in (R_Q2_dS_ub[_v10_w] if (_v10_w in R_Q2_dS_ub) else ()):
-            if ((_v10_v,) in R_Q1):
-                _v10_result = (_v10_w,)
-                if (R_Q2.getcount(_v10_result) == 1):
-                    _maint_R_Q2_unwrapped_for_R_Q2_remove(_v10_result)
-                    R_Q2.remove(_v10_result)
-                else:
-                    R_Q2.deccount(_v10_result)
-
 def _maint_R_Q1_for_S_add(_elem):
     (_v3_a, _v3_a_2) = _elem
     if (_v3_a == _v3_a_2):
@@ -258,17 +211,6 @@ def _maint_R_Q1_for_S_add(_elem):
             _maint_R_Q2_for_R_Q1_add(_v3_result)
         else:
             R_Q1.inccount(_v3_result)
-
-def _maint_R_Q1_for_S_remove(_elem):
-    (_v4_a, _v4_a_2) = _elem
-    if (_v4_a == _v4_a_2):
-        _v4_result = (_v4_a,)
-        if (R_Q1.getcount(_v4_result) == 1):
-            _maint_R_Q2_for_R_Q1_remove(_v4_result)
-            _maint_R_Q2_T_v_1_for_R_Q1_remove(_v4_result)
-            R_Q1.remove(_v4_result)
-        else:
-            R_Q1.deccount(_v4_result)
 
 def main():
     for (x, y) in [(1, 1), (1, 2), (2, 2), (2, 3)]:

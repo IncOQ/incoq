@@ -77,18 +77,6 @@ def _maint_R_Q1_for__U_Q1_add(_elem):
             else:
                 R_Q1.inccount(_v10_result)
 
-def _maint_R_Q1_for__U_Q1_remove(_elem):
-    (_v11_z,) = _elem
-    for _v11_o in (R_Q2_bu[_v11_z] if (_v11_z in R_Q2_bu) else ()):
-        if hasfield(_v11_o, 'f'):
-            _v11_o_f = _v11_o.f
-            _v11_result = (_v11_z, _v11_o_f)
-            if (R_Q1.getcount(_v11_result) == 1):
-                _maint_R_Q1_bu_for_R_Q1_remove(_v11_result)
-                R_Q1.remove(_v11_result)
-            else:
-                R_Q1.deccount(_v11_result)
-
 def _maint_R_Q1_for_R_Q2_add(_elem):
     (_v12_z, _v12_o) = _elem
     if ((_v12_z,) in _U_Q1):
@@ -124,17 +112,6 @@ def _maint_R_Q1_for__F_f_add(_elem):
             else:
                 R_Q1.inccount(_v14_result)
 
-def _maint_R_Q1_for__F_f_remove(_elem):
-    (_v15_o, _v15_o_f) = _elem
-    for _v15_z in (R_Q2_ub[_v15_o] if (_v15_o in R_Q2_ub) else ()):
-        if ((_v15_z,) in _U_Q1):
-            _v15_result = (_v15_z, _v15_o_f)
-            if (R_Q1.getcount(_v15_result) == 1):
-                _maint_R_Q1_bu_for_R_Q1_remove(_v15_result)
-                R_Q1.remove(_v15_result)
-            else:
-                R_Q1.deccount(_v15_result)
-
 def _maint_R_Q2_for_R__QU_Q2_add(_elem):
     (_v6_z,) = _elem
     if isset(_v6_z):
@@ -161,25 +138,11 @@ def _maint_R_Q2_for__M_add(_elem):
         _maint_R_Q2_ub_for_R_Q2_add(_v8_result)
         _maint_R_Q1_for_R_Q2_add(_v8_result)
 
-def _maint_R_Q2_for__M_remove(_elem):
-    (_v9_z, _v9_m) = _elem
-    if ((_v9_z,) in R__QU_Q2):
-        _v9_result = (_v9_z, _v9_m)
-        _maint_R_Q1_for_R_Q2_remove(_v9_result)
-        _maint_R_Q2_ub_for_R_Q2_remove(_v9_result)
-        _maint_R_Q2_bu_for_R_Q2_remove(_v9_result)
-
 def _maint_R__QU_Q2_for__U_Q1_add(_elem):
     (_v4__v3z,) = _elem
     _v4_result = (_v4__v3z,)
     R__QU_Q2.add(_v4_result)
     _maint_R_Q2_for_R__QU_Q2_add(_v4_result)
-
-def _maint_R__QU_Q2_for__U_Q1_remove(_elem):
-    (_v5__v3z,) = _elem
-    _v5_result = (_v5__v3z,)
-    _maint_R_Q2_for_R__QU_Q2_remove(_v5_result)
-    R__QU_Q2.remove(_v5_result)
 
 def _demand_Q1(_elem):
     if (_elem not in _U_Q1):

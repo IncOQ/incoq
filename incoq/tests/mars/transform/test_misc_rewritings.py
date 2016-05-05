@@ -130,6 +130,35 @@ class MiscRewritingsCase(unittest.TestCase):
         exp_tree = tree
         tree = rewrite_aggregates(tree, symtab)
         self.assertEqual(tree, exp_tree)
+    
+    def test_elim_dead_funcs(self):
+        symtab = S.SymbolTable()
+        symtab.maint_funcs = ['foo', 'bar']
+        tree = L.Parser.p('''
+            def foo():
+                pass
+            
+            def bar():
+                pass
+            
+            def baz():
+                pass
+            
+            def main():
+                foo()
+            ''')
+        tree = elim_dead_funcs(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def foo():
+                pass
+            
+            def baz():
+                pass
+            
+            def main():
+                foo()
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':

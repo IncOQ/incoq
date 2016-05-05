@@ -28,14 +28,6 @@ def _maint__U_Q2_bu_for__U_Q2_add(_elem):
         _U_Q2_bu[_v20_key] = _v21
     _U_Q2_bu[_v20_key].add(_v20_value)
 
-def _maint__U_Q2_bu_for__U_Q2_remove(_elem):
-    (_elem_v1, _elem_v2) = _elem
-    _v22_key = _elem_v1
-    _v22_value = _elem_v2
-    _U_Q2_bu[_v22_key].remove(_v22_value)
-    if (len(_U_Q2_bu[_v22_key]) == 0):
-        del _U_Q2_bu[_v22_key]
-
 def _maint__U_Q2_ub_for__U_Q2_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v23_key = _elem_v2
@@ -44,14 +36,6 @@ def _maint__U_Q2_ub_for__U_Q2_add(_elem):
         _v24 = Set()
         _U_Q2_ub[_v23_key] = _v24
     _U_Q2_ub[_v23_key].add(_v23_value)
-
-def _maint__U_Q2_ub_for__U_Q2_remove(_elem):
-    (_elem_v1, _elem_v2) = _elem
-    _v25_key = _elem_v2
-    _v25_value = _elem_v1
-    _U_Q2_ub[_v25_key].remove(_v25_value)
-    if (len(_U_Q2_ub[_v25_key]) == 0):
-        del _U_Q2_ub[_v25_key]
 
 def _maint__M_ub_for__M_add(_elem):
     (_elem_v1, _elem_v2) = _elem
@@ -118,21 +102,6 @@ def _maint_R_Q2_for__U_Q2_add(_elem):
                             _maint_R_Q2_bbu_for_R_Q2_add(_v14_result)
                         else:
                             R_Q2.inccount(_v14_result)
-
-def _maint_R_Q2_for__U_Q2_remove(_elem):
-    (_v15_s, _v15_t) = _elem
-    if isset(_v15_s):
-        for _v15_o in _v15_s:
-            if isset(_v15_t):
-                if (_v15_o in _v15_t):
-                    if hasfield(_v15_o, 'f'):
-                        _v15_o_f = _v15_o.f
-                        _v15_result = (_v15_s, _v15_t, _v15_o_f)
-                        if (R_Q2.getcount(_v15_result) == 1):
-                            _maint_R_Q2_bbu_for_R_Q2_remove(_v15_result)
-                            R_Q2.remove(_v15_result)
-                        else:
-                            R_Q2.deccount(_v15_result)
 
 def _maint_R_Q2_for__M_add(_elem):
     (_v16_s, _v16_o) = _elem
@@ -201,19 +170,6 @@ def _maint_R_Q2_for__F_f_add(_elem):
                     else:
                         R_Q2.inccount(_v18_result)
 
-def _maint_R_Q2_for__F_f_remove(_elem):
-    (_v19_o, _v19_o_f) = _elem
-    for _v19_s in (_M_ub[_v19_o] if (_v19_o in _M_ub) else ()):
-        for _v19_t in (_U_Q2_bu[_v19_s] if (_v19_s in _U_Q2_bu) else ()):
-            if isset(_v19_t):
-                if (_v19_o in _v19_t):
-                    _v19_result = (_v19_s, _v19_t, _v19_o_f)
-                    if (R_Q2.getcount(_v19_result) == 1):
-                        _maint_R_Q2_bbu_for_R_Q2_remove(_v19_result)
-                        R_Q2.remove(_v19_result)
-                    else:
-                        R_Q2.deccount(_v19_result)
-
 def _maint_R_Q1_for__U_Q1_add(_elem):
     (_v8_z,) = _elem
     if isset(_v8_z):
@@ -226,19 +182,6 @@ def _maint_R_Q1_for__U_Q1_add(_elem):
                     _maint_R_Q1_bu_for_R_Q1_add(_v8_result)
                 else:
                     R_Q1.inccount(_v8_result)
-
-def _maint_R_Q1_for__U_Q1_remove(_elem):
-    (_v9_z,) = _elem
-    if isset(_v9_z):
-        for _v9_o in _v9_z:
-            if hasfield(_v9_o, 'f'):
-                _v9_o_f = _v9_o.f
-                _v9_result = (_v9_z, _v9_o_f)
-                if (R_Q1.getcount(_v9_result) == 1):
-                    _maint_R_Q1_bu_for_R_Q1_remove(_v9_result)
-                    R_Q1.remove(_v9_result)
-                else:
-                    R_Q1.deccount(_v9_result)
 
 def _maint_R_Q1_for__M_add(_elem):
     (_v10_z, _v10_o) = _elem
@@ -274,17 +217,6 @@ def _maint_R_Q1_for__F_f_add(_elem):
                 _maint_R_Q1_bu_for_R_Q1_add(_v12_result)
             else:
                 R_Q1.inccount(_v12_result)
-
-def _maint_R_Q1_for__F_f_remove(_elem):
-    (_v13_o, _v13_o_f) = _elem
-    for _v13_z in (_M_ub[_v13_o] if (_v13_o in _M_ub) else ()):
-        if ((_v13_z,) in _U_Q1):
-            _v13_result = (_v13_z, _v13_o_f)
-            if (R_Q1.getcount(_v13_result) == 1):
-                _maint_R_Q1_bu_for_R_Q1_remove(_v13_result)
-                R_Q1.remove(_v13_result)
-            else:
-                R_Q1.deccount(_v13_result)
 
 def _demand_Q1(_elem):
     if (_elem not in _U_Q1):

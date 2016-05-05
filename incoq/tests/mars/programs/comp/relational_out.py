@@ -21,14 +21,6 @@ def _maint_S_bu_for_S_add(_elem):
         S_bu[_v9_key] = _v10
     S_bu[_v9_key].add(_v9_value)
 
-def _maint_S_bu_for_S_remove(_elem):
-    (_elem_v1, _elem_v2) = _elem
-    _v11_key = _elem_v1
-    _v11_value = _elem_v2
-    S_bu[_v11_key].remove(_v11_value)
-    if (len(S_bu[_v11_key]) == 0):
-        del S_bu[_v11_key]
-
 def _maint_S_ub_for_S_add(_elem):
     (_elem_v1, _elem_v2) = _elem
     _v12_key = _elem_v2
@@ -37,14 +29,6 @@ def _maint_S_ub_for_S_add(_elem):
         _v13 = Set()
         S_ub[_v12_key] = _v13
     S_ub[_v12_key].add(_v12_value)
-
-def _maint_S_ub_for_S_remove(_elem):
-    (_elem_v1, _elem_v2) = _elem
-    _v14_key = _elem_v2
-    _v14_value = _elem_v1
-    S_ub[_v14_key].remove(_v14_value)
-    if (len(S_ub[_v14_key]) == 0):
-        del S_ub[_v14_key]
 
 def _maint_R_Q_unwrapped_for_R_Q_add(_elem):
     _v15_v = index(_elem, 0)
@@ -74,27 +58,6 @@ def _maint_R_Q_for_S_add(_elem):
                 _maint_R_Q_unwrapped_for_R_Q_add(_v5_result)
             else:
                 R_Q.inccount(_v5_result)
-
-def _maint_R_Q_for_S_remove(_elem):
-    (_v6_a, _v6_b) = _elem
-    if ((_v6_a,) in R_wrapped):
-        for _v6_c in (S_bu[_v6_b] if (_v6_b in S_bu) else ()):
-            if ((_v6_b, _v6_c) != _elem):
-                _v6_result = (_v6_c,)
-                if (R_Q.getcount(_v6_result) == 1):
-                    _maint_R_Q_unwrapped_for_R_Q_remove(_v6_result)
-                    R_Q.remove(_v6_result)
-                else:
-                    R_Q.deccount(_v6_result)
-    (_v6_b, _v6_c) = _elem
-    for _v6_a in (S_ub[_v6_b] if (_v6_b in S_ub) else ()):
-        if ((_v6_a,) in R_wrapped):
-            _v6_result = (_v6_c,)
-            if (R_Q.getcount(_v6_result) == 1):
-                _maint_R_Q_unwrapped_for_R_Q_remove(_v6_result)
-                R_Q.remove(_v6_result)
-            else:
-                R_Q.deccount(_v6_result)
 
 def _maint_R_Q_for_R_wrapped_add(_elem):
     (_v7_a,) = _elem
