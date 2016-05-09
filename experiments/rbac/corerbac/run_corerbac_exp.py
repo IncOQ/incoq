@@ -538,6 +538,7 @@ class CoreDemand(CoreRBACWorkflow):
 class CoreDemandNorm(CoreDemand):
     
     prefix = 'results/corerbac_demand'
+    imagename = 'norm'
     
     class ExpExtractor(NormalizedExtractor, CoreDemand.ExpExtractor):
         

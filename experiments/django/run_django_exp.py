@@ -430,12 +430,14 @@ class DemandTime(Demand):
         width = 5.25
         figsize = (width, 2.625)
         tightlayout_bbox = (0, 0, 3.5/width, 1)
-        legend_bbox = (1, 0, 1, 1)
+        legend_bbox = (.98, 0, 1, 1)
         legend_loc = 'center left'
         
         ylabel = 'Running time (in seconds)'
 
 class DemandTimeNorm(Demand):
+    
+    imagename = 'norm'
     
     class ExpExtractor(Demand.ExpExtractor, NormalizedExtractor):
         
@@ -450,6 +452,28 @@ class DemandTimeNorm(Demand):
             return pre_y / base_y
         
         legend_loc = 'lower right'
+        
+        ylabel = 'Running time (normalized)'
+        
+        y_ticklocs = [0, .5, 1, 1.5]
+
+class DemandTimeNormNolegend(Demand):
+    
+    imagename = 'norm_nolegend'
+    
+    class ExpExtractor(Demand.ExpExtractor, NormalizedExtractor):
+        
+        base_sid_map = {
+            'django_dem': 'django_inc',
+            'django_osq': 'django_inc',
+            'django_simp_dem': 'django_simp_inc',
+            'django_simp_osq': 'django_simp_inc',
+        }
+        
+        def normalize(self, pre_y, base_y):
+            return pre_y / base_y
+        
+        no_legend = True
         
         ylabel = 'Running time (normalized)'
         

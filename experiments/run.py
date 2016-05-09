@@ -36,6 +36,7 @@ all_tasks = [
     ('django_scale',                    django.Scale()),
     ('django_demand',                   django.DemandTime()),
     ('django_demand_norm',              django.DemandTimeNorm()),
+    ('django_demand_norm_nolegend',     django.DemandTimeNormNolegend()),
     
     # JQL.
     ('jql_ratio_1',                     jql.Ratio1()),
