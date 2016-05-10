@@ -5,7 +5,7 @@ import argparse
 from time import process_time
 
 
-def run(bday, n_people, n_samples, threshold):
+def run(bday, n_people, n_samples, threshold, *, csv=False):
     # Do not call more than once per process; the bday database needs
     # to be cleared between uses.
     t1 = process_time()
@@ -27,9 +27,15 @@ def run(bday, n_people, n_samples, threshold):
     
     t2 = process_time()
     
-    print('{} people, {} samples'.format(n_people, n_samples))
-    print('Estimated probability: {:.6f}'.format(sum(samples)/len(samples)))
-    print('Took {:.3f} seconds'.format(t2 - t1))
+    if not csv:
+        print('{} people, {} samples'.format(n_people, n_samples))
+        print('Estimated probability: {:.6f}'.format(
+              sum(samples)/len(samples)))
+        print('Took {:.3f} seconds'.format(t2 - t1))
+    else:
+        print('{},{},{:.6f},{:.3f}'.format(
+              n_people, n_samples,
+              sum(samples)/len(samples), t2 - t1))
 
 
 if __name__ == '__main__':
@@ -38,6 +44,7 @@ if __name__ == '__main__':
     parser.add_argument('samples', type=int)
     parser.add_argument('threshold', type=int, nargs='?', default=1)
     parser.add_argument('--inc', action='store_true')
+    parser.add_argument('--csv', action='store_true')
     
     ns = parser.parse_args(sys.argv[1:])
     
@@ -46,4 +53,4 @@ if __name__ == '__main__':
     else:
         import bday_obj_in as bday
     
-    run(bday, ns.people, ns.samples, ns.threshold)
+    run(bday, ns.people, ns.samples, ns.threshold, csv=ns.csv)
