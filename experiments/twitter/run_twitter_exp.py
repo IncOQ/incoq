@@ -728,16 +728,20 @@ class Demand(TwitterWorkflow):
                 ]
             return s
         
-        xlabel = 'Number of users in \\texttt{U} (in thousands)'
+#        xlabel = 'Number of users in \\texttt{U} (in thousands)'
         # For Annie's writing, use "demand" instead of U.
 #        xlabel = 'Number of users in \\texttt{demand} (in thousands)'
+#        def project_x(self, p):
+#            return super().project_x(p) / 1e3
+#        xmin = -1
+#        xmax = 21
+#        x_ticklocs = [0, 4, 8, 12, 16, 20]
         
+        xlabel = 'Percentage of users in \\texttt{U}'
         def project_x(self, p):
-            return super().project_x(p) / 1e3
-        
-        xmin = -1
-        xmax = 21
-        x_ticklocs = [0, 4, 8, 12, 16, 20]
+            return super().project_x(p) / 1e3 / 20 * 100
+        xmin = -5
+        xmax = 105
 
 class DemandTime(Demand):
     

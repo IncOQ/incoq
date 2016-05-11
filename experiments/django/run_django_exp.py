@@ -414,9 +414,15 @@ class Demand(DjangoWorkflow):
              'green', '- _^ normal'),
         ]
         
-        xlabel = 'Number of demanded users'
-        xmin = -10
-        xmax = 310
+#        xlabel = 'Number of demanded users'
+#        xmin = -10
+#        xmax = 310
+        
+        xlabel = 'Percentage of demanded users'
+        def project_x(self, p):
+            return super().project_x(p) / 300 * 100
+        xmin = -5
+        xmax = 105
         
         max_yitvls = 5
         

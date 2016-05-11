@@ -231,10 +231,10 @@ class CRBACScale(CRBACWorkflow):
              'red', '- s poly5'),
             ('crbac_aux', 'auxiliary maps',
              'orange', '-- s poly3'),
-            ('crbac_inc', 'unfiltered',
+            ('crbac_inc', 'incremental',
              'blue', '- o poly2'),
-            ('crbac_dem', 'filtered',
-             'green', '- ^ poly2'),
+#            ('crbac_dem', 'filtered',
+#             'green', '- ^ poly2'),
         ]
         
         multipliers = {

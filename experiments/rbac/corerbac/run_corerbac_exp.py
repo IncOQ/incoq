@@ -526,13 +526,21 @@ class CoreDemand(CoreRBACWorkflow):
         ]
         
         title = None
+        
+#        xlabel = 'Number of queried objects'
+#        xmin = -50
+#        xmax = 1050
+        
+        xlabel = 'Percentage of demanded objects'
+        def project_x(self, p):
+            return super().project_x(p) / 1000 * 100
+        xmin = -5
+        xmax = 105
+        
         ylabel = 'Running time (in seconds)'
-        xlabel = 'Number of queried objects'
         metric = 'time_cpu'
         
         ymin = 0
-        xmin = -50
-        xmax = 1050
         ymax = 5
 
 class CoreDemandNorm(CoreDemand):
