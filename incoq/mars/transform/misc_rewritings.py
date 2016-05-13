@@ -249,9 +249,9 @@ def distalgo_preprocess(tree, symtab):
 
 
 def rewrite_aggregates(tree, symtab):
-    """Rewrite a min/max of a set union of set literals and one non-
-    literal term, by pushing the query down to the non-literal term,
-    and combining the terms with min2/max2.
+    """Rewrite a min/max of a set union of set terms, by distributing
+    the query down to the non-set-literal terms, and combining the terms
+    with min2/max2
     """
     class Rewriter(S.QueryRewriter):
         expand = True
@@ -266,16 +266,13 @@ def rewrite_aggregates(tree, symtab):
                 return
             
             parts = L.get_setunion(aggr.value)
-            # Only operate where at most one of the unioned sets is
-            # not a set literal.
-            if len([p for p in parts if not isinstance(p, L.Set)]) > 1:
+            if len(parts) <= 1:
                 return
-            # Only operate where at least one of the parts is a set
-            # literal.
-            if len([p for p in parts if isinstance(p, L.Set)]) == 0:
-                return
+            multiple_queries = \
+                len([p for p in parts if not isinstance(p, L.Set)]) > 1
             
-            found_nonliteral = False
+            i = 2
+            done_first_query = False
             new_parts = []
             for p in parts:
                 if isinstance(p, L.Set):
@@ -283,12 +280,22 @@ def rewrite_aggregates(tree, symtab):
                     # min2/max2.
                     new_parts.extend(p.elts)
                 else:
-                    # Push the Query node down to the non-literal argument.
-                    assert not found_nonliteral
                     new_query_node = aggr._replace(value=p)
-                    new_parts.append(L.Query(name, new_query_node, None))
-                    symbol.node = new_query_node
-                    found_nonliteral = True
+                    if done_first_query:
+                        # Create a new query symbol and node for this
+                        # non-literal argument.
+                        new_name = name + '_aggrop' + str(i)
+                        i += 1
+                        new_parts.append(L.Query(new_name, new_query_node,
+                                                 None))
+                        symtab.define_query(new_name, node=new_query_node,
+                                            impl=symbol.impl)
+                    else:
+                        # Push the Query node down to the first non-literal
+                        # argument.
+                        new_parts.append(L.Query(name, new_query_node, None))
+                        symbol.node = new_query_node
+                        done_first_query = True
             
             return L.Call(func, new_parts)
     

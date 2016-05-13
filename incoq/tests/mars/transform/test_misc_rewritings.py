@@ -116,16 +116,39 @@ class MiscRewritingsCase(unittest.TestCase):
         exp_aggr = L.Parser.pe('max(A)')
         self.assertEqual(query.node, exp_aggr)
         
+        symtab = S.SymbolTable()
+        aggr = L.Parser.pe('max(A | B | {0})')
+        query = symtab.define_query('Q', node=aggr, impl=S.Inc)
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', max(A | B | {0})))
+            ''')
+        tree = rewrite_aggregates(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                print(max2(QUERY('Q', max(A)),
+                           QUERY('Q_aggrop2', max(B)),
+                           0))
+            ''')
+        self.assertEqual(tree, exp_tree)
+        exp_aggr1 = L.Parser.pe('max(A)')
+        exp_aggr2 = L.Parser.pe('max(B)')
+        q2 = symtab.get_queries()['Q_aggrop2']
+        self.assertEqual(query.node, exp_aggr1)
+        self.assertEqual(query.impl, S.Inc)
+        self.assertEqual(q2.node, exp_aggr2)
+        self.assertEqual(q2.impl, S.Inc)
+        
         # Don't fire where inapplicable.
         symtab = S.SymbolTable()
         aggr1 = L.Parser.pe('max(A)')
         query1 = symtab.define_query('Q1', node=aggr1)
-        aggr2 = L.Parser.pe('max(A | {1} | B)')
+        aggr2 = L.Parser.pe('max((A | {1}) + B)')
         query2 = symtab.define_query('Q2', node=aggr2)
         tree = L.Parser.p('''
             def main():
                 print(QUERY('Q1', max(A)))
-                print(QUERY('Q2', max(A | {1} | B)))
+                print(QUERY('Q2', max((A | {1}) + B)))
             ''')
         exp_tree = tree
         tree = rewrite_aggregates(tree, symtab)
