@@ -101,7 +101,7 @@ tasks = [
 #    ('ratoken/spec', 'ratoken/ratoken'),
 #    ('sktoken/orig', 'sktoken/sktoken'),
 #    ('2pcommit/spec', 'tpcommit/tpcommit'),
-#    ('vrpaxos/orig', 'vrpaxos/vrpaxos'),
+#    ('vrpaxos/spec', 'vrpaxos/vrpaxos'),
 ]
 
 if __name__ == '__main__':

@@ -770,11 +770,11 @@ class TPCommit(DistalgoWorkflow):
 
 class VRPaxosDriver(DistalgoDriver):
     dafilename = 'vrpaxos/vrpaxos.da'
-    argnames = []
+    argnames = ['n_acc', 'n_repl', 'n_lead', 'n_client', 'n_ops']
 
 class VRPaxos(DistalgoWorkflow):
     
-    prefix = 'results/vrpaxos'
+    prefix = 'results/da_vrpaxos'
     
     ExpDriver = VRPaxosDriver
     
@@ -782,7 +782,7 @@ class VRPaxos(DistalgoWorkflow):
         
         progs = [
             'vrpaxos_inc_in',
-            'vrpaxos_inc_dem',
+#            'vrpaxos_inc_out',
         ]
         
         def get_dsparams_list(self):
@@ -790,8 +790,21 @@ class VRPaxos(DistalgoWorkflow):
                 dict(
                     dsid =     str(x),
                     x =        x,
+                    
+#                    n_acc = 8,
+#                    n_repl = 8,
+#                    n_lead = 2,
+#                    n_client = 5,
+#                    n_ops = 3,
+                    
+                    n_acc = x,
+                    n_repl = x,
+                    n_lead = x,
+                    n_client = x,
+                    n_ops = 3,
                 )
-                for x in [1]
+                    for x in [2]
+#                for x in [1, 2, 3, 4, 5]
             ]
     
     class ExpExtractor(DistalgoWorkflow.ExpExtractor):
