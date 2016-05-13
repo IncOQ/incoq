@@ -159,8 +159,8 @@ class ReplaceableRewriterBase(L.NodeTransformer):
     
     def Tuple_helper(self, node):
         if not L.is_tuple_of_names(node):
-            return L.ProgramError('Non-simple tuple expression: {}'
-                                  .format(node))
+            raise L.ProgramError('Non-simple tuple expression: {}'
+                                 .format(node))
         elts = L.detuplify(node)
         
         name = self.tuple_namer(elts)

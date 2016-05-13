@@ -421,10 +421,28 @@ def rewrite_all_comps_with_patterns(tree, symtab):
     """Perform pattern rewriting for all comprehension queries that
     are to be incrementalized. Parameter information must be available.
     """
+    class Finder(L.NodeVisitor):
+        def process(self, tree):
+            self.syms = OrderedSet()
+            super().process(tree)
+            return self.syms
+        def visit_Query(self, node):
+            self.generic_visit(node)
+            self.syms.add(symtab.get_symbols()[node.name])
+    
     class Rewriter(S.QueryRewriter):
         def rewrite_comp(self, symbol, name, comp):
             ct = self.symtab.clausetools
-            comp = ct.rewrite_with_patterns(comp, symbol.params)
+            
+            # Get our parameters and our subquery's parameters and don't
+            # rewrite them away, to ensure we don't mess up anyone's
+            # params attribute in the symbol table.
+            subqueries = Finder.run(comp)
+            all_params = OrderedSet.from_union(
+                            q.params for q in subqueries)
+            all_params.update(symbol.params)
+            comp = ct.rewrite_with_patterns(comp, all_params)
+            
             return comp
     
     return Rewriter.run(tree, symtab)
