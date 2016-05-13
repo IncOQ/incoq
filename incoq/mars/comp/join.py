@@ -82,28 +82,32 @@ class ClauseTools(ClauseVisitor):
                 rels.add(rel)
         return tuple(rels)
     
-    def uncon_lhs_vars_from_comp(self, comp):
-        """Return a tuple of unconstrained variables.
+    def con_lhs_vars_from_comp(self, comp):
+        """Return a tuple of constrained variables.
         
-        An variable is unconstrained if it appears in a clause at a
-        position that is not constrained, and if it appears in no prior
-        clause at a constrained position.
+        An variable is constrained if its first occurrence in the query
+        is in a constrained position.
         
         For cyclic object queries like
         
             {(x, y) for y in x for x in y},
         
         after translating into clauses over M, there are two possible
-        sets of unconstrained vars: {x} and {y}. This function processes
-        clauses left-to-right, so {x} will be chosen.
+        sets of constrained vars: {x} and {y}. This function processes
+        clauses left-to-right, so {y} will be chosen.
         """
         uncon = OrderedSet()
-        supported = set()
+        con = OrderedSet()
         for cl in comp.clauses:
-            uncon.update(v for v in self.uncon_vars(cl)
-                           if v not in supported)
-            supported.update(self.con_lhs_vars(cl))
-        return tuple(uncon)
+            # The new unconstrained vars are the ones that occur in
+            # unconstrained positions and are not already known to be
+            # constrained.
+            uncon.update(v for v in self.uncon_vars(cl) if v not in con)
+            # Vice versa for the constrained vars. Uncons are processed
+            # first so that "x in x" makes x unconstrained if it hasn't
+            # been seen before.
+            con.update(v for v in self.con_lhs_vars(cl) if v not in uncon)
+        return tuple(con)
     
     def make_join_from_clauses(self, clauses):
         """Create a join from the given clauses."""

@@ -38,24 +38,24 @@ class JoinCase(unittest.TestCase):
         lhs_vars = self.ct.lhs_vars_from_comp(comp)
         self.assertSequenceEqual(lhs_vars, ['x', 'y', 'z'])
     
-    def test_uncon_lhs_vars_from_comp(self):
+    def test_con_lhs_vars_from_comp(self):
         class DummyHandler(RelMemberHandler):
             def constrained_mask(self, cl):
                 return [False, True]
         self.ct.handle_RelMember = DummyHandler(self.ct)
         
-        comp = L.Parser.pe('''{None for (x, y) in REL(R)
-                                    for (y, z) in REL(R)
-                                    for (a, z) in REL(R)
-                                    if y > b}''')
-        uncon = self.ct.uncon_lhs_vars_from_comp(comp)
-        self.assertSequenceEqual(uncon, ['x', 'a', 'b'])
+        comp = L.Parser.pe('''{c for (x, y) in REL(R)
+                                 for (y, z) in REL(R)
+                                 for (a, z) in REL(R)
+                                 if y > b}''')
+        uncon = self.ct.con_lhs_vars_from_comp(comp)
+        self.assertSequenceEqual(uncon, ['y', 'z'])
         
         # Cyclic case.
         comp = L.Parser.pe('''{None for (x, y) in REL(R)
                                     for (y, x) in REL(R)}''')
-        uncon = self.ct.uncon_lhs_vars_from_comp(comp)
-        self.assertSequenceEqual(uncon, ['x'])
+        uncon = self.ct.con_lhs_vars_from_comp(comp)
+        self.assertSequenceEqual(uncon, ['y'])
     
     def test_rhs_rels_from_comp(self):
         comp = L.Parser.pe('''{(x, y, z) for (x, y) in REL(R)

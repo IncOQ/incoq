@@ -97,8 +97,8 @@ def determine_comp_demand_params(clausetools, comp, params, demand_params,
                              'demand_param_strat is set to "explicit"')
     
     if strat == S.Unconstrained:
-        uncon_vars = clausetools.uncon_lhs_vars_from_comp(comp)
-        result  = tuple(p for p in params if p in uncon_vars)
+        con_vars = clausetools.con_lhs_vars_from_comp(comp)
+        result  = tuple(p for p in params if p not in con_vars)
     elif strat == S.All:
         result = params
     elif strat == S.Explicit:
