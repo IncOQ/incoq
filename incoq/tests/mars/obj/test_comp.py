@@ -45,7 +45,6 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(before_clauses, exp_before_clauses)
         self.assertSequenceEqual(after_clauses, exp_after_clauses)
         
-        
         # a.b should already be there from the above run.
         tree = L.Parser.pe('(a.b.c,)')
         tree, before_clauses, after_clauses = rewriter.process(tree)
@@ -94,6 +93,17 @@ class ClauseCase(unittest.TestCase):
                  if (m_o > o_f)}
             ''')
         exp_objrels = ObjRelations(False, ['s', 'f'], True, [])
+        self.assertEqual(comp, exp_comp)
+        self.assertEqual(objrels, exp_objrels)
+        
+        # Make sure the order is correct for nested tuples.
+        comp = L.Parser.pe('{c for ((a, b), c) in s}')
+        comp, objrels = flatten_replaceables(comp)
+        exp_comp = L.Parser.pe('''
+            {c for t_t_a_b_c in s for (t_t_a_b_c, t_a_b, c) in TUP()
+               for (t_a_b, a, b) in TUP()}
+            ''')
+        exp_objrels = ObjRelations(False, [], False, [2, 2])
         self.assertEqual(comp, exp_comp)
         self.assertEqual(objrels, exp_objrels)
     

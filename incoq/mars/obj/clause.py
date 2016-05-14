@@ -40,6 +40,9 @@ class MMemberHandler(RelMemberHandler):
     def constrained_mask(self, cl):
         return (False, True)
     
+    def filter_needs_preds(self, cl):
+        return True
+    
     def get_code(self, cl, bindenv, body):
         vars = self.lhs_vars(cl)
         assert_unique(vars)
@@ -81,6 +84,9 @@ class FMemberHandler(RelMemberHandler):
     
     def constrained_mask(self, cl):
         return (False, True)
+    
+    def filter_needs_preds(self, cl):
+        return True
     
     def functionally_determines(self, cl, bindenv):
         mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
@@ -141,6 +147,9 @@ class MAPMemberHandler(RelMemberHandler):
     
     def constrained_mask(self, cl):
         return (False, True, True)
+    
+    def filter_needs_preds(self, cl):
+        return True
     
     def functionally_determines(self, cl, bindenv):
         mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)
@@ -208,6 +217,9 @@ class TUPMemberHandler(RelMemberHandler):
     
     def constrained_mask(self, cl):
         return (False,) + tuple(True for _ in cl.elts)
+    
+    def filter_needs_preds(self, cl):
+        return True
     
     def functionally_determines(self, cl, bindenv):
         mask = L.mask_from_bounds(self.lhs_vars(cl), bindenv)

@@ -22,6 +22,7 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(v.rhs_rel(cl), '_M')
         
         self.assertSequenceEqual(v.uncon_vars(cl), ['s'])
+        self.assertTrue(v.filter_needs_preds(cl))
         
         # All bound.
         code = v.get_code(cl, ['s', 'e'], (L.Pass(),))
@@ -63,6 +64,7 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(v.rhs_rel(cl), '_F_f')
         
         self.assertSequenceEqual(v.uncon_vars(cl), ['o'])
+        self.assertTrue(v.filter_needs_preds(cl))
         
         b = v.functionally_determines(cl, ['o'])
         self.assertTrue(b)
@@ -110,6 +112,7 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(v.rhs_rel(cl), '_MAP')
         
         self.assertSequenceEqual(v.uncon_vars(cl), ['m'])
+        self.assertTrue(v.filter_needs_preds(cl))
         
         b = v.functionally_determines(cl, ['m', 'k'])
         self.assertTrue(b)
@@ -166,6 +169,7 @@ class ClauseCase(unittest.TestCase):
         self.assertEqual(v.rhs_rel(cl), '_TUP_2')
         
         self.assertSequenceEqual(v.uncon_vars(cl), ['t'])
+        self.assertTrue(v.filter_needs_preds(cl))
         
         b = v.functionally_determines(cl, ['t'])
         self.assertTrue(b)

@@ -87,7 +87,8 @@ class MutableObjRelations(Struct):
 class ReplaceableRewriterBase(L.NodeTransformer):
     
     """Rewrite replaceable expressions. Return a pair of the modified
-    tree and a sequence of new clauses to insert prior to this AST.
+    tree and two sequences of new clauses to insert before and after
+    the occurrence of this AST's clause.
     
     It is intended that the same instance of this transformer be reused
     for each part of a comprehension. A new variable and clause will
@@ -166,7 +167,7 @@ class ReplaceableRewriterBase(L.NodeTransformer):
         name = self.tuple_namer(elts)
         clause = L.TUPMember(name, elts)
         self.objrels.TUPs.append(len(elts))
-        self.after_clauses.append(clause)
+        self.after_clauses.insert(0, clause)
         return name
     
     def replaceable_helper(self, node):

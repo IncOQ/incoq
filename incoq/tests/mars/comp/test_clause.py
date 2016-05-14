@@ -35,6 +35,7 @@ class ClauseCase(unittest.TestCase):
         self.assertSequenceEqual(v.tagsout_mask(cl), [True, True, True])
         self.assertIs(v.should_filter(cl, ['x', 'y']), ShouldFilter.Yes)
         self.assertIs(v.should_filter(cl, ['x', 'y', 'z']), ShouldFilter.No)
+        self.assertFalse(v.filter_needs_preds(cl))
         
         class DummyHandler(RelMemberHandler):
             def constrained_mask(self, cl):

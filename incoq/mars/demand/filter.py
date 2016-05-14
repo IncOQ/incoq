@@ -170,6 +170,10 @@ class StructureGenerator:
                 n = len(self.filters_by_rel[rel]) + 1
                 name = self.get_filter_name(rel, n)
                 preds = self.get_preds(i, in_vars)
+                if ct.filter_needs_preds(cl) and len(preds) == 0:
+                    raise L.ProgramError('No predecessors tags for filter '
+                                         'over clause: {}'.format(
+                                         L.Parser.ts(cl)))
                 filter = Filter(i, name, cl, preds)
                 self.add_struct(filter)
                 filtered_cl = self.clause_over_filter[name]

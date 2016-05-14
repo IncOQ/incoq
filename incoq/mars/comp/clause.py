@@ -179,6 +179,12 @@ class ClauseHandler(BaseClauseHandler):
         else:
             return ShouldFilter.Yes
     
+    def filter_needs_preds(self, cl):
+        """Return whether a filter over this clause requires at least
+        one predecessor tag.
+        """
+        return False
+    
     def functionally_determines(self, cl, bindenv):
         """Return True if in the given binding environment, this clause
         can be satisfied at most once.
@@ -267,6 +273,7 @@ for op in [
     'tagsin_lhs_vars',
     'tagsout_lhs_vars',
     'should_filter',
+    'filter_needs_preds',
     'functionally_determines',
     'get_priority',
     'get_code',
