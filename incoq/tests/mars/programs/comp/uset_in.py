@@ -4,7 +4,7 @@ from incoq.mars.runtime import *
 
 CONFIG(
     default_impl = 'inc',
-    default_demand_set_maxsize = 3,
+    default_demand_set_maxsize = '3',
 )
 
 S = Set()

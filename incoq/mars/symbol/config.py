@@ -2,7 +2,6 @@
 
 
 __all__ = [
-    'ConfigAttribute',
     'Config',
     'get_argparser',
     'extract_options',
@@ -10,7 +9,6 @@ __all__ = [
 
 
 import argparse
-from simplestruct import Struct, Field
 
 from incoq.mars.type import T
 
@@ -36,29 +34,35 @@ def parse_typedef(s, symtab=None):
 # purposes.
 
 
-class ConfigAttribute(Struct):
+class BaseConfigAttribute:
     
     """Descriptor for a configuration attribute."""
     
-    # The actual attribute value, if it exists, is stored on the
-    # instance under the name of the attribute prefixed with an
-    # underscore.
+    def __init__(self, name, default_str, docstring):
+        self.name = name
+        """Name of config attribute."""
+        self.default_str = default_str
+        """String representation of default value."""
+        self.docstring = docstring
+        """User documentation / description of config attribute."""
+        
+        self.default = self.parse(default_str)
     
-    name = Field()
-    """Name of attribute."""
-    default = Field()
-    """Default value."""
-    docstring = Field()
-    """User documentation."""
-    parser = Field()
-    """Callable that takes a string to a value for this attribute. If
-    None, this attribute is internal and should not be populated by the
-    user.
-    """
-    argparse_kargs = Field()
-    """Dictionary to pass along as **kargs to argparse's add_argument()
-    function.
-    """
+    def parse(self, s):
+        """Given a string, return a parsed value for this attribute,
+        or raise ValueError if the string is unacceptable.
+        """
+        return s
+    
+    def update_argparser(self, argparser):
+        """Given an argparse.ArgumentParser object, update it to be
+        able to parse the command line options corresponding to this
+        config attribute.
+        """
+        pass
+    
+    # The underlying value is stored in a '_'-prefixed version of the
+    # config attribute's name.
     
     def __get__(self, inst, owner):
         if inst is None:
@@ -71,93 +75,161 @@ class ConfigAttribute(Struct):
         setattr(inst, '_' + self.name, value)
 
 
+class BooleanConfigAttribute(BaseConfigAttribute):
+    
+    """Configuration attribute that can take on true/false values."""
+    
+    def __init__(self, name, default_str, docstring):
+        super().__init__(name, default_str, docstring)
+        assert isinstance(self.default, bool)
+    
+    def parse(self, s):
+        return parse_bool(s)
+    
+    def update_argparser(self, argparser):
+        argname = self.name.replace('_', '-')
+        
+        # Choose whether help for the normal or negated version
+        # is visible.
+        if self.default is False:
+            positive_help = self.docstring
+            negative_help = argparse.SUPPRESS
+        else:
+            positive_help = argparse.SUPPRESS
+            negative_help = '(disable) ' + self.docstring
+        
+        argparser.add_argument('--' + argname,
+                               help=positive_help,
+                               action='store_const',
+                               const='true',
+                               dest=self.name)
+        argparser.add_argument('--no-' + argname,
+                               help=negative_help,
+                               action='store_const',
+                               const='false',
+                               dest=self.name)
+
+
+class EnumConfigAttribute(BaseConfigAttribute):
+    
+    """Configuration attribute that can take on some Constant values."""
+    
+    def __init__(self, name, default_str, docstring, allowed):
+        super().__init__(name, default_str, docstring)
+        assert isinstance(self.default, Constants)
+        self.allowed = allowed
+        assert all(isinstance(self.parse(v), Constants)
+                   for v in allowed)
+    
+    def parse(self, s):
+        return Constants.parse(s)
+    
+    def update_argparser(self, argparser):
+        argname = self.name.replace('_', '-')
+        
+        docstring = '{} (default: {})'.format(
+            self.docstring, self.default_str)
+        
+        argparser.add_argument('--' + argname,
+                               help=docstring,
+                               action='store',
+                               choices=self.allowed,
+                               dest=self.name)
+
+
+class IntNoneConfigAttribute(BaseConfigAttribute):
+    
+    """Configuration attribute that can take on some Constant values."""
+    
+    def __init__(self, name, default_str, docstring):
+        super().__init__(name, default_str, docstring)
+    
+    def parse(self, s):
+        if s.lower().strip() == 'none':
+            return None
+        else:
+            return int(s)
+    
+    def update_argparser(self, argparser):
+        argname = self.name.replace('_', '-')
+        
+        docstring = '{} (default: {})'.format(
+            self.docstring, self.default_str)
+        
+        argparser.add_argument('--' + argname,
+                               help=docstring,
+                               action='store',
+                               dest=self.name)
+
+
+class TypedefConfigAttribute(BaseConfigAttribute):
+    
+    def __init__(self, name, default_str, docstring):
+        super().__init__(name, default_str, docstring)
+    
+    def parse(self, s):
+        return parse_typedef(s)
+    
+    def update_argparser(self, argparser):
+        argname = self.name.replace('_', '-')
+        
+        argparser.add_argument('--' + argname,
+                               help=self.docstring,
+                               action='store',
+                               dest=self.name)
+
+
 all_attributes = [
-    ConfigAttribute('verbose', False,
-        'print transformation information to standard output',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('verbose', 'false',
+        'print transformation information to standard output'),
     
-    ConfigAttribute('pretend', False,
-        'write to standard output instead of the output file',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('pretend', 'false',
+        'write to standard output instead of the output file'),
     
-    ConfigAttribute('obj_domain', False,
-        'whether or not the program is in the object-domain',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('obj_domain', 'false',
+        'flatten sets and objects'),
     
-    ConfigAttribute('default_impl', Constants.Normal,
-        'default implementation strategy',
-        Constants.parse,
-        {'type': Constants.parse}),
+    EnumConfigAttribute('default_impl', 'normal',
+        'default implementation strategy to use for queries',
+        ['normal', 'aux', 'inc', 'filtered']),
     
-    ConfigAttribute('default_demand_set_maxsize', None,
-        'default value for demand_set_maxsize',
-        int,    # Should really use a better parse function
-                # that also supports None
-        {'type': int}),
+    IntNoneConfigAttribute('default_demand_set_maxsize', 'none',
+        'default value of demand_set_maxsize to use for all queries'),
     
-    ConfigAttribute('use_singletag_demand', False,
-        'if True, only use one tag in the definition of each filter',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('use_singletag_demand', 'false',
+        'only use one tag in the definition of each filter'),
     
-    ConfigAttribute('unwrap_singletons', False,
-        'rewrite singleton relations to eliminate unneeded tuples',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('unwrap_singletons', 'false',
+        'rewrite singleton relations to eliminate unneeded tuples'),
     
-    # TODO: Need to refactor this to separate config options from
-    # parser options, so we can have --no-auto-query, --no-inline...,
-    # etc., that have 'store_false' as an action.
+    BooleanConfigAttribute('auto_query', 'false',
+        'automatically consider comps/aggrs as queries even without '
+        'QUERY annotations'),
     
-    ConfigAttribute('auto_query', False,
-        'if true, automatically wrap comprehensions and aggregates '
-        'in QUERY annotations',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('inline_maint_code', 'false',
+        'inline inserted maintenance functions'),
     
-    ConfigAttribute('inline_maint_code', False,
-        'if true, inline inserted maintenance functions',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('elim_counts', 'true',
+        'eliminate counts where we can infer it\'s safe to do so'),
     
-    ConfigAttribute('elim_counts', True,
-        'if true, eliminate counts where we can infer it\'s safe to '
-        'do so',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('elim_dead_relations', 'true',
+        'eliminate dead relations'),
     
-    ConfigAttribute('elim_dead_relations', True,
-        'if true, eliminate dead relations',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('elim_type_checks', 'true',
+        'eliminate type checks where safe'),
     
-    ConfigAttribute('elim_type_checks', True,
-        'if true, eliminate type checks where safe',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('elim_dead_funcs', 'true',
+        'eliminate uncalled maintenance functions'),
     
-    ConfigAttribute('elim_dead_funcs', True,
-        'if true, eliminate uncalled maintenance functions',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('distalgo_mode', 'true',
+        'enable special rewritings for DistAlgo inc interface'),
     
-    ConfigAttribute('distalgo_mode', True,
-        'enable special rewritings for DistAlgo inc interface',
-        parse_bool,
-        {'action': 'store_true'}),
+    TypedefConfigAttribute('typedefs', '',
+        'mapping from type identifiers to type definition, in form of '
+        '"name=typeexpr; ...; name=typeexpr" declarations'),
     
-    ConfigAttribute('typedefs', {},
-        'mapping from type identifiers to type definition',
-        parse_typedef,
-        {}),
-    
-    ConfigAttribute('costs', True,
-        'write cost annotation comments',
-        parse_bool,
-        {'action': 'store_true'}),
+    BooleanConfigAttribute('costs', 'true',
+        'emit cost annotation comments at the top of functions'),
 ]
 
 
@@ -172,20 +244,22 @@ class Config:
         return '\n'.join('{}: {}'.format(attr.name, getattr(self, attr.name))
                          for attr in all_attributes)
     
-    def update(self, *, parse=False, **kargs):
-        """Assign to each attribute as specified in keyword arguments."""
+    def parse_and_update(self, **kargs):
+        """Given the string-to-string mapping specified by **kargs,
+        update all stored attributes to their parsed values. Attribute
+        keys that are missing from **kargs or that map to None are
+        ignored, i.e., their previous value is left standing.
+        """
         for attr, value in kargs.items():
+            if value is None:
+                continue
+            
             descriptor = getattr(type(self), attr, None)
-            if not isinstance(descriptor, ConfigAttribute):
+            if not isinstance(descriptor, BaseConfigAttribute):
                 raise ValueError('Unknown config attribute "{}"'.format(attr))
             
-            if parse:
-                value = descriptor.parser(value)
-            
+            value = descriptor.parse(value)
             setattr(self, attr, value)
-    
-    def parse_and_update(self, **kargs):
-        return self.update(parse=True, **kargs)
 
 for attr in all_attributes:
     setattr(Config, attr.name, attr)
@@ -193,13 +267,10 @@ for attr in all_attributes:
 
 def get_argparser():
     """Return a parent parser for the configuration options."""
-    parser = argparse.ArgumentParser(add_help=False)
+    argparser = argparse.ArgumentParser(add_help=False)
     for attr in all_attributes:
-        parser.add_argument('--' + attr.name,
-                            help=attr.docstring,
-                            default=attr.default,
-                            **attr.argparse_kargs)
-    return parser
+        attr.update_argparser(argparser)
+    return argparser
 
 
 def extract_options(namespace):
@@ -207,4 +278,5 @@ def extract_options(namespace):
     for all configuration options.
     """
     return {attr.name: getattr(namespace, attr.name)
-            for attr in all_attributes}
+            for attr in all_attributes
+            if getattr(namespace, attr.name) is not None}

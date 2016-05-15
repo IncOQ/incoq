@@ -36,7 +36,7 @@ MAXDIFF = None
 
 
 def transform(in_source):
-    return transform_source(in_source, options={'costs': False})
+    return transform_source(in_source, options={'costs': 'false'})
 
 
 def make_transform_test(base_name, in_name, outpy_name, outtxt_name):

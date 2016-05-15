@@ -27,9 +27,11 @@ def run(args):
     """Entry point for incoq.mars."""
     parent = get_argparser()
     parser = argparse.ArgumentParser(prog='incoq.mars', parents=[parent])
-    parser.add_argument('in_file')
-    parser.add_argument('out_file')
-    parser.add_argument('--stats', nargs=1, default=[None])
+    parser.add_argument('in_file', help='path to input file')
+    parser.add_argument('out_file', help='path to output file')
+    parser.add_argument('--stats', nargs=1, default=[None],
+                        help='if present, path to write transformation '
+                             'stats to')
     
     ns = parser.parse_args(args)
     

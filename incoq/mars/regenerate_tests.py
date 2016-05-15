@@ -39,7 +39,7 @@ def regenerate_test(test_name, *, options=None):
     print('Regenerating {}...'.format(test_name), flush=True)
     
     # Tests do not do cost analysis, in order to run faster.
-    options['costs'] = False
+    options['costs'] = 'false'
     
     main.invoke(in_path, out_path, options=options)
 

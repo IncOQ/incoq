@@ -268,12 +268,13 @@ def transform_ast(input_ast, *, options=None, query_options=None):
         query_options = {}
     
     config = S.Config()
-    config.update(**options)
     
     symtab = S.SymbolTable()
     symtab.config = config
     
     tree = preprocess_tree(tree, symtab, query_options)
+    
+    config.parse_and_update(**options)
     
     if config.auto_query:
         tree = mark_query_forms(tree, symtab)
