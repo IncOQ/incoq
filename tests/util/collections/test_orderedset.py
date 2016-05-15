@@ -16,10 +16,10 @@ class TestOrderedSet(unittest.TestCase):
     def test_update(self):
         s = OrderedSet('abc')
         s.update('def')
-        self.assertEqual(s, 'abcdef')
+        self.assertSequenceEqual(list(s), 'abcdef')
         
         s.update_union(['ghi', 'jkl'])
-        self.assertEqual(s, 'abcdefghijkl')
+        self.assertSequenceEqual(list(s), 'abcdefghijkl')
         
         s2 = OrderedSet.from_union(['abc', 'def', 'ghi', 'jkl'])
         self.assertEqual(s, s2)
