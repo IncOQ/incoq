@@ -4,8 +4,8 @@
 import unittest
 import argparse
 
-from incoq.mars.symbol.config import *
-from incoq.mars.symbol.config import all_attributes
+from incoq.compiler.symbol.config import *
+from incoq.compiler.symbol.config import all_attributes
 
 
 class ConfigCase(unittest.TestCase):

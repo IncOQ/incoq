@@ -3,9 +3,9 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.symbol import S
-from incoq.mars.transform.misc_rewritings import *
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import S
+from incoq.compiler.transform.misc_rewritings import *
 
 
 class MiscRewritingsCase(unittest.TestCase):

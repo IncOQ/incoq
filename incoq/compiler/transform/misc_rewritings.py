@@ -14,8 +14,8 @@ __all__ = [
 ]
 
 
-from incoq.mars.incast import L
-from incoq.mars.symbol import S
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import S
 
 
 def mark_query_forms(tree, symtab):

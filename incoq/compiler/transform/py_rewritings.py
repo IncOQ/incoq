@@ -36,7 +36,7 @@ from incoq.util.seq import pairs
 from incoq.util.type import typechecked
 from incoq.util.collections import OrderedSet
 
-from incoq.mars.incast import P, L
+from incoq.compiler.incast import P, L
 
 
 class QueryDirectiveRewriter(P.NodeTransformer):
@@ -140,13 +140,13 @@ class RuntimeImportRemover(P.NodeTransformer):
     """Eliminate the runtime import statement and turn qualified
     names from the runtime into unqualified names, e.g.,
     
-        incoq.mars.runtime.Set -> Set
+        incoq.runtime.Set -> Set
     
     The recognized import forms are:
     
-        import incoq.mars.runtime
-        import incoq.mars.runtime as <alias>
-        from incoq.mars.runtime import *
+        import incoq.runtime
+        import incoq.runtime as <alias>
+        from incoq.runtime import *
     
     If <alias> is used, the alias prefix is removed from qualified
     names.
@@ -157,11 +157,11 @@ class RuntimeImportRemover(P.NodeTransformer):
     
     def process(self, tree):
         self.quals = set()
-        self.quals.add(P.Parser.pe('incoq.mars.runtime'))
+        self.quals.add(P.Parser.pe('incoq.runtime'))
         return super().process(tree)
     
     def visit_Import(self, node):
-        pat = P.Import([P.alias('incoq.mars.runtime', P.PatVar('_ALIAS'))])
+        pat = P.Import([P.alias('incoq.runtime', P.PatVar('_ALIAS'))])
         match = P.match(pat, node)
         if match is None:
             return node
@@ -173,7 +173,7 @@ class RuntimeImportRemover(P.NodeTransformer):
         return []
     
     def visit_ImportFrom(self, node):
-        pat = P.Parser.ps('from incoq.mars.runtime import *')
+        pat = P.Parser.ps('from incoq.runtime import *')
         if node != pat:
             return node
         
@@ -206,7 +206,7 @@ class RuntimeImportAdder(P.NodeTransformer):
     """Add a line to import the runtime library."""
     
     def visit_Module(self, node):
-        import_stmt = P.Parser.ps('from incoq.mars.runtime import *')
+        import_stmt = P.Parser.ps('from incoq.runtime import *')
         return node._replace(body=(import_stmt,) + node.body)
 
 

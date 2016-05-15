@@ -3,7 +3,7 @@
 
 import unittest
 
-import incoq.mars.cost.costs as C
+import incoq.compiler.cost.costs as C
 
 
 class CostCase(unittest.TestCase):

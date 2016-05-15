@@ -1,7 +1,7 @@
 # Q : {(c,) for (a, b) in REL(S) for (b, c) in REL(S)} : {(Number)}
 # Q_T_b_1 : {(b,) for (a, b) in REL(S)} : Bottom
 # Q_dS : {(b, c) for (b,) in REL(R_Q_T_b_1) for (b, c) in REL(S)} : Bottom
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # S : {(Number, Number)}
 S = Set()
 # R_Q : {(Number)}

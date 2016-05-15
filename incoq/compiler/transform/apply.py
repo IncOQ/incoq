@@ -19,16 +19,16 @@ from time import process_time
 import json
 
 from incoq.util.linecount import get_loc_source
-from incoq.mars.incast import L, P
-from incoq.mars.symbol import S, N
-from incoq.mars.cost import C
-from incoq.mars.auxmap import transform_auxmaps
-from incoq.mars.comp import (
+from incoq.compiler.incast import L, P
+from incoq.compiler.symbol import S, N
+from incoq.compiler.cost import C
+from incoq.compiler.auxmap import transform_auxmaps
+from incoq.compiler.comp import (
     CoreClauseTools, transform_comp_query, transform_aux_comp_query,
     rewrite_all_comps_with_patterns)
-from incoq.mars.demand import transform_comp_query_with_filtering
-from incoq.mars.aggr import incrementalize_aggr, transform_comps_with_maps
-from incoq.mars.obj import (ObjClauseVisitor, ObjClauseVisitor_NoTC,
+from incoq.compiler.demand import transform_comp_query_with_filtering
+from incoq.compiler.aggr import incrementalize_aggr, transform_comps_with_maps
+from incoq.compiler.obj import (ObjClauseVisitor, ObjClauseVisitor_NoTC,
                             flatten_objdomain, unflatten_objdomain)
 
 from .py_rewritings import py_preprocess, py_postprocess

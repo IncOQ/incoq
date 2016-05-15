@@ -3,9 +3,9 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.comp import Priority
-from incoq.mars.obj.clause import *
+from incoq.compiler.incast import L
+from incoq.compiler.comp import Priority
+from incoq.compiler.obj.clause import *
 
 
 class ClauseCase(unittest.TestCase):

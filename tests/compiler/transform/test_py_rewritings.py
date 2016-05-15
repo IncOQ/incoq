@@ -3,10 +3,10 @@
 
 import unittest
 
-from incoq.mars.incast import P, L
-from incoq.mars.type import T
-from incoq.mars.symbol import N
-from incoq.mars.transform.py_rewritings import *
+from incoq.compiler.incast import P, L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import N
+from incoq.compiler.transform.py_rewritings import *
 
 
 class QueryDirectiveCase(unittest.TestCase):
@@ -94,14 +94,14 @@ class RuntimeImportCase(unittest.TestCase):
     
     def test_preprocess(self):
         tree = P.Parser.p('''
-            import incoq.mars.runtime
-            import incoq.mars.runtime as foo
-            import incoq.mars.runtime as bar
-            from incoq.mars.runtime import *
+            import incoq.runtime
+            import incoq.runtime as foo
+            import incoq.runtime as bar
+            from incoq.runtime import *
             import baz
             from baz import Set
             from baz import *
-            Q = incoq.mars.runtime.Set()
+            Q = incoq.runtime.Set()
             R = foo.Set()
             S = bar.Set()
             T = Set()
@@ -126,7 +126,7 @@ class RuntimeImportCase(unittest.TestCase):
             ''')
         tree = postprocess_runtime_import(tree)
         exp_tree = P.Parser.p('''
-            from incoq.mars.runtime import *
+            from incoq.runtime import *
             R = Set()
             ''')
         self.assertEqual(tree, exp_tree)

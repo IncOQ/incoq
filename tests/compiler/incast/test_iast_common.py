@@ -3,7 +3,7 @@
 
 import unittest
 
-from incoq.mars.incast.iast_common import *
+from incoq.compiler.incast.iast_common import *
 
 
 class IASTCommonCase(unittest.TestCase):

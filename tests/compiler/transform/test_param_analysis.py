@@ -3,11 +3,11 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import S
-from incoq.mars.comp import CoreClauseTools
-from incoq.mars.transform.param_analysis import *
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S
+from incoq.compiler.comp import CoreClauseTools
+from incoq.compiler.transform.param_analysis import *
 
 
 class ParamAnalysisCase(unittest.TestCase):

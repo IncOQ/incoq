@@ -3,8 +3,8 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.comp.clause import *
+from incoq.compiler.incast import L
+from incoq.compiler.comp.clause import *
 
 
 class ClauseCase(unittest.TestCase):

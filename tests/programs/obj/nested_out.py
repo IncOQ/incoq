@@ -1,7 +1,7 @@
 # Q2 : z -> {(z, m) for (z,) in REL(R__QU_Q2) for (z, m) in M()} : {({Bottom}, Bottom)}
 # Q1 : z -> {(z, o_f) for (z,) in REL(_U_Q1) for (z, o) in REL(R_Q2) for (o, o_f) in F(f)} : {({Bottom}, Top)}
 # _QU_Q2 : {(_v3z,) for (_v3z,) in REL(_U_Q1)} : {({Bottom})}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # _U_Q1 : {({Bottom})}
 _U_Q1 = Set()
 # R__QU_Q2 : {({Bottom})}

@@ -12,8 +12,8 @@ __all__ = [
 ]
 
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
 
 
 class AggrOpHandler:

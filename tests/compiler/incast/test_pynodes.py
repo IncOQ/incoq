@@ -3,8 +3,8 @@
 
 import unittest
 
-import incoq.mars.incast.nodes as L
-import incoq.mars.incast.pynodes as P
+import incoq.compiler.incast.nodes as L
+import incoq.compiler.incast.pynodes as P
 
 
 class PynodesCase(unittest.TestCase):

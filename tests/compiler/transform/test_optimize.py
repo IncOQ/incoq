@@ -3,11 +3,11 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import S
-from incoq.mars.transform.optimize import *
-from incoq.mars.transform.optimize import SingletonUnwrapper
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S
+from incoq.compiler.transform.optimize import *
+from incoq.compiler.transform.optimize import SingletonUnwrapper
 
 
 class UnwrapSingletonsCase(unittest.TestCase):

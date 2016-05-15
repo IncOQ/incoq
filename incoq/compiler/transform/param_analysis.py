@@ -25,9 +25,9 @@ __all__ = [
 from itertools import chain
 
 from incoq.util.collections import OrderedSet
-from incoq.mars.type import T
-from incoq.mars.symbol import S, N
-from incoq.mars.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S, N
+from incoq.compiler.incast import L
 
 
 def find_nested_queries(node):

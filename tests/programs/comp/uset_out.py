@@ -1,5 +1,5 @@
 # Q : a -> {(a, x) for (a,) in REL(_U_Q) for (x,) in REL(S) if (x > a)} : {(Number, Number)}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # S : {(Number)}
 S = Set()
 # _U_Q : {(Number)}

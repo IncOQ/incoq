@@ -3,11 +3,11 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import S, N
-from incoq.mars.transform.relation_rewritings import *
-from incoq.mars.transform.relation_rewritings import (
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S, N
+from incoq.compiler.transform.relation_rewritings import *
+from incoq.compiler.transform.relation_rewritings import (
     rewrite_with_unwraps, rewrite_with_wraps)
 
 

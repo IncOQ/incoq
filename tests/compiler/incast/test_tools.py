@@ -10,10 +10,10 @@ import string
 from random import shuffle
 
 from incoq.util.collections import frozendict
-from incoq.mars.incast import nodes as L
-from incoq.mars.incast.tools import *
-from incoq.mars.incast import pynodes as P
-from incoq.mars.incast.pyconv import Parser, IncLangNodeImporter
+from incoq.compiler.incast import nodes as L
+from incoq.compiler.incast.tools import *
+from incoq.compiler.incast import pynodes as P
+from incoq.compiler.incast.pyconv import Parser, IncLangNodeImporter
 
 
 class IdentFinderCase(unittest.TestCase):

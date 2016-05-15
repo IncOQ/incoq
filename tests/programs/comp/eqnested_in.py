@@ -3,7 +3,7 @@
 # don't perform the rewriting, so as to not mess up the parameter
 # info in the symbol table for the inner query.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     default_impl = 'inc',

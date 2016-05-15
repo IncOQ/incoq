@@ -1,5 +1,5 @@
 # Q : {(c,) for (a, b) in REL(S) for (b, c) in REL(S)} : {(Number)}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # R_Q : {(Number)}
 R_Q = CSet()
 # S_bu : {Number: {Number}}

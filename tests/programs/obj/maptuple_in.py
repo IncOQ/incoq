@@ -1,6 +1,6 @@
 # Queries with map lookups and nested tuples.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 from itertools import product
 
 CONFIG(

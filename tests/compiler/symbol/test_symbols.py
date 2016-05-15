@@ -3,9 +3,9 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol.symbols import *
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol.symbols import *
 
 
 class MetaCase(unittest.TestCase):

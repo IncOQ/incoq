@@ -11,9 +11,9 @@ __all__ = [
 from collections import OrderedDict
 
 from incoq.util.collections import OrderedSet
-from incoq.mars.incast import L
-from incoq.mars.symbol import S, N
-from incoq.mars.auxmap import SetFromMapInvariant, transform_setfrommap
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import S, N
+from incoq.compiler.auxmap import SetFromMapInvariant, transform_setfrommap
 
 
 class AggrMapReplacer(L.NodeTransformer):

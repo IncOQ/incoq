@@ -25,8 +25,8 @@ __all__ = [
 
 
 from incoq.util.collections import frozendict
-from incoq.mars.incast import L
-from incoq.mars.symbol import S
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import S
 
 
 class QueryMarker(L.NodeTransformer):

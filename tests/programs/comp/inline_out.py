@@ -1,6 +1,6 @@
 # Q1 : {(a,) for (a, a_2) in REL(S) if (a == a_2)} : {(Number)}
 # Q2 : {(v,) for (v,) in REL(R_Q1) if (v > 1)} : {(Bottom)}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # R_Q1 : {(Number)}
 R_Q1 = CSet()
 # R_Q2 : {(Bottom)}

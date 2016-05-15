@@ -5,9 +5,9 @@ from itertools import repeat
 
 from incoq.util.collections import OrderedSet
 
-from incoq.mars.incast import nodes as L
-from incoq.mars.incast.functions import *
-from incoq.mars.incast.pyconv import Parser
+from incoq.compiler.incast import nodes as L
+from incoq.compiler.incast.functions import *
+from incoq.compiler.incast.pyconv import Parser
 
 
 class FunctionsCase(unittest.TestCase):

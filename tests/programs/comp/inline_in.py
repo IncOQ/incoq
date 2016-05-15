@@ -1,6 +1,6 @@
 # Inlined maintenance code.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     default_impl = 'inc',

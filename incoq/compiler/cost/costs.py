@@ -22,7 +22,7 @@ __all__ = [
 from itertools import groupby
 from simplestruct import Struct, TypedField
 
-from incoq.mars.incast import L
+from incoq.compiler.incast import L
 
 
 class Cost(Struct):

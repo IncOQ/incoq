@@ -17,9 +17,9 @@ __all__ = [
 ]
 
 
-from incoq.mars.incast import L
-from incoq.mars.symbol import N
-from incoq.mars.comp import (ClauseVisitor, RelMemberHandler,
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import N
+from incoq.compiler.comp import (ClauseVisitor, RelMemberHandler,
                              Priority, assert_unique)
 
 

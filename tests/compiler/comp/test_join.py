@@ -3,10 +3,10 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.symbol import N
-from incoq.mars.comp.clause import RelMemberHandler
-from incoq.mars.comp.join import *
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import N
+from incoq.compiler.comp.clause import RelMemberHandler
+from incoq.compiler.comp.join import *
 
 
 class JoinCase(unittest.TestCase):

@@ -4,7 +4,7 @@
 # Q4 : max(unwrap(S)) : Top
 # Q5 : min(S) : (Number)
 # Q6 : max(S) : (Number)
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # A_Q1 : {(): Number}
 A_Q1 = Map()
 # A_Q2 : {(): Number}

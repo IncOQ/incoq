@@ -4,10 +4,10 @@
 import unittest
 
 from incoq.util.misc import new_namespace
-from incoq.mars.incast import L
-import incoq.mars.cost.costs as costs
-import incoq.mars.cost.algebra as algebra
-from incoq.mars.cost.algebra import (
+from incoq.compiler.incast import L
+import incoq.compiler.cost.costs as costs
+import incoq.compiler.cost.algebra as algebra
+from incoq.compiler.cost.algebra import (
     TrivialSimplifier, build_factor_index,
     product_dominates, all_products_dominated,
     simplify_sum_of_products, simplify_min_of_sums,

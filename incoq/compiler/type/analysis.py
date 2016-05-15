@@ -37,7 +37,7 @@ __all__ = [
 from functools import wraps
 
 from incoq.util.collections import OrderedSet
-from incoq.mars.incast import L
+from incoq.compiler.incast import L
 
 from .types import *
 

@@ -1,5 +1,5 @@
 # Q : z -> {(z, x) for (z,) in REL(_U_Q) for (z, x) in M() for (x,) in REL(S_wrapped)} : {({Number}, Number)}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # S_wrapped : {(Number)}
 S_wrapped = Set()
 # _U_Q : {({Number})}

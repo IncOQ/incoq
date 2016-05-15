@@ -9,7 +9,7 @@
 # Q_T_y : {(y,) for (t_x_y, x, y) in REL(R_Q_d_TUP_2)} : Bottom
 # Q_d_F_f_1 : {(x, x_f) for (x,) in REL(R_Q_T_x) for (x, x_f) in F(f)} : Bottom
 # Q_d_F_f_2 : {(y, y_f) for (y,) in REL(R_Q_T_y) for (y, y_f) in F(f)} : Bottom
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # _U_Q : {(Top)}
 _U_Q = Set()
 # R_Q : {(Top, Number, (Top, Top))}

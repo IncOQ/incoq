@@ -3,11 +3,11 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.symbol import S
-from incoq.mars.comp import CoreClauseTools
-from incoq.mars.obj import ObjClauseVisitor
-from incoq.mars.demand.trans import *
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import S
+from incoq.compiler.comp import CoreClauseTools
+from incoq.compiler.obj import ObjClauseVisitor
+from incoq.compiler.demand.trans import *
 
 
 class ClauseTools(CoreClauseTools, ObjClauseVisitor):

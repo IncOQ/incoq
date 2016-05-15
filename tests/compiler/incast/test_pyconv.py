@@ -4,10 +4,10 @@
 import unittest
 
 from incoq.util.misc import new_namespace
-import incoq.mars.incast.nodes as _nodes
-import incoq.mars.incast.tools as _tools
-import incoq.mars.incast.pynodes as P
-from incoq.mars.incast.pyconv import *
+import incoq.compiler.incast.nodes as _nodes
+import incoq.compiler.incast.tools as _tools
+import incoq.compiler.incast.pynodes as P
+from incoq.compiler.incast.pyconv import *
 
 
 L = new_namespace(_nodes, _tools)

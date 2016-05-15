@@ -10,7 +10,7 @@ __all__ = [
 
 import argparse
 
-from incoq.mars.type import T
+from incoq.compiler.type import T
 
 from .common import parse_bool
 from .symbols import Constants

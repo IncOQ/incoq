@@ -13,11 +13,11 @@ __all__ = [
 ]
 
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import S
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S
 
-from incoq.mars.auxmap import transform_all_wraps
+from incoq.compiler.auxmap import transform_all_wraps
 
 
 def rewrite_memberconds(tree, symtab):

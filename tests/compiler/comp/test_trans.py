@@ -3,12 +3,12 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import S, N
-from incoq.mars.comp.join import CoreClauseTools
-from incoq.mars.comp.trans import *
-from incoq.mars.comp.trans import is_duplicate_safe
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S, N
+from incoq.compiler.comp.join import CoreClauseTools
+from incoq.compiler.comp.trans import *
+from incoq.compiler.comp.trans import is_duplicate_safe
 
 
 class TransCase(unittest.TestCase):

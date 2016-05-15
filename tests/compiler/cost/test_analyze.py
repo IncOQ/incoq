@@ -4,17 +4,17 @@
 import unittest
 
 from incoq.util.misc import new_namespace
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import S
-import incoq.mars.cost.costs as costs
-import incoq.mars.cost.algebra as algebra
-import incoq.mars.cost.analyze as analyze
-from incoq.mars.cost.analyze import (
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S
+import incoq.compiler.cost.costs as costs
+import incoq.compiler.cost.algebra as algebra
+import incoq.compiler.cost.analyze as analyze
+from incoq.compiler.cost.analyze import (
     TrivialCostAnalyzer, SizeAnalyzer,
     LoopCostAnalyzer, CallCostAnalyzer,
     type_to_cost, rewrite_cost_using_types)
-from incoq.mars.comp import CoreClauseTools
+from incoq.compiler.comp import CoreClauseTools
 
 C = new_namespace(costs, algebra, analyze)
 

@@ -7,8 +7,8 @@ __all__ = [
 ]
 
 
-from incoq.mars.incast import L
-from incoq.mars.symbol import N
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import N
 
 
 class PairDomainImporter(L.NodeTransformer):

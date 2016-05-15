@@ -11,9 +11,9 @@ __all__ = [
 from collections import defaultdict
 from simplestruct import Struct, TypedField
 
-from incoq.mars.incast import L
-from incoq.mars.symbol import N
-from incoq.mars.comp import Kind
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import N
+from incoq.compiler.comp import Kind
 
 
 class Filter(Struct):

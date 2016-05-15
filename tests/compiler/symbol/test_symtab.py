@@ -3,8 +3,8 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.symbol.symtab import *
+from incoq.compiler.incast import L
+from incoq.compiler.symbol.symtab import *
 
 
 class NamingCase(unittest.TestCase):

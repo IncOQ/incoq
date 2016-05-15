@@ -1,6 +1,6 @@
 # Filtering nested comprehensions.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 SYMCONFIG('Q1',
     impl = 'inc',

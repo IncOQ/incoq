@@ -1,6 +1,6 @@
 # Q1 : z -> {(z, o_f) for (z,) in REL(_U_Q1) for (z, o) in M() for (o, o_f) in F(f)} : {({Top}, Top)}
 # Q2 : s, t -> {(s, t, o_f) for (s, t) in REL(_U_Q2) for (s, o) in M() for (t, o) in M() for (o, o_f) in F(f)} : {({Top}, {Top}, Top)}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # _U_Q1 : {({Top})}
 _U_Q1 = Set()
 # _U_Q2 : {({Top}, {Top})}

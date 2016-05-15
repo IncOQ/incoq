@@ -3,11 +3,11 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import S, N
-from incoq.mars.auxmap.trans import *
-from incoq.mars.auxmap.trans import (make_imgadd, make_imgremove,
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S, N
+from incoq.compiler.auxmap.trans import *
+from incoq.compiler.auxmap.trans import (make_imgadd, make_imgremove,
                                      make_auxmap_maint_func,
                                      make_setfrommap_maint_func,
                                      make_wrap_maint_func)

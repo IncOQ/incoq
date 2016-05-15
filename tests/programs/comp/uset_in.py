@@ -1,6 +1,6 @@
 # Comprehension with unconstrained parameters.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     default_impl = 'inc',

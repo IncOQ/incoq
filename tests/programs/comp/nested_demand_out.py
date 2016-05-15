@@ -1,7 +1,7 @@
 # Q1 : k -> {(k, a) for (k,) in REL(R__QU_Q1) for (a,) in REL(S) if (a >= k)} : {(Number, Number)}
 # Q2 : k, j -> {(k, j, b) for (k, j) in REL(_U_Q2) for (k, b) in REL(R_Q1) if (b <= j)} : {(Number, Number, Number)}
 # _QU_Q1 : {(_v2k,) for (_v2k, _v2j) in REL(_U_Q2)} : {(Number)}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # S : {(Number)}
 S = Set()
 # _U_Q2 : {(Number, Number)}

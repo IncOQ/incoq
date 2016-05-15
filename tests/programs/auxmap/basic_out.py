@@ -1,4 +1,4 @@
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # S_bu : {Number: {(Number)}}
 S_bu = Map()
 def _maint_S_bu_for_S_add(_elem):

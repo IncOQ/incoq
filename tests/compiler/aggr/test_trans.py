@@ -3,11 +3,11 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import S, N
-from incoq.mars.aggr.trans import *
-from incoq.mars.aggr.trans import (
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S, N
+from incoq.compiler.aggr.trans import *
+from incoq.compiler.aggr.trans import (
     make_aggr_oper_maint_func, make_aggr_restr_maint_func,
     aggrinv_from_query)
 

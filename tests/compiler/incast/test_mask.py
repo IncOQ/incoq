@@ -2,9 +2,9 @@
 
 import unittest
 
-from incoq.mars.incast import nodes as L
-from incoq.mars.incast.mask import *
-from incoq.mars.incast.pyconv import Parser
+from incoq.compiler.incast import nodes as L
+from incoq.compiler.incast.mask import *
+from incoq.compiler.incast.pyconv import Parser
 
 
 class MaskCase(unittest.TestCase):

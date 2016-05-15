@@ -1,6 +1,6 @@
 # Filtering in the object-domain.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     obj_domain = 'true',

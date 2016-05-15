@@ -3,9 +3,9 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.type.types import *
-from incoq.mars.type.analysis import *
+from incoq.compiler.incast import L
+from incoq.compiler.type.types import *
+from incoq.compiler.type.analysis import *
 
 
 class FunctionTypeCheckerCase(unittest.TestCase):

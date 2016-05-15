@@ -3,9 +3,9 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.aggr.aggrop import *
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.aggr.aggrop import *
 
 
 class TransCase(unittest.TestCase):

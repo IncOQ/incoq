@@ -3,8 +3,8 @@
 import unittest
 import sys
 
-from incoq.mars.incast.pyconv import Parser
-from incoq.mars.incast.error import *
+from incoq.compiler.incast.pyconv import Parser
+from incoq.compiler.incast.error import *
 
 
 class ErrorCase(unittest.TestCase):
@@ -18,11 +18,11 @@ class ErrorCase(unittest.TestCase):
             lines1 = format_exception(*sys.exc_info())
             lines2 = format_exception(*sys.exc_info(), ast_context=node2)
         exp_lines1 = [
-            'incoq.mars.incast.error.ProgramError: test\n',
+            'incoq.compiler.incast.error.ProgramError: test\n',
             'AST context: (a + b)\n',
         ]
         exp_lines2 = [
-            'incoq.mars.incast.error.ProgramError: test\n',
+            'incoq.compiler.incast.error.ProgramError: test\n',
             'AST context:\n',
             '    pass\n',
             '    pass\n',

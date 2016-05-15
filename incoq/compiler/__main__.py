@@ -9,13 +9,13 @@ __all__ = [
 import sys
 import argparse
 
-from incoq.mars import get_argparser, extract_options, invoke
+from incoq.compiler import get_argparser, extract_options, invoke
 
 
 def run(args):
-    """Entry point for incoq.mars."""
+    """Entry point for incoq.compiler."""
     parent = get_argparser()
-    parser = argparse.ArgumentParser(prog='incoq.mars', parents=[parent])
+    parser = argparse.ArgumentParser(prog='incoq', parents=[parent])
     parser.add_argument('in_file', help='path to input file')
     parser.add_argument('out_file', help='path to output file')
     parser.add_argument('--stats', nargs=1, default=[None],

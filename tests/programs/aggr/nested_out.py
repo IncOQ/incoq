@@ -2,7 +2,7 @@
 # Q2 : x -> min(unwrap(R_Q1.imglookup('bu', (x,))), (x,), R__QU_Q2) : Top
 # Q3 : x -> {(x, z) for (x, y) in REL(S) for (y, z) in REL(S) for (x, _v10) in SETFROMMAP(SA_Q2, A_Q2, 'bu') if (y <= index(_v10, 1))} : {(Number, Number)}
 # _QU_Q2 : {(_v2x,) for (_v2x, _v2y) in REL(S) for (_v2y, _v2z) in REL(S)} : {(Number)}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # R__QU_Q2 : {(Number)}
 R__QU_Q2 = CSet()
 # R_Q3 : {(Number, Number)}

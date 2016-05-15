@@ -10,7 +10,7 @@ import sys
 import argparse
 from os.path import join, dirname, basename, normpath, relpath
 
-from incoq.mars import get_argparser, extract_options, invoke
+from incoq.compiler import get_argparser, extract_options, invoke
 
 from .programs.test_transformation import get_test_entries
 

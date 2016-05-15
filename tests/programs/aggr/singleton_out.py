@@ -2,7 +2,7 @@
 # Q2 : sum(unwrap(S_wrapped)) : Number
 # Q3 : min(unwrap(S_wrapped)) : Number
 # Q4 : max(unwrap(S_wrapped)) : Number
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # A_Q1 : {(): Number}
 A_Q1 = Map()
 # A_Q2 : {(): Number}

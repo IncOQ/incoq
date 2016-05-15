@@ -1,7 +1,7 @@
 # Aggregate of a global set that needs singleton wrapping to be a
 # relation.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     default_impl = 'inc',

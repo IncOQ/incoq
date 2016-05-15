@@ -6,7 +6,7 @@ __all__ = [
 ]
 
 
-from incoq.mars.comp.trans import (
+from incoq.compiler.comp.trans import (
     transform_firsthalf, transform_secondhalf, transform_comp_query)
 
 from .filter import StructureGenerator

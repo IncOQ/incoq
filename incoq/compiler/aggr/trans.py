@@ -11,9 +11,9 @@ __all__ = [
 from simplestruct import Struct, TypedField
 
 from incoq.util.collections import OrderedSet
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import S, N
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S, N
 
 from .aggrop import get_handler_for_op
 

@@ -1,6 +1,6 @@
 # Implementation based on incremental auxiliary maps only.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     default_impl = 'aux',

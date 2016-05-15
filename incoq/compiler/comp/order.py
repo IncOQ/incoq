@@ -8,7 +8,7 @@ __all__ = [
 
 from incoq.util.collections import OrderedSet
 from incoq.util.planner import State, Planner
-from incoq.mars.incast import L
+from incoq.compiler.incast import L
 
 
 class OrderState(State):

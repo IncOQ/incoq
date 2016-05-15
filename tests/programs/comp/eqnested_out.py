@@ -5,7 +5,7 @@
 # Q5 : c -> {(c, x) for (c,) in REL(_U_Q5) for (x,) in REL(R_wrapped) if (c == x) for (x, _v28) in SETFROMMAP(SA_Q4, A_Q4, 'bu') if (x != index(_v28, 1))} : {(Number, Number)}
 # _QU_Q4 : {(_v5x,) for (_v5c,) in REL(_U_Q5) for (_v5x,) in REL(R_wrapped) if (_v5c == _v5x)} : {(Number)}
 # _QU_Q3 : {(_v6x,) for (_v6x,) in REL(R__QU_Q4)} : {(Number)}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # R_wrapped : {(Number)}
 R_wrapped = Set()
 # S_wrapped : {(Number)}

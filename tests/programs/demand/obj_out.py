@@ -3,7 +3,7 @@
 # Q_d_M : {(z, o) for (z,) in REL(R_Q_T_z) for (z, o) in M()} : Bottom
 # Q_T_o : {(o,) for (z, o) in REL(R_Q_d_M)} : Bottom
 # Q_d_F_f : {(o, o_f) for (o,) in REL(R_Q_T_o) for (o, o_f) in F(f)} : Bottom
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # _U_Q : {({Bottom})}
 _U_Q = Set()
 # R_Q : {({Bottom}, Top)}

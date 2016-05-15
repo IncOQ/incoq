@@ -3,10 +3,10 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.symbol import S, N
-from incoq.mars.auxmap import SetFromMapInvariant
-from incoq.mars.aggr.comp import *
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import S, N
+from incoq.compiler.auxmap import SetFromMapInvariant
+from incoq.compiler.aggr.comp import *
 
 
 class CompCase(unittest.TestCase):

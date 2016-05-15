@@ -28,7 +28,7 @@ import unittest
 import os
 
 from incoq.util.pyexec import pyexec_source
-from incoq.mars.transform import transform_source
+from incoq.compiler import transform_source
 
 
 test_directory = os.path.split(__file__)[0]

@@ -1,5 +1,5 @@
 # Q : a -> {(a, b) for (a, b) in REL(S)} : {(Number, Number)}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # R_Q_bu : {Number: {(Number)}}
 R_Q_bu = Map()
 def _maint_R_Q_bu_for_R_Q_add(_elem):

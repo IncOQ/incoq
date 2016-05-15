@@ -1,4 +1,4 @@
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # SM : {(Number, Number, str)}
 SM = Set()
 # M : {(Number, Number): str}

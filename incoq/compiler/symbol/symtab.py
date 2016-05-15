@@ -14,8 +14,8 @@ from itertools import count
 from types import SimpleNamespace
 
 from incoq.util.collections import OrderedSet
-from incoq.mars.incast import L
-from incoq.mars.type import T
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
 
 from .symbols import *
 

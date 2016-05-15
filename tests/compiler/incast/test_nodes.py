@@ -3,7 +3,7 @@
 
 import unittest
 
-import incoq.mars.incast.nodes as L
+import incoq.compiler.incast.nodes as L
 
 
 class NodesCase(unittest.TestCase):

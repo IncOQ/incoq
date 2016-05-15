@@ -3,10 +3,10 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.symbol import N
-from incoq.mars.transform.incast_rewritings import *
-from incoq.mars.transform.incast_rewritings import QueryMarker
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import N
+from incoq.compiler.transform.incast_rewritings import *
+from incoq.compiler.transform.incast_rewritings import QueryMarker
 
 
 class QueryMarkerCase(unittest.TestCase):

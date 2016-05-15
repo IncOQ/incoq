@@ -1,6 +1,6 @@
 # Test setfrommap() construct.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 M = Map()
 

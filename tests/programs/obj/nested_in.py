@@ -1,6 +1,6 @@
 # Nested object-domain comprehensions.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     obj_domain = 'True',

@@ -1,6 +1,6 @@
 # Nesting a query with a tuple result.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     obj_domain = 'true',

@@ -3,10 +3,10 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.symbol import S, N
-from incoq.mars.obj.comp import ObjRelations
-from incoq.mars.obj.updates import *
+from incoq.compiler.incast import L
+from incoq.compiler.symbol import S, N
+from incoq.compiler.obj.comp import ObjRelations
+from incoq.compiler.obj.updates import *
 
 
 class ClauseCase(unittest.TestCase):

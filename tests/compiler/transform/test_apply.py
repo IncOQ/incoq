@@ -3,8 +3,8 @@
 
 import unittest
 
-from incoq.mars.incast import L, P
-from incoq.mars.transform.apply import *
+from incoq.compiler.incast import L, P
+from incoq.compiler.transform.apply import *
 
 
 class QueryNodeFinderCase(unittest.TestCase):
@@ -52,14 +52,14 @@ class ApplyCase(unittest.TestCase):
     
     def test_transform_source(self):
         source = P.trim('''
-            import incoq.mars.runtime as runtime
+            import incoq.runtime as runtime
             S = runtime.Set()
             def main():
                 a = b = c
             ''')
         source, _symtab = transform_source(source, options={'costs': 'false'})
         exp_source = P.trim('''
-            from incoq.mars.runtime import *
+            from incoq.runtime import *
             def main():
                 b = c
                 a = b

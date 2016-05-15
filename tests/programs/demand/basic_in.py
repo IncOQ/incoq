@@ -1,6 +1,6 @@
 # Demand-filtered relational comprehension.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     default_impl = 'filtered',

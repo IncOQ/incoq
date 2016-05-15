@@ -28,7 +28,7 @@ from enum import Enum, IntEnum
 from functools import partialmethod
 from collections import Counter
 
-from incoq.mars.incast import L
+from incoq.compiler.incast import L
 
 
 class Kind(Enum):

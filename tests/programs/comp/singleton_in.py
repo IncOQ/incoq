@@ -1,6 +1,6 @@
 # Global sets of non-tuples that need to be rewritten as relations.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     default_impl = 'inc',

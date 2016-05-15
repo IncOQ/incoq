@@ -22,7 +22,7 @@ from enum import Enum
 
 from incoq.util.seq import zip_strict
 from incoq.util.collections import OrderedSet, Partitioning
-from incoq.mars.incast import L
+from incoq.compiler.incast import L
 
 from .clause import ClauseVisitor, CoreClauseVisitor, Kind, ShouldFilter
 

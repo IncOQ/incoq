@@ -3,9 +3,9 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.comp.clause import CoreClauseVisitor
-from incoq.mars.comp.order import *
+from incoq.compiler.incast import L
+from incoq.compiler.comp.clause import CoreClauseVisitor
+from incoq.compiler.comp.order import *
 
 
 class OrderCase(unittest.TestCase):

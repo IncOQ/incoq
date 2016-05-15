@@ -1,6 +1,6 @@
 # Aggregates of object-domain expressions.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     obj_domain = 'true',

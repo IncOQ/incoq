@@ -1,5 +1,5 @@
 # Q : {(x,) for (x,) in REL(S_wrapped) if (x > 2)} : {(Number)}
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # R_Q_unwrapped : {Number}
 R_Q_unwrapped = Set()
 def _maint_R_Q_unwrapped_for_R_Q_add(_elem):

@@ -27,9 +27,9 @@ from simplestruct import Struct, TypedField
 
 from incoq.util.collections import OrderedSet
 from incoq.util.type import typechecked
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import N
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import N
 
 
 class AuxmapInvariant(Struct):

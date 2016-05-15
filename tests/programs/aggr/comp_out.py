@@ -1,6 +1,6 @@
 # Q1 : a -> {(a, b) for (a, b) in REL(S)} : {(Number, Number)}
 # Q2 : a -> sum(unwrap(R_Q1.imglookup('bu', (a,)))) : Top
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # A_Q2 : {(Number): Number}
 A_Q2 = Map()
 def _maint_A_Q2_for_R_Q1_add(_elem):

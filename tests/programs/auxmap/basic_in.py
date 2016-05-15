@@ -1,6 +1,6 @@
 # Basic auxiliary map test.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 S = Set()
 

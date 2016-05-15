@@ -22,8 +22,8 @@ __all__ = [
 from enum import Enum
 from collections import OrderedDict
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
 
 from .common import (parse_bool, parse_list, parse_int_list,
                      ParseableEnumMixin)

@@ -3,11 +3,11 @@
 
 import unittest
 
-from incoq.mars.incast import L
-from incoq.mars.type import T
-from incoq.mars.symbol import S, N
-from incoq.mars.obj.comp import *
-from incoq.mars.obj.comp import ReplaceableRewriterBase, MutableObjRelations
+from incoq.compiler.incast import L
+from incoq.compiler.type import T
+from incoq.compiler.symbol import S, N
+from incoq.compiler.obj.comp import *
+from incoq.compiler.obj.comp import ReplaceableRewriterBase, MutableObjRelations
 
 
 class ClauseCase(unittest.TestCase):

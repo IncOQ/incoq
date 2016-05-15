@@ -1,6 +1,6 @@
 # Basic object-domain comprehension test.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     obj_domain = 'true',

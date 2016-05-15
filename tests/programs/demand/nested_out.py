@@ -4,7 +4,7 @@
 # Q2_dS : {(v, w) for (v,) in REL(R_Q2_T_v_1) for (v, w) in REL(S)} : Bottom
 # Q2_T_w_1 : {(w,) for (v, w) in REL(R_Q2_dS)} : Bottom
 # Q2_dT : {(w,) for (w,) in REL(R_Q2_T_w_1) for (w,) in REL(T)} : Bottom
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # T : {(Number)}
 T = Set()
 # R_Q1 : {(Number)}
