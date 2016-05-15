@@ -1,21 +1,38 @@
-# Basic aggregate query.
+# Basic aggregate incrementalization.
 
-from incoq.runtime import *
+from incoq.mars.runtime import *
 
-OPTIONS(
+CONFIG(
     default_impl = 'inc',
 )
 
-R = Set()
+S = Set()
 
-for x in [1, 2, 3, 4, 5]:
-    R.add(x)
+def main():
+    for x in [1, 2, 3, 4]:
+        S.add((x,))
+    print(QUERY('Q1', count(unwrap(S))))
+    print(QUERY('Q2', sum(unwrap(S))))
+    print(QUERY('Q3', min(unwrap(S))))
+    print(QUERY('Q4', max(unwrap(S))))
+    print(QUERY('Q5', min(S)))
+    print(QUERY('Q6', max(S)))
+    
+    S.remove((4,))
+    print(QUERY('Q1', count(unwrap(S))))
+    print(QUERY('Q2', sum(unwrap(S))))
+    print(QUERY('Q3', min(unwrap(S))))
+    print(QUERY('Q4', max(unwrap(S))))
+    print(QUERY('Q5', min(S)))
+    print(QUERY('Q6', max(S)))
+    
+    S.clear()
+    print(QUERY('Q1', count(unwrap(S))))
+    print(QUERY('Q2', sum(unwrap(S))))
+    print(QUERY('Q3', min(unwrap(S))))
+    print(QUERY('Q4', max(unwrap(S))))
+    print(QUERY('Q5', min(S)))
+    print(QUERY('Q6', max(S)))
 
-R.remove(5)
-
-print(sum(R))
-
-for x in [1, 2, 3, 4]:
-    R.remove(x)
-
-print(sum(R))
+if __name__ == '__main__':
+    main()

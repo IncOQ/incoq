@@ -1,10 +1,5 @@
-###############################################################################
-# test_transformation.py                                                      #
-# Author: Jon Brandvein                                                       #
-###############################################################################
-
-"""Test the overall transformation. Both the generated code and its
-output are checked.
+"""Whole-program tests, at the file input/output level. Both the
+generated code and its output when executed are tested.
 
 This module recursively scans this directory, finding and running
 all test cases that match the black/whitelist.
@@ -33,42 +28,15 @@ import unittest
 import os
 
 from incoq.util.pyexec import pyexec_source
-from incoq.compiler.central import transform_source
+from incoq.mars.transform import transform_source
 
-
-# Doesn't do anything at the moment.
-VERBOSE = False
-#VERBOSE = True
 
 test_directory = os.path.split(__file__)[0]
 MAXDIFF = None
 
-def check_basepath(base_path):
-    """Return True if this test is whitelisted or not blacklisted;
-    False otherwise. (Whitelist takes priority.)
-    """
-    from fnmatch import fnmatch
-    whitelist = [
-    ]
-    blacklist = [
-#        '*',
-#        'auxmap/*',
-#        'comp/*',
-#        'objcomp/*',
-#        'deminc/*',
-#        'aggr/*',
-    ]
-    
-    # TODO: This include/exclude path logic could be refactored into
-    # util to be shared with tools/linecount. But the proper way to
-    # structure it would be to move the util library outside the incoq
-    # package and into the top level.
-    # TODO: Use globs instead of fnmatch?
-    whitelist = [os.path.normpath(p) for p in whitelist]
-    blacklist = [os.path.normpath(p) for p in blacklist]
-    rel_path = os.path.relpath(base_path, start=test_directory)
-    return (any(fnmatch(rel_path, item) for item in whitelist) or
-            all(not fnmatch(rel_path, item) for item in blacklist))
+
+def transform(in_source):
+    return transform_source(in_source, options={'costs': 'false'})
 
 
 def make_transform_test(base_name, in_name, outpy_name, outtxt_name):
@@ -79,7 +47,7 @@ def make_transform_test(base_name, in_name, outpy_name, outtxt_name):
             in_source = in_file.read()
             exp_source = outpy_file.read()
         
-        result_source, _manager = transform_source(in_source)
+        result_source, _symtab = transform(in_source)
         
         self.assertEqual(result_source, exp_source)
     
@@ -96,7 +64,7 @@ def make_behavior_test(base_name, in_name, outpy_name, outtxt_name):
             in_source = in_file.read()
             exp_txt = outtxt_file.read()
         
-        result_source, _manager = transform_source(in_source)
+        result_source, _symtab = transform(in_source)
         
         in_txt = pyexec_source(in_source)
         result_txt = pyexec_source(result_source)
@@ -109,7 +77,7 @@ def make_behavior_test(base_name, in_name, outpy_name, outtxt_name):
     return template
 
 
-def get_test_entries(dirfiles):
+def get_test_entries_for_filenames(dirfiles):
     """Given a list of pairs of directories and files, return a set of
     tuples (dir, base_name, in_name, outpy_name, outtxt_name)
     representing a group of test files. base_name is the common prefix
@@ -136,18 +104,24 @@ def get_test_entries(dirfiles):
     return test_entries
 
 
+def get_test_entries():
+    """Return a set of test entry tuples for all tests in this
+    test directory.
+    """
+    walk_entries = list(os.walk(test_directory))
+    dirfiles = [(dirpath, filenames)
+                for dirpath, _, filenames in walk_entries]
+    test_entries = get_test_entries_for_filenames(dirfiles)
+    return test_entries
+
+
 def get_tests():
     """Find runnable tests by searching this directory for input files.
     Return a pair of a list of transformation tests and a list of
     behavior tests.
     """
     
-    # Walk the directory to find all files.
-    walk_entries = list(os.walk(test_directory))
-    dirfiles = [(dirpath, filenames) for dirpath, _, filenames in walk_entries]
-    
-    # Group files by test.
-    test_entries = get_test_entries(dirfiles)
+    test_entries = get_test_entries()
     
     # Create test functions. Omit the transformation test if there's no
     # outpy file. Omit the behavior test if there's no outtxt file.
@@ -159,9 +133,6 @@ def get_tests():
         base_name, in_name, outpy_name, outtxt_name = names
         base_fullpath = os.path.join(dir, base_name)
         base_path = os.path.relpath(base_fullpath)
-        
-        if not check_basepath(base_path):
-            continue
         
         args = [os.path.join(dir, name) if name is not None else None
                 for name in names]

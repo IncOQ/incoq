@@ -1,65 +1,57 @@
-from incoq.runtime import *
-# Comp1 := {x : (x, y) in E, f(y)}
-# Comp4 := {(x, z) : (x, y) in E, (y, z) in E}
-_m_E_in = Map()
-def _maint__m_E_in_add(_e):
-    (v7_1, v7_2) = _e
-    if (v7_2 not in _m_E_in):
-        _m_E_in[v7_2] = set()
-    _m_E_in[v7_2].add(v7_1)
+# Q : {(c,) for (a, b) in REL(S) for (b, c) in REL(S)} : {(Number)}
+from incoq.mars.runtime import *
+# R_Q : {(Number)}
+R_Q = CSet()
+# S_bu : {Number: {Number}}
+S_bu = Map()
+# S_ub : {Number: {Number}}
+S_ub = Map()
+def _maint_S_bu_for_S_add(_elem):
+    (_elem_v1, _elem_v2) = _elem
+    _v4_key = _elem_v1
+    _v4_value = _elem_v2
+    if (_v4_key not in S_bu):
+        _v5 = Set()
+        S_bu[_v4_key] = _v5
+    S_bu[_v4_key].add(_v4_value)
 
-_m_E_out = Map()
-def _maint__m_E_out_add(_e):
-    (v5_1, v5_2) = _e
-    if (v5_1 not in _m_E_out):
-        _m_E_out[v5_1] = set()
-    _m_E_out[v5_1].add(v5_2)
+def _maint_S_ub_for_S_add(_elem):
+    (_elem_v1, _elem_v2) = _elem
+    _v7_key = _elem_v2
+    _v7_value = _elem_v1
+    if (_v7_key not in S_ub):
+        _v8 = Set()
+        S_ub[_v7_key] = _v8
+    S_ub[_v7_key].add(_v7_value)
 
-Comp4 = RCSet()
-def _maint_Comp4_E_add(_e):
-    v3_DAS = set()
-    # Iterate {(v3_x, v3_y, v3_z) : (v3_x, v3_y) in deltamatch(E, 'bb', _e, 1), (v3_y, v3_z) in E}
-    (v3_x, v3_y) = _e
-    for v3_z in (_m_E_out[v3_y] if (v3_y in _m_E_out) else set()):
-        if ((v3_x, v3_y, v3_z) not in v3_DAS):
-            v3_DAS.add((v3_x, v3_y, v3_z))
-    # Iterate {(v3_x, v3_y, v3_z) : (v3_x, v3_y) in E, (v3_y, v3_z) in deltamatch(E, 'bb', _e, 1)}
-    (v3_y, v3_z) = _e
-    for v3_x in (_m_E_in[v3_y] if (v3_y in _m_E_in) else set()):
-        if ((v3_x, v3_y, v3_z) not in v3_DAS):
-            v3_DAS.add((v3_x, v3_y, v3_z))
-    for (v3_x, v3_y, v3_z) in v3_DAS:
-        if ((v3_x, v3_z) not in Comp4):
-            Comp4.add((v3_x, v3_z))
+def _maint_R_Q_for_S_add(_elem):
+    (_v2_a, _v2_b) = _elem
+    for _v2_c in (S_bu[_v2_b] if (_v2_b in S_bu) else ()):
+        if ((_v2_b, _v2_c) != _elem):
+            _v2_result = (_v2_c,)
+            if (_v2_result not in R_Q):
+                R_Q.add(_v2_result)
+            else:
+                R_Q.inccount(_v2_result)
+    (_v2_b, _v2_c) = _elem
+    for _v2_a in (S_ub[_v2_b] if (_v2_b in S_ub) else ()):
+        _v2_result = (_v2_c,)
+        if (_v2_result not in R_Q):
+            R_Q.add(_v2_result)
         else:
-            Comp4.incref((v3_x, v3_z))
-    del v3_DAS
+            R_Q.inccount(_v2_result)
 
-Comp1 = RCSet()
-def _maint_Comp1_E_add(_e):
-    # Iterate {(v1_x, v1_y) : (v1_x, v1_y) in deltamatch(E, 'bb', _e, 1), f(v1_y)}
-    (v1_x, v1_y) = _e
-    if f(v1_y):
-        if (v1_x not in Comp1):
-            Comp1.add(v1_x)
-        else:
-            Comp1.incref(v1_x)
+def main():
+    for (x, y) in [(1, 2), (1, 3), (2, 3), (2, 4)]:
+        _v1 = (x, y)
+        _maint_S_bu_for_S_add(_v1)
+        _maint_S_ub_for_S_add(_v1)
+        _maint_R_Q_for_S_add(_v1)
+    print(sorted(R_Q))
+    R_Q.clear()
+    S_ub.dictclear()
+    S_bu.dictclear()
+    print(sorted(R_Q))
 
-def f(y):
-    return True
-
-for (v1, v2) in {(1, 2), (1, 3), (2, 3), (3, 4)}:
-    # Begin maint _m_E_in after "E.add((v1, v2))"
-    _maint__m_E_in_add((v1, v2))
-    # End maint _m_E_in after "E.add((v1, v2))"
-    # Begin maint _m_E_out after "E.add((v1, v2))"
-    _maint__m_E_out_add((v1, v2))
-    # End maint _m_E_out after "E.add((v1, v2))"
-    # Begin maint Comp4 after "E.add((v1, v2))"
-    _maint_Comp4_E_add((v1, v2))
-    # End maint Comp4 after "E.add((v1, v2))"
-    # Begin maint Comp1 after "E.add((v1, v2))"
-    _maint_Comp1_E_add((v1, v2))
-    # End maint Comp1 after "E.add((v1, v2))"
-print(sorted(Comp1))
-print(sorted(Comp4))
+if (__name__ == '__main__'):
+    main()

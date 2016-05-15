@@ -1,28 +1,20 @@
-# Inline comp maintenance.
+# Inlined maintenance code.
 
-from incoq.runtime import *
+from incoq.mars.runtime import *
 
-OPTIONS(
-    maint_inline = True,
+CONFIG(
+    default_impl = 'inc',
+    inline_maint_code = 'true',
 )
 
-QUERYOPTIONS(
-    '{x for (x, y) in E if f(y)}',
-    impl = 'inc',
-)
-QUERYOPTIONS(
-    '{(x, z) for (x, y) in E for (y2, z) in E if y == y2}',
-    impl = 'inc',
-)
+S = Set()
 
-def f(y):
-    return True
+def main():
+    for x, y in [(1, 1), (1, 2), (2, 2), (2, 3)]:
+        S.add((x, y))
+    print(sorted(QUERY('Q2', {(v,) for (v,) in QUERY('Q1',
+                                   {(a,) for (a, b) in S if a == b})
+                                if v > 1})))
 
-E = Set()
-
-for v1, v2 in {(1, 2), (1, 3), (2, 3), (3, 4)}:
-    E.add((v1, v2))
-
-print(sorted({x for (x, y) in E if f(y)}))
-
-print(sorted({(x, z) for (x, y) in E for (y2, z) in E if y == y2}))
+if __name__ == '__main__':
+    main()

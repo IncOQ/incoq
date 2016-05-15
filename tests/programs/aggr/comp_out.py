@@ -1,103 +1,53 @@
-from incoq.runtime import *
-# Comp1 := {(x, z) : (x, y) in E, (y, z) in E}
-# Aggr1 := sum(setmatch(Comp1, 'bu', x), None)
-_m_E_in = Map()
-def _maint__m_E_in_add(_e):
-    (v9_1, v9_2) = _e
-    if (v9_2 not in _m_E_in):
-        _m_E_in[v9_2] = set()
-    _m_E_in[v9_2].add(v9_1)
+# Q1 : a -> {(a, b) for (a, b) in REL(S)} : {(Number, Number)}
+# Q2 : a -> sum(unwrap(R_Q1.imglookup('bu', (a,)))) : Top
+from incoq.mars.runtime import *
+# A_Q2 : {(Number): Number}
+A_Q2 = Map()
+def _maint_A_Q2_for_R_Q1_add(_elem):
+    (_elem_v1, _elem_v2) = _elem
+    _v5_key = (_elem_v1,)
+    _v5_value = _elem_v2
+    _v5_state = A_Q2.get(_v5_key, (0, 0))
+    _v5_state = ((index(_v5_state, 0) + _v5_value), (index(_v5_state, 1) + 1))
+    if (_v5_key in A_Q2):
+        del A_Q2[_v5_key]
+    A_Q2[_v5_key] = _v5_state
 
-_m_E_out = Map()
-def _maint__m_E_out_add(_e):
-    (v7_1, v7_2) = _e
-    if (v7_1 not in _m_E_out):
-        _m_E_out[v7_1] = set()
-    _m_E_out[v7_1].add(v7_2)
+def _maint_A_Q2_for_R_Q1_remove(_elem):
+    (_elem_v1, _elem_v2) = _elem
+    _v6_key = (_elem_v1,)
+    _v6_value = _elem_v2
+    _v6_state = A_Q2[_v6_key]
+    _v6_state = ((index(_v6_state, 0) - _v6_value), (index(_v6_state, 1) - 1))
+    del A_Q2[_v6_key]
+    if (not (index(_v6_state, 1) == 0)):
+        A_Q2[_v6_key] = _v6_state
 
-_m_Aggr1_out = Map()
-def _maint__m_Aggr1_out_add(_e):
-    (v5_1, v5_2) = _e
-    if (v5_1 not in _m_Aggr1_out):
-        _m_Aggr1_out[v5_1] = set()
-    _m_Aggr1_out[v5_1].add(v5_2)
+def _maint_R_Q1_for_S_add(_elem):
+    (_v3_a, _v3_b) = _elem
+    _v3_result = (_v3_a, _v3_b)
+    _maint_A_Q2_for_R_Q1_add(_v3_result)
 
-def _maint__m_Aggr1_out_remove(_e):
-    (v6_1, v6_2) = _e
-    _m_Aggr1_out[v6_1].remove(v6_2)
-    if (len(_m_Aggr1_out[v6_1]) == 0):
-        del _m_Aggr1_out[v6_1]
+def _maint_R_Q1_for_S_remove(_elem):
+    (_v4_a, _v4_b) = _elem
+    _v4_result = (_v4_a, _v4_b)
+    _maint_A_Q2_for_R_Q1_remove(_v4_result)
 
-def _maint_Aggr1_add(_e):
-    (v3_v1, v3_v2) = _e
-    v3_val = _m_Aggr1_out.singlelookup(v3_v1, (0, 0))
-    (v3_state, v3_count) = v3_val
-    v3_state = (v3_state + v3_v2)
-    v3_val = (v3_state, (v3_count + 1))
-    v3_1 = v3_v1
-    if (not (len((_m_Aggr1_out[v3_v1] if (v3_v1 in _m_Aggr1_out) else set())) == 0)):
-        v3_elem = _m_Aggr1_out.singlelookup(v3_v1)
-        # Begin maint _m_Aggr1_out before "Aggr1.remove((v3_1, v3_elem))"
-        _maint__m_Aggr1_out_remove((v3_1, v3_elem))
-        # End maint _m_Aggr1_out before "Aggr1.remove((v3_1, v3_elem))"
-    # Begin maint _m_Aggr1_out after "Aggr1.add((v3_1, v3_val))"
-    _maint__m_Aggr1_out_add((v3_1, v3_val))
-    # End maint _m_Aggr1_out after "Aggr1.add((v3_1, v3_val))"
+def main():
+    for (x, y) in [(1, 2), (2, 3), (2, 4), (3, 4)]:
+        _v1 = (x, y)
+        _maint_R_Q1_for_S_add(_v1)
+    a = 1
+    print(index(A_Q2.get((a,), (0, 0)), 0))
+    a = 0
+    print(index(A_Q2.get((a,), (0, 0)), 0))
+    a = 2
+    print(index(A_Q2.get((a,), (0, 0)), 0))
+    _v2 = (2, 4)
+    _maint_R_Q1_for_S_remove(_v2)
+    print(index(A_Q2.get((a,), (0, 0)), 0))
+    A_Q2.dictclear()
+    print(index(A_Q2.get((a,), (0, 0)), 0))
 
-def _maint_Aggr1_remove(_e):
-    (v4_v1, v4_v2) = _e
-    v4_val = _m_Aggr1_out.singlelookup(v4_v1)
-    if (v4_val[1] == 1):
-        v4_1 = v4_v1
-        v4_elem = _m_Aggr1_out.singlelookup(v4_v1)
-        # Begin maint _m_Aggr1_out before "Aggr1.remove((v4_1, v4_elem))"
-        _maint__m_Aggr1_out_remove((v4_1, v4_elem))
-        # End maint _m_Aggr1_out before "Aggr1.remove((v4_1, v4_elem))"
-    else:
-        (v4_state, v4_count) = v4_val
-        v4_state = (v4_state - v4_v2)
-        v4_val = (v4_state, (v4_count - 1))
-        v4_1 = v4_v1
-        v4_elem = _m_Aggr1_out.singlelookup(v4_v1)
-        # Begin maint _m_Aggr1_out before "Aggr1.remove((v4_1, v4_elem))"
-        _maint__m_Aggr1_out_remove((v4_1, v4_elem))
-        # End maint _m_Aggr1_out before "Aggr1.remove((v4_1, v4_elem))"
-        # Begin maint _m_Aggr1_out after "Aggr1.add((v4_1, v4_val))"
-        _maint__m_Aggr1_out_add((v4_1, v4_val))
-        # End maint _m_Aggr1_out after "Aggr1.add((v4_1, v4_val))"
-
-Comp1 = RCSet()
-def _maint_Comp1_E_add(_e):
-    v1_DAS = set()
-    # Iterate {(v1_x, v1_y, v1_z) : (v1_x, v1_y) in deltamatch(E, 'bb', _e, 1), (v1_y, v1_z) in E}
-    (v1_x, v1_y) = _e
-    for v1_z in (_m_E_out[v1_y] if (v1_y in _m_E_out) else set()):
-        if ((v1_x, v1_y, v1_z) not in v1_DAS):
-            v1_DAS.add((v1_x, v1_y, v1_z))
-    # Iterate {(v1_x, v1_y, v1_z) : (v1_x, v1_y) in E, (v1_y, v1_z) in deltamatch(E, 'bb', _e, 1)}
-    (v1_y, v1_z) = _e
-    for v1_x in (_m_E_in[v1_y] if (v1_y in _m_E_in) else set()):
-        if ((v1_x, v1_y, v1_z) not in v1_DAS):
-            v1_DAS.add((v1_x, v1_y, v1_z))
-    for (v1_x, v1_y, v1_z) in v1_DAS:
-        if ((v1_x, v1_z) not in Comp1):
-            Comp1.add((v1_x, v1_z))
-            # Begin maint Aggr1 after "Comp1.add((v1_x, v1_z))"
-            _maint_Aggr1_add((v1_x, v1_z))
-            # End maint Aggr1 after "Comp1.add((v1_x, v1_z))"
-        else:
-            Comp1.incref((v1_x, v1_z))
-    del v1_DAS
-
-for e in [(1, 2), (2, 3), (2, 4), (3, 5)]:
-    # Begin maint _m_E_in after "E.add(e)"
-    _maint__m_E_in_add(e)
-    # End maint _m_E_in after "E.add(e)"
-    # Begin maint _m_E_out after "E.add(e)"
-    _maint__m_E_out_add(e)
-    # End maint _m_E_out after "E.add(e)"
-    # Begin maint Comp1 after "E.add(e)"
-    _maint_Comp1_E_add(e)
-    # End maint Comp1 after "E.add(e)"
-x = 1
-print(_m_Aggr1_out.singlelookup(x, (0, 0))[0])
+if (__name__ == '__main__'):
+    main()

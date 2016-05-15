@@ -1,24 +1,23 @@
-# Basic incrementalized comprehensions.
+# Basic comprehension incrementalization test.
 
-from incoq.runtime import *
+from incoq.mars.runtime import *
 
-QUERYOPTIONS(
-    '{x for (x, y) in E if f(y)}',
-    impl = 'inc',
-)
-QUERYOPTIONS(
-    '{(x, z) for (x, y) in E for (y2, z) in E if y == y2}',
-    impl = 'inc',
+CONFIG(
+    default_impl = 'inc',
 )
 
-def f(y):
-    return True
+S = Set()
 
-E = Set()
+def main():
+    for x, y in [(1, 2), (1, 3), (2, 3), (2, 4)]:
+        S.add((x, y))
+    print(sorted(QUERY('Q', {(c,) for (a, b) in S for (b2, c) in S
+                                  if b == b2})))
+    
+    # Test clear update.
+    S.clear()
+    print(sorted(QUERY('Q', {(c,) for (a, b) in S for (b2, c) in S
+                                  if b == b2})))
 
-for v1, v2 in {(1, 2), (1, 3), (2, 3), (3, 4)}:
-    E.add((v1, v2))
-
-print(sorted({x for (x, y) in E if f(y)}))
-
-print(sorted({(x, z) for (x, y) in E for (y2, z) in E if y == y2}))
+if __name__ == '__main__':
+    main()

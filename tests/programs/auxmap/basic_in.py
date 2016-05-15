@@ -1,14 +1,20 @@
-# Basic auxiliary map usage.
+# Basic auxiliary map test.
 
-from incoq.runtime import *
+from incoq.mars.runtime import *
 
-R = Set()
+S = Set()
 
-for x, y in [(1, 2), (1, 3), (2, 3), (1, 4)]:
-    R.add((x, y))
+def main():
+    for x, y in [(1, 2), (1, 3), (2, 3), (2, 4)]:
+        S.add((x, y))
+    x = 1
+    print(sorted(S.imglookup('bu', (x,))))
+    S.remove((1, 3))
+    print(sorted(S.imglookup('bu', (x,))))
+    S.add((1, 4))
+    print(sorted(S.imglookup('bu', (x,))))
+    S.clear()
+    print(sorted(S.imglookup('bu', (x,))))
 
-R.remove((1, 4))
-
-print(sorted(R))
-print(sorted(setmatch(R, 'bu', 1)))
-print(sorted(setmatch(R, 'ub', 2)))
+if __name__ == '__main__':
+    main()
