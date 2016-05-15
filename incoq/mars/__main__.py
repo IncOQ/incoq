@@ -38,7 +38,7 @@ def run(args):
     options = extract_options(ns)
     
     # There's currently no way to pass query options from the
-    # command line directly.
+    # command line directly. Use a Python script and call invoke().
     invoke(ns.in_file, ns.out_file, options=options,
            stats_filename=ns.stats[0])
 

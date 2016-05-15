@@ -13,8 +13,7 @@ from os.path import dirname, normpath
 from itertools import chain
 
 from incoq.mars.symbol.config import (
-    get_argparser, extract_options, parse_typedef)
-from incoq.mars.symbol import S
+    get_argparser, extract_options)
 from incoq.mars import __main__ as main
 
 
@@ -25,81 +24,81 @@ from incoq.mars import __main__ as main
 
 twitter_tasks = [
     ('twitter/twitter_in', 'twitter/twitter_inc',
-     {'default_impl': S.Inc}),
+     {'default_impl': 'inc'}),
     ('twitter/twitter_in', 'twitter/twitter_dem',
-     {'default_impl': S.Filtered}),
+     {'default_impl': 'filtered'}),
     
     ('twitter/twitter_in', 'twitter/twitter_dem_notcelim',
-     {'default_impl': S.Filtered,
-      'elim_type_checks': False}),
+     {'default_impl': 'filtered',
+      'elim_type_checks': 'false'}),
     
     ('twitter/twitter_in', 'twitter/twitter_dem_baseline',
-     {'default_impl': S.Filtered,
-      'inline_maint_code': False,
-      'elim_counts': False,
-      'elim_dead_relations': False,
-      'elim_type_checks': False}),
+     {'default_impl': 'filtered',
+      'inline_maint_code': 'false',
+      'elim_counts': 'false',
+      'elim_dead_relations': 'false',
+      'elim_type_checks': 'false'}),
     ('twitter/twitter_in', 'twitter/twitter_dem_inline',
-     {'default_impl': S.Filtered,
-      'inline_maint_code': True,
-      'elim_counts': False,
-      'elim_dead_relations': False,
-      'elim_type_checks': False}),
+     {'default_impl': 'filtered',
+      'inline_maint_code': 'true',
+      'elim_counts': 'false',
+      'elim_dead_relations': 'false',
+      'elim_type_checks': 'false'}),
     ('twitter/twitter_in', 'twitter/twitter_dem_rcelim',
-     {'default_impl': S.Filtered,
-      'inline_maint_code': True,
-      'elim_counts': True,
-      'elim_dead_relations': False,
-      'elim_type_checks': False}),
+     {'default_impl': 'filtered',
+      'inline_maint_code': 'true',
+      'elim_counts': 'true',
+      'elim_dead_relations': 'false',
+      'elim_type_checks': 'false'}),
     ('twitter/twitter_in', 'twitter/twitter_dem_rselim',
-     {'default_impl': S.Filtered,
-      'inline_maint_code': True,
-      'elim_counts': True,
-      'elim_dead_relations': True,
-      'elim_type_checks': False}),
+     {'default_impl': 'filtered',
+      'inline_maint_code': 'true',
+      'elim_counts': 'true',
+      'elim_dead_relations': 'true',
+      'elim_type_checks': 'false'}),
     ('twitter/twitter_in', 'twitter/twitter_dem_tcelim',
-     {'default_impl': S.Filtered,
-      'inline_maint_code': True,
-      'elim_counts': True,
-      'elim_dead_relations': True,
-      'elim_type_checks': True}),
+     {'default_impl': 'filtered',
+      'inline_maint_code': 'true',
+      'elim_counts': 'true',
+      'elim_dead_relations': 'true',
+      'elim_type_checks': 'true'}),
     
     ('twitter/twitter_in', 'twitter/twitter_dem_singletag',
-     {'default_impl': S.Filtered,
-      'use_singletag_demand': True}),
+     {'default_impl': 'filtered',
+      'use_singletag_demand': 'true'}),
 ]
 
 wifi_tasks = [
     ('wifi/wifi_in', 'wifi/wifi_inc',
-     {'default_impl': S.Inc}),
+     {'default_impl': 'inc'}),
     ('wifi/wifi_in', 'wifi/wifi_dem',
-     {'default_impl': S.Filtered}),
+     {'default_impl': 'filtered'}),
 ]
 
 django_tasks = [
     ('django/django_in', 'django/django_inc',
-     {'default_impl': S.Inc}),
+     {'default_impl': 'inc'}),
     ('django/django_in', 'django/django_dem',
-     {'default_impl': S.Filtered}),
+     {'default_impl': 'filtered'}),
     ('django/django_simp_in', 'django/django_simp_inc',
-     {'default_impl': S.Inc}),
+     {'default_impl': 'inc'}),
     ('django/django_simp_in', 'django/django_simp_dem',
-     {'default_impl': S.Filtered}),
+     {'default_impl': 'filtered'}),
 ]
 
 jql_tasks = [
     ('jql/jql_1_in', 'jql/jql_1_inc',
-     {'default_impl': S.Inc}),
+     {'default_impl': 'inc'}),
     ('jql/jql_1_in', 'jql/jql_1_dem',
-     {'default_impl': S.Filtered}),
+     {'default_impl': 'filtered'}),
     ('jql/jql_2_in', 'jql/jql_2_inc',
-     {'default_impl': S.Inc}),
+     {'default_impl': 'inc'}),
     ('jql/jql_2_in', 'jql/jql_2_dem',
-     {'default_impl': S.Filtered}),
+     {'default_impl': 'filtered'}),
     ('jql/jql_3_in', 'jql/jql_3_inc',
-     {'default_impl': S.Inc}),
+     {'default_impl': 'inc'}),
     ('jql/jql_3_in', 'jql/jql_3_dem',
-     {'default_impl': S.Filtered}),
+     {'default_impl': 'filtered'}),
 ]
 
 checkaccess_opts = {'CA': dict(
@@ -110,29 +109,29 @@ checkaccess_opts = {'CA': dict(
 corerbac_tasks = [
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_checkaccess_inc',
-     {'default_impl': S.Inc}),
+     {'default_impl': 'inc'}),
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_checkaccess_dem',
-     ({'default_impl': S.Filtered},
+     ({'default_impl': 'filtered'},
       checkaccess_opts)),
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_inc',
-     {'default_impl': S.Inc, 'auto_query': True}),
+     {'default_impl': 'inc', 'auto_query': 'true'}),
     ('rbac/corerbac/coreRBAC_in',
      'rbac/corerbac/coreRBAC_dem',
-     ({'default_impl': S.Filtered, 'auto_query': True},
+     ({'default_impl': 'filtered', 'auto_query': 'true'},
       checkaccess_opts)),
 ]
 crbac_tasks = [
     ('rbac/constrainedrbac/crbac_in',
      'rbac/constrainedrbac/crbac_aux',
-     {'default_impl': S.Aux}),
+     {'default_impl': 'aux'}),
     ('rbac/constrainedrbac/crbac_in',
      'rbac/constrainedrbac/crbac_inc',
-     {'default_impl': S.Inc}),
+     {'default_impl': 'inc'}),
     ('rbac/constrainedrbac/crbac_in',
      'rbac/constrainedrbac/crbac_dem',
-     {'default_impl': S.Filtered}),
+     {'default_impl': 'filtered'}),
 ]
 rbac_tasks = corerbac_tasks + crbac_tasks
 
@@ -153,66 +152,66 @@ def graddb_helper(name):
     return [
         (prefix + name + '_in',
          prefix + name + '_inc',
-         {'obj_domain': True, 'default_impl': S.Inc,
-          'elim_dead_funcs': False}),
+         {'obj_domain': 'true', 'default_impl': 'inc',
+          'elim_dead_funcs': 'false'}),
         (prefix + name + '_in',
          prefix + name + '_dem',
-         {'obj_domain': True, 'default_impl': S.Filtered,
-          'elim_dead_funcs': False}),
+         {'obj_domain': 'true', 'default_impl': 'filtered',
+          'elim_dead_funcs': 'false'}),
     ]
 graddb_query_tasks = list(chain.from_iterable(graddb_helper(name)
                           for name in graddb_queries))
 graddb_tasks = [
     ('graddb/newstudents/newstu_in',
      'graddb/newstudents/newstu_dem',
-     {'obj_domain': True, 'default_impl': S.Filtered}),
+     {'obj_domain': 'true', 'default_impl': 'filtered'}),
 ] + graddb_query_tasks
 
 probinf_tasks = [
     ('probinf/bday/bday_in',
      'probinf/bday/bday_inc',
-     {'default_impl': S.Inc, 'auto_query': True}),
+     {'default_impl': 'inc', 'auto_query': 'true'}),
     ('probinf/bday/bday_in',
      'probinf/bday/bday_dem',
-     {'default_impl': S.Filtered, 'auto_query': True}),
+     {'default_impl': 'filtered', 'auto_query': 'true'}),
     ('probinf/bday/bday_obj_in',
      'probinf/bday/bday_obj_inc',
-     {'default_impl': S.Inc, 'auto_query': True}),
+     {'default_impl': 'inc', 'auto_query': 'true'}),
     ('probinf/bday/bday_obj_in',
      'probinf/bday/bday_obj_dem',
-     {'default_impl': S.Filtered, 'auto_query': True}),
+     {'default_impl': 'filtered', 'auto_query': 'true'}),
     ('probinf/pubauth/pubauth_in',
      'probinf/pubauth/pubauth_inc',
-     {'default_impl': S.Inc, 'auto_query': True}),
+     {'default_impl': 'inc', 'auto_query': 'true'}),
     ('probinf/pubauth/pubauth_in',
      'probinf/pubauth/pubauth_dem',
-     {'default_impl': S.Filtered, 'auto_query': True}),
+     {'default_impl': 'filtered', 'auto_query': 'true'}),
     ('probinf/pubcite/pubcite_in',
      'probinf/pubcite/pubcite_inc',
-     {'default_impl': S.Inc, 'auto_query': True}),
+     {'default_impl': 'inc', 'auto_query': 'true'}),
     ('probinf/pubcite/pubcite_in',
      'probinf/pubcite/pubcite_dem',
-     {'default_impl': S.Filtered, 'auto_query': True}),
+     {'default_impl': 'filtered', 'auto_query': 'true'}),
 ]
 
 distalgo_options = {
-    'distalgo_mode': True,
-    'auto_query': True,
-    'default_impl': S.Inc,
+    'distalgo_mode': 'true',
+    'auto_query': 'true',
+    'default_impl': 'inc',
 }
 distalgo_obj_options = distalgo_options.copy()
 distalgo_obj_options.update({
-    'obj_domain': True,
-    'default_impl': S.Filtered,
+    'obj_domain': 'true',
+    'default_impl': 'filtered',
 })
 distalgo_lamutex_options = distalgo_options.copy()
 distalgo_lamutex_options.update({
-    'default_demand_set_maxsize': 1,
-    'typedefs': parse_typedef('''Label = Enum("Label");
+    'default_demand_set_maxsize': '1',
+    'typedefs': '''Label = Enum("Label");
                    Clock = Refine("Clock", Number);
                    Proc = Refine("Proc", Top);
                    Msgset = Set(Tuple([Label, Clock, Proc]));
-                '''),
+                ''',
 })
 distalgo_lamutex_orig_symconfig = {
     '_PReceivedEvent_0': {'ann_type': 'Msgset'},
