@@ -1,6 +1,6 @@
 # Use Tom's OSQ system on the query.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 from osq import query
 
 def make_user(email, loc):

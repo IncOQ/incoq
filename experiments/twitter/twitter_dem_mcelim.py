@@ -21,7 +21,7 @@
 # Q_T_user_2 : {(user,) for (group, user) in REL(R_Q_d_M_2)} : Bottom
 # Q_d_F_loc : {(user, user_loc) for (user,) in REL(R_Q_T_user_1) for (user,) in REL(R_Q_T_user_2) for (user, user_loc) in F(loc)} : Bottom
 # Q_d_F_email : {(user, user_email) for (user,) in REL(R_Q_T_user_1) for (user,) in REL(R_Q_T_user_2) for (user, user_email) in F(email)} : Bottom
-from incoq.mars.runtime import *
+from incoq.runtime import *
 # _U_Q : {(Bottom, Bottom)}
 _U_Q = Set()
 # R_Q_T_celeb : Bottom

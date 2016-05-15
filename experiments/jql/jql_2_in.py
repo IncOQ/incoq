@@ -1,6 +1,6 @@
 # JQL query, two levels.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     obj_domain = 'true',

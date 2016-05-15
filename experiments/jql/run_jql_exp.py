@@ -155,8 +155,8 @@ class JQLDriver:
             finished = self.run()
         
         if finished:
-            import incoq.mars.runtime
-            self.results['size'] = incoq.mars.runtime.get_size_for_namespace(
+            import incoq.runtime
+            self.results['size'] = incoq.runtime.get_size_for_namespace(
                                     self.module.__dict__)
             self.results['time_cpu'] = timer_cpu.consume()
             self.results['time_wall'] = timer_wall.consume()

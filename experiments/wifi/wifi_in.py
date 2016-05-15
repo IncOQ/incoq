@@ -1,6 +1,6 @@
 # Wifi query from Tom's thesis.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     obj_domain = 'true',

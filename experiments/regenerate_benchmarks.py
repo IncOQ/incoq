@@ -12,9 +12,7 @@ from os import chdir
 from os.path import dirname, normpath
 from itertools import chain
 
-from incoq.mars.symbol.config import (
-    get_argparser, extract_options)
-from incoq.mars import __main__ as main
+from incoq.compiler import get_argparser, extract_options, invoke
 
 
 # Input file, output file, dictionary of config options.
@@ -316,9 +314,9 @@ def compile_task(task, *, options=None):
     qopts.update(task_qopts)
     
     print('Regenerating {}...'.format(out_name), flush=True)
-    main.invoke(in_file, out_file,
-                options=opts, query_options=qopts,
-                stats_filename=stats_file)
+    invoke(in_file, out_file,
+           options=opts, query_options=qopts,
+           stats_filename=stats_file)
 
 
 def compile_task_names(target_names, *, options=None):

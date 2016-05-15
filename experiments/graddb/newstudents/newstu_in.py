@@ -6,7 +6,7 @@
 # as an unconstrained parameter and allow the condition clause
 # to stand as it is without pattern rewriting.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     obj_domain = 'true',

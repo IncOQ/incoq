@@ -7,7 +7,7 @@
 # - the query is different, and takes in a user instead of a user id
 # - the users set is deleted, and make_user() modified accordingly
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     obj_domain = 'true',

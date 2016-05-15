@@ -1,6 +1,6 @@
 # Run using the OSQ system.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 from osq import query
 
 def make_wifi(threshold):

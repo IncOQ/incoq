@@ -1,4 +1,4 @@
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 def main():
     students = Set()

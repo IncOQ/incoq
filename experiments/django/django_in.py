@@ -10,7 +10,7 @@
 # since we don't reassign to users, we view it as a relation.
 # Consequently there is no need for a distinct U-set at all.
 
-from incoq.mars.runtime import *
+from incoq.runtime import *
 
 CONFIG(
     obj_domain = 'true',
