@@ -2,7 +2,6 @@
 
 
 __all__ = [
-    'invoke',
     'run',
 ]
 
@@ -10,17 +9,7 @@ __all__ = [
 import sys
 import argparse
 
-from incoq.mars.symbol.config import get_argparser, extract_options
-from incoq.mars.transform import transform_filename
-
-
-def invoke(in_filename, out_filename, *,
-           options=None, query_options=None,
-           stats_filename=None):
-    """Transform one file and report to the user."""
-    transform_filename(in_filename, out_filename,
-                       options=options, query_options=query_options,
-                       stats_filename=stats_filename)
+from incoq.mars import get_argparser, extract_options, invoke
 
 
 def run(args):

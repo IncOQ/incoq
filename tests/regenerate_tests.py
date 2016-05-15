@@ -10,8 +10,7 @@ import sys
 import argparse
 from os.path import join, dirname, basename, normpath, relpath
 
-from incoq.mars.symbol.config import get_argparser, extract_options
-from incoq.mars import __main__ as main
+from incoq.mars import get_argparser, extract_options, invoke
 
 from .programs.test_transformation import get_test_entries
 
@@ -42,7 +41,7 @@ def regenerate_test(test_name, *, options=None):
     # Tests do not do cost analysis, in order to run faster.
     options['costs'] = 'false'
     
-    main.invoke(in_path, out_path, options=options)
+    invoke(in_path, out_path, options=options)
 
 
 def regenerate_all(*, options=None):
