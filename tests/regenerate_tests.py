@@ -11,18 +11,19 @@ import argparse
 from os.path import join, dirname, basename, normpath, relpath
 
 from incoq.mars.symbol.config import get_argparser, extract_options
-from incoq.tests.mars.programs.test_transformation import get_test_entries
-from . import __main__ as main
+from incoq.mars import __main__ as main
+
+from .programs.test_transformation import get_test_entries
 
 
-test_root_path = join(dirname(__file__), '../tests/mars/programs')
+test_root_path = join(dirname(__file__), 'programs')
 test_root_path = normpath(test_root_path)
 
 
 def regenerate_test(test_name, *, options=None):
     """Regenerate the *_out.py file for the given test. Tests are
     specified by the path to their *_in.py file, omitting the _in.py
-    suffix, and relative to the incoq/tests/mars/programs directory.
+    suffix, and relative to the programs directory.
     """
     test_path = join(test_root_path, test_name)
     test_dir = dirname(test_path)
@@ -57,7 +58,7 @@ def regenerate_all(*, options=None):
 
 def run(args):
     parent = get_argparser()
-    parser = argparse.ArgumentParser(prog='incoq.mars.regenerate_tests',
+    parser = argparse.ArgumentParser(prog='regenerate_tests',
                                      parents=[parent])
     parser.add_argument('test_name', nargs='?', default=None)
     
