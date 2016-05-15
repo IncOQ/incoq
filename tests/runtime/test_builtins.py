@@ -4,7 +4,7 @@
 import unittest
 import pickle
 
-from incoq.mars.runtime.builtins import *
+from incoq.runtime.builtins import *
 
 
 class BuiltinsCase(unittest.TestCase):

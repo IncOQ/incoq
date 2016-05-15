@@ -2,9 +2,8 @@
 
 
 import unittest
-import pickle
 
-from incoq.mars.runtime.tree import *
+from incoq.runtime.tree import *
 
 
 class TreeCase(unittest.TestCase):
