@@ -276,12 +276,12 @@ task_lists = [
     ('wifi', wifi_tasks),
     ('django', django_tasks),
     ('jql', jql_tasks),
-    ('lamutex', lamutex_tasks),
     ('corerbac', corerbac_tasks),
     ('crbac', crbac_tasks),
     ('rbac', rbac_tasks),
     ('graddb', graddb_tasks),
     ('probinf', probinf_tasks),
+    ('lamutex', lamutex_tasks),
     ('distalgo', distalgo_tasks),
 ]
 task_groups = dict(task_lists)
@@ -336,19 +336,39 @@ def compile_task_names(target_names, *, options=None):
 
 
 def run(args):
-    parent = get_argparser()
+    parent = get_argparser(with_help=False)
     parser = argparse.ArgumentParser(prog='regenerate_benchmarks.py',
-                                     parents=[parent])
+                                     parents=[parent],
+                                     epilog='IncOQ command line options are '
+                                            'also permitted.')
     parser.add_argument('target_name', nargs='*', default=None)
+    parser.add_argument('--list', action='store_true',
+                        help='show available targets')
     
     ns = parser.parse_args(args)
     
     options = extract_options(ns)
     
+    if ns.list:
+        print('Available targets:')
+        seen = set()
+        for _in_name, out_name, _opts in chain.from_iterable(
+                tasklist for _listname, tasklist in task_lists):
+            if out_name not in seen:
+                print('  ' + out_name)
+                seen.add(out_name)
+        print()
+        print('Available task lists:')
+        for listname, _tasklist in task_lists:
+            print('  ' + listname)
+        return
+    
     if len(ns.target_name) == 0:
-        print('No targets specified')
-    else:
-        compile_task_names(ns.target_name, options=options)
+        print('No targets specified.\n')
+        parser.print_usage()
+        return
+    
+    compile_task_names(ns.target_name, options=options)
 
 
 if __name__ == '__main__':

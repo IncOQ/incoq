@@ -111,15 +111,38 @@ def run_tasks(tasks, run=True, view=True, verify=False,
 
 
 def run(args):
-    parser = argparse.ArgumentParser(prog='run.py')
-    parser.add_argument('task', nargs='+')
-    parser.add_argument('--run', action='store_true')
-    parser.add_argument('--view', action='store_true')
-    parser.add_argument('--verify', action='store_true')
-    parser.add_argument('--light', action='store_true')
-    parser.add_argument('--no-generate', action='store_true')
+    parser = argparse.ArgumentParser(
+        prog='run.py',
+        epilog='If neither --run nor --view is specified, the tasks will '
+               'both run and be viewed. Note that when multiple tasks are '
+               'given, viewing will block in-between tasks.')
+    parser.add_argument('task', nargs='*')
+    parser.add_argument('--list', action='store_true',
+                        help='show available tasks')
+    parser.add_argument('--run', action='store_true',
+                        help='run the given tasks')
+    parser.add_argument('--view', action='store_true',
+                        help='view results for the given tasks')
+    parser.add_argument('--verify', action='store_true',
+                        help=argparse.SUPPRESS)
+    parser.add_argument('--light', action='store_true',
+                        help='when running, only do one trial per datapoint')
+    parser.add_argument('--no-generate', action='store_true',
+                        help='when running, do not regenerate input test '
+                             'data')
     
     ns = parser.parse_args(args)
+    
+    if ns.list:
+        print('Available tasks:')
+        for t_name, _ in all_tasks:
+            print('  ' + t_name)
+        return
+    
+    if len(ns.task) == 0:
+        print('No tasks specified.\n')
+        parser.print_usage()
+        return
     
     do_tasks = []
     for t_name in ns.task:

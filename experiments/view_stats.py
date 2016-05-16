@@ -721,11 +721,26 @@ def run(args):
     chdir(root_path)
     
     parser = argparse.ArgumentParser(prog='view_stats.py')
-    parser.add_argument('table', nargs='+')
+    parser.add_argument('table', nargs='*')
     parser.add_argument('--format', choices=['csv', 'table', 'latex'],
-                        default='table')
+                        default='table',
+                        help='output format; latex format is customized '
+                             'for the thesis')
+    parser.add_argument('--list', action='store_true',
+                        help='show available tables')
     
     ns = parser.parse_args(args)
+    
+    if ns.list:
+        print('Available tables:')
+        for name, _ in aggregations:
+            print('  ' + name)
+        return
+    
+    if len(ns.table) == 0:
+        print('No tables specified.\n')
+        parser.print_usage()
+        return
     
     all_stats = do_collections()
     for name in ns.table:

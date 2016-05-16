@@ -56,10 +56,14 @@ def regenerate_all(*, options=None):
 
 
 def run(args):
-    parent = get_argparser()
+    parent = get_argparser(with_help=False)
     parser = argparse.ArgumentParser(prog='regenerate_tests',
-                                     parents=[parent])
-    parser.add_argument('test_name', nargs='?', default=None)
+                                     parents=[parent],
+                                     epilog='IncOQ command line options are '
+                                            'also permitted.')
+    parser.add_argument('test_name', nargs='?', default=None,
+                        help='path prefix of test to regenerate, e.g., '
+                             '"comp/basic"; omit to regenerate all tests')
     
     ns = parser.parse_args(args)
     

@@ -54,10 +54,11 @@ class BaseConfigAttribute:
         """
         return s
     
-    def update_argparser(self, argparser):
+    def update_argparser(self, argparser, *, with_help=True):
         """Given an argparse.ArgumentParser object, update it to be
         able to parse the command line options corresponding to this
-        config attribute.
+        config attribute. If with_help is False, do not generate help
+        messages for the added options.
         """
         pass
     
@@ -86,17 +87,21 @@ class BooleanConfigAttribute(BaseConfigAttribute):
     def parse(self, s):
         return parse_bool(s)
     
-    def update_argparser(self, argparser):
+    def update_argparser(self, argparser, *, with_help=True):
         argname = self.name.replace('_', '-')
         
-        # Choose whether help for the normal or negated version
-        # is visible.
-        if self.default is False:
-            positive_help = self.docstring
-            negative_help = argparse.SUPPRESS
+        if with_help:
+            # Choose whether help for the normal or negated version
+            # is visible.
+            if self.default is False:
+                positive_help = self.docstring
+                negative_help = argparse.SUPPRESS
+            else:
+                positive_help = argparse.SUPPRESS
+                negative_help = '(disable) ' + self.docstring
         else:
             positive_help = argparse.SUPPRESS
-            negative_help = '(disable) ' + self.docstring
+            negative_help = argparse.SUPPRESS
         
         argparser.add_argument('--' + argname,
                                help=positive_help,
@@ -124,11 +129,14 @@ class EnumConfigAttribute(BaseConfigAttribute):
     def parse(self, s):
         return Constants.parse(s)
     
-    def update_argparser(self, argparser):
+    def update_argparser(self, argparser, *, with_help=True):
         argname = self.name.replace('_', '-')
         
-        docstring = '{} (default: {})'.format(
-            self.docstring, self.default_str)
+        if with_help:
+            docstring = '{} (default: {})'.format(
+                self.docstring, self.default_str)
+        else:
+            docstring = argparse.SUPPRESS
         
         argparser.add_argument('--' + argname,
                                help=docstring,
@@ -150,11 +158,14 @@ class IntNoneConfigAttribute(BaseConfigAttribute):
         else:
             return int(s)
     
-    def update_argparser(self, argparser):
+    def update_argparser(self, argparser, *, with_help=True):
         argname = self.name.replace('_', '-')
         
-        docstring = '{} (default: {})'.format(
-            self.docstring, self.default_str)
+        if with_help:
+            docstring = '{} (default: {})'.format(
+                self.docstring, self.default_str)
+        else:
+            docstring = argparse.SUPPRESS
         
         argparser.add_argument('--' + argname,
                                help=docstring,
@@ -170,11 +181,16 @@ class TypedefConfigAttribute(BaseConfigAttribute):
     def parse(self, s):
         return parse_typedef(s)
     
-    def update_argparser(self, argparser):
+    def update_argparser(self, argparser, *, with_help=True):
         argname = self.name.replace('_', '-')
         
+        if with_help:
+            docstring = self.docstring
+        else:
+            docstring = argparse.SUPPRESS
+        
         argparser.add_argument('--' + argname,
-                               help=self.docstring,
+                               help=docstring,
                                action='store',
                                dest=self.name)
 
@@ -265,11 +281,11 @@ for attr in all_attributes:
     setattr(Config, attr.name, attr)
 
 
-def get_argparser():
+def get_argparser(*, with_help=True):
     """Return a parent parser for the configuration options."""
     argparser = argparse.ArgumentParser(add_help=False)
     for attr in all_attributes:
-        attr.update_argparser(argparser)
+        attr.update_argparser(argparser, with_help=with_help)
     return argparser
 
 
