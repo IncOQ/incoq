@@ -1,0 +1,14 @@
+# Edit the paths, then rename this file to "config.txt".
+
+[python]
+python34 = C:/Python34/python.exe
+INCOQ_ROOT = .../incoq
+DISTALGO_PATH = .../deps/distalgo
+
+[jql]
+BASH_CMD = C:/cygwin64/bin/bash.exe
+JQL_HOME = .../deps/jql/jql-v0.3.3
+JAVA_HOME = C:/Program Files/Java/jdk1.6.0_45
+ASPECTJ_HOME = .../deps/jql/aspectj-1.7.2
+JSONSIMPLE_JARPATH = .../deps/jql/json-simple-1.1.1.jar
+ASPECTJ_JARPATH = .../deps/jql/aspectj-1.7.2/lib/*
