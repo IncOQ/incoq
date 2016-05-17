@@ -14,6 +14,8 @@ __all__ = [
 ]
 
 
+from itertools import chain
+
 from incoq.compiler.incast import L
 from incoq.compiler.symbol import S
 
@@ -266,10 +268,15 @@ def rewrite_aggregates(tree, symtab):
                 return
             
             parts = L.get_setunion(aggr.value)
+            n_query_parts = len([p for p in parts
+                                   if not isinstance(p, L.Set)])
+            # If there are only set literals, use min2/max2.
+            if n_query_parts == 0:
+                return L.Call(func, list(chain.from_iterable(
+                                         p.elts for p in parts)))
+            # If there is one part and it's not a literal, leave as-is.
             if len(parts) <= 1:
                 return
-            multiple_queries = \
-                len([p for p in parts if not isinstance(p, L.Set)]) > 1
             
             i = 2
             done_first_query = False
