@@ -264,13 +264,24 @@ def transform_ast(input_ast, *, options=None, query_options=None):
     tree = input_ast
     if options is None:
         options = {}
+    else:
+        options = options.copy()
     if query_options is None:
         query_options = {}
+    else:
+        query_options = query_options.copy()
     
     config = S.Config()
     
     symtab = S.SymbolTable()
     symtab.config = config
+    
+    # Typedefs from the **options need to be applied here, before
+    # we try to apply types that use these defs to the individual
+    # queries inside preprocess_tree().
+    if 'typedefs' in options:
+        config.parse_and_update(typedefs=options['typedefs'])
+        del options['typedefs']
     
     tree = preprocess_tree(tree, symtab, query_options)
     
