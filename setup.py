@@ -23,7 +23,7 @@ setup(
     test_suite =    'incoq.tests',
     
     install_requires = [
-        'simplestruct >=0.2.1',
+        'simplestruct >=0.2.2',
         'iast >=0.2.1',
     ],
     extras_require = {
