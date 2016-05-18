@@ -391,8 +391,13 @@ def transform_ast(input_ast, *, options=None, query_options=None):
 #                                        L.Parser.ts(sym.node)))
     
     if config.costs:
+        t1 = process_time()
         symtab.print('Analyzing costs')
         tree = C.annotate_costs(tree, symtab)
+        t2 = process_time()
+        symtab.stats['costanalysis_time'] = t2 - t1
+    else:
+        symtab.stats['costanalysis_time'] = None
     
     symtab.print('Incrementalizing auxiliary maps')
     

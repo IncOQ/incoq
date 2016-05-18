@@ -167,6 +167,7 @@ init_stats = {
     'lines': 0,
     'ast_nodes': 0,
     'time': 0,
+    'costanalysis_time': 0,
     'queries_input': 0,
     'updates_input': 0,
     'updatekinds_input': 0,

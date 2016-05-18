@@ -79,10 +79,19 @@ def loc_collector(base_name):
 
 
 def statfile_collector(base_name):
-    stats = {}
     data = read_file(base_name + '_stats.txt')
-    if data is not None:
-        stats = json.loads(data)
+    if data is None:
+        return {}
+    
+    stats = json.loads(data)
+    
+    # Do postprocessing.
+    if 'time' in stats:
+        costanalysis_time = stats.get('costanalysis_time', None)
+        if costanalysis_time is None:
+            costanalysis_time = 0
+        stats['time_nocost'] = stats['time'] - costanalysis_time
+    
     return stats
 
 
@@ -319,6 +328,11 @@ class BaseAggregator:
         if self.bold_firstcol:
             first_cell, *remaining_cells = padded_cells
             first_cell = r'\c{' + first_cell.lstrip() + '}'
+            
+            remaining_cells = [cell if not cell.isspace() else 
+                                    'N/A '.rjust(len(cell))
+                               for cell in remaining_cells]
+            
             padded_cells = [first_cell] + remaining_cells
         
         return _build_simple_row(padded_cells, rowfmt)
@@ -447,7 +461,7 @@ class LOCAggregator(SimpleAggregator):
     cols = [('lines', 'LOC')]
 
 class LOCTimeAggregator(SimpleAggregator):
-    cols = [('lines', 'LOC'), ('time', 'Time')]
+    cols = [('lines', 'LOC'), ('time_nocost', 'Time')]
 
 class CombinedLOCTimeAggregator(CombinedAggregator):
     cols = [
@@ -455,9 +469,9 @@ class CombinedLOCTimeAggregator(CombinedAggregator):
         (1, 'queries_input', '# queries'),
         (1, 'updates_input', '# updates'),
         (1, 'lines', 'Inc.\nLOC'),
-        (1, 'time', 'Inc.\nTime'),
+        (1, 'time_nocost', 'Inc.\nTime'),
         (2, 'lines', 'Filt.\nLOC'),
-        (2, 'time', 'Filt.\nTime'),
+        (2, 'time_nocost', 'Filt.\nTime'),
     ]
     equalities = [
         ((1, 'queries_input'), (2, 'queries_input')),
@@ -583,10 +597,10 @@ class GradDBAggregator(CombinedAggregator):
     
     cols = [
         (0, 'updatekinds_input', 'Update\nkinds'),
-        (0, 'time', 'Inc.\nTime'),
+        (0, 'time_nocost', 'Inc.\nTime'),
         (0, 'lines', 'Inc.\nLines'),
         (0, 'ast_nodes', 'Inc.\nAST nodes'),
-        (1, 'time', 'Filt.\nTime'),
+        (1, 'time_nocost', 'Filt.\nTime'),
         (1, 'lines', 'Filt.\nLines'),
         (1, 'ast_nodes', 'Filt.\nAST nodes'),
     ]
@@ -641,7 +655,7 @@ class DistAlgoAggregator(CombinedAggregator):
         (1, 'queries_input', '# queries'),
         (1, 'updates_input', '# updates'),
         (1, 'lines', 'Trans.\nLOC'),
-        (1, 'time', 'Trans.\nTime'),
+        (1, 'time_nocost', 'Trans.\nTime'),
     ]
     _rows1 = [
         'clpaxos',
