@@ -635,7 +635,7 @@ class Scale(JQLWorkflow):
             return super().project_x(p) / 1e3
         
         ymin = 0
-        xmin = 1
+        xmin = 0
 #        xmax = 21
         xmax = 31
 #        x_ticklocs = [0, 4, 8, 12, 16, 20]

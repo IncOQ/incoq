@@ -1340,7 +1340,7 @@ class DensityLoc(Density):
     
     class ExpExtractor(Density.ExpExtractor):
         legend_loc = 'upper right'
-        texttt = True
+        texttt = False
 
 class DensityLocNorm(DensityNorm, DensityLoc):
     
