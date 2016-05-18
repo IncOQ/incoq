@@ -1274,22 +1274,22 @@ class Density(TwitterWorkflow):
         
         series_unformatted = [
             (('twitter_dem_baseline', 'all'),
-             'Unoptimized',
+             'unoptimized',
              'black', '- s normal'),
             (('twitter_dem_inline', 'all'),
-             'Inlining',
+             'inlining',
              'purple', ': ^ normal'),
             (('twitter_dem_rcelim', 'all'),
-             'Counting elim',
+             'counting elim',
              'red', '- ^ normal'),
             (('twitter_dem_rselim', 'all'),
-             'Result set elim',
+             'result set elim',
              'purple', ': _o normal'),
             (('twitter_dem_tcelim', 'all'),
-             'Type check elim',
+             'type check elim',
              'blue', '-- x normal'),
             (('twitter_dem_mcelim', 'all'),
-             'Maint case elim',
+             'maint case elim',
              '#00FF00', '1-2 o normal'),
         ]
         
