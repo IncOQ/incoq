@@ -182,6 +182,50 @@ class MiscRewritingsCase(unittest.TestCase):
                 foo()
             ''')
         self.assertEqual(tree, exp_tree)
+    
+    def test_make_updates_strict(self):
+        symtab = S.SymbolTable()
+        tree = L.Parser.p('''
+            def main():
+                s.add(x)
+                s.remove(x)
+                R.reladd(x)
+                R.relremove(x)
+                m[k] = v
+                del m[k]
+                M.mapassign(k, v)
+                M.mapdelete(k)
+                o.f = v
+                del o.f
+            ''')
+        tree = make_updates_strict(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                if (x not in s):
+                    s.add(x)
+                if (x in s):
+                    s.remove(x)
+                if (x not in R):
+                    R.reladd(x)
+                if (x in R):
+                    R.relremove(x)
+                if (k in m):
+                    del m[k]
+                m[k] = v
+                if (k in m):
+                    del m[k]
+                if (k in M):
+                    M.mapdelete(k)
+                M.mapassign(k, v)
+                if (k in M):
+                    M.mapdelete(k)
+                if hasfield(o, 'f'):
+                    del o.f
+                o.f = v
+                if hasfield(o, 'f'):
+                    del o.f
+            ''')
+        self.assertEqual(tree, exp_tree)
 
 
 if __name__ == '__main__':

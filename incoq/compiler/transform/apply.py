@@ -38,7 +38,7 @@ from .misc_rewritings import (mark_query_forms, unmark_normal_impl,
                               rewrite_vars_clauses, lift_firstthen,
                               count_updates, reorder_clauses,
                               distalgo_preprocess, rewrite_aggregates,
-                              elim_dead_funcs)
+                              elim_dead_funcs, make_updates_strict)
 from .optimize import unwrap_singletons
 from .param_analysis import (analyze_params, analyze_demand_params,
                              transform_demand)
@@ -304,6 +304,10 @@ def transform_ast(input_ast, *, options=None, query_options=None):
     # Rewrite aggregates of unions.
     tree = rewrite_aggregates(tree, symtab)
     
+    # Rewrite updates to be strict, if requested.
+    if config.strict_rewriting:
+        tree = make_updates_strict(tree, symtab)
+    
     # Replace membership conditions with membership clauses.
     tree = relation_rewritings.rewrite_memberconds(tree, symtab)
     # Expand bulk updates. SetClear is not expanded until after we
@@ -313,6 +317,9 @@ def transform_ast(input_ast, *, options=None, query_options=None):
     tree = relation_rewritings.specialize_rels_and_maps(tree, symtab)
     # Expand SetClear and DictClear.
     tree = relation_rewritings.expand_clear(tree, symtab)
+    
+    if config.relation_tuple_flattening:
+        tree = relation_rewritings.flatten_relation_tuples(tree, symtab)
     
     # Make symbols for non-relation, non-map variables.
     names = L.IdentFinder.find_vars(tree)

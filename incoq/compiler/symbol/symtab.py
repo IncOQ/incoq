@@ -51,6 +51,10 @@ class N:
     def get_unwrap_name(cls, rel):
         return '{}_unwrapped'.format(rel)
     
+    @classmethod
+    def get_flattened_rel_name(cls, rel):
+        return '{}_flattened'.format(rel)
+    
     Aprefix = 'A_'
     @classmethod
     def A_name(cls, oper):

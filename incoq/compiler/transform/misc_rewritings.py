@@ -11,6 +11,7 @@ __all__ = [
     'distalgo_preprocess',
     'rewrite_aggregates',
     'elim_dead_funcs',
+    'make_updates_strict',
 ]
 
 
@@ -328,4 +329,76 @@ def elim_dead_funcs(tree, symtab):
                 return ()
     tree = CallDeleter.run(tree)
     
+    return tree
+
+
+def make_updates_strict(tree, symtab):
+    """Transform all updates to be strict, in case they weren't already.
+    Strict updates are updates that always have a non-redundant effect.
+    For instance, when adding an element to a set, the element must not
+    already be present, and when removing an element from a set, the
+    element must be present. Likewise, when assigning an object field or
+    map key, the field or key must not be present, and when deleting a
+    field or key, it must be present.
+    
+    To make an update strict, set additions/removals are guarded by
+    tests, and field/key changes are guarded by conditionally removing
+    the old value if present.
+    
+    Clear updates and bulk updates are not affected.
+    """
+    class Trans(L.NodeTransformer):
+        def visit_SetUpdate(self, node):
+            if isinstance(node.op, L.SetAdd):
+                test = L.Compare(node.value, L.NotIn(),
+                                 node.target)
+            elif isinstance(node.op, L.SetRemove):
+                test = L.Compare(node.value, L.In(),
+                                 node.target)
+            else:
+                assert()
+            return L.If(test, [node], [])
+        
+        def visit_RelUpdate(self, node):
+            if isinstance(node.op, L.SetAdd):
+                test = L.Compare(L.Name(node.elem), L.NotIn(),
+                                 L.Name(node.rel))
+            elif isinstance(node.op, L.SetRemove):
+                test = L.Compare(L.Name(node.elem), L.In(),
+                                 L.Name(node.rel))
+            else:
+                assert()
+            return L.If(test, [node], [])
+        
+        def visit_DictAssign(self, node):
+            test = L.Compare(node.key, L.In(), node.target)
+            remove = L.DictDelete(node.target, node.key)
+            return [L.If(test, [remove], []),
+                    node]
+        
+        def visit_DictDelete(self, node):
+            test = L.Compare(node.key, L.In(), node.target)
+            return L.If(test, [node], [])
+        
+        def visit_MapAssign(self, node):
+            test = L.Compare(L.Name(node.key), L.In(), L.Name(node.map))
+            remove = L.MapDelete(node.map, node.key)
+            return [L.If(test, [remove], []),
+                    node]
+        
+        def visit_MapDelete(self, node):
+            test = L.Compare(L.Name(node.key), L.In(), L.Name(node.map))
+            return L.If(test, [node], [])
+        
+        def visit_AttrAssign(self, node):
+            test = L.HasField(node.obj, node.attr)
+            remove = L.AttrDelete(node.obj, node.attr)
+            return [L.If(test, [remove], []),
+                    node]
+        
+        def visit_AttrDelete(self, node):
+            test = L.HasField(node.obj, node.attr)
+            return L.If(test, [node], [])
+    
+    tree = Trans.run(tree)
     return tree

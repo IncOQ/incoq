@@ -10,12 +10,13 @@ __all__ = [
     'relationalize_comp_queries',
     'relationalize_clauses',
     'eliminate_dead_relations',
+    'flatten_relation_tuples',
 ]
 
 
 from incoq.compiler.incast import L
 from incoq.compiler.type import T
-from incoq.compiler.symbol import S
+from incoq.compiler.symbol import S, N
 
 from incoq.compiler.auxmap import transform_all_wraps
 
@@ -407,4 +408,88 @@ def eliminate_dead_relations(tree, symtab):
     tree = Trans.run(tree)
     for rel in elim_rels:
         del symtab.symbols[rel]
+    return tree
+
+
+def flatten_relation_tuples(tree, symtab):
+    """For each relation that has uses in queries on the RHS of a
+    membership whose LHS is a non-flat tuple, rewrite the membership
+    to have flat tuples on the LHS, and a new relation on the RHS.
+    Applies to Member clauses.
+    """
+    tree_structure = {}
+    
+    class FlattenRewriter(S.QueryRewriter):
+        def rewrite_comp(self, symbol, name, comp):
+            new_clauses = []
+            for cl in comp.clauses:
+                # Skip if not a Member clause over a relation var.
+                if not (isinstance(cl, L.Member) and
+                        isinstance(cl.iter, L.Name)):
+                    new_clauses.append(cl)
+                    continue
+                rel = cl.iter.id
+                if rel not in symtab.get_relations():
+                    new_clauses.append(cl)
+                    continue
+                
+                # Skip if LHS is a flat tuple.
+                if ((not isinstance(cl.target, L.Tuple)) or
+                    L.is_tuple_of_names(cl.target)):
+                    new_clauses.append(cl)
+                    continue
+                
+                # Get tuple tree structure.
+                names, structure = L.get_tupletree(cl.target)
+                if rel not in tree_structure:
+                    tree_structure[rel] = structure
+                else:
+                    if not tree_structure[rel] == structure:
+                        raise L.ProgramError(
+                            'Inconsistent tuple-tree structure for relation '
+                            '{}: {} and {}'.format(
+                            rel, tree_structure[rel], structure))
+                
+                # Rewrite clause.
+                new_rel = N.get_flattened_rel_name(rel)
+                new_cl = L.RelMember(names, new_rel)
+                new_clauses.append(new_cl)
+            
+            return comp._replace(clauses=new_clauses)
+    
+    def path_to_subscript(value, path):
+        node = value
+        for index in path:
+            node = L.Subscript(node, L.Num(index))
+        return node
+    
+    class Trans(L.NodeTransformer):
+        def visit_RelUpdate(self, node):
+            if node.rel not in tree_structure:
+                return node
+            
+            new_rel = N.get_flattened_rel_name(node.rel)
+            value = L.Tuple([path_to_subscript(L.Name(node.elem), path)
+                             for path in tree_structure[node.rel]])
+            var = next(symtab.fresh_names.vars)
+            maint_code = (L.Assign(var, value),)
+            maint_code += (L.RelUpdate(new_rel, node.op, var),)
+            return L.insert_rel_maint((node,), maint_code, node.op)
+        
+        def visit_RelClear(self, node):
+            if node.rel not in tree_structure:
+                return node
+            
+            new_rel = N.get_flattened_rel_name(node.rel)
+            return (node, L.RelClear(new_rel))
+    
+    # Rewrite uses in queries.
+    tree = FlattenRewriter.run(tree, symtab)
+    # Maintain invariants for flattened relations.
+    tree = Trans.run(tree)
+    
+    # Define relation symbols for flattened relations.
+    for rel in tree_structure.keys():
+        symtab.define_relation(N.get_flattened_rel_name(rel))
+    
     return tree

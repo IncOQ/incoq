@@ -246,6 +246,12 @@ all_attributes = [
     
     BooleanConfigAttribute('costs', 'true',
         'emit cost annotation comments at the top of functions'),
+    
+    BooleanConfigAttribute('strict_rewriting', 'false',
+        'rewrite updates to be strict'),
+    
+    BooleanConfigAttribute('relation_tuple_flattening', 'true',
+        'rewrite relations having nested tuple structure')
 ]
 
 

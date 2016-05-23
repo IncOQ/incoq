@@ -238,6 +238,50 @@ class UpdateRewritingsCase(unittest.TestCase):
         rels = symtab.get_relations().keys()
         exp_rels = ['S']
         self.assertCountEqual(rels, exp_rels)
+    
+    def test_flatten_relation_tuples(self):
+        symtab = S.SymbolTable()
+        symtab.define_relation('R')
+        symtab.define_query(
+            'Q', node=L.Parser.pe('{x for ((x, y), z) in R}'))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', {x for ((x, y), z) in R}))
+                R.reladd(e)
+                R.relremove(e)
+                R.relclear()
+            ''')
+        tree = flatten_relation_tuples(tree, symtab)
+        exp_tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q', {x for (x, y, z) in REL(R_flattened)}))
+                R.reladd(e)
+                _v1 = (index(index(e, 0), 0), index(index(e, 0), 1),
+                       index(e, 1))
+                R_flattened.reladd(_v1)
+                _v2 = (index(index(e, 0), 0), index(index(e, 0), 1),
+                       index(e, 1))
+                R_flattened.relremove(_v2)
+                R.relremove(e)
+                R.relclear()
+                R_flattened.relclear()
+            ''')
+        self.assertEqual(tree, exp_tree)
+        
+        # Inconsistent uses.
+        symtab = S.SymbolTable()
+        symtab.define_relation('R')
+        symtab.define_query(
+            'Q1', node=L.Parser.pe('{x for ((x, y), z) in R}'))
+        symtab.define_query(
+            'Q2', node=L.Parser.pe('{x for (x, (y, z)) in R}'))
+        tree = L.Parser.p('''
+            def main():
+                print(QUERY('Q1', {x for ((x, y), z) in R}))
+                print(QUERY('Q2', {x for (x, (y, z)) in R}))
+            ''')
+        with self.assertRaises(L.ProgramError):
+            flatten_relation_tuples(tree, symtab)
 
 
 if __name__ == '__main__':

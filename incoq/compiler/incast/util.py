@@ -11,10 +11,9 @@ __all__ = [
     'Unwrapper',
     'is_injective',
     'get_setunion',
+    'get_tupletree',
 ]
 
-
-from incoq.util.collections import OrderedSet
 
 from . import nodes as L
 from .pyconv import Parser
@@ -161,3 +160,40 @@ def get_setunion(tree):
             else:
                 self.parts.append(node)
     return Visitor.run(tree)
+
+
+def get_tupletree(tree):
+    """Given a nested tuple tree of names, return 1) a sequence of the
+    names and 2) a sequence of the corresponding paths from the root of
+    the tuple expression to the name, as lists of indices. For example,
+    given the tuple
+    
+        ((a, b), c)
+    
+    this will return (['a', 'b', 'c'], [[0, 0], [0, 1], [1]]).
+    """
+    names = []
+    paths = []
+    
+    class Vis(L.NodeVisitor):
+        def process(self, tree):
+            self.path = []
+            super().process(tree)
+        
+        def generic_visit(self, node):
+            raise L.ProgramError('Unexpected node type in tuple '
+                                 'tree: {}'.format(node))
+        
+        def visit_Tuple(self, node):
+            for i, elt in enumerate(node.elts):
+                self.path.append(i)
+                self.visit(elt)
+                self.path.pop()
+        
+        def visit_Name(self, node):
+            names.append(node.id)
+            paths.append(list(self.path))
+    
+    assert isinstance(tree, L.Tuple)
+    Vis.run(tree)
+    return names, paths

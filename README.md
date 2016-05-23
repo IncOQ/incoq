@@ -79,8 +79,11 @@ expressions evaluating to `Set`, `Obj`, or `Map` type.
 
 Updates are strict, meaning that for addition and assignment, the element,
 attribute, or key value must not already be present; while for removal and
-deletion, the element, attribute, or key value must be present. The following
-additional set and map updates are allowed, where strictness is not required.
+deletion, the element, attribute, or key value must be present. If the
+`strict_rewriting` option is used, IncOQ will rewrite updates to ensure that
+this is the case, and the user need not worry about whether elements, keys,
+or attributes are or are not present. The following additional set and map
+updates are allowed, where strictness is not required.
 
   - `e.clear()`, `e1.update(e2)`, `e1.intersection_update(e2)`,
     `e1.difference_update(e2)`, `e1.symmetric_difference_update(e2)`,
@@ -190,8 +193,8 @@ set. It is used as
 Valid global configuration options are as follows. These are also visible by
 running `python -m incoq -h`. Note that when written as annotations, the names
 of these options use underscores, but on the command line they use dashes
-instead. For boolean-valued attributes, use 'true' or 'false' as the value in
-the annotations.
+instead. For boolean-valued attributes, use `'true'` or `'false'` as the value
+in the annotations.
 
 * `verbose`: Output information to stdout about how the transformation is
   proceeding. (default: `'false'`)
@@ -258,6 +261,17 @@ the annotations.
 
 * `costs`: Perform cost analysis and emit cost comments at the top of each
   non-recursive function in the output program. (default: `'true'`)
+
+* `strict_rewriting`: Whether to rewrite updates to ensure strictness; if
+  `'true'`, the input program's updates need not be strict. There will be
+  an additional constant factor overhead in generated code size and running
+  time if this option is used. (default: `'false'`)
+
+* `relation_tuple_flattening`: Whether to rewrite uses of relations in
+  memberships where the left-hand side has a nested tuple structure instead
+  of a flat tuple structure. All left-hand sides of such queries must have
+  the exact same nesting structure; otherwise, the set on the right-hand side
+  should not be treated as a relation. (default: `'true'`)
 
 Valid per-symbol query options are as follows. These can only be entered in
 through a program annotation (or when calling the compiler's invoke() method

@@ -147,6 +147,14 @@ class UtilCase(unittest.TestCase):
             Parser.pe('3 + 4'),
         ]
         self.assertSequenceEqual(parts, exp_parts)
+    
+    def test_get_tupletree(self):
+        tree = Parser.pe('((a, b), c)')
+        names, paths = get_tupletree(tree)
+        exp_names = ['a', 'b', 'c']
+        exp_paths = [[0, 0], [0, 1], [1]]
+        self.assertSequenceEqual(names, exp_names)
+        self.assertSequenceEqual(paths, exp_paths)
 
 
 if __name__ == '__main__':
