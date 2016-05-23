@@ -6,8 +6,7 @@
 """Bridge between frexp testing framework and a Java program for
 running the JQL queries within the actual JQL system.
 
-NOTE: This file is highly dependent on my system-specific paths,
-and on my installations of Cygwin, Java, and JQL.
+NOTE: This file is highly dependent on the paths in config.txt.
 
 We use a custom test runner. The standard test runner uses the
 multiprocessing library to spawn a Python process, and sends the
@@ -25,6 +24,13 @@ from types import SimpleNamespace
 import configparser
 
 
+# Use ';' path separator under windows, and ':' under unix.
+# However, for the PATH variable, even under windows we are using
+# a cygwin shell, so use ':' anyway.
+pathsep = os.pathsep
+PATH_pathsep = ':'
+
+
 class JavaError(subprocess.CalledProcessError):
     
     def __str__(self):
@@ -32,8 +38,6 @@ class JavaError(subprocess.CalledProcessError):
                 'stderr output:\n{}'.format(
                 self.cmd, self.returncode, self.output))
 
-# CLASSPATH is windows-style, but regular PATH is unix-style since
-# it uses cygwin.
 
 def get_config():
     """Read config.txt to determine appropriate environment variables
@@ -55,10 +59,10 @@ def get_config():
     
     ns.working_dir = join(dirname, 'java')
     ns.jql_cmd = join(ns.jql_home, 'bin/jql')
-    ns.path = join(ns.java_home, 'bin') + ':/bin'
+    ns.path = join(ns.java_home, 'bin') + PATH_pathsep + '/bin'
     ns.cmd = [ns.bash_cmd, ns.jql_cmd, '-notracker', '-caching']
-    ns.classpath = ';'.join([ns.jsonsimple_jarpath,
-                             ns.aspectj_jarpath, ns.working_dir])
+    ns.classpath = pathsep.join([ns.jsonsimple_jarpath,
+                                 ns.aspectj_jarpath, ns.working_dir])
     
     return ns
 
@@ -76,7 +80,7 @@ def spawn_java(config, level, cache, verify, dataset):
     
     env = dict(os.environ.items())
     oldpath = env['PATH']
-    newpath = config.path + ':' + oldpath
+    newpath = config.path + PATH_pathsep + oldpath
     env.update({'JQL_HOME': config.jql_home,
                 'ASPECTJ_HOME': config.aspectj_home,
                 'JAVA_HOME': config.java_home,

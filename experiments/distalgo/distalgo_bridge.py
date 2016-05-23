@@ -15,6 +15,9 @@ from os.path import join
 from types import SimpleNamespace
 
 
+pathsep = os.pathsep
+
+
 class DistAlgoError(subprocess.CalledProcessError):
     
     def __str__(self):
@@ -39,7 +42,7 @@ def get_config():
     ns.distalgo_path = pyconf['DISTALGO_PATH']
     
     da_exp_dir = os.path.join(ns.incoq_root, 'experiments/distalgo')
-    ns.pythonpath = (ns.incoq_root + ';' + ns.distalgo_path + ';' +
+    ns.pythonpath = (ns.incoq_root + pathsep + ns.distalgo_path + pathsep +
                      da_exp_dir)
     
     return ns
