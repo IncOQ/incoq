@@ -1,5 +1,6 @@
 """Recompile Distalgo programs."""
 
+import argparse
 import sys
 import os
 from os.path import dirname, join
@@ -84,25 +85,50 @@ def do_tasks(tasks):
     copy(join(benchpath, 'controller.da'), 'controller.da')
 
 
-tasks = [
-#    ('clpaxos/spec', 'clpaxos/clpaxos'),
-#    ('crleader/orig', 'crleader/crleader'),
-#    ('dscrash/spec', 'dscrash/dscrash'),
-#    ('hsleader/spec', 'hsleader/hsleader'),
-#    
-#    ('lamutex/orig', 'lamutex/lamutex_orig'),
-#    ('lamutex/orig', 'lamutex/lamutex_orig_quant',
-#     {'use_table34': True}),
-#    ('lamutex/spec', 'lamutex/lamutex_spec'),
-#    ('lamutex/spec_lam', 'lamutex/lamutex_spec_lam'),
-#    
-#    ('lapaxos/orig', 'lapaxos/lapaxos'),
-#    ('ramutex/spec', 'ramutex/ramutex'),
-#    ('ratoken/spec', 'ratoken/ratoken'),
-#    ('sktoken/orig', 'sktoken/sktoken'),
-#    ('2pcommit/spec', 'tpcommit/tpcommit'),
-#    ('vrpaxos/spec', 'vrpaxos/vrpaxos'),
+all_tasks = [
+    ('clpaxos/spec', 'clpaxos/clpaxos'),
+    ('crleader/orig', 'crleader/crleader'),
+    ('dscrash/spec', 'dscrash/dscrash'),
+    ('hsleader/spec', 'hsleader/hsleader'),
+    
+    ('lamutex/orig', 'lamutex/lamutex_orig'),
+    ('lamutex/orig', 'lamutex/lamutex_orig_quant',
+     {'use_table34': True}),
+    ('lamutex/spec', 'lamutex/lamutex_spec'),
+    ('lamutex/spec_lam', 'lamutex/lamutex_spec_lam'),
+    
+    ('lapaxos/orig', 'lapaxos/lapaxos'),
+    ('ramutex/spec', 'ramutex/ramutex'),
+    ('ratoken/spec', 'ratoken/ratoken'),
+    ('sktoken/orig', 'sktoken/sktoken'),
+    ('2pcommit/spec', 'tpcommit/tpcommit'),
+    ('vrpaxos/spec', 'vrpaxos/vrpaxos'),
 ]
 
-if __name__ == '__main__':
+
+def run(args):
+    parser = argparse.ArgumentParser(prog='recompile.py')
+    parser.add_argument('target_name', nargs='*', default=None)
+    parser.add_argument('--list', action='store_true',
+                        help='show available targets')
+    
+    ns = parser.parse_args(args)
+    
+    if ns.list:
+        print('Available targets:')
+        for task in all_tasks:
+            print('  ' + task[1])
+        return
+    
+    if len(ns.target_name) == 0:
+        print('No targets specified.\n')
+        parser.print_usage()
+        return
+    
+    tasks = [t for t in all_tasks
+               if t[1] in ns.target_name]
     do_tasks(tasks)
+
+
+if __name__ == '__main__':
+    run(sys.argv[1:])
