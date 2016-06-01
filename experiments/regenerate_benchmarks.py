@@ -196,6 +196,7 @@ distalgo_options = {
     'distalgo_mode': 'true',
     'auto_query': 'true',
     'default_impl': 'inc',
+    'strict_rewriting': 'true',
 }
 distalgo_obj_options = distalgo_options.copy()
 distalgo_obj_options.update({

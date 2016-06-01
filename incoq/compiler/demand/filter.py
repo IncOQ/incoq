@@ -125,7 +125,10 @@ class StructureGenerator:
         clause i, over any of the variables listed in in_vars.
         
         If the use_singletag_demand config option is True, only return
-        the last applicable tag.
+        the first applicable tag, i.e., the first tag that was defined
+        for the first in_var. (Using this option implies that all other
+        tags for the same variable will not be used by any filter, and
+        will therefore be pruned.)
         """
         result = []
         for v in in_vars:

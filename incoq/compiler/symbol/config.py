@@ -213,7 +213,8 @@ all_attributes = [
         'default value of demand_set_maxsize to use for all queries'),
     
     BooleanConfigAttribute('use_singletag_demand', 'false',
-        'only use one tag in the definition of each filter'),
+        'only use one tag in the definition of each filter, and do not '
+        'create more than one tag for the same variable'),
     
     BooleanConfigAttribute('unwrap_singletons', 'false',
         'rewrite singleton relations to eliminate unneeded tuples'),
