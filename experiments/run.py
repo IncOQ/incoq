@@ -73,7 +73,7 @@ all_tasks = [
     ('ratoken_rounds',                  distalgo.RATokenRounds()),
     ('sktoken',                         distalgo.SKToken()),
     ('tpcommit',                        distalgo.TPCommit()),
-    ('vrpaxos',                         distalgo.VRPaxos()),
+#    ('vrpaxos',                         distalgo.VRPaxos()),
 ]
 
 all_tasks_dict = dict(all_tasks)

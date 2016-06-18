@@ -266,9 +266,9 @@ distalgo_other_tasks = [
     ('distalgo/tpcommit/tpcommit_inc_in',
      'distalgo/tpcommit/tpcommit_inc_out',
      distalgo_options),
-    ('distalgo/vrpaxos/vrpaxos_inc_in',
-     'distalgo/vrpaxos/vrpaxos_inc_out',
-     distalgo_obj_options),
+#    ('distalgo/vrpaxos/vrpaxos_inc_in',
+#     'distalgo/vrpaxos/vrpaxos_inc_out',
+#     distalgo_obj_options),
 ]
 distalgo_tasks = lamutex_tasks + distalgo_other_tasks
 

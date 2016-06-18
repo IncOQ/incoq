@@ -92,8 +92,8 @@ all_tasks = [
     ('hsleader/spec', 'hsleader/hsleader'),
     
     ('lamutex/orig', 'lamutex/lamutex_orig'),
-    ('lamutex/orig', 'lamutex/lamutex_orig_quant',
-     {'use_table34': True}),
+#    ('lamutex/orig', 'lamutex/lamutex_orig_quant',
+#     {'use_table34': True}),
     ('lamutex/spec', 'lamutex/lamutex_spec'),
     ('lamutex/spec_lam', 'lamutex/lamutex_spec_lam'),
     
@@ -102,7 +102,7 @@ all_tasks = [
     ('ratoken/spec', 'ratoken/ratoken'),
     ('sktoken/orig', 'sktoken/sktoken'),
     ('2pcommit/spec', 'tpcommit/tpcommit'),
-    ('vrpaxos/spec', 'vrpaxos/vrpaxos'),
+#    ('vrpaxos/spec', 'vrpaxos/vrpaxos'),
 ]
 
 
@@ -111,6 +111,8 @@ def run(args):
     parser.add_argument('target_name', nargs='*', default=None)
     parser.add_argument('--list', action='store_true',
                         help='show available targets')
+    parser.add_argument('--all', action='store_true',
+                        help='build all tasks')
     
     ns = parser.parse_args(args)
     
@@ -120,13 +122,22 @@ def run(args):
             print('  ' + task[1])
         return
     
-    if len(ns.target_name) == 0:
+    if len(ns.target_name) == 0 and not ns.all:
         print('No targets specified.\n')
         parser.print_usage()
         return
     
-    tasks = [t for t in all_tasks
-               if t[1] in ns.target_name]
+    if ns.all:
+        tasks = all_tasks
+    else:
+        tasks_by_name = {t[1]: t for t in all_tasks}
+        tasks = []
+        for t_name in ns.target_name:
+            if t_name in tasks_by_name:
+                tasks.append(tasks_by_name[t_name])
+            else:
+                raise ValueError('Unknown task "{}"'.format(t_name))
+    
     do_tasks(tasks)
 
 
